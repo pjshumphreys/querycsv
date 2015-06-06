@@ -1,0 +1,4 @@
+select c,abc, def, b 
+from 'test.csv' as test
+join 'test2.csv' as test2
+where klm='b'
