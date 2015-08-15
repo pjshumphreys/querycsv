@@ -280,7 +280,7 @@ int normaliseAndGet(
 
         //put the whole byte sequence into the buffer
         reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
-        memcpy(codepointBuffer+(bufferLength*sizeof(long)), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
+        memcpy(&(codepointBuffer[bufferLength]), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
         bufferLength += lookupresult->length;
 
         continue;
@@ -290,14 +290,15 @@ int normaliseAndGet(
         if((entry = isinHash2(codepoint)) == NULL) {
           //the codepoint we found was not decomposable. just put it in the buffer
           reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
-          codepointBuffer[bufferLength++] = codepoint;
+          codepointBuffer[bufferLength] = codepoint;
+          bufferLength += 1;
         }
         else {
           //a decomposable codepoint was found in hash 2.
 
           //put the whole byte sequence into the buffer
           reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
-          memcpy(codepointBuffer+(bufferLength*sizeof(long)), (void*)(entry->codepoints), (entry->length)*sizeof(long));
+          memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(long));
           bufferLength += entry->length;
           entry = NULL;
         }
@@ -507,41 +508,45 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
           //read a character from string 2
           char2 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))(&offset2, str2, 0, &bytesMatched2, get2);
          
-          if(
-              char1found == 1 || (
-                char1found == 0 &&
-                (char1 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))(&offset1, str1, 0, &bytesMatched1, get1)) != 0 &&
-                //try getting the entries from the lookup table. this will return NULL if not available
-                (entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1)) &&
-                (entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2))
-              )
-          ) {
-            //compare the lookup table entries
-        
-            if(entry1->script == entry2->script) {
-              if(caseSensitive) {
-                comparison = entry1->index - entry2->index;
-              }
-              else {
-                comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
-              }
-            
-              if(comparison != 0) {
-                return comparison > 0 ? 1 : -1;
-              }
-            }
-            else {
-              //scripts are ordered
-              return entry1->script > entry2->script ? 1 : -1;
-            }
-          }
-          else {
-            //compare codepoints
-            if(char1 != char2) {
-              return (char1 > char2) ? 1 : -1;
-            }
+          if(char1found == 0) {
+            char1 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))(&offset1, str1, 0, &bytesMatched1, get1);
           }
 
+          if(entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1)) {
+            if (entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2)) {
+
+              //compare the lookup table entries
+              if(entry1->script == entry2->script) {
+                if(caseSensitive) {
+                  comparison = entry1->index - entry2->index;
+                }
+                else {
+                  comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
+                }
+              
+                if(comparison != 0) {
+                  return comparison > 0 ? 1 : -1;
+                }
+              }
+              else {
+                //scripts are ordered
+                return entry1->script > entry2->script ? 1 : -1;
+              }
+            }
+            else if(entry1->script != char2) {
+              //compare codepoints
+              return (entry1->script > char2) ? 1 : -1;
+            }
+          }
+          else if ((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2)) && char1 != entry2->script) {
+            //compare codepoints
+            return (char1 > entry2->script) ? 1 : -1;
+          }
+          else if(char1 != char2) {
+            //compare codepoints
+            return (char1 > char2) ? 1 : -1;
+          }
+          
           offset1+=bytesMatched1;
           offset2+=bytesMatched2;
 
@@ -608,12 +613,20 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
 
       //parse numbers
       else if(
-          (!(comparison = FALSE) && *offset1 >= '0' && *offset1 <= '9' && (comparison = TRUE)) ||
-          (firstChar && (*offset1 == '.' || *offset1 == '-' || *offset1 == '+'))
+          (*offset1 >= '0' && *offset1 <= '9') ||
+          (firstChar && (
+          (*offset1 == '.' && (*(offset1+1) >= '0' && *(offset1+1) <= '9')) ||
+          (*offset1 == '-' && ((*(offset1+1) >= '0' && *(offset1+1) <= '9') || (*(offset1+1) == '.' && (*(offset1+2) >= '0' && *(offset1+2) <= '9')))) ||
+          (*offset1 == '+' && ((*(offset1+1) >= '0' && *(offset1+1) <= '9') || (*(offset1+1) == '.' && (*(offset1+2) >= '0' && *(offset1+2) <= '9'))))
+          ))
       ) {
         if (
-            (*offset2 >= '0' && *offset2 <= '9') ||
-            (firstChar && (*offset2 == '.' || *offset2 == '-' || *offset2 == '+'))
+          (*offset2 >= '0' && *offset2 <= '9') ||
+          (firstChar && (
+          (*offset2 == '.' && (*(offset2+1) >= '0' && *(offset2+1) <= '9')) ||
+          (*offset2 == '-' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9')))) ||
+          (*offset2 == '+' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9'))))
+          ))
         ) {
           dbl1 = strtod((char *)offset1, (char **)&offset1);
           dbl2 = strtod((char *)offset2, (char **)&offset2);
@@ -623,22 +636,19 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
             return (dbl1 < dbl2) ? -1 : 1;
           }
         }
-        else if (comparison) {
-          //non numbers sort first
+        else {
           return 1;
         }
-        else {
-          //binary comparison on everything else
-          if(*offset1 != *offset2) {
-            return (*offset1 > *offset2) ? 1 : -1;
-          }
-
-          //update the offsets
-          offset1++;
-          offset2++;
-        }
       }
-      else if (*offset2 >= '0' && *offset2 <= '9') {
+      else if (
+          (*offset2 >= '0' && *offset2 <= '9') ||
+          (firstChar && (
+          (*offset2 == '.' && (*(offset2+1) >= '0' && *(offset2+1) <= '9')) ||
+          (*offset2 == '-' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9')))) ||
+          (*offset2 == '+' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9'))))
+          ))
+        ) {
+
         //non numbers sort first
         return -1;
       }
@@ -698,8 +708,8 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
               }
             }
             //compare codepoints
-            else if(char1 != char2) {
-              return (char1 > char2) ? 1 : -1;
+            else if(entry1->script != char2) {
+              return (entry1->script > char2) ? 1 : -1;
             }
 
             offset1 += bytesMatched1;
@@ -763,8 +773,13 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
           }
         }
         else if(char2 != 0x34F) {
-          //compare the codepoints
-          if(char1 != char2) {
+          if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2))){
+            if(char1 != entry2->script) {
+              return (char1 > entry2->script) ? 1: -1;
+            }
+          }
+          //compare codepoints
+          else if(char1 != char2) {
             return (char1 > char2) ? 1: -1; 
           }
 
@@ -861,8 +876,8 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
           }
         }
         //compare the codepoints
-        else if(char1 != char2) {
-          return (char1 > char2) ? 1: -1; 
+        else if(entry1->script != char2) {
+          return (entry1->script > char2) ? 1: -1; 
         }
 
         offset1 += bytesMatched1;
@@ -932,7 +947,11 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
       if(char2 != 0x34F) {
         //the first or both characters were not in the lookup table.
         //compare the code point then successive combining characters
-        if(char1 != char2) {
+        if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2)) && char1 != entry2->script) {
+          return (char1 > entry2->script) ? 1: -1; 
+        }
+        //compare codepoints
+        else if(char1 != char2) {
           return (char1 > char2) ? 1: -1; 
         }
 

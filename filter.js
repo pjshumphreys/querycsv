@@ -82,7 +82,7 @@ hash2 = hash2.concat(weired).sort(function(a, b){
 //*/
 process.stdout.write('[\n');
 for(i = 0, len1 = hash2.length; i < len1;i++) {
-  process.stdout.write(JSON.stringify(hash2[i][0], 1)+(i == len1-1?"\n":",\n"));
+  process.stdout.write(JSON.stringify(hash2[i], 1)+(i == len1-1?"\n":",\n"));
 }
 process.stdout.write(']');
 

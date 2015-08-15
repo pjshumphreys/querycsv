@@ -99,7 +99,7 @@ if (!Array.prototype.filter) {
 //read file as JSON, parse it
 var fs = require('fs');
 
-var data = JSON.parse(fs.readFileSync("./filtered3.json", 'utf8'));
+var data = JSON.parse(fs.readFileSync("./filtered4.json", 'utf8'));
 
 var i, len;
 
