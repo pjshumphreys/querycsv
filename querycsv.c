@@ -497,12 +497,23 @@ int getCsvColumn(
   return FALSE;
 }
 
-void stringGet(unsigned char **str, struct resultColumnValue* field, FILE ** file) {
-  fseek(*file, field->startOffset, SEEK_SET);
-  if(fread(*str, 1, field->length, *file) != field->length) {
+void stringGet(unsigned char **str, struct resultColumnValue* field) {
+  long offset = ftell(*(field->source));
+
+  reallocMsg("alloc failed", (void**)str, field->length+1);
+
+  fseek(*(field->source), field->startOffset, SEEK_SET);
+  fflush(*(field->source));
+  
+  if(fread(*str, 1, field->length, *(field->source)) != field->length) {
     fputs("didn't read string properly\n", stderr);
     exit(EXIT_FAILURE);
   }
+
+  fseek(*(field->source), offset, SEEK_SET);
+  fflush(*(field->source));
+  
+  (*str)[field->length] = '\0';
 }
 
 FILE* openTemp(char** name) {
@@ -554,6 +565,8 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   query->parseMode = 0;   //specify we want to just read the file data for now
   query->hasGrouping = FALSE;
   query->columnCount = 0;
+  query->hiddenColumnCount = 0;
+  query->groupCount = 0;
   query->intoFileName = NULL;
   query->firstInputTable = NULL;
   query->secondaryInputTable = NULL;
@@ -561,6 +574,7 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   query->firstResultColumn = NULL;
   query->joinsAndWhereClause = NULL;
   query->orderByClause = NULL;
+  query->groupByClause = NULL;
   query->scratchpadName = NULL;
   query->scratchpad = openTemp(&(query->scratchpadName));
 
@@ -680,7 +694,7 @@ void parseQuery(char* queryFileName, struct qryData * query) {
 
   currentResultColumn = query->firstResultColumn;
 
-  //fix the column count value just in case it's wrong
+  //fix the column count value just in case it's wrong (e.g. if there were hidden columns)
   query->columnCount = currentResultColumn->resultColumnIndex+1; 
 
   // cut the circularly linked list of result columns
@@ -691,6 +705,13 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   if(query->orderByClause != NULL) {
     currentSortingList = query->orderByClause;
     query->orderByClause = query->orderByClause->nextInList;
+    currentSortingList->nextInList = NULL;
+  }
+
+  //cut the circularly linked list of group by expressions
+  if(query->groupByClause != NULL) {
+    currentSortingList = query->groupByClause;
+    query->groupByClause = query->groupByClause->nextInList;
     currentSortingList->nextInList = NULL;
   }
 
@@ -721,7 +742,7 @@ void initResultSet(
 
 void appendToResultSet(
     struct qryData * query,
-    struct resultColumnValue** match,
+    struct resultColumnValue* match,
     struct resultSet* results
   ) {
 
@@ -733,7 +754,7 @@ void appendToResultSet(
   
   memcpy(
       &(results->records[results->recordCount*query->columnCount]),
-      *match,
+      match,
       (query->columnCount)*sizeof(struct resultColumnValue)
     );
 
@@ -814,6 +835,10 @@ void getValue(
       expressionPtr->value = strdup(calculatedField->value);
 
       strFree(&(calculatedField->value));
+    } break;
+
+    case EXP_GROUP: {
+      expressionPtr->value = strdup(*((char **)expressionPtr->unionPtrs.voidPtr));
     } break;
 
     case EXP_UPLUS: {
@@ -998,7 +1023,12 @@ int walkRejectRecord(
   return FALSE;
 }
 
-void getCalculatedColumns(struct qryData* query, struct resultColumnValue* match) {
+void getCalculatedColumns(
+    struct qryData* query,
+    struct resultColumnValue* match,
+    int runAggregates
+  ) {
+
   int i, j;
   struct columnReference* currentReference;
   struct resultColumn* currentResultColumn;
@@ -1014,10 +1044,12 @@ void getCalculatedColumns(struct qryData* query, struct resultColumnValue* match
       while(currentReference != NULL) {
         if(
             currentReference->referenceType == REF_EXPRESSION &&
+            currentReference->reference.calculatedPtr.expressionPtr->containsAggregates == runAggregates &&
+
             //get the current result column
             (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL
           ) {
-
+            
           //start setting column value fields
           j = currentResultColumn->resultColumnIndex;
           match[j].isQuoted = FALSE;
@@ -1041,6 +1073,7 @@ void getCalculatedColumns(struct qryData* query, struct resultColumnValue* match
           //free the expression value for this match
           strFree(&(currentReference->reference.calculatedPtr.expressionPtr->value));
         }
+	  
         currentReference = currentReference->nextReferenceWithName;
       }
 
@@ -1154,7 +1187,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
         currentInputTable->noLeftRecord = FALSE;
 
         //do calculated columns
-        getCalculatedColumns(query, match);
+        getCalculatedColumns(query, match, FALSE);
 
         if(!walkRejectRecord(
           currentInputTable->fileIndex+1, //+1 means all tables and *CALCULATED* columns
@@ -1221,6 +1254,10 @@ void cleanup_expression(struct expression * currentExpression) {
 
       case EXP_COLUMN:
         //the memory used by the input column will be freed elsewhere
+      break;
+
+      case EXP_GROUP:
+        //the memory used here is cleaned up elsewhere
       break;
 
       case EXP_LITERAL:
@@ -1341,6 +1378,8 @@ void cleanup_query(struct qryData * query) {
 
   cleanup_resultColumns(query->firstResultColumn);
 
+  cleanup_orderByClause(query->groupByClause);
+
   cleanup_orderByClause(query->orderByClause);
 
   cleanup_expression(query->joinsAndWhereClause);
@@ -1353,10 +1392,6 @@ void cleanup_query(struct qryData * query) {
   fclose(query->scratchpad);
   unlink(query->scratchpadName);
   free(query->scratchpadName);
-}
-
-void cleanup_results(struct resultSet* results) {
-  free(results->records);
 }
 
 //compares two whole records to one another. multiple columns can be involved in this comparison.
@@ -1412,7 +1447,280 @@ int recordCompare(const void * a, const void * b, void * c) {
   return 0;
 }
 
-int outputResults(struct qryData * query, struct resultSet * results, struct resultColumnValue* match) {
+void updateRunningCounts(struct qryData * query, struct resultColumnValue * match) {
+  struct columnRefHashEntry* currentHashEntry;
+  struct columnReference* currentReference;
+  struct resultColumn* currentResultColumn;
+  double tempValue = 0;
+  char* tempString = NULL;
+  char* tempString2 = NULL;
+
+  int i, j;
+
+  query->groupCount++;
+
+  //for each column in the output result set ...
+  for(i = 0; i < query->columnReferenceHashTable->size; i++) {
+    currentHashEntry = query->columnReferenceHashTable->table[i];
+
+    while(currentHashEntry != NULL) {
+      
+      currentReference = currentHashEntry->content;
+
+      while(currentReference != NULL) {
+        //... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way
+        if(
+            currentReference->referenceType == REF_EXPRESSION &&
+            (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
+            currentResultColumn->groupType != GRP_NONE
+          ) {
+          stringGet(&tempString, &(match[currentResultColumn->resultColumnIndex]));
+
+          switch(currentResultColumn->groupType) {
+            case GRP_COUNT:
+              if(query->groupCount > 1) {
+                for(j = 1; j < query->groupCount; j++) {
+                  stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]));
+
+                  if(strCompare(
+                    &tempString,
+                    &tempString2,
+                    TRUE,
+                    (void (*)())getUnicodeChar,
+                    (void (*)())getUnicodeChar
+                  ) == 0) {
+                    strFree(&tempString2);
+                    break;
+                  }
+
+                  strFree(&tempString2);
+                }
+                if(j == query->groupCount) {
+                  currentResultColumn->groupNum++;
+                }
+              }
+              else {
+                currentResultColumn->groupNum++;
+              }
+            break;
+
+            case GRP_AVG:
+            case GRP_SUM:
+              currentResultColumn->groupNum += strtod(tempString, NULL);
+            break;
+
+            case GRP_CONCAT:
+              snprintf_d(
+                &(currentResultColumn->groupText),
+                "%s%s",
+                currentResultColumn->groupText,
+                tempString
+              );
+            break;
+
+            case GRP_MIN:
+              if(currentResultColumn->groupText == NULL || strCompare(
+                  &tempString,
+                  &(currentResultColumn->groupText),
+                  TRUE,
+                  (void (*)())getUnicodeChar,
+                  (void (*)())getUnicodeChar
+                ) == -1) {
+
+                strFree(&(currentResultColumn->groupText));
+                currentResultColumn->groupText = tempString;
+                tempString = NULL;
+                currentReference = currentReference->nextReferenceWithName;
+                continue;
+              }
+            break;
+              
+            case GRP_MAX:
+              if(currentResultColumn->groupText == NULL || strCompare(
+                  &tempString,
+                  &(currentResultColumn->groupText),
+                  TRUE,
+                  (void (*)())getUnicodeChar,
+                  (void (*)())getUnicodeChar
+                ) == 1) {
+
+                strFree(&(currentResultColumn->groupText));
+                currentResultColumn->groupText = tempString;
+                tempString = NULL;
+                currentReference = currentReference->nextReferenceWithName;
+                continue;
+              }
+            break;
+          }
+
+          strFree(&tempString);
+        }
+        
+        currentReference = currentReference->nextReferenceWithName;
+      }
+
+      //go to the next reference in the hash table
+      currentHashEntry = currentHashEntry->nextReferenceInHash;
+    }
+  }
+}
+
+void getGroupedColumns(
+    struct qryData * query
+  ) {
+  struct columnRefHashEntry* currentHashEntry;
+  struct columnReference* currentReference;
+  struct resultColumn* currentResultColumn;
+
+  int i;
+
+  //for each column in the output result set ...
+  for(i = 0; i < query->columnReferenceHashTable->size; i++) {
+    currentHashEntry = query->columnReferenceHashTable->table[i];
+
+    while(currentHashEntry != NULL) {
+      
+      currentReference = currentHashEntry->content;
+
+      while(currentReference != NULL) {
+        //... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way
+        if(
+            currentReference->referenceType == REF_EXPRESSION &&
+            (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
+            currentResultColumn->groupType != GRP_NONE
+          ) {
+
+          //convert the aggregation types that need it back into a string
+          switch(currentResultColumn->groupType) {
+            case GRP_AVG:
+              currentResultColumn->groupNum = currentResultColumn->groupNum/query->groupCount;
+            case GRP_COUNT:
+            case GRP_SUM:
+              snprintf_d(&(currentResultColumn->groupText), "%g", currentResultColumn->groupNum);
+            break;
+          }
+        }
+        
+        currentReference = currentReference->nextReferenceWithName;
+      }
+
+      //go to the next reference in the hash table
+      currentHashEntry = currentHashEntry->nextReferenceInHash;
+    }
+  }
+}
+
+void cleanup_groupedColumns(
+    struct qryData * query
+  ) {
+  struct columnRefHashEntry* currentHashEntry;
+  struct columnReference* currentReference;
+  struct resultColumn* currentResultColumn;
+
+  int i;
+
+  query->groupCount = 0;
+
+  //for each column in the output result set ...
+  for(i = 0; i < query->columnReferenceHashTable->size; i++) {
+    currentHashEntry = query->columnReferenceHashTable->table[i];
+
+    while(currentHashEntry != NULL) {
+      
+      currentReference = currentHashEntry->content;
+
+      while(currentReference != NULL) {
+        //... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way
+        if(
+            currentReference->referenceType == REF_EXPRESSION &&
+            (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
+            currentResultColumn->groupType != GRP_NONE
+          ) {
+          strFree(&(currentResultColumn->groupText));
+          currentResultColumn->groupNum = 0;
+        }
+        
+        currentReference = currentReference->nextReferenceWithName;
+      }
+
+      //go to the next reference in the hash table
+      currentHashEntry = currentHashEntry->nextReferenceInHash;
+    }
+  }
+}
+
+void groupResults(struct qryData * query, struct resultSet * results) {
+  struct resultSet resultsOrig;
+  struct resultColumnValue * match;
+  struct resultColumnValue * previousMatch;
+
+  int i, len;
+
+  //backup the original result set
+  memcpy(&resultsOrig, results, sizeof(struct resultSet));
+
+  //empty the result set
+  results->recordCount = 0;
+  results->records = NULL;
+
+ 
+  //sort the records according to the group by clause
+  if(query->groupByClause != NULL) {
+    qsort_s(
+      (void*)resultsOrig.records,
+      resultsOrig.recordCount,
+      (query->columnCount)*sizeof(struct resultColumnValue),
+      recordCompare,
+      (void*)query->groupByClause
+    );
+  }
+ 
+  //keep a reference to the current record 
+  match = resultsOrig.records;
+
+  //store a copy of the first record and initialise the running totals
+  updateRunningCounts(query, match);
+
+  //loop over each record in the result set, other than the first one
+  for (i = 1, len = resultsOrig.recordCount; i <= len; i++) {
+    previousMatch = match;
+    match = &(resultsOrig.records[i*query->columnCount]);
+
+    //if the current record to look at is identical to the previous one
+    if(
+        i == len ||
+        query->groupByClause == NULL ||   //if no group by clause then every record is its own group
+        recordCompare(
+          (void *)previousMatch,
+          (void *)match,
+          (void*)query->groupByClause
+        ) != 0
+      ) {
+      //fix up the calculated columns that need it
+      getGroupedColumns(query);
+      
+      //calculate remaining columns that make use of aggregation
+      getCalculatedColumns(query, previousMatch, TRUE);
+
+      //free the group text strings (to prevent heap fragmentation)
+      cleanup_groupedColumns(query);
+
+      //append the record to the new result set
+      appendToResultSet(query, previousMatch, results);
+    }
+    
+    if(i < len) {
+      updateRunningCounts(query, match);
+    }
+  }
+  
+  //free the old result set
+  free(resultsOrig.records);
+}
+
+int outputResults(struct qryData * query, struct resultSet * results) {
+  struct resultColumnValue* match;
+
   int recordsOutput, i, j, len, firstColumn = TRUE;
   FILE * outputFile = NULL;
   struct resultColumn* currentResultColumn;
@@ -1446,7 +1754,8 @@ int outputResults(struct qryData * query, struct resultSet * results, struct res
         firstColumn = FALSE;
       }
 
-      fputs(currentResultColumn->resultColumnName, outputFile);
+      //strip over the leading underscore
+      fputs((currentResultColumn->resultColumnName)+1, outputFile);
     }
   }
   
@@ -1467,9 +1776,7 @@ int outputResults(struct qryData * query, struct resultSet * results, struct res
         currentResultColumn = currentResultColumn->nextColumnInResults
       ) {
 
-      if(currentResultColumn->isHidden == FALSE) {
-        match = &(results->records[(i*(query->columnCount))+j]);
-        
+      if(currentResultColumn->isHidden == FALSE) {       
         if (!firstColumn) {
           fputs(", ", outputFile);
         }
@@ -1477,6 +1784,8 @@ int outputResults(struct qryData * query, struct resultSet * results, struct res
           firstColumn = FALSE;
         }
 
+        match = &(results->records[(i*(query->columnCount))+j]);
+ 
         reallocMsg(
           "could not allocate enough memory for string",
           (void**)&string,
@@ -1538,17 +1847,22 @@ int runQuery(char* queryFileName) {
   while(getMatchingRecord(&query, match)) {
     //if there is no sorting of results required and the user didn't
     //specify an output file then output the result to the screen
-    if(query.orderByClause == NULL && query.intoFileName == NULL) {
+    if(
+        query.orderByClause == NULL &&
+        query.groupByClause == NULL &&
+        query.intoFileName == NULL
+      ) {
+        
       //print record to stdout
     }
 
     //add another record to the result set 
-    appendToResultSet(&query, &match, &results);
+    appendToResultSet(&query, match, &results);
   }
 
   //perform group by operations if it was specified in the query
   if(query.hasGrouping == TRUE) {
-
+    groupResults(&query, &results);
   }
 
   //sort the offsets file according to query specification
@@ -1563,13 +1877,13 @@ int runQuery(char* queryFileName) {
   }
 
   //output the results to the specified file
-  recordsOutput = outputResults(&query, &results, match);
+  recordsOutput = outputResults(&query, &results);
   
   //free the query data structures
   cleanup_query(&query);
 
   //free the result set data structures
-  cleanup_results(&results);
+  free(results.records);
 
   free(match);
   

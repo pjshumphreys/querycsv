@@ -28,7 +28,6 @@
 //translatable strings
 #include "en_gb.h"
 
-
 //sub expression types
 #define EXP_COLUMN 1
 #define EXP_LITERAL 2
@@ -51,16 +50,30 @@
 #define EXP_GTE 19
 #define EXP_IN 20
 #define EXP_NOTIN 21
+#define EXP_GROUP 22
 
 //identifier reference types
 #define REF_COLUMN 1
 #define REF_EXPRESSION 2
+
+//grouping types
+#define GRP_NONE 0
+#define GRP_AVG 1
+#define GRP_MIN 2
+#define GRP_MAX 3
+#define GRP_SUM 4
+#define GRP_COUNT 5
+#define GRP_CONCAT 6
+
 
 //structures
 struct resultColumn {
   int resultColumnIndex;
   int isHidden;
   int isCalculated;
+  int groupType;
+  char * groupText;
+  double groupNum;
   char * resultColumnName;
   struct resultColumn* nextColumnInstance;
   struct resultColumn* nextColumnInResults;
@@ -96,6 +109,7 @@ struct expression {
   int type;
   int minTable;
   int minColumn;
+  int containsAggregates;
   union {
     struct {
       struct expression * leftPtr;
@@ -145,6 +159,8 @@ struct qryData {
   int parseMode;  //0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure
   int hasGrouping;
   int columnCount;
+  int hiddenColumnCount;
+  int groupCount;
   char* intoFileName;
   struct columnReferenceHash* columnReferenceHashTable; //used to get a reference to an input column given a column name
   struct inputTable* firstInputTable;
@@ -152,6 +168,7 @@ struct qryData {
   struct resultColumn * firstResultColumn;
   struct expression* joinsAndWhereClause;
   struct sortingList* orderByClause;
+  struct sortingList* groupByClause;
   int currentInputTable;
   int currentInputColumn;
   FILE* scratchpad;
@@ -198,10 +215,11 @@ int parse_column_ref_unsuccessful(
     char* columnName
   );
 
-void parse_exp_commalist(
+struct resultColumn* parse_exp_commalist(
     struct qryData* queryData,
     struct expression* expressionPtr,
-    char* outputColumnName
+    char* outputColumnName,
+    int makeHidden
   );
 
 struct expression* parse_scalar_exp_literal(
@@ -243,6 +261,17 @@ void parse_ordering_spec(
     struct qryData* queryData,
     struct expression *expressionPtr,
     int isDescending
+  );
+
+void parse_grouping_spec(
+    struct qryData* queryData,
+    struct expression *expressionPtr
+  );
+
+struct expression* parse_function_ref(
+    struct qryData* queryData,
+    long aggregationType,
+    struct expression *expressionPtr
   );
 
 struct columnReferenceHash* create_hash_table(int size);

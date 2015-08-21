@@ -54,7 +54,7 @@ struct hash2Entry* isinHash2(long codepoint) {
   return (struct hash2Entry*)bsearch(
       (const void*)&codepoint,
       (const void*)&hash2,
-      5730,
+      5863,
       sizeof(struct hash2Entry),
       &hashCompare
     );

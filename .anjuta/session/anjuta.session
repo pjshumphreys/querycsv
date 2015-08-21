@@ -3,13 +3,13 @@ Maximized=1
 Geometry=1366x717+0+27
 
 [File Loader]
-Files=../../strcomp.c#105%%%../../Makefile#6%%%../../en_gb.h#15
+Files=../../strcomp.c#684%%%../../Makefile#6%%%../../en_gb.h#15%%%../../querycsv.c#1522
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=
+Program arguments=--run test11.qry
 Program uri=../../querycsv
 Run in terminal=2
 Working directories=../../.
@@ -24,3 +24,8 @@ BuildArgs/Default=--enable-maintainer-mode
 BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
 BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
+
+[Debugger]
+Watch=currentResultColumn->resultColumnIndex%%%match[currentResultColumn->resultColumnIndex]
+Breakpoint=1:../../querycsv.c:1521:0:
+Stop at beginning=2

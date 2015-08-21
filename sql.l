@@ -19,11 +19,12 @@
 
 (?i:ALL)		TOK(ALL)
 (?i:AND)		TOK(AND)
-(?i:AVG)		{ yylval->intval = 0;return AMMSC; }
-(?i:MIN)		{ yylval->intval = 1;return AMMSC; }
-(?i:MAX)		{ yylval->intval = 2;return AMMSC; }
-(?i:SUM)		{ yylval->intval = 3;return AMMSC; }
-(?i:COUNT)		{ yylval->intval = 4;return AMMSC; }
+(?i:AVG)		{ yylval->intval = GRP_AVG;return AMMSC; }
+(?i:MIN)		{ yylval->intval = GRP_MIN;return AMMSC; }
+(?i:MAX)		{ yylval->intval = GRP_MAX;return AMMSC; }
+(?i:SUM)		{ yylval->intval = GRP_SUM;return AMMSC; }
+(?i:COUNT)		{ yylval->intval = GRP_COUNT;return AMMSC; }
+(?i:GROUP_CONCAT)		{ yylval->intval = GRP_CONCAT;return AMMSC; }
 (?i:ANY)		TOK(ANY)
 (?i:AS)			TOK(AS)
 (?i:ASC)		TOK(ASC)
@@ -121,21 +122,24 @@
 	/* names */
 
 [A-Za-z][A-Za-z0-9_]*	{
-    yylval->strval = strdup(yytext);
+    yylval->strval = NULL;
+    snprintf_d(&(yylval->strval), "_%s", yytext);
     return NAME;
 }
 
 \"([^\"]|\"\")+\" {
+    yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
-    yylval->strval = strReplace("\"\"", "\"", yytext+1);
+    yylval->strval = strReplace("\"\"", "\"", yytext);
     return NAME;
 }
 
 \"([^\"]|\"\")*$	{	yyerror2(yylineno, yytext); }
 
 \[([^\]]|\]\])+\] {
+    yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
-    yylval->strval = strReplace("\]\]", "\]", yytext+1);
+    yylval->strval = strReplace("\]\]", "\]", yytext);
     return NAME;
 }
 

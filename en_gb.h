@@ -13,7 +13,7 @@
 #define TDB_LEX_UNTERMINATED "Unterminated string on line %d (%s)\n", lineno, text
 #define TDB_MALLOC_FAILED "Could not allocate needed memory\n"
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
-#define TDB_UNTITLED_COLUMN "Column %d", queryData->columnCount
+#define TDB_UNTITLED_COLUMN "_Column %d", queryData->columnCount
 
 #define TDB_INVALID_COMMAND_LINE "Invalid command line options\nUsage: querycsv option\nOptions:\n--run queryfile                       Run the select statement in the file\n                                      named queryfile\n--columns csvfile                     Outputs the number of columns the the\n                                      csv file named csvfile\n--next csvfile previousoffset         Outputs the file offset of the start of\n                                      the next record in the csv file csvfile\n                                      after the previous offset. outputs the\n                                      first record offset if previousoffset is\n                                      0\n--value csvfile offset column         Outputs the text of field column in the\n                                      record starting at offset in the csv\n                                      file csvfile.\n--date                                Outputs the current date in ISO-8601\n                                      format, including the UTC offset. The\n                                      UTC offset can be changed by setting\n                                      the TZ environment variable"
 

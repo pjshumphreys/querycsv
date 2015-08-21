@@ -91,6 +91,8 @@ void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileNam
 
     recordContinues = getCsvColumn(&(newTable->fileStream), &columnText, &columnLength, NULL, NULL);
 
+    snprintf_d(&columnText, "_%s", columnText);
+
     //test whether a column with this name already exists in the hashtable
     currentReference = lookup_string(queryData->columnReferenceHashTable, columnText);
 
@@ -179,7 +181,8 @@ struct resultColumn* parse_new_output_column(
     struct qryData * queryData,
     int isHidden2,
     int isCalculated2,
-    char * resultColumnName2
+    char * resultColumnName2,
+    int aggregationType
 ) {
   struct resultColumn* newResultColumn = NULL;
 
@@ -203,6 +206,10 @@ struct resultColumn* parse_new_output_column(
   newResultColumn->isCalculated = isCalculated2;
   newResultColumn->resultColumnName = resultColumnName2;
   newResultColumn->nextColumnInstance = NULL;   //TODO: this field needs to be filled out properly
+
+  newResultColumn->groupType = aggregationType;
+  newResultColumn->groupText = NULL;
+  newResultColumn->groupNum = 0;
 
   return newResultColumn;
 }
@@ -273,7 +280,8 @@ int parse_column_ref_unsuccessful(
         queryData,
         /*isHidden = */TRUE,
         /*isCalculated = */FALSE,
-        /*resultColumnName = */NULL
+        /*resultColumnName = */NULL,
+        /*aggregationType = */GRP_NONE
       );
   }
   
@@ -281,7 +289,13 @@ int parse_column_ref_unsuccessful(
   return currentReference == NULL;
 }
 
-void parse_exp_commalist(struct qryData* queryData, struct expression* expressionPtr, char* resultColumnName) {
+struct resultColumn* parse_exp_commalist(
+    struct qryData* queryData,
+    struct expression* expressionPtr,
+    char* resultColumnName,
+    int aggregationType
+  ) {
+
   struct columnReference* currentReference = NULL;
   struct columnReference* newReference = NULL;
   struct columnReference* newReference2 = NULL;
@@ -289,21 +303,33 @@ void parse_exp_commalist(struct qryData* queryData, struct expression* expressio
 
   //ensure we have finished opening all the files we need
   if(queryData->parseMode != 1) {
-    return;
+    return NULL;
   }
 
   //increment the column count for display purposes
-  queryData->columnCount++;
+  if(aggregationType == GRP_NONE) {
+    queryData->columnCount++;
   
-  //if the expression wasn't given a name then provide it with a default one
-  if(resultColumnName == NULL) {
-    if(expressionPtr->type == EXP_COLUMN) {
-      if((resultColumnName = strdup(((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->fileColumnName)) == NULL) {
+    //if the expression wasn't given a name then provide it with a default one
+    if(resultColumnName == NULL) {
+      if(expressionPtr->type == EXP_COLUMN) {
+        if((resultColumnName = strdup(((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->fileColumnName)) == NULL) {
+          fputs(TDB_MALLOC_FAILED, stderr);
+          exit(EXIT_FAILURE);
+        }
+      }
+      else if(snprintf_d(&resultColumnName, TDB_UNTITLED_COLUMN) == FALSE) {
         fputs(TDB_MALLOC_FAILED, stderr);
         exit(EXIT_FAILURE);
       }
     }
-    else if(snprintf_d(&resultColumnName, TDB_UNTITLED_COLUMN) == FALSE) {
+  }
+  else {
+    free(resultColumnName);
+
+    queryData->hiddenColumnCount++;
+
+    if(snprintf_d(&resultColumnName, "%d", queryData->hiddenColumnCount) == FALSE) {
       fputs(TDB_MALLOC_FAILED, stderr);
       exit(EXIT_FAILURE);
     }
@@ -370,11 +396,11 @@ void parse_exp_commalist(struct qryData* queryData, struct expression* expressio
   {
     //if the expression is just a singular reference of a column in one of the csv files,
     //then use it as a non calculated column
-    if(expressionPtr->type == EXP_COLUMN) {
+    if(expressionPtr->type == EXP_COLUMN && aggregationType == GRP_NONE) {
       //get the csv file column from the expression leaf
       newResultColumn = ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->firstResultColumn;
 
-      //don't store the result column against the refference as it will be stored against the column instead
+      //don't store the result column against the reference as it will be stored against the column instead
       newReference->reference.calculatedPtr.firstResultColumn = NULL;
 
       //loop over each copy of the csv column in the result set,
@@ -387,7 +413,7 @@ void parse_exp_commalist(struct qryData* queryData, struct expression* expressio
           queryData->firstResultColumn->isHidden = FALSE;
           queryData->firstResultColumn->resultColumnName = strdup(newReference->referenceName);
 
-          break;
+          return queryData->firstResultColumn;
         }
 
         //if the next column instance is null then this input column is not yet in the result set
@@ -398,10 +424,11 @@ void parse_exp_commalist(struct qryData* queryData, struct expression* expressio
               queryData,
               /*isHidden = */FALSE,
               /*isCalculated = */FALSE,
-              /*resultColumnName = */strdup(newReference->referenceName)
+              /*resultColumnName = */strdup(newReference->referenceName),
+              /*aggregationType = */GRP_NONE
             );
 
-          break;
+          return newResultColumn->nextColumnInstance;
         }
         
         //otherwise get the next instance then continue looping
@@ -409,17 +436,23 @@ void parse_exp_commalist(struct qryData* queryData, struct expression* expressio
           newResultColumn = newResultColumn->nextColumnInstance;
         }
       }
+
+      return NULL;
     }
 
     //the most recently defined expression is not a direct column reference or the most recent reference is not this one.
     //add another column to the result set, marking it as being calculated if it refers to an expression
+    //make it hidden if makeHidden is true (e.g. when the expression will be used in an aggregation)
     else {
       newReference->reference.calculatedPtr.firstResultColumn = parse_new_output_column(
           queryData,
-          /*isHidden = */FALSE,
+          /*isHidden = */aggregationType != GRP_NONE,
           /*isCalculated = */TRUE,
-          /*resultColumnName = */strdup(newReference->referenceName)
+          /*resultColumnName = */strdup(newReference->referenceName),
+          /*aggregationType = */aggregationType
         );
+
+      return newReference->reference.calculatedPtr.firstResultColumn;
     }
   }
 }
@@ -447,6 +480,8 @@ struct expression * parse_scalar_exp(
 
     expressionPtr->minColumn = leftPtr->minColumn;
     expressionPtr->minTable = leftPtr->minTable;
+
+    expressionPtr->containsAggregates = leftPtr->containsAggregates;
   }
   
   else if(rightPtr->minTable < leftPtr->minTable ||
@@ -473,12 +508,16 @@ struct expression * parse_scalar_exp(
     //sub-expression is the greater of the two operands
     expressionPtr->minColumn = leftPtr->minColumn;
     expressionPtr->minTable = leftPtr->minTable;
+
+    expressionPtr->containsAggregates = (leftPtr->containsAggregates) || (rightPtr->containsAggregates);
   }
   else {
     expressionPtr->unionPtrs.leaves.leftPtr = leftPtr;
     expressionPtr->unionPtrs.leaves.rightPtr = rightPtr;
     expressionPtr->minColumn = rightPtr->minColumn;
     expressionPtr->minTable = rightPtr->minTable;
+
+    expressionPtr->containsAggregates = (leftPtr->containsAggregates) || (rightPtr->containsAggregates);
   }
 
   return expressionPtr;
@@ -498,6 +537,8 @@ struct expression* parse_scalar_exp_literal(struct qryData* queryData, char* lit
   expressionPtr->unionPtrs.voidPtr = strdup(literal);
   expressionPtr->minColumn = 0;
   expressionPtr->minTable = 0;
+
+  expressionPtr->containsAggregates = FALSE;
 
   return expressionPtr;
 }
@@ -527,6 +568,9 @@ struct expression* parse_scalar_exp_column_ref(
     expressionPtr->unionPtrs.voidPtr = (void *)(columnPtr);
     expressionPtr->minColumn = columnPtr->columnIndex;
     expressionPtr->minTable = ((struct inputTable*)columnPtr->inputTablePtr)->fileIndex;
+
+    //this line might need to be changed
+    expressionPtr->containsAggregates = FALSE;
   }
   else {
     expressionPtr->type = EXP_CALCULATED;
@@ -538,6 +582,9 @@ struct expression* parse_scalar_exp_column_ref(
     expressionPtr->unionPtrs.voidPtr = (void *)(expressionColumnPtr);
     expressionPtr->minColumn = expressionColumnPtr->minColumn;
     expressionPtr->minTable = expressionColumnPtr->minTable;
+
+    //this line might need to be changed
+    expressionPtr->containsAggregates = expressionColumnPtr->containsAggregates;
   }
   
   return expressionPtr;
@@ -622,6 +669,8 @@ struct expression* parse_in_predicate(
   expressionPtr->minColumn = leftPtr->minColumn;
   expressionPtr->minTable = leftPtr->minTable;
 
+  expressionPtr->containsAggregates = leftPtr->containsAggregates;
+
   return expressionPtr;
 }
 
@@ -685,3 +734,77 @@ void parse_ordering_spec(
     queryData->orderByClause = sortingListPtr;
   }
 }
+
+void parse_grouping_spec(
+    struct qryData* queryData,
+    struct expression *expressionPtr
+  ) {
+    
+  struct sortingList* sortingListPtr = NULL;
+
+  if(queryData->parseMode != 1) {
+    return;
+  }
+  
+  reallocMsg(
+      "couldn't allocate sortingList entry",
+      (void**)&(sortingListPtr),
+      sizeof(struct sortingList)
+    );
+
+  sortingListPtr->expressionPtr = expressionPtr;
+  sortingListPtr->isDescending = FALSE;
+
+  if(queryData->groupByClause == NULL) {
+    sortingListPtr->nextInList = sortingListPtr;
+    queryData->groupByClause = sortingListPtr;
+  }
+  else {
+    sortingListPtr->nextInList = queryData->groupByClause->nextInList;
+    queryData->groupByClause->nextInList = sortingListPtr;
+    queryData->groupByClause = sortingListPtr;
+  }
+}
+
+struct expression* parse_function_ref(
+    struct qryData* queryData,
+    long aggregationType,
+    struct expression *expressionPtr
+  ) {
+
+  struct expression* expressionPtr2 = NULL;
+  struct resultColumn* columnPtr = NULL;
+  
+  if(queryData->parseMode != 1) {
+    return NULL;
+  }
+
+  if(expressionPtr->containsAggregates) {
+    //I don't think in sql you can aggregate an aggregate.
+    //therefore we should error out if we get to this point
+    fprintf(stderr,"can't aggregate an aggregate");
+    exit(EXIT_FAILURE);
+  }
+
+  queryData->hasGrouping = TRUE;  //at least one, perhaps more
+  
+  //parse_exp_commalist is used to put an expression into a
+  //new, hidden, calculated column in the output result set
+  columnPtr = parse_exp_commalist(queryData, expressionPtr, NULL, aggregationType);   //parse_exp_commalist returns an output column pointer
+
+  //we then want to create a new expression node that references this new column
+  //create an expression node that references the new hidden column
+  reallocMsg(TDB_MALLOC_FAILED, (void**)(&expressionPtr2), sizeof(struct expression));
+
+  expressionPtr2->type = EXP_GROUP;
+  expressionPtr2->value = NULL;
+
+  expressionPtr2->unionPtrs.voidPtr = (void *)(&(columnPtr->groupText));  //the expression nodes reference points directly to the hidden columns groupText string
+  expressionPtr2->minColumn = expressionPtr->minColumn;
+  expressionPtr2->minTable = expressionPtr->minTable;
+
+  //change the ref type back up the expression tree to be calculated later
+  expressionPtr2->containsAggregates = TRUE;
+
+  return expressionPtr2;
+} 

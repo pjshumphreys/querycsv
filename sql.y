@@ -64,7 +64,7 @@ typedef void* yyscan_t;
 %type <strval> optional_as_name literal
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc
-%type <expressionPtr> scalar_exp search_condition predicate 
+%type <expressionPtr> scalar_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
 %type <atomPtr> atom_commalist
 %%
@@ -86,8 +86,8 @@ optional_distinct:
   ;
 
 scalar_exp_commalist:
-		scalar_exp optional_as_name {parse_exp_commalist(queryData, $1, $2); }
-	|	scalar_exp_commalist ',' scalar_exp optional_as_name {parse_exp_commalist(queryData, $3, $4); }
+		scalar_exp optional_as_name {parse_exp_commalist(queryData, $1, $2, GRP_NONE); }
+	|	scalar_exp_commalist ',' scalar_exp optional_as_name {parse_exp_commalist(queryData, $3, $4, GRP_NONE); }
 	;
 
 optional_as_name: { $$ = NULL; }
@@ -105,7 +105,7 @@ scalar_exp:
 	|	'-' scalar_exp %prec UMINUS { $$ = parse_scalar_exp(queryData, $2, EXP_UMINUS, NULL); }
 	|	literal { $$ = parse_scalar_exp_literal(queryData, $1); free($1); }
 	|	column_ref { $$ = parse_scalar_exp_column_ref(queryData, $1); }
-	|	function_ref { $$ = NULL; }
+	|	function_ref { $$ = $1; }
 	|	'(' scalar_exp ')' { $$ = $2; }
 	;
 
@@ -131,10 +131,10 @@ column_ref:
 	;
 
 function_ref:
-		AMMSC '(' '*' ')'
-	|	AMMSC '(' DISTINCT column_ref ')'
-	|	AMMSC '(' ALL scalar_exp ')'
-	|	AMMSC '(' scalar_exp ')'
+		AMMSC '(' '*' ')' { $$ = NULL; }
+	|	AMMSC '(' DISTINCT scalar_exp ')' { $$ = NULL; }
+	|	AMMSC '(' ALL scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $4); }
+	|	AMMSC '(' scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $3); }
 	;
 
 table_references:
@@ -198,8 +198,8 @@ opt_group_by_clause:
 	;
 
 column_ref_commalist:
-		column_ref
-	|	column_ref_commalist ',' column_ref
+		column_ref { parse_grouping_spec(queryData, parse_scalar_exp_column_ref(queryData, $1)); }
+	|	column_ref_commalist ',' column_ref { parse_grouping_spec(queryData, parse_scalar_exp_column_ref(queryData, $3)); }
 	;
 
 opt_having_clause:
