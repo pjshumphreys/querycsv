@@ -243,24 +243,22 @@ int strAppend(char c, char** value, size_t* strSize) {
 
   //validate inputs
   //increase value length by 1 character
-  if(
-      value != NULL &&
-      strSize != NULL &&
-      (temp = realloc(*value, (*strSize)+1)) == NULL
-    ) {
-    return FALSE;
-  }
 
   //update the string pointer
-  if(value != NULL) {
-    *value = temp;
-
-    //store the additional character
-    (*value)[*strSize] = c;
-  }
-
   //increment strSize
   if(strSize != NULL) {
+	if(value != NULL) {
+	  if((temp = realloc(*value, (*strSize)+1)) != NULL) {
+		*value = temp;
+
+		//store the additional character
+		(*value)[*strSize] = c;
+	  }
+	  else {
+		return FALSE;
+	  }
+	}
+
     (*strSize)++;
   }
 
@@ -357,7 +355,8 @@ int getCsvColumn(
     long* startPosition
   ) {
 
-  char c;
+  int c;
+  char *tempString = NULL;
   int valueStarted = FALSE;
   int valueFinished = FALSE;  
   int quotedValue2 = FALSE;
@@ -373,20 +372,30 @@ int getCsvColumn(
   if(strSize != NULL) {
     *strSize = 0;
   }
-
+  
+  if (value == NULL) {
+    value = &tempString;
+  }
+  
   //read until start of value
   while (valueStarted == FALSE) {
     c = fgetc(*inputFile);
     
     switch(c) {
       case ',':
+        free(tempString);
         return TRUE;
       case ' ':
       case '\t':
       break;
 
+      case '\r':
+        if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
+          ungetc(c, *inputFile);
+        }
       case EOF:
       case '\n':
+        free(tempString);
         return FALSE;
       break;
 
@@ -396,7 +405,7 @@ int getCsvColumn(
         }
         
         if(startPosition != NULL) {
-          *startPosition = ftell(*inputFile);
+          *startPosition = ftell(*inputFile)-1;
         }
         
         quotedValue2 = TRUE;
@@ -422,6 +431,7 @@ int getCsvColumn(
       
       switch(c) {
         case EOF:
+          free(tempString);
           return FALSE;
         break;
 
@@ -439,6 +449,13 @@ int getCsvColumn(
             strAppend(c, value, strSize);
           }
         break;
+
+        case '\r':
+          strAppend('\n', value, strSize);
+          if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
+            ungetc(c, *inputFile);
+          }
+        break;
       
         default:
           strAppend(c, value, strSize);
@@ -451,11 +468,17 @@ int getCsvColumn(
       c = fgetc(*inputFile);
       
       switch(c) {
+        case '\r':
+          if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
+            ungetc(c, *inputFile);
+          }
         case '\n':
         case EOF:
+          free(tempString);
           return FALSE;
         break;
         case ',':
+          free(tempString);
           return TRUE;
         default:
         break;
@@ -468,23 +491,20 @@ int getCsvColumn(
       c = fgetc(*inputFile);
       
       switch(c) {
+        case '\r':
+          if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
+            ungetc(c, *inputFile);
+          }
         case '\n':
         case EOF:
-          strRTrim(value, strSize);
-          strAppend('\0', value, strSize);
-          if(strSize != NULL) {
-            (*strSize)--;
-          }
-          return FALSE;
-        break;
-
         case ',':
           strRTrim(value, strSize);
           strAppend('\0', value, strSize);
           if(strSize != NULL) {
             (*strSize)--;
           }
-          return TRUE;
+          free(tempString);
+          return c == ',';
         break;
         
         default:
@@ -493,27 +513,37 @@ int getCsvColumn(
       }
     }
   }
-  
+
+  free(tempString);
   return FALSE;
 }
 
 void stringGet(unsigned char **str, struct resultColumnValue* field) {
   long offset = ftell(*(field->source));
-
-  reallocMsg("alloc failed", (void**)str, field->length+1);
-
+  char* string2 = NULL;
+  
   fseek(*(field->source), field->startOffset, SEEK_SET);
   fflush(*(field->source));
   
-  if(fread(*str, 1, field->length, *(field->source)) != field->length) {
-    fputs("didn't read string properly\n", stderr);
-    exit(EXIT_FAILURE);
+  if (field->isQuoted) {
+    //can't use a shortcut to get the string value, so get it the same way we did the last time
+    getCsvColumn(field->source,str,&(field->length),NULL,NULL);
+  }
+  else {  
+    //can use a shortcut to get the string value
+	reallocMsg("alloc failed", (void**)str, field->length+1);
+
+	if(fread(*str, 1, field->length, *(field->source)) != field->length) {
+      fputs("didn't read string properly\n", stderr);
+      exit(EXIT_FAILURE);
+    }
+	
+    (*str)[field->length] = '\0';
   }
 
+  //reset the file offset as we don't know what else the file is being used for
   fseek(*(field->source), offset, SEEK_SET);
-  fflush(*(field->source));
-  
-  (*str)[field->length] = '\0';
+  fflush(*(field->source));  
 }
 
 FILE* openTemp(char** name) {
@@ -787,7 +817,6 @@ void getValue(
     struct expression* expressionPtr,
     struct resultColumnValue * match
   ) {
-  struct resultColumnValue * columnValue;
   struct expression * calculatedField;
   
   long offset;
@@ -797,27 +826,14 @@ void getValue(
       //get the value of the first instance in the result set of
       //this input column (it should have just been filled out with a
       //value for the current record)
-      columnValue = &(match[
-          ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->
-          firstResultColumn->
-          resultColumnIndex
-        ]);
-
-      reallocMsg("getvalue:exp_column", (void**)&(expressionPtr->value), columnValue->length+1);
-
-      //keep the file original location so we can reset it after getting the string
-      //this is needed as we will still be looping over the records in getMatchingRecord further up the stack 
-      offset = ftell(*(columnValue->source));
-
-      fseek(*(columnValue->source), columnValue->startOffset, SEEK_SET);
-      fflush(*(columnValue->source));
-
-      fread(expressionPtr->value, 1, columnValue->length, *(columnValue->source));
-      expressionPtr->value[columnValue->length] = '\0';
-      
-      fseek(*(columnValue->source), offset, SEEK_SET);
-      fflush(*(columnValue->source));
-      //expressionPtr->valueIsQuoted = columnValue->isQuoted;
+      //TODO: test and fix the behaviour here
+      stringGet(
+          &(expressionPtr->value),
+          &(match[
+            ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->
+            firstResultColumn->resultColumnIndex
+          ])
+        );
     } break;
 
     case EXP_LITERAL: {
@@ -1059,13 +1075,13 @@ void getCalculatedColumns(
           //seek to the end of the scratchpad file and update the start position
           fseek(query->scratchpad, 0, SEEK_END);
           fflush(query->scratchpad);
-          match[j].startOffset = match[j].startOffsetOrig = ftell(query->scratchpad);
+          match[j].startOffset = ftell(query->scratchpad);
 
           //get expression value for this match
           getValue(currentReference->reference.calculatedPtr.expressionPtr, match);
 
           //store the value's length
-          match[j].length = match[j].lengthOrig = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
+          match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
 
           //write the value to the scratchpad file
           fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad);
@@ -1122,25 +1138,21 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
               NULL,
-              &(columnOffsetData.lengthOrig),
+              &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
-              &(columnOffsetData.startOffsetOrig)
+              &(columnOffsetData.startOffset)
             );
 
-          //these values should actually be set depending on whether to value was quoted or not
+          //these values should actually be set depending on whether the value was quoted or not
           //if the value is quoted we should probably also NFD normalise it before writing to the scratchpad
-          columnOffsetData.startOffset = columnOffsetData.startOffsetOrig;
-          columnOffsetData.length = columnOffsetData.lengthOrig;
           columnOffsetData.isNormalized = FALSE;
           columnOffsetData.source = &(currentInputTable->fileStream);
         }
 
         //construct an empty column reference.
         else {
-          columnOffsetData.startOffset = columnOffsetData.startOffsetOrig = 0;
           columnOffsetData.isQuoted = FALSE;
           columnOffsetData.isNormalized = TRUE; //an empty string needs no unicode normalization
-          columnOffsetData.length = columnOffsetData.lengthOrig = 0;
           columnOffsetData.source = &(query->scratchpad);
         }
 
@@ -1415,7 +1427,10 @@ int recordCompare(const void * a, const void * b, void * c) {
     orderByClause->expressionPtr->value = NULL;
 
     //get the value of the expression using the values in record b
-    getValue(
+	if(((struct resultColumnValue*)b)->startOffset == 134){
+	  output2 = NULL;
+	}
+	getValue(
         orderByClause->expressionPtr,
         (struct resultColumnValue*)b
       );
@@ -1451,7 +1466,6 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
   struct columnRefHashEntry* currentHashEntry;
   struct columnReference* currentReference;
   struct resultColumn* currentResultColumn;
-  double tempValue = 0;
   char* tempString = NULL;
   char* tempString2 = NULL;
 
@@ -1527,7 +1541,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
                   (void (*)())getUnicodeChar
                 ) == -1) {
 
-                strFree(&(currentResultColumn->groupText));
+                free(currentResultColumn->groupText);
                 currentResultColumn->groupText = tempString;
                 tempString = NULL;
                 currentReference = currentReference->nextReferenceWithName;
@@ -1544,7 +1558,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
                   (void (*)())getUnicodeChar
                 ) == 1) {
 
-                strFree(&(currentResultColumn->groupText));
+                free(currentResultColumn->groupText);
                 currentResultColumn->groupText = tempString;
                 tempString = NULL;
                 currentReference = currentReference->nextReferenceWithName;
@@ -1565,9 +1579,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
   }
 }
 
-void getGroupedColumns(
-    struct qryData * query
-  ) {
+void getGroupedColumns(struct qryData * query) {
   struct columnRefHashEntry* currentHashEntry;
   struct columnReference* currentReference;
   struct resultColumn* currentResultColumn;
@@ -1579,7 +1591,6 @@ void getGroupedColumns(
     currentHashEntry = query->columnReferenceHashTable->table[i];
 
     while(currentHashEntry != NULL) {
-      
       currentReference = currentHashEntry->content;
 
       while(currentReference != NULL) {
@@ -1718,14 +1729,36 @@ void groupResults(struct qryData * query, struct resultSet * results) {
   free(resultsOrig.records);
 }
 
-int outputResults(struct qryData * query, struct resultSet * results) {
-  struct resultColumnValue* match;
+int needsEscaping(char* str) { 
+  if(*str) {
+    if(*str == ' ' || *str == '\t') {
+      return TRUE;
+    }
+       
+    while(*str) {
+      if(*str == '"' || *str == '\n' || *str == ',') {
+      return TRUE;
+      }
+      str++;
+    }
 
+    str--;
+       
+    if(*str == ' ' || *str == '\t') {
+      return TRUE;
+    }
+  }
+  
+  return FALSE;
+}
+
+int outputResults(struct qryData * query, struct resultSet * results) {
   int recordsOutput, i, j, len, firstColumn = TRUE;
   FILE * outputFile = NULL;
   struct resultColumn* currentResultColumn;
-  char *string = NULL, *string2 = NULL;
-
+  char *string = NULL;
+  char *string2 = NULL;
+  
   if(query->intoFileName) {
     outputFile = fopen(query->intoFileName, "w");
     if (outputFile == NULL) {
@@ -1784,30 +1817,17 @@ int outputResults(struct qryData * query, struct resultSet * results) {
           firstColumn = FALSE;
         }
 
-        match = &(results->records[(i*(query->columnCount))+j]);
- 
-        reallocMsg(
-          "could not allocate enough memory for string",
-          (void**)&string,
-          match->length+1
-        );
-        
-        //read the string from the file
-        fseek(*(match->source), match->startOffset, SEEK_SET);
-        fflush(*(match->source));
-        fread(string, 1, match->length, *(match->source));
-        string[match->length] = '\0';
+        stringGet(&string, &(results->records[(i*(query->columnCount))+j]));
 
-        if (match->isQuoted) {
-          fputs("\"", outputFile);
-
+        //need to properly re-escape fields that need it
+        if(needsEscaping(string)) {
           string2 = strReplace("\"","\"\"", string);
-          fputs(string2, outputFile);
-          strFree(&string2);
-
           fputs("\"", outputFile);
+          fputs(string2, outputFile);
+          fputs("\"", outputFile);
+          strFree(&string2);
         }
-        else {
+        else {		
           fputs(string, outputFile);
         }
       }
@@ -1873,7 +1893,7 @@ int runQuery(char* queryFileName) {
       (query.columnCount)*sizeof(struct resultColumnValue),
       recordCompare,
       (void*)query.orderByClause
-    );
+    ); 
   }
 
   //output the results to the specified file
@@ -1900,7 +1920,7 @@ int getColumnCount(char* inputFileName) {
   int columnCount = 1;
   
   //attempt to open the input file
-  inputFile = fopen(inputFileName, "r");
+  inputFile = fopen(inputFileName, "rb");
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return -1;
@@ -1923,7 +1943,7 @@ int getNextRecordOffset(char* inputFileName, long offset) {
   FILE * inputFile = NULL;
   
   //attempt to open the input file
-  inputFile = fopen(inputFileName, "r");
+  inputFile = fopen(inputFileName, "rb");
   if(inputFile == NULL) {
     fputs("5\n"/*TDB_COULDNT_OPEN_INPUT*/, stderr);
     return -1;
@@ -1955,7 +1975,7 @@ int getColumnValue(char* inputFileName, long offset, int columnIndex) {
   int currentColumn = 0;
 
   //attempt to open the input file
-  inputFile = fopen(inputFileName, "r");
+  inputFile = fopen(inputFileName, "rb");
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     strFree(&output);
@@ -1978,9 +1998,6 @@ int getColumnValue(char* inputFileName, long offset, int columnIndex) {
       ) {
     //get next column
   }
-    
-  //null terminate
-  output[strSize] = '\0';
 
   //output the value
   fputs(output, stdout);

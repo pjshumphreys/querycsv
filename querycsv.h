@@ -176,11 +176,9 @@ struct qryData {
 };
 
 struct resultColumnValue { //this information should be stored in files
-  long startOffsetOrig;
   long startOffset;
   int isQuoted;
   int isNormalized;
-  size_t lengthOrig;
   size_t length;
   FILE ** source;
 };

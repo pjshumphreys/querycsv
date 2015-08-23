@@ -9,7 +9,7 @@ Files=../../strcomp.c#684%%%../../Makefile#6%%%../../en_gb.h#15%%%../../querycsv
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=--run test11.qry
+Program arguments=--run test10.qry%%%--run test11.qry
 Program uri=../../querycsv
 Run in terminal=2
 Working directories=../../.

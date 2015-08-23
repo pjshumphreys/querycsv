@@ -189,120 +189,90 @@ int normaliseAndGet(
       }
     }
 
-    //if bytesread is 0 then we are expecting trailing bytes
-    //from an invalid or overlong codepoint, but ensure the
-    //next byte is still a trailing byte first
-    if(bytesRead == 0 && ((**offset) & 0xC0) == 0x80 && plusBytes == 0) {
-      //do another lookup using hash1
+    //try getting a unicode code point
+    //if it's invalid or overlong, read the bytes as CP-437. and read the first byte using hash 1
+    //otherwise check if it's decomposable.
+    //if it's decomposable, put the entire sequence into the buffer then continue
+    //otherwise just put the codepoint into the buffer then continue
+    plusBytes = 0;
+    bytesRead = 0;
+
+    if(**offset < 0x80) {
+      //if offset is 0 then we've reached the end of the string. quit the do loop
+      if(**offset == 0) {
+        break;
+      }
+      
+      bytesRead = 1;
+              
+      //read 1 byte. no overlong checks needed as a 1 byte code can
+      //never be overlong, and is never a combining character
+      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
+      codepointBuffer[bufferLength++] = (long)(*((*offset)++));
+
+      continue;
+    }
+    
+    //ensure the current byte is the start of a valid utf-8 sequence
+    if(**offset > 0xC1) {
+      if (**offset < 0xE0) { 
+        //read 2 bytes
+        if(
+            (*((*offset)+1) & 0xC0) == 0x80
+        ) {
+          bytesRead = 2;
+          codepoint = ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3080;            
+        }
+      }
+      else if (**offset < 0xF0) {
+        //read 3 bytes
+        if(
+            (*((*offset)+1) & 0xC0) == 0x80 &&
+            (*(*offset) != 0xE0 || *((*offset)+1) > 0x9F) &&
+            (*((*offset)+2) & 0xC0) == 0x80
+        ) {
+          bytesRead = 3;
+          codepoint = ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0xE2080;
+        }
+      }
+      else if (**offset < 0xF5) {
+        //read 4 bytes
+        if(
+            (*((*offset)+1) & 0xC0) == 0x80 &&
+            (*(*offset) != 0xF0 || *((*offset)+1) > 0x8F) &&
+            (*(*offset) != 0xF4 || *((*offset)+1) < 0x90) &&
+            (*((*offset)+2) & 0xC0) == 0x80 &&
+            (*((*offset)+3) & 0xC0) == 0x80
+        ) {
+          bytesRead = 4;
+          codepoint = ((long)(*((*offset)++)) << 18) + ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3C82080;
+        }
+      }
+    }
+
+    //consume any other bytes using the CP-437 character set
+    if(bytesRead == 0) {
+      //do a lookup using hash1
       lookupresult = &hash1[(*((*offset)++))-128];
 
       reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
-      memcpy(codepointBuffer+(bufferLength*sizeof(long)), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
+      memcpy(&(codepointBuffer[bufferLength]), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
       bufferLength += lookupresult->length;
     }
-    //otherwise we are expecting to be able to read a codepoint 
+    else if((entry = isinHash2(codepoint)) == NULL) {
+      //the codepoint we found was not decomposable. just put it in the buffer
+      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
+      codepointBuffer[bufferLength] = codepoint;
+      bufferLength += 1;
+    }
     else {
-      //try getting a unicode code point
-      //if it's invalid or overlong, turn on byte reading mode. and read the first byte using hash 1
-      //otherwise check if it's decomposable.
-      //if it's decomposable, put the entire sequence into the buffer then continue
-      //otherwise just put the codepoint into the buffer then continue
+      //a decomposable codepoint was found in hash 2.
 
-      plusBytes = 0;
-      bytesRead = 0;
-
-      if(**offset < 0x80) {
-        //if offset is 0 then we've reached the end of the string. quit the do loop
-        if(**offset == 0) {
-          break;
-        }
-        
-        bytesRead = 1;
-                
-        //read 1 byte. no overlong checks needed as a 1 byte code can
-        //never be overlong, and is never a combining character
-        reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
-        codepointBuffer[bufferLength++] = (long)(*((*offset)++));
-
-        continue;
-      }
-      
-      //ensure the current byte is the start of a valid utf-8 sequence
-      if(**offset > 0xC1) {
-        if (**offset < 0xE0) { 
-          //read 2 bytes
-          if(
-              (*((*offset)+1) & 0xC0) == 0x80
-          ) {
-            bytesRead = 2;
-            codepoint = ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3080;            
-          }
-        }
-        else if (**offset < 0xF0) {
-          //read 3 bytes
-          if(
-              (*((*offset)+1) & 0xC0) == 0x80 &&
-              (*(*offset) != 0xE0 || *((*offset)+1) > 0x9F) &&
-              (*((*offset)+2) & 0xC0) == 0x80
-          ) {
-            bytesRead = 3;
-            codepoint = ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0xE2080;
-          }
-        }
-        else if (**offset < 0xF5) {
-          //read 4 bytes
-          if(
-              (*((*offset)+1) & 0xC0) == 0x80 &&
-              (*(*offset) != 0xF0 || *((*offset)+1) > 0x8F) &&
-              (*(*offset) != 0xF4 || *((*offset)+1) < 0x90) &&
-              (*((*offset)+2) & 0xC0) == 0x80 &&
-              (*((*offset)+3) & 0xC0) == 0x80
-          ) {
-            bytesRead = 4;
-            codepoint = ((long)(*((*offset)++)) << 18) + ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3C82080;
-          }
-        }
-        else {
-          //use hash 1 to convert it
-          lookupresult = &hash1[(*((*offset)++))-128];
-
-          //put the whole byte sequence into the buffer
-          reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
-          memcpy(codepointBuffer+(bufferLength*sizeof(long)), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
-          bufferLength += lookupresult->length;
-
-          continue;
-        }
-      }
-      else {
-        //use hash 1 to convert it
-        lookupresult = &hash1[(*((*offset)++))-128];
-
-        //put the whole byte sequence into the buffer
-        reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
-        memcpy(&(codepointBuffer[bufferLength]), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
-        bufferLength += lookupresult->length;
-
-        continue;
-      }
-
-      if(bytesRead != 0) {
-        if((entry = isinHash2(codepoint)) == NULL) {
-          //the codepoint we found was not decomposable. just put it in the buffer
-          reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
-          codepointBuffer[bufferLength] = codepoint;
-          bufferLength += 1;
-        }
-        else {
-          //a decomposable codepoint was found in hash 2.
-
-          //put the whole byte sequence into the buffer
-          reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
-          memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(long));
-          bufferLength += entry->length;
-          entry = NULL;
-        }
-      }
+      //put the whole byte sequence into the buffer
+      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
+      memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(long));
+      bufferLength += entry->length;
+      entry = NULL;
     }
   }
 

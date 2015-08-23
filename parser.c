@@ -33,7 +33,7 @@ void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileNam
   free(csvFile);
   
   //try opening the file specified in the query
-  csvFile = fopen(columnText2, "r");
+  csvFile = fopen(columnText2, "rb");
   tableName = strdup(columnText);
   free(columnText);
   free(columnText2);  //free the filename string data as we don't need it any more
