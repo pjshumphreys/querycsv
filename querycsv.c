@@ -1427,10 +1427,7 @@ int recordCompare(const void * a, const void * b, void * c) {
     orderByClause->expressionPtr->value = NULL;
 
     //get the value of the expression using the values in record b
-	if(((struct resultColumnValue*)b)->startOffset == 134){
-	  output2 = NULL;
-	}
-	getValue(
+    getValue(
         orderByClause->expressionPtr,
         (struct resultColumnValue*)b
       );
