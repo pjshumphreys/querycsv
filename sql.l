@@ -6,6 +6,7 @@
 
 	/* macro to save the text and return a token */
 #define TOK(name) { return name; }
+#define LEX_WORKAROUND strReplace("]]", "]", yytext)
 %}
 %option outfile="lexer.c" header-file="lexer.h"
 
@@ -139,7 +140,7 @@
 \[([^\]]|\]\])+\] {
     yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
-    yylval->strval = strReplace("\]\]", "\]", yytext);
+    yylval->strval = LEX_WORKAROUND;
     return NAME;
 }
 

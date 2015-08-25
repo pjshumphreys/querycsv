@@ -2,6 +2,7 @@
 #include "querycsv.h"
 #include "sql.h"
 #include "lexer.h"
+#include "parser.c"
 %}
 
 %code requires {

@@ -67,8 +67,9 @@
 #include "querycsv.h"
 #include "sql.h"
 #include "lexer.h"
+#include "parser.c"
 
-#line 72 "sql.c" /* yacc.c:339  */
+#line 73 "sql.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -98,7 +99,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 7 "sql.y" /* yacc.c:355  */
+#line 8 "sql.y" /* yacc.c:355  */
 
  
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -107,7 +108,7 @@ typedef void* yyscan_t;
 #endif
  
 
-#line 111 "sql.c" /* yacc.c:355  */
+#line 112 "sql.c" /* yacc.c:355  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -228,7 +229,7 @@ typedef void* yyscan_t;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 26 "sql.y" /* yacc.c:355  */
+#line 27 "sql.y" /* yacc.c:355  */
 
 	//double floatval;
 	long intval;
@@ -237,7 +238,7 @@ union YYSTYPE
   struct expression* expressionPtr;
   struct atomEntry* atomPtr;
 
-#line 241 "sql.c" /* yacc.c:355  */
+#line 242 "sql.c" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -251,7 +252,7 @@ int yyparse (struct qryData* queryData, yyscan_t scanner);
 
 /* Copy the second part of user declarations.  */
 
-#line 255 "sql.c" /* yacc.c:358  */
+#line 256 "sql.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -536,13 +537,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    73,    73,    84,    85,    89,    90,    93,    94,    98,
-      99,   100,   101,   102,   103,   104,   105,   106,   107,   108,
-     109,   113,   114,   115,   119,   125,   134,   135,   136,   137,
-     141,   142,   146,   146,   147,   147,   150,   152,   156,   159,
-     161,   165,   169,   170,   171,   172,   173,   177,   178,   182,
-     186,   187,   191,   192,   195,   197,   201,   202,   205,   207,
-     210,   212,   216,   217,   221,   222,   223,   226,   228
+       0,    74,    74,    85,    86,    90,    91,    94,    95,    99,
+     100,   101,   102,   103,   104,   105,   106,   107,   108,   109,
+     110,   114,   115,   116,   120,   126,   135,   136,   137,   138,
+     142,   143,   147,   147,   148,   148,   151,   153,   157,   160,
+     162,   166,   170,   171,   172,   173,   174,   178,   179,   183,
+     187,   188,   192,   193,   196,   198,   202,   203,   206,   208,
+     211,   213,   217,   218,   222,   223,   224,   227,   229
 };
 #endif
 
@@ -1698,317 +1699,317 @@ yyreduce:
     switch (yyn)
       {
           case 5:
-#line 89 "sql.y" /* yacc.c:1646  */
+#line 90 "sql.y" /* yacc.c:1646  */
     {parse_exp_commalist(queryData, (yyvsp[-1].expressionPtr), (yyvsp[0].strval), GRP_NONE); }
-#line 1704 "sql.c" /* yacc.c:1646  */
+#line 1705 "sql.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 90 "sql.y" /* yacc.c:1646  */
+#line 91 "sql.y" /* yacc.c:1646  */
     {parse_exp_commalist(queryData, (yyvsp[-1].expressionPtr), (yyvsp[0].strval), GRP_NONE); }
-#line 1710 "sql.c" /* yacc.c:1646  */
+#line 1711 "sql.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 93 "sql.y" /* yacc.c:1646  */
+#line 94 "sql.y" /* yacc.c:1646  */
     { (yyval.strval) = NULL; }
-#line 1716 "sql.c" /* yacc.c:1646  */
+#line 1717 "sql.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 94 "sql.y" /* yacc.c:1646  */
+#line 95 "sql.y" /* yacc.c:1646  */
     { if(queryData->parseMode != 1) { free((yyvsp[0].strval)); (yyval.strval) = NULL; } else {(yyval.strval) = (yyvsp[0].strval);} }
-#line 1722 "sql.c" /* yacc.c:1646  */
+#line 1723 "sql.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 98 "sql.y" /* yacc.c:1646  */
+#line 99 "sql.y" /* yacc.c:1646  */
     { if(queryData->parseMode != 1) { free((yyvsp[0].strval)); } (yyval.expressionPtr) = NULL; }
-#line 1728 "sql.c" /* yacc.c:1646  */
+#line 1729 "sql.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 99 "sql.y" /* yacc.c:1646  */
+#line 100 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), EXP_PLUS, (yyvsp[0].expressionPtr)); }
-#line 1734 "sql.c" /* yacc.c:1646  */
+#line 1735 "sql.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 100 "sql.y" /* yacc.c:1646  */
+#line 101 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), EXP_MINUS, (yyvsp[0].expressionPtr)); }
-#line 1740 "sql.c" /* yacc.c:1646  */
+#line 1741 "sql.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 101 "sql.y" /* yacc.c:1646  */
+#line 102 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), EXP_MULTIPLY, (yyvsp[0].expressionPtr)); }
-#line 1746 "sql.c" /* yacc.c:1646  */
+#line 1747 "sql.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 102 "sql.y" /* yacc.c:1646  */
+#line 103 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), EXP_DIVIDE, (yyvsp[0].expressionPtr)); }
-#line 1752 "sql.c" /* yacc.c:1646  */
+#line 1753 "sql.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 103 "sql.y" /* yacc.c:1646  */
+#line 104 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-3].expressionPtr), EXP_CONCAT, (yyvsp[-1].expressionPtr)); }
-#line 1758 "sql.c" /* yacc.c:1646  */
+#line 1759 "sql.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 104 "sql.y" /* yacc.c:1646  */
+#line 105 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[0].expressionPtr), EXP_UPLUS, NULL); }
-#line 1764 "sql.c" /* yacc.c:1646  */
+#line 1765 "sql.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 105 "sql.y" /* yacc.c:1646  */
+#line 106 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[0].expressionPtr), EXP_UMINUS, NULL); }
-#line 1770 "sql.c" /* yacc.c:1646  */
+#line 1771 "sql.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 106 "sql.y" /* yacc.c:1646  */
+#line 107 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp_literal(queryData, (yyvsp[0].strval)); free((yyvsp[0].strval)); }
-#line 1776 "sql.c" /* yacc.c:1646  */
+#line 1777 "sql.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 107 "sql.y" /* yacc.c:1646  */
+#line 108 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp_column_ref(queryData, (yyvsp[0].referencePtr)); }
-#line 1782 "sql.c" /* yacc.c:1646  */
+#line 1783 "sql.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 108 "sql.y" /* yacc.c:1646  */
+#line 109 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = (yyvsp[0].expressionPtr); }
-#line 1788 "sql.c" /* yacc.c:1646  */
+#line 1789 "sql.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 109 "sql.y" /* yacc.c:1646  */
+#line 110 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = (yyvsp[-1].expressionPtr); }
-#line 1794 "sql.c" /* yacc.c:1646  */
+#line 1795 "sql.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 113 "sql.y" /* yacc.c:1646  */
+#line 114 "sql.y" /* yacc.c:1646  */
     { (yyval.strval) = (yyvsp[0].strval); }
-#line 1800 "sql.c" /* yacc.c:1646  */
+#line 1801 "sql.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 114 "sql.y" /* yacc.c:1646  */
+#line 115 "sql.y" /* yacc.c:1646  */
     { (yyval.strval) = NULL; }
-#line 1806 "sql.c" /* yacc.c:1646  */
+#line 1807 "sql.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 115 "sql.y" /* yacc.c:1646  */
+#line 116 "sql.y" /* yacc.c:1646  */
     { (yyval.strval) = NULL; }
-#line 1812 "sql.c" /* yacc.c:1646  */
+#line 1813 "sql.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 119 "sql.y" /* yacc.c:1646  */
+#line 120 "sql.y" /* yacc.c:1646  */
     {
       if(parse_column_ref_unsuccessful(queryData, &((yyval.referencePtr)), NULL, (yyvsp[0].strval))) {
         fprintf(stderr, "unknown or ambiguous column name\n");
         YYERROR;
       }
     }
-#line 1823 "sql.c" /* yacc.c:1646  */
+#line 1824 "sql.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 125 "sql.y" /* yacc.c:1646  */
+#line 126 "sql.y" /* yacc.c:1646  */
     {
       if(parse_column_ref_unsuccessful(queryData, &((yyval.referencePtr)), (yyvsp[-2].strval), (yyvsp[0].strval))) {
         fprintf(stderr, "unknown or ambiguous column name\n");
         YYERROR;
       }
     }
-#line 1834 "sql.c" /* yacc.c:1646  */
+#line 1835 "sql.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 134 "sql.y" /* yacc.c:1646  */
+#line 135 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = NULL; }
-#line 1840 "sql.c" /* yacc.c:1646  */
+#line 1841 "sql.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 135 "sql.y" /* yacc.c:1646  */
+#line 136 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = NULL; }
-#line 1846 "sql.c" /* yacc.c:1646  */
+#line 1847 "sql.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 136 "sql.y" /* yacc.c:1646  */
+#line 137 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_function_ref(queryData, (yyvsp[-4].intval), (yyvsp[-1].expressionPtr)); }
-#line 1852 "sql.c" /* yacc.c:1646  */
+#line 1853 "sql.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 137 "sql.y" /* yacc.c:1646  */
+#line 138 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_function_ref(queryData, (yyvsp[-3].intval), (yyvsp[-1].expressionPtr)); }
-#line 1858 "sql.c" /* yacc.c:1646  */
+#line 1859 "sql.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 141 "sql.y" /* yacc.c:1646  */
+#line 142 "sql.y" /* yacc.c:1646  */
     { parse_table_factor(queryData, FALSE, (yyvsp[-2].strval), (yyvsp[0].strval)); }
-#line 1864 "sql.c" /* yacc.c:1646  */
+#line 1865 "sql.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 146 "sql.y" /* yacc.c:1646  */
+#line 147 "sql.y" /* yacc.c:1646  */
     { parse_table_factor(queryData, FALSE, (yyvsp[-2].strval), (yyvsp[0].strval)); }
-#line 1870 "sql.c" /* yacc.c:1646  */
+#line 1871 "sql.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 147 "sql.y" /* yacc.c:1646  */
+#line 148 "sql.y" /* yacc.c:1646  */
     { parse_table_factor(queryData, TRUE, (yyvsp[-2].strval), (yyvsp[0].strval)); }
-#line 1876 "sql.c" /* yacc.c:1646  */
+#line 1877 "sql.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 156 "sql.y" /* yacc.c:1646  */
+#line 157 "sql.y" /* yacc.c:1646  */
     { parse_where_clause(queryData, (yyvsp[0].expressionPtr)); }
-#line 1882 "sql.c" /* yacc.c:1646  */
+#line 1883 "sql.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 165 "sql.y" /* yacc.c:1646  */
+#line 166 "sql.y" /* yacc.c:1646  */
     { parse_where_clause(queryData, (yyvsp[0].expressionPtr)); }
-#line 1888 "sql.c" /* yacc.c:1646  */
+#line 1889 "sql.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 169 "sql.y" /* yacc.c:1646  */
+#line 170 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), EXP_AND, (yyvsp[0].expressionPtr)); }
-#line 1894 "sql.c" /* yacc.c:1646  */
+#line 1895 "sql.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 170 "sql.y" /* yacc.c:1646  */
+#line 171 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), EXP_OR, (yyvsp[0].expressionPtr)); }
-#line 1900 "sql.c" /* yacc.c:1646  */
+#line 1901 "sql.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 171 "sql.y" /* yacc.c:1646  */
+#line 172 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[0].expressionPtr), EXP_NOT, NULL); }
-#line 1906 "sql.c" /* yacc.c:1646  */
+#line 1907 "sql.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 172 "sql.y" /* yacc.c:1646  */
+#line 173 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = (yyvsp[-1].expressionPtr); }
-#line 1912 "sql.c" /* yacc.c:1646  */
+#line 1913 "sql.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 173 "sql.y" /* yacc.c:1646  */
+#line 174 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = (yyvsp[0].expressionPtr); }
-#line 1918 "sql.c" /* yacc.c:1646  */
+#line 1919 "sql.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 177 "sql.y" /* yacc.c:1646  */
+#line 178 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = (yyvsp[0].expressionPtr); }
-#line 1924 "sql.c" /* yacc.c:1646  */
+#line 1925 "sql.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 178 "sql.y" /* yacc.c:1646  */
+#line 179 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = (yyvsp[0].expressionPtr); }
-#line 1930 "sql.c" /* yacc.c:1646  */
+#line 1931 "sql.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 182 "sql.y" /* yacc.c:1646  */
+#line 183 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_scalar_exp(queryData, (yyvsp[-2].expressionPtr), (yyvsp[-1].intval)+EXP_EQ, (yyvsp[0].expressionPtr)); }
-#line 1936 "sql.c" /* yacc.c:1646  */
+#line 1937 "sql.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 186 "sql.y" /* yacc.c:1646  */
+#line 187 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_in_predicate(queryData, (yyvsp[-4].expressionPtr), FALSE, (yyvsp[-1].atomPtr)); }
-#line 1942 "sql.c" /* yacc.c:1646  */
+#line 1943 "sql.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 187 "sql.y" /* yacc.c:1646  */
+#line 188 "sql.y" /* yacc.c:1646  */
     { (yyval.expressionPtr) = parse_in_predicate(queryData, (yyvsp[-5].expressionPtr), TRUE, (yyvsp[-1].atomPtr)); }
-#line 1948 "sql.c" /* yacc.c:1646  */
+#line 1949 "sql.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 191 "sql.y" /* yacc.c:1646  */
+#line 192 "sql.y" /* yacc.c:1646  */
     { (yyval.atomPtr) = parse_atom_commalist(queryData, NULL, (yyvsp[0].strval)); }
-#line 1954 "sql.c" /* yacc.c:1646  */
+#line 1955 "sql.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 192 "sql.y" /* yacc.c:1646  */
+#line 193 "sql.y" /* yacc.c:1646  */
     { (yyval.atomPtr) = parse_atom_commalist(queryData, (yyvsp[-2].atomPtr), (yyvsp[0].strval)); }
-#line 1960 "sql.c" /* yacc.c:1646  */
+#line 1961 "sql.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 201 "sql.y" /* yacc.c:1646  */
+#line 202 "sql.y" /* yacc.c:1646  */
     { parse_grouping_spec(queryData, parse_scalar_exp_column_ref(queryData, (yyvsp[0].referencePtr))); }
-#line 1966 "sql.c" /* yacc.c:1646  */
+#line 1967 "sql.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 202 "sql.y" /* yacc.c:1646  */
+#line 203 "sql.y" /* yacc.c:1646  */
     { parse_grouping_spec(queryData, parse_scalar_exp_column_ref(queryData, (yyvsp[0].referencePtr))); }
-#line 1972 "sql.c" /* yacc.c:1646  */
+#line 1973 "sql.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 216 "sql.y" /* yacc.c:1646  */
+#line 217 "sql.y" /* yacc.c:1646  */
     { parse_ordering_spec(queryData, (yyvsp[-1].expressionPtr), (yyvsp[0].intval)); }
-#line 1978 "sql.c" /* yacc.c:1646  */
+#line 1979 "sql.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 217 "sql.y" /* yacc.c:1646  */
+#line 218 "sql.y" /* yacc.c:1646  */
     { parse_ordering_spec(queryData, (yyvsp[-1].expressionPtr), (yyvsp[0].intval)); }
-#line 1984 "sql.c" /* yacc.c:1646  */
+#line 1985 "sql.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 221 "sql.y" /* yacc.c:1646  */
+#line 222 "sql.y" /* yacc.c:1646  */
     {(yyval.intval) = 0;}
-#line 1990 "sql.c" /* yacc.c:1646  */
+#line 1991 "sql.c" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 222 "sql.y" /* yacc.c:1646  */
+#line 223 "sql.y" /* yacc.c:1646  */
     {(yyval.intval) = 0;}
-#line 1996 "sql.c" /* yacc.c:1646  */
+#line 1997 "sql.c" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 223 "sql.y" /* yacc.c:1646  */
+#line 224 "sql.y" /* yacc.c:1646  */
     {(yyval.intval) = 1;}
-#line 2002 "sql.c" /* yacc.c:1646  */
+#line 2003 "sql.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 228 "sql.y" /* yacc.c:1646  */
+#line 229 "sql.y" /* yacc.c:1646  */
     { if(queryData->parseMode != 1) {free((yyvsp[0].strval));} else {queryData->intoFileName = (yyvsp[0].strval);} }
-#line 2008 "sql.c" /* yacc.c:1646  */
+#line 2009 "sql.c" /* yacc.c:1646  */
     break;
 
 
-#line 2012 "sql.c" /* yacc.c:1646  */
+#line 2013 "sql.c" /* yacc.c:1646  */
         default: break;
       }
     if (yychar_backup != yychar)
@@ -2248,5 +2249,5 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 230 "sql.y" /* yacc.c:1906  */
+#line 231 "sql.y" /* yacc.c:1906  */
 

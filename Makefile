@@ -3,7 +3,7 @@
 
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = refhash.o parser.o lexer.o sql.o hash4.o strcomp.o querycsv.o
+OBJECTS = lexer.o sql.o strcomp.o
 INCFLAGS = 
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = 

@@ -482,8 +482,8 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
             char1 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))(&offset1, str1, 0, &bytesMatched1, get1);
           }
 
-          if(entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1)) {
-            if (entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2)) {
+          if((entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1))) {
+            if ((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2))) {
 
               //compare the lookup table entries
               if(entry1->script == entry2->script) {

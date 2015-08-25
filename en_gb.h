@@ -10,7 +10,7 @@
 #define TDB_PARSER_SYNTAX "A syntax error occurred when parsing the input file\n"
 #define TDB_PARSER_USED_ALL_RAM "Parsing the input file used up all memory storage space\n"
 #define TDB_PARSER_UNKNOWN "An unknown error occurred when parsing the input file\n"
-#define TDB_LEX_UNTERMINATED "Unterminated string on line %d (%s)\n", lineno, text
+#define TDB_LEX_UNTERMINATED "Unterminated string on line %ld (%s)\n", lineno, text
 #define TDB_MALLOC_FAILED "Could not allocate needed memory\n"
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
 #define TDB_UNTITLED_COLUMN "_Column %d", queryData->columnCount

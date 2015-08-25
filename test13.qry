@@ -1,0 +1,7 @@
+select a.c, min(b.klm) as min_klm,max(c.c)
+from 'test2.csv' as a
+left join 'test.csv' as b on b.hij = a.c
+left join 'test4.csv' as c on c.b = a.b
+group by a.c
+order by a.c
+

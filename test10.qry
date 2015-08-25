@@ -1,4 +1,4 @@
 select names
-from 'outpt.csv' as test
+from 'test3.csv' as test
 order by names
 

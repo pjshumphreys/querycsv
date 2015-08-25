@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 7 "sql.y" /* yacc.c:1909  */
+#line 8 "sql.y" /* yacc.c:1909  */
 
  
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -170,7 +170,7 @@ typedef void* yyscan_t;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 26 "sql.y" /* yacc.c:1909  */
+#line 27 "sql.y" /* yacc.c:1909  */
 
 	//double floatval;
 	long intval;

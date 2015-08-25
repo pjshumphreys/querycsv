@@ -10,12 +10,9 @@ struct hash2Entry {
 
 #include "hash3.h"
 
-struct hash4Entry {
-  const char *name;
-  int script;
-  int index;
-  int islower;
-};
+#include "refhash.c"
+#include "hash4.c"
+#include "querycsv.c"
 
-struct hash4Entry * in_word_set (register const char *str, register unsigned int len);
-static unsigned int hash (register const char *str, register unsigned int len);
+//struct hash4Entry * in_word_set (register const char *str, register unsigned int len);
+//static unsigned int hash (register const char *str, register unsigned int len);

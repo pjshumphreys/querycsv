@@ -5,8 +5,7 @@ struct hash4Entry {
   int script;
   int index;
   int islower;
-};
-#include <string.h>
+}
 %%
 "A",127,1,0
 "ᴀ",127,2,1

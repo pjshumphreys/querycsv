@@ -1,4 +1,4 @@
-#include "querycsv.h"
+//#include "querycsv.h"
 
 void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileName, char* tableName) {
   FILE* csvFile;
@@ -33,7 +33,7 @@ void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileNam
   free(csvFile);
   
   //try opening the file specified in the query
-  csvFile = fopen(columnText2, "rb");
+  csvFile = fopen_skipBom(columnText2);
   tableName = strdup(columnText);
   free(columnText);
   free(columnText2);  //free the filename string data as we don't need it any more
@@ -53,6 +53,7 @@ void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileNam
   newTable->fileStream = csvFile;
   newTable->firstInputColumn = NULL;  //the table initially has no columns
   newTable->isLeftJoined = FALSE;
+  newTable->noLeftRecord = TRUE;   //set just for initialsation purposes
 
   //add the new table to the linked list in the query data
   if(queryData->firstInputTable == NULL) {
@@ -210,6 +211,7 @@ struct resultColumn* parse_new_output_column(
   newResultColumn->groupType = aggregationType;
   newResultColumn->groupText = NULL;
   newResultColumn->groupNum = 0;
+  newResultColumn->groupingDone = FALSE;
 
   return newResultColumn;
 }
@@ -799,7 +801,7 @@ struct expression* parse_function_ref(
   expressionPtr2->type = EXP_GROUP;
   expressionPtr2->value = NULL;
 
-  expressionPtr2->unionPtrs.voidPtr = (void *)(&(columnPtr->groupText));  //the expression nodes reference points directly to the hidden columns groupText string
+  expressionPtr2->unionPtrs.voidPtr = (void *)(columnPtr);  //the expression nodes reference points directly to the hidden column
   expressionPtr2->minColumn = expressionPtr->minColumn;
   expressionPtr2->minTable = expressionPtr->minTable;
 

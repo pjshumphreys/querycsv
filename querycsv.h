@@ -74,6 +74,7 @@ struct resultColumn {
   int groupType;
   char * groupText;
   double groupNum;
+  int groupingDone;
   char * resultColumnName;
   struct resultColumn* nextColumnInstance;
   struct resultColumn* nextColumnInResults;
@@ -110,6 +111,7 @@ struct expression {
   int minTable;
   int minColumn;
   int containsAggregates;
+  int leftNull;
   union {
     struct {
       struct expression * leftPtr;
@@ -169,8 +171,6 @@ struct qryData {
   struct expression* joinsAndWhereClause;
   struct sortingList* orderByClause;
   struct sortingList* groupByClause;
-  int currentInputTable;
-  int currentInputColumn;
   FILE* scratchpad;
   char* scratchpadName;
 };
@@ -179,6 +179,7 @@ struct resultColumnValue { //this information should be stored in files
   long startOffset;
   int isQuoted;
   int isNormalized;
+  int leftNull;
   size_t length;
   FILE ** source;
 };
@@ -199,6 +200,7 @@ long getUnicodeCharFast(unsigned char **offset, unsigned char **str, int plusByt
 
 int getCsvColumn(FILE** inputFile, char** value, size_t* strSize, int* quotedValue, long* startPosition);
 
+/*
 void parse_table_factor(
     struct qryData* queryData,
     int isLeftJoin,
@@ -271,7 +273,7 @@ struct expression* parse_function_ref(
     long aggregationType,
     struct expression *expressionPtr
   );
-
+*/
 struct columnReferenceHash* create_hash_table(int size);
 unsigned int hashfunc(struct columnReferenceHash *hashtable, char *str);
 struct columnReference *lookup_string(struct columnReferenceHash *hashtable, char *str);
@@ -286,3 +288,5 @@ void free_table(struct columnReferenceHash *hashtable);
 
 char *strReplace(char *search, char *replace, char *subject);
 void yyerror2(long lineno, char *text);
+
+FILE * fopen_skipBom(const char * filename);

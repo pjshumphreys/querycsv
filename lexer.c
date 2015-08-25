@@ -810,8 +810,9 @@ static yyconst flex_int32_t yy_rule_can_match_eol[115] =
 
 	/* macro to save the text and return a token */
 #define TOK(name) { return name; }
+#define LEX_WORKAROUND strReplace("]]", "]", yytext)
 #define YY_NO_UNISTD_H 1
-#line 815 "lexer.c"
+#line 816 "lexer.c"
 
 #define INITIAL 0
 
@@ -1048,12 +1049,12 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 16 "sql.l"
+#line 17 "sql.l"
 
 
 	/* literal keyword tokens */
 
-#line 1057 "lexer.c"
+#line 1058 "lexer.c"
 
     yylval = yylval_param;
 
@@ -1148,494 +1149,494 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 20 "sql.l"
+#line 21 "sql.l"
 TOK(ALL)
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 21 "sql.l"
+#line 22 "sql.l"
 TOK(AND)
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 22 "sql.l"
+#line 23 "sql.l"
 { yylval->intval = GRP_AVG;return AMMSC; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 23 "sql.l"
+#line 24 "sql.l"
 { yylval->intval = GRP_MIN;return AMMSC; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 24 "sql.l"
+#line 25 "sql.l"
 { yylval->intval = GRP_MAX;return AMMSC; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 25 "sql.l"
+#line 26 "sql.l"
 { yylval->intval = GRP_SUM;return AMMSC; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 26 "sql.l"
+#line 27 "sql.l"
 { yylval->intval = GRP_COUNT;return AMMSC; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 27 "sql.l"
+#line 28 "sql.l"
 { yylval->intval = GRP_CONCAT;return AMMSC; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 28 "sql.l"
+#line 29 "sql.l"
 TOK(ANY)
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 29 "sql.l"
+#line 30 "sql.l"
 TOK(AS)
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 30 "sql.l"
+#line 31 "sql.l"
 TOK(ASC)
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 31 "sql.l"
+#line 32 "sql.l"
 TOK(AUTHORIZATION)
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 32 "sql.l"
+#line 33 "sql.l"
 TOK(BETWEEN)
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 33 "sql.l"
+#line 34 "sql.l"
 TOK(BY)
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 34 "sql.l"
+#line 35 "sql.l"
 TOK(CHARACTER)
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 35 "sql.l"
+#line 36 "sql.l"
 TOK(CHECK)
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 36 "sql.l"
+#line 37 "sql.l"
 TOK(CLOSE)
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 37 "sql.l"
+#line 38 "sql.l"
 TOK(COLLATE)
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 38 "sql.l"
+#line 39 "sql.l"
 TOK(COMMIT)
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 39 "sql.l"
+#line 40 "sql.l"
 TOK(CONTINUE)
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 40 "sql.l"
+#line 41 "sql.l"
 TOK(CONCAT)
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 41 "sql.l"
+#line 42 "sql.l"
 TOK(CREATE)
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 42 "sql.l"
+#line 43 "sql.l"
 TOK(CURRENT)
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 43 "sql.l"
+#line 44 "sql.l"
 TOK(CURSOR)
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 44 "sql.l"
+#line 45 "sql.l"
 TOK(DECIMAL)
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 45 "sql.l"
+#line 46 "sql.l"
 TOK(DECLARE)
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 46 "sql.l"
+#line 47 "sql.l"
 TOK(DEFAULT)
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 47 "sql.l"
+#line 48 "sql.l"
 TOK(DELETE)
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 48 "sql.l"
+#line 49 "sql.l"
 TOK(DESC)
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 49 "sql.l"
+#line 50 "sql.l"
 TOK(DISTINCT)
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 50 "sql.l"
+#line 51 "sql.l"
 TOK(DOUBLE)
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 51 "sql.l"
+#line 52 "sql.l"
 TOK(ESCAPE)
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 52 "sql.l"
+#line 53 "sql.l"
 TOK(EXISTS)
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 53 "sql.l"
+#line 54 "sql.l"
 TOK(FETCH)
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 54 "sql.l"
+#line 55 "sql.l"
 TOK(FLOAT)
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 55 "sql.l"
+#line 56 "sql.l"
 TOK(FOR)
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 56 "sql.l"
+#line 57 "sql.l"
 TOK(FOREIGN)
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 57 "sql.l"
+#line 58 "sql.l"
 TOK(FOUND)
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 58 "sql.l"
+#line 59 "sql.l"
 TOK(FROM)
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 59 "sql.l"
+#line 60 "sql.l"
 TOK(GOTO)
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 60 "sql.l"
+#line 61 "sql.l"
 TOK(GRANT)
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 61 "sql.l"
+#line 62 "sql.l"
 TOK(GROUP)
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 62 "sql.l"
+#line 63 "sql.l"
 TOK(HAVING)
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 63 "sql.l"
+#line 64 "sql.l"
 TOK(IN)
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 64 "sql.l"
+#line 65 "sql.l"
 TOK(INDICATOR)
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 65 "sql.l"
+#line 66 "sql.l"
 TOK(INSERT)
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 66 "sql.l"
+#line 67 "sql.l"
 TOK(INTEGER)
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 67 "sql.l"
+#line 68 "sql.l"
 TOK(INTO)
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 68 "sql.l"
+#line 69 "sql.l"
 TOK(IS)
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 69 "sql.l"
+#line 70 "sql.l"
 TOK(JOIN)
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 70 "sql.l"
+#line 71 "sql.l"
 TOK(KEY)
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 71 "sql.l"
+#line 72 "sql.l"
 TOK(LANGUAGE)
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 72 "sql.l"
+#line 73 "sql.l"
 TOK(LEFT)
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 73 "sql.l"
+#line 74 "sql.l"
 TOK(LIKE)
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 74 "sql.l"
+#line 75 "sql.l"
 TOK(NOT)
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 75 "sql.l"
+#line 76 "sql.l"
 TOK(NULLX)
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 76 "sql.l"
+#line 77 "sql.l"
 TOK(NUMERIC)
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 77 "sql.l"
+#line 78 "sql.l"
 TOK(OF)
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 78 "sql.l"
+#line 79 "sql.l"
 TOK(ON)
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 79 "sql.l"
+#line 80 "sql.l"
 TOK(OPEN)
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 80 "sql.l"
+#line 81 "sql.l"
 TOK(OPTION)
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 81 "sql.l"
+#line 82 "sql.l"
 TOK(OR)
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 82 "sql.l"
+#line 83 "sql.l"
 TOK(ORDER)
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 83 "sql.l"
+#line 84 "sql.l"
 TOK(PRECISION)
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 84 "sql.l"
+#line 85 "sql.l"
 TOK(PRIMARY)
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 85 "sql.l"
+#line 86 "sql.l"
 TOK(PRIVILEGES)
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 86 "sql.l"
+#line 87 "sql.l"
 TOK(PROCEDURE)
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 87 "sql.l"
+#line 88 "sql.l"
 TOK(PUBLIC)
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 88 "sql.l"
+#line 89 "sql.l"
 TOK(REAL)
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 89 "sql.l"
+#line 90 "sql.l"
 TOK(REFERENCES)
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 90 "sql.l"
+#line 91 "sql.l"
 TOK(ROLLBACK)
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 91 "sql.l"
+#line 92 "sql.l"
 TOK(SCHEMA)
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 92 "sql.l"
+#line 93 "sql.l"
 TOK(SELECT)
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 93 "sql.l"
+#line 94 "sql.l"
 TOK(SET)
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 94 "sql.l"
+#line 95 "sql.l"
 TOK(SMALLINT)
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 95 "sql.l"
+#line 96 "sql.l"
 TOK(SOME)
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 96 "sql.l"
+#line 97 "sql.l"
 TOK(SQLCODE)
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 97 "sql.l"
+#line 98 "sql.l"
 TOK(TABLE)
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 98 "sql.l"
+#line 99 "sql.l"
 TOK(TO)
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 99 "sql.l"
+#line 100 "sql.l"
 TOK(UNION)
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 100 "sql.l"
+#line 101 "sql.l"
 TOK(UNIQUE)
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 101 "sql.l"
+#line 102 "sql.l"
 TOK(UPDATE)
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 102 "sql.l"
+#line 103 "sql.l"
 TOK(USER)
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 103 "sql.l"
+#line 104 "sql.l"
 TOK(VALUES)
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 104 "sql.l"
+#line 105 "sql.l"
 TOK(VIEW)
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 105 "sql.l"
+#line 106 "sql.l"
 TOK(WHENEVER)
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 106 "sql.l"
+#line 107 "sql.l"
 TOK(WHERE)
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 107 "sql.l"
+#line 108 "sql.l"
 TOK(WITH)
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 108 "sql.l"
+#line 109 "sql.l"
 TOK(WORK)
 	YY_BREAK
 /* punctuation */
 case 90:
 YY_RULE_SETUP
-#line 112 "sql.l"
+#line 113 "sql.l"
 { yylval->intval = 0;return COMPARISON; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 113 "sql.l"
+#line 114 "sql.l"
 { yylval->intval = 1;return COMPARISON; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 114 "sql.l"
+#line 115 "sql.l"
 { yylval->intval = 1;return COMPARISON; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 115 "sql.l"
+#line 116 "sql.l"
 { yylval->intval = 2;return COMPARISON; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 116 "sql.l"
+#line 117 "sql.l"
 { yylval->intval = 3;return COMPARISON; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 117 "sql.l"
+#line 118 "sql.l"
 { yylval->intval = 4;return COMPARISON; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 118 "sql.l"
+#line 119 "sql.l"
 { yylval->intval = 5;return COMPARISON; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 120 "sql.l"
+#line 121 "sql.l"
 TOK(yytext[0])
 	YY_BREAK
 /* names */
 case 98:
 YY_RULE_SETUP
-#line 124 "sql.l"
+#line 125 "sql.l"
 {
     yylval->strval = NULL;
     snprintf_d(&(yylval->strval), "_%s", yytext);
@@ -1645,7 +1646,7 @@ YY_RULE_SETUP
 case 99:
 /* rule 99 can match eol */
 YY_RULE_SETUP
-#line 130 "sql.l"
+#line 131 "sql.l"
 {
     yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
@@ -1659,17 +1660,17 @@ case 100:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 137 "sql.l"
+#line 138 "sql.l"
 {	yyerror2(yylineno, yytext); }
 	YY_BREAK
 case 101:
 /* rule 101 can match eol */
 YY_RULE_SETUP
-#line 139 "sql.l"
+#line 140 "sql.l"
 {
     yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
-    yylval->strval = strReplace("\]\]", "\]", yytext);
+    yylval->strval = LEX_WORKAROUND;
     return NAME;
 }
 	YY_BREAK
@@ -1679,13 +1680,13 @@ case 102:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 146 "sql.l"
+#line 147 "sql.l"
 {	yyerror2(yylineno, yytext); }
 	YY_BREAK
 /* numbers */
 case 103:
 YY_RULE_SETUP
-#line 151 "sql.l"
+#line 152 "sql.l"
 {
     /*
     yylval->intval = atol(yytext);
@@ -1696,16 +1697,16 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case 104:
-#line 161 "sql.l"
-case 105:
 #line 162 "sql.l"
-case 106:
+case 105:
 #line 163 "sql.l"
-case 107:
+case 106:
 #line 164 "sql.l"
+case 107:
+#line 165 "sql.l"
 case 108:
 YY_RULE_SETUP
-#line 164 "sql.l"
+#line 165 "sql.l"
 {
     /*
     yylval->floatval = strtod(yytext, NULL);
@@ -1719,7 +1720,7 @@ YY_RULE_SETUP
 case 109:
 /* rule 109 can match eol */
 YY_RULE_SETUP
-#line 175 "sql.l"
+#line 176 "sql.l"
 {
 		yytext[strlen(yytext)-1] = '\0';
     yylval->strval = strReplace("''", "'", yytext+1);
@@ -1732,31 +1733,31 @@ case 110:
 yyg->yy_c_buf_p = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 181 "sql.l"
+#line 182 "sql.l"
 {	yyerror2(yylineno, yytext); }
 	YY_BREAK
 case 111:
 /* rule 111 can match eol */
 YY_RULE_SETUP
-#line 183 "sql.l"
+#line 184 "sql.l"
 /* white space */
 	YY_BREAK
 case 112:
 YY_RULE_SETUP
-#line 185 "sql.l"
+#line 186 "sql.l"
 /* comment */
 	YY_BREAK
 case 113:
 YY_RULE_SETUP
-#line 188 "sql.l"
+#line 189 "sql.l"
 /* random non-SQL text. trigger a syntax error */
 	YY_BREAK
 case 114:
 YY_RULE_SETUP
-#line 189 "sql.l"
+#line 190 "sql.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1760 "lexer.c"
+#line 1761 "lexer.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2932,7 +2933,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 189 "sql.l"
+#line 190 "sql.l"
 
 
 

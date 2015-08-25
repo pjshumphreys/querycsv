@@ -1,0 +1,6 @@
+select a.c, max(b.klm) as max_klm
+from 'test2.csv' as a
+left join 'test.csv' as b on b.hij = a.c
+--group by a.c
+order by max(b.klm)
+

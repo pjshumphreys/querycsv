@@ -5,9 +5,34 @@
   from msdos batch file scripts, and one that can retrieve the current date in ISO8601 format
 */
 
-#include "querycsv.h"
 #include "sql.h"
 #include "lexer.h"
+
+/*skips the BOM if present from a file */
+FILE * fopen_skipBom(const char * filename) {
+  FILE * file;
+  int c, c2, c3;
+
+  file = fopen(filename, "rb");
+
+  if (file != NULL) {
+    if((c = fgetc(file)) == 239) {
+      if((c2 = fgetc(file)) == 187) {
+        if((c3 = fgetc(file)) == 191) {
+          return file; 
+        }
+        
+        ungetc(c3, file);
+      }
+
+      ungetc(c2, file);
+    }
+
+    ungetc(c, file);
+  }
+
+  return file;
+}
 
 void reallocMsg(char *failureMessage, void** mem, size_t size) {
   void * temp = NULL;
@@ -455,8 +480,9 @@ int getCsvColumn(
           if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
             ungetc(c, *inputFile);
           }
+        case '\0':
         break;
-      
+
         default:
           strAppend(c, value, strSize);
         break;
@@ -506,6 +532,12 @@ int getCsvColumn(
           free(tempString);
           return c == ',';
         break;
+
+        case '\0':
+          if (quotedValue != NULL) {
+            *quotedValue = TRUE;
+          }
+        break;
         
         default:
           strAppend(c, value, strSize);
@@ -520,7 +552,6 @@ int getCsvColumn(
 
 void stringGet(unsigned char **str, struct resultColumnValue* field) {
   long offset = ftell(*(field->source));
-  char* string2 = NULL;
   
   fseek(*(field->source), field->startOffset, SEEK_SET);
   fflush(*(field->source));
@@ -573,7 +604,6 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   FILE * queryFile = NULL;
   void * scanner;
   struct inputTable* currentInputTable;
-  struct columnReference* currentReference;
   struct columnReference* currentReferenceWithName;
   struct resultColumn* currentResultColumn;
   struct sortingList* currentSortingList;
@@ -818,22 +848,29 @@ void getValue(
     struct resultColumnValue * match
   ) {
   struct expression * calculatedField;
-  
-  long offset;
-  
+  struct resultColumn * column;
+  struct resultColumnValue * field;
+
+  expressionPtr->leftNull = FALSE;
+
   switch(expressionPtr->type) {
     case EXP_COLUMN: {
       //get the value of the first instance in the result set of
       //this input column (it should have just been filled out with a
       //value for the current record)
-      //TODO: test and fix the behaviour here
-      stringGet(
-          &(expressionPtr->value),
-          &(match[
-            ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->
-            firstResultColumn->resultColumnIndex
-          ])
-        );
+
+      field = &(match[
+          ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->
+          firstResultColumn->resultColumnIndex
+        ]);
+      
+      if(field->leftNull) {
+        expressionPtr->leftNull = TRUE;
+        expressionPtr->value = strdup("");
+      }
+      else {
+        stringGet(&(expressionPtr->value), field);
+      }
     } break;
 
     case EXP_LITERAL: {
@@ -843,32 +880,51 @@ void getValue(
     case EXP_CALCULATED: {
       calculatedField = ((struct expression*)(expressionPtr->unionPtrs.voidPtr));
 
-      getValue(
-          calculatedField,
-          match
-        );
+      getValue(calculatedField, match);
 
+      expressionPtr->leftNull = calculatedField->leftNull;
       expressionPtr->value = strdup(calculatedField->value);
 
       strFree(&(calculatedField->value));
     } break;
 
     case EXP_GROUP: {
-      expressionPtr->value = strdup(*((char **)expressionPtr->unionPtrs.voidPtr));
+      column = (struct resultColumn *)(expressionPtr->unionPtrs.voidPtr);
+      if(column->groupingDone) {
+        field = &(match[column->resultColumnIndex]);
+
+        if(field->leftNull == FALSE) {
+          stringGet(&(expressionPtr->value), field);
+          break;
+        }
+      }
+      else if(column->groupText != NULL) {
+        expressionPtr->value = strdup(column->groupText);
+        break;
+      }
+
+      expressionPtr->leftNull = TRUE;
+      expressionPtr->value = strdup("");
     } break;
 
     case EXP_UPLUS: {
-       getValue(
+      getValue(
           expressionPtr->unionPtrs.leaves.leftPtr,
           match
         );
 
-      snprintf_d(
-          &(expressionPtr->value),
-          "%g",
-          strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
-        );
-        
+      if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
+        expressionPtr->leftNull = TRUE;
+        expressionPtr->value = strdup("");
+      }
+      else {
+        snprintf_d(
+            &(expressionPtr->value),
+            "%g",
+            strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
+          );
+      }
+      
       strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
     } break;
 
@@ -877,12 +933,18 @@ void getValue(
           expressionPtr->unionPtrs.leaves.leftPtr,
           match
         );
-
-      exp_uminus(
-          &(expressionPtr->value),
-          strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
-        );
         
+      if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
+        expressionPtr->leftNull = TRUE;
+        expressionPtr->value = strdup("");
+      }
+      else {
+        exp_uminus(
+            &(expressionPtr->value),
+            strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
+          );
+      }
+      
       strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
     } break;
     
@@ -902,50 +964,59 @@ void getValue(
           match
         );
 
-      switch(expressionPtr->type){
-        case EXP_PLUS:
-          snprintf_d(
-              &(expressionPtr->value),
-              "%g",
-              strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)+
-              strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-            );
-        break;
+      if(
+          expressionPtr->unionPtrs.leaves.leftPtr->leftNull ||
+          expressionPtr->unionPtrs.leaves.rightPtr->leftNull
+        ) {
+        expressionPtr->leftNull = TRUE;
+        expressionPtr->value = strdup("");
+      }
+      else {
+        switch(expressionPtr->type){
+          case EXP_PLUS:
+            snprintf_d(
+                &(expressionPtr->value),
+                "%g",
+                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)+
+                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
+              );
+          break;
 
-        case EXP_MINUS:
-          snprintf_d(
-              &(expressionPtr->value),
-              "%g",
-              strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)-
-              strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-            );
-        break;
+          case EXP_MINUS:
+            snprintf_d(
+                &(expressionPtr->value),
+                "%g",
+                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)-
+                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
+              );
+          break;
 
-        case EXP_MULTIPLY:
-          snprintf_d(
-              &(expressionPtr->value),
-              "%g",
-              strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)*
-              strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-            );
-        break;
+          case EXP_MULTIPLY:
+            snprintf_d(
+                &(expressionPtr->value),
+                "%g",
+                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)*
+                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
+              );
+          break;
 
-        case EXP_DIVIDE:
-          exp_divide(
-              &(expressionPtr->value),
-              strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL),
-              strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-            );
-        break;
+          case EXP_DIVIDE:
+            exp_divide(
+                &(expressionPtr->value),
+                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL),
+                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
+              );
+          break;
 
-        case EXP_CONCAT:
-          snprintf_d(
-              &(expressionPtr->value),
-              "%s%s",
-              expressionPtr->unionPtrs.leaves.leftPtr->value,
-              expressionPtr->unionPtrs.leaves.rightPtr->value
-            );
-        break;
+          case EXP_CONCAT:
+            snprintf_d(
+                &(expressionPtr->value),
+                "%s%s",
+                expressionPtr->unionPtrs.leaves.leftPtr->value,
+                expressionPtr->unionPtrs.leaves.rightPtr->value
+              );
+          break;
+        }
       }
       
       strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
@@ -972,6 +1043,17 @@ int walkRejectRecord(
     getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
     getValue(expressionPtr->unionPtrs.leaves.rightPtr, match);
 
+    if(
+        expressionPtr->unionPtrs.leaves.leftPtr->leftNull ||
+        expressionPtr->unionPtrs.leaves.rightPtr->leftNull
+      ) {
+
+      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+      strFree(&(expressionPtr->unionPtrs.leaves.rightPtr->value));
+
+      return FALSE;
+    }
+    
     retval = strCompare(
         &(expressionPtr->unionPtrs.leaves.leftPtr->value),
         &(expressionPtr->unionPtrs.leaves.rightPtr->value),
@@ -1014,6 +1096,11 @@ int walkRejectRecord(
   else if(expressionPtr->type == EXP_IN || expressionPtr->type == EXP_NOTIN) {
     getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
 
+    if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
+      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+      return FALSE;
+    }
+    
     for(
         i = expressionPtr->unionPtrs.inLeaves.lastEntryPtr->index,
           currentAtom = expressionPtr->unionPtrs.inLeaves.lastEntryPtr->nextInList;
@@ -1081,11 +1168,18 @@ void getCalculatedColumns(
           getValue(currentReference->reference.calculatedPtr.expressionPtr, match);
 
           //store the value's length
-          match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
+          if(currentReference->reference.calculatedPtr.expressionPtr->leftNull) {
+            match[j].length = 0;
+            match[j].leftNull = TRUE;
+          }
+          else {
+            match[j].leftNull = FALSE;
+            match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
 
-          //write the value to the scratchpad file
-          fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad);
-
+            //write the value to the scratchpad file
+            fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad);
+          }
+          
           //free the expression value for this match
           strFree(&(currentReference->reference.calculatedPtr.expressionPtr->value));
         }
@@ -1105,10 +1199,10 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
   struct resultColumn* currentResultColumn;
   struct resultColumnValue columnOffsetData;
   int recordHasColumn;
-  int noLeftRecord = TRUE;
+  int doLeftRecord = FALSE;
 
   //if secondaryInputTable is NULL then
-  //the query has yet returned any results.
+  //the query hasn't returned any results yet.
   //needed as this function should continue where it left off next time
   if(query->secondaryInputTable == NULL) {
     query->secondaryInputTable = query->firstInputTable;
@@ -1120,7 +1214,14 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
   ////////////////////////////////////////////////////////////////////////////////////////////
 
   do {  //tables
-    while(endOfFile(currentInputTable->fileStream)) {   //records
+    while(
+        endOfFile(currentInputTable->fileStream) ||
+        (
+          currentInputTable->isLeftJoined &&
+          currentInputTable->noLeftRecord &&
+          (doLeftRecord = TRUE)
+        )
+      ) {   //records
 
       //reset the flag that says the column values ran out
       recordHasColumn = TRUE;
@@ -1134,7 +1235,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
         //if we haven't yet reached the end of a record, get the next column value.
         //if it returns false we use an empty string for the value instead
 
-        if(recordHasColumn == TRUE) {
+        if(recordHasColumn == TRUE && !doLeftRecord) {
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
               NULL,
@@ -1147,10 +1248,14 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
           //if the value is quoted we should probably also NFD normalise it before writing to the scratchpad
           columnOffsetData.isNormalized = FALSE;
           columnOffsetData.source = &(currentInputTable->fileStream);
+          columnOffsetData.leftNull = FALSE;
         }
 
         //construct an empty column reference.
         else {
+          columnOffsetData.leftNull = doLeftRecord;
+          columnOffsetData.startOffset = 0;
+          columnOffsetData.length = 0;
           columnOffsetData.isQuoted = FALSE;
           columnOffsetData.isNormalized = TRUE; //an empty string needs no unicode normalization
           columnOffsetData.source = &(query->scratchpad);
@@ -1162,7 +1267,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
             currentResultColumn != NULL;
             currentResultColumn = currentResultColumn->nextColumnInstance
           ) {
-            
+
           memcpy(
               &(match[currentResultColumn->resultColumnIndex]),
               &columnOffsetData,
@@ -1173,30 +1278,41 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
       //end of columns
 
       //consume any remaining column data that may exist in this record
-      if(recordHasColumn == TRUE) {
+      if(recordHasColumn == TRUE && !doLeftRecord) {
         while(getCsvColumn(&(currentInputTable->fileStream), NULL, NULL, NULL, NULL)) {
           //do nothing
         }
       }
 
-      //if the current table was left joined and no matching record was
-      //output then output a record containing empty strings for each column
-      //in the table
-      if(currentInputTable->isLeftJoined && currentInputTable->noLeftRecord) {
-        //set the fields in this file to empty string then go to the next table
-      }
-
-      //TRUE means the record was rejected. FALSE means the record hasn't yet been rejected
+      //TRUE means the record was rejected. FALSE means the record hasn't yet been rejected 
       if(walkRejectRecord(
           currentInputTable->fileIndex,
           query->joinsAndWhereClause,
           match
         )) {
-        //go to next record
-        continue;
+        if(doLeftRecord) {
+          doLeftRecord = FALSE;
+          break;
+        }
+        else {
+          //go to next record
+          continue;
+        }
       }
       else if(currentInputTable->nextInputTable == NULL) {
+        //there was a record match for this table
         currentInputTable->noLeftRecord = FALSE;
+
+        //mark every record in every table as having a match,
+        //even if using a special left join one
+        currentInputTable = query->firstInputTable;
+        
+        while((currentInputTable) != (query->secondaryInputTable)) {
+          currentInputTable->noLeftRecord = FALSE;
+          currentInputTable = currentInputTable->nextInputTable;
+        }
+
+        currentInputTable = query->secondaryInputTable;
 
         //do calculated columns
         getCalculatedColumns(query, match, FALSE);
@@ -1210,11 +1326,11 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
         }
       }
       else {
-        currentInputTable->noLeftRecord = FALSE;
-
-        //more columns still to check in the next file
+        //there are more columns still to check in the next file
         currentInputTable = query->secondaryInputTable = currentInputTable->nextInputTable;
       }
+
+      doLeftRecord = FALSE;
     }
     //end of records
     
@@ -1463,6 +1579,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
   struct columnRefHashEntry* currentHashEntry;
   struct columnReference* currentReference;
   struct resultColumn* currentResultColumn;
+  struct resultColumnValue* field;
   char* tempString = NULL;
   char* tempString2 = NULL;
 
@@ -1485,86 +1602,90 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
             (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
             currentResultColumn->groupType != GRP_NONE
           ) {
-          stringGet(&tempString, &(match[currentResultColumn->resultColumnIndex]));
+          field = &(match[currentResultColumn->resultColumnIndex]);
 
-          switch(currentResultColumn->groupType) {
-            case GRP_COUNT:
-              if(query->groupCount > 1) {
-                for(j = 1; j < query->groupCount; j++) {
-                  stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]));
+          if(field->leftNull == FALSE) {
+            stringGet(&tempString, field);
 
-                  if(strCompare(
+            switch(currentResultColumn->groupType) {
+              case GRP_COUNT:
+                if(query->groupCount > 1) {
+                  for(j = 1; j < query->groupCount; j++) {
+                    stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]));
+
+                    if(strCompare(
+                      &tempString,
+                      &tempString2,
+                      TRUE,
+                      (void (*)())getUnicodeChar,
+                      (void (*)())getUnicodeChar
+                    ) == 0) {
+                      strFree(&tempString2);
+                      break;
+                    }
+
+                    strFree(&tempString2);
+                  }
+                  if(j == query->groupCount) {
+                    currentResultColumn->groupNum++;
+                  }
+                }
+                else {
+                  currentResultColumn->groupNum++;
+                }
+              break;
+
+              case GRP_AVG:
+              case GRP_SUM:
+                currentResultColumn->groupNum += strtod(tempString, NULL);
+              break;
+
+              case GRP_CONCAT:
+                snprintf_d(
+                    &(currentResultColumn->groupText),
+                    "%s%s",
+                    currentResultColumn->groupText,
+                    tempString
+                  );
+              break;
+
+              case GRP_MIN:
+                if(currentResultColumn->groupText == NULL || strCompare(
                     &tempString,
-                    &tempString2,
+                    &(currentResultColumn->groupText),
                     TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
-                  ) == 0) {
-                    strFree(&tempString2);
-                    break;
-                  }
+                  ) == -1) {
 
-                  strFree(&tempString2);
+                  free(currentResultColumn->groupText);
+                  currentResultColumn->groupText = tempString;
+                  tempString = NULL;
+                  currentReference = currentReference->nextReferenceWithName;
+                  continue;
                 }
-                if(j == query->groupCount) {
-                  currentResultColumn->groupNum++;
+              break;
+                
+              case GRP_MAX:
+                if(currentResultColumn->groupText == NULL || strCompare(
+                    &tempString,
+                    &(currentResultColumn->groupText),
+                    TRUE,
+                    (void (*)())getUnicodeChar,
+                    (void (*)())getUnicodeChar
+                  ) == 1) {
+
+                  free(currentResultColumn->groupText);
+                  currentResultColumn->groupText = tempString;
+                  tempString = NULL;
+                  currentReference = currentReference->nextReferenceWithName;
+                  continue;
                 }
-              }
-              else {
-                currentResultColumn->groupNum++;
-              }
-            break;
+              break;
+            }
 
-            case GRP_AVG:
-            case GRP_SUM:
-              currentResultColumn->groupNum += strtod(tempString, NULL);
-            break;
-
-            case GRP_CONCAT:
-              snprintf_d(
-                &(currentResultColumn->groupText),
-                "%s%s",
-                currentResultColumn->groupText,
-                tempString
-              );
-            break;
-
-            case GRP_MIN:
-              if(currentResultColumn->groupText == NULL || strCompare(
-                  &tempString,
-                  &(currentResultColumn->groupText),
-                  TRUE,
-                  (void (*)())getUnicodeChar,
-                  (void (*)())getUnicodeChar
-                ) == -1) {
-
-                free(currentResultColumn->groupText);
-                currentResultColumn->groupText = tempString;
-                tempString = NULL;
-                currentReference = currentReference->nextReferenceWithName;
-                continue;
-              }
-            break;
-              
-            case GRP_MAX:
-              if(currentResultColumn->groupText == NULL || strCompare(
-                  &tempString,
-                  &(currentResultColumn->groupText),
-                  TRUE,
-                  (void (*)())getUnicodeChar,
-                  (void (*)())getUnicodeChar
-                ) == 1) {
-
-                free(currentResultColumn->groupText);
-                currentResultColumn->groupText = tempString;
-                tempString = NULL;
-                currentReference = currentReference->nextReferenceWithName;
-                continue;
-              }
-            break;
+            strFree(&tempString);
           }
-
-          strFree(&tempString);
         }
         
         currentReference = currentReference->nextReferenceWithName;
@@ -1619,13 +1740,14 @@ void getGroupedColumns(struct qryData * query) {
 }
 
 void cleanup_groupedColumns(
-    struct qryData * query
+    struct qryData * query,
+    struct resultColumnValue * match
   ) {
   struct columnRefHashEntry* currentHashEntry;
   struct columnReference* currentReference;
   struct resultColumn* currentResultColumn;
 
-  int i;
+  int i,j;
 
   query->groupCount = 0;
 
@@ -1638,12 +1760,41 @@ void cleanup_groupedColumns(
       currentReference = currentHashEntry->content;
 
       while(currentReference != NULL) {
-        //... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way
+        //... check if the current column in the result set is a grouped one
         if(
             currentReference->referenceType == REF_EXPRESSION &&
             (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
             currentResultColumn->groupType != GRP_NONE
           ) {
+
+          //write groupText value into the scratchpad,
+          //so we can order by aggregate columns later
+          ////////////////////////////////////////////
+          
+          //start setting column value fields
+          j = currentResultColumn->resultColumnIndex;
+          match[j].isQuoted = FALSE;
+          match[j].isNormalized = FALSE;
+          match[j].source = &(query->scratchpad);
+
+          //seek to the end of the scratchpad file and update the start position
+          fseek(query->scratchpad, 0, SEEK_END);
+          fflush(query->scratchpad);
+          match[j].startOffset = ftell(query->scratchpad);
+
+          //store the value's length
+          if(currentResultColumn->groupText == NULL) {
+            match[j].length = 0;
+            match[j].leftNull = TRUE;
+          }
+          else {
+            match[j].leftNull = FALSE;
+            match[j].length = strlen(currentResultColumn->groupText);
+
+            //write the value to the scratchpad file
+            fputs(currentResultColumn->groupText, query->scratchpad);
+          }
+          
           strFree(&(currentResultColumn->groupText));
           currentResultColumn->groupNum = 0;
         }
@@ -1661,7 +1812,8 @@ void groupResults(struct qryData * query, struct resultSet * results) {
   struct resultSet resultsOrig;
   struct resultColumnValue * match;
   struct resultColumnValue * previousMatch;
-
+  struct resultColumn * currentResultColumn;
+  
   int i, len;
 
   //backup the original result set
@@ -1711,7 +1863,7 @@ void groupResults(struct qryData * query, struct resultSet * results) {
       getCalculatedColumns(query, previousMatch, TRUE);
 
       //free the group text strings (to prevent heap fragmentation)
-      cleanup_groupedColumns(query);
+      cleanup_groupedColumns(query, previousMatch);
 
       //append the record to the new result set
       appendToResultSet(query, previousMatch, results);
@@ -1724,9 +1876,15 @@ void groupResults(struct qryData * query, struct resultSet * results) {
   
   //free the old result set
   free(resultsOrig.records);
+
+  currentResultColumn = query->firstResultColumn;
+  while(currentResultColumn != NULL) {
+    currentResultColumn->groupingDone = TRUE;
+    currentResultColumn = currentResultColumn->nextColumnInResults;
+  }
 }
 
-int needsEscaping(char* str) { 
+int needsEscaping(char* str) {
   if(*str) {
     if(*str == ' ' || *str == '\t') {
       return TRUE;
@@ -1753,6 +1911,8 @@ int outputResults(struct qryData * query, struct resultSet * results) {
   int recordsOutput, i, j, len, firstColumn = TRUE;
   FILE * outputFile = NULL;
   struct resultColumn* currentResultColumn;
+  struct resultColumnValue* field;
+
   char *string = NULL;
   char *string2 = NULL;
   
@@ -1813,19 +1973,31 @@ int outputResults(struct qryData * query, struct resultSet * results) {
         else {
           firstColumn = FALSE;
         }
+        
+        field = &(results->records[(i*(query->columnCount))+j]);
 
-        stringGet(&string, &(results->records[(i*(query->columnCount))+j]));
+        switch(field->leftNull) {
+          case TRUE:
+          break;
+          
+          default:
+            stringGet(&string, field);
 
-        //need to properly re-escape fields that need it
-        if(needsEscaping(string)) {
-          string2 = strReplace("\"","\"\"", string);
-          fputs("\"", outputFile);
-          fputs(string2, outputFile);
-          fputs("\"", outputFile);
-          strFree(&string2);
-        }
-        else {		
-          fputs(string, outputFile);
+            //need to properly re-escape fields that need it
+            if(*string == '\0') {
+              fputs("\"\"", outputFile);  //empty string always needs escaping
+            }
+            else if(needsEscaping(string)) {
+              string2 = strReplace("\"","\"\"", string);
+              fputs("\"", outputFile);
+              fputs(string2, outputFile);
+              fputs("\"", outputFile);
+              strFree(&string2);
+            }
+            else {		
+              fputs(string, outputFile);
+            }
+          break;
         }
       }
 
@@ -1917,7 +2089,7 @@ int getColumnCount(char* inputFileName) {
   int columnCount = 1;
   
   //attempt to open the input file
-  inputFile = fopen(inputFileName, "rb");
+  inputFile = fopen_skipBom(inputFileName);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return -1;
@@ -1940,9 +2112,9 @@ int getNextRecordOffset(char* inputFileName, long offset) {
   FILE * inputFile = NULL;
   
   //attempt to open the input file
-  inputFile = fopen(inputFileName, "rb");
+  inputFile = fopen_skipBom(inputFileName);
   if(inputFile == NULL) {
-    fputs("5\n"/*TDB_COULDNT_OPEN_INPUT*/, stderr);
+    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return -1;
   }
 
@@ -1972,7 +2144,7 @@ int getColumnValue(char* inputFileName, long offset, int columnIndex) {
   int currentColumn = 0;
 
   //attempt to open the input file
-  inputFile = fopen(inputFileName, "rb");
+  inputFile = fopen_skipBom(inputFileName);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     strFree(&output);
