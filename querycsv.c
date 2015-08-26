@@ -562,9 +562,9 @@ void stringGet(unsigned char **str, struct resultColumnValue* field) {
   }
   else {  
     //can use a shortcut to get the string value
-	reallocMsg("alloc failed", (void**)str, field->length+1);
+    reallocMsg("alloc failed", (void**)str, field->length+1);
 
-	if(fread(*str, 1, field->length, *(field->source)) != field->length) {
+    if(fread(*str, 1, field->length, *(field->source)) != field->length) {
       fputs("didn't read string properly\n", stderr);
       exit(EXIT_FAILURE);
     }
@@ -839,7 +839,6 @@ void exp_uminus(char** value, double leftVal) {
   }
 }
 
-
 //getValue can be passed a scalar expression's abstract syntax
 //tree and it will evaluate it and turn it into a literal string of text characters.
 //the evaluated value must be freed later though.
@@ -1057,7 +1056,7 @@ int walkRejectRecord(
     retval = strCompare(
         &(expressionPtr->unionPtrs.leaves.leftPtr->value),
         &(expressionPtr->unionPtrs.leaves.rightPtr->value),
-        expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive != 0,
+        0,//expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive != 0,
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar
       );
@@ -1110,7 +1109,7 @@ int walkRejectRecord(
       if(strCompare(
         &(expressionPtr->unionPtrs.leaves.leftPtr->value),
         &(currentAtom->content),
-        expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive != 0,
+        0,//expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive != 0,
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar
       ) == 0) {
@@ -1554,7 +1553,7 @@ int recordCompare(const void * a, const void * b, void * c) {
     compare = strCompare(
         &output1,
         &output2,
-        orderByClause->expressionPtr->caseSensitive,
+        0,//orderByClause->expressionPtr->caseSensitive,
         (void (*)())getUnicodeChar,
         (void (*)())getUnicodeChar
       );
@@ -1653,7 +1652,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
                 if(currentResultColumn->groupText == NULL || strCompare(
                     &tempString,
                     &(currentResultColumn->groupText),
-                    TRUE,
+                    0,//TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == -1) {
@@ -1670,7 +1669,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
                 if(currentResultColumn->groupText == NULL || strCompare(
                     &tempString,
                     &(currentResultColumn->groupText),
-                    TRUE,
+                    0,//TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == 1) {
@@ -1823,7 +1822,6 @@ void groupResults(struct qryData * query, struct resultSet * results) {
   results->recordCount = 0;
   results->records = NULL;
 
- 
   //sort the records according to the group by clause
   if(query->groupByClause != NULL) {
     qsort_s(

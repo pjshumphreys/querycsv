@@ -421,6 +421,69 @@ struct hash4Entry * getLookupTableEntry(
   return temp2;
 }
 
+
+int consumeCombining(
+    unsigned char **str1,
+    unsigned char **str2,
+    unsigned char **offset1,
+    unsigned char **offset2,
+    void (*get1)(),
+    void (*get2)(),
+    int * bytesMatched1,
+    int * bytesMatched2,
+    int * accentcheck
+  ) {
+  int combiner1, combiner2, skip1 = FALSE, skip2 = FALSE;
+
+  (*offset1)+=(*bytesMatched1);
+  (*offset2)+=(*bytesMatched2);
+
+  do {
+    if(skip1 == FALSE) {
+     combiner1 = isCombining(
+          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
+          (offset1, str1, 0, bytesMatched1, get1)
+      );
+    }
+    
+    if(skip2 == FALSE) {
+      combiner2 = isCombining(
+          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
+          (offset2, str2, 0, bytesMatched2, get2)
+      );
+    }
+    
+    if(skip1 == FALSE && skip2 == FALSE) {
+      if(combiner1 != combiner2) {
+        //if either of them is not a combining character or not equal then accentcheck is set to 1
+        //if accentcheck is already 1 then return the one thats greater
+        if(*accentcheck == 2) {
+          return (combiner1 > combiner2) ? 1 : -1;
+        }
+        else {
+          *accentcheck = 1;
+        }
+      }
+    }
+    
+    if(combiner1 == 0) {
+      skip1 = TRUE; 
+    }
+    else {
+      (*offset1)+=(*bytesMatched1);
+    }
+
+    if(combiner2 == 0) {
+      skip2 = TRUE; 
+    }
+    else {
+      (*offset2)+=(*bytesMatched2);
+    }
+  } while (skip1 == FALSE || skip2 == FALSE);
+
+  return 0;
+}
+
 int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, void (*get1)(), void (*get2)()) {
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
@@ -428,7 +491,7 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
   struct hash4Entry *entry1, *entry2;
   int firstChar = TRUE, comparison = 0, char1found = FALSE;
   int bytesMatched1 = 0, bytesMatched2 = 0;
-  int accentcheck = 0, combiner1, combiner2, skip1, skip2;
+  int accentcheck = 0, combinerResult;
 
   for( ; ; ) {  //we'll quit from this function via other means
     //check if we've reached the end of string 2
@@ -444,6 +507,7 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
         else {
           //a difference just on the accents on a letter were found. re-compare with accent checking enabled.
           accentcheck = 2;
+          caseSensitive = 1;
           offset1 = *str1;
           offset2 = *str2;
           continue;
@@ -483,7 +547,7 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
           }
 
           if((entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1))) {
-            if ((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2))) {
+            if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2))) {
 
               //compare the lookup table entries
               if(entry1->script == entry2->script) {
@@ -492,6 +556,10 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
                 }
                 else {
                   comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
+
+                  if((entry1->index - entry2->index) != 0) {
+                    accentcheck = 1;
+                  }
                 }
               
                 if(comparison != 0) {
@@ -516,57 +584,16 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
             //compare codepoints
             return (char1 > char2) ? 1 : -1;
           }
-          
-          offset1+=bytesMatched1;
-          offset2+=bytesMatched2;
 
           //consume and compare all the remaining combining characters
-                  
-          skip1 = FALSE;
-          skip2 = FALSE;
-
-          do {
-            if(skip1 == FALSE) {
-             combiner1 = isCombining(
-                  (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
-                  (&offset1, str1, 0, &bytesMatched1, get1)
-              );
-            }
-            
-            if(skip2 == FALSE) {
-              combiner2 = isCombining(
-                  (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
-                  (&offset2, str2, 0, &bytesMatched2, get2)
-              );
-            }
-            
-            if(skip1 == FALSE && skip2 == FALSE) {
-              if(combiner1 != combiner2) {
-                //if either of them is not a combining character or not equal then accentcheck is set to 1
-                //if accentcheck is already 1 then return the one thats greater
-                if(accentcheck == 2) {
-                  return (combiner1 > combiner2) ? 1 : -1;
-                }
-                else {
-                  accentcheck = 1;
-                }
-              }
-            }
-            
-            if(combiner1 == 0) {
-              skip1 = TRUE; 
-            }
-            else {
-              offset1+=bytesMatched1;
-            }
-
-            if(combiner2 == 0) {
-              skip2 = TRUE; 
-            }
-            else {
-              offset2+=bytesMatched2;
-            }
-          } while (skip1 == FALSE || skip2 == FALSE);
+          if((combinerResult = consumeCombining(
+              str1, str2,
+              &offset1, &offset2,
+              get1, get2,
+              &bytesMatched1, &bytesMatched2,
+              &accentcheck)) != 0) {
+            return combinerResult;
+          }
         }
         else {
           //ascii non letters sort first
@@ -666,6 +693,10 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
                 }
                 else {
                   comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
+
+                  if((entry1->index - entry2->index) != 0) {
+                    accentcheck = 1;
+                  }
                 }
               
                 if(comparison != 0) {
@@ -682,54 +713,14 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
               return (entry1->script > char2) ? 1 : -1;
             }
 
-            offset1 += bytesMatched1;
-            offset2 += bytesMatched2;
-
-            skip1 = FALSE;
-            skip2 = FALSE;
-
-            do {
-              if(skip1 == FALSE) {
-               combiner1 = isCombining(
-                    (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
-                    (&offset1, str1, 0, &bytesMatched1, get1)
-                );
-              }
-              
-              if(skip2 == FALSE) {
-                combiner2 = isCombining(
-                    (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
-                    (&offset2, str2, 0, &bytesMatched2, get2)
-                );
-              }
-              
-              if(skip1 == FALSE && skip2 == FALSE) {
-                if(combiner1 != combiner2) {
-                  //if either of them is not a combining character or not equal then accentcheck is set to 1
-                  //if accentcheck is already 1 then return the one thats greater
-                  if(accentcheck == 2) {
-                    return (combiner1 > combiner2) ? 1 : -1;
-                  }
-                  else {
-                    accentcheck = 1;
-                  }
-                }
-              }
-              
-              if(combiner1 == 0) {
-                skip1 = TRUE; 
-              }
-              else {
-                offset1+=bytesMatched1;
-              }
-
-              if(combiner2 == 0) {
-                skip2 = TRUE; 
-              }
-              else {
-                offset2+=bytesMatched2;
-              }
-            } while (skip1 == FALSE || skip2 == FALSE);
+            if((combinerResult = consumeCombining(
+                str1, str2,
+                &offset1, &offset2,
+                get1, get2,
+                &bytesMatched1, &bytesMatched2,
+                &accentcheck)) != 0) {
+              return combinerResult;
+            }
         
             if(firstChar) {
               firstChar = FALSE;
@@ -753,54 +744,14 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
             return (char1 > char2) ? 1: -1; 
           }
 
-          offset1 += bytesMatched1;
-          offset2 += bytesMatched2;
-
-          skip1 = FALSE;
-          skip2 = FALSE;
-
-          do {
-            if(skip1 == FALSE) {
-             combiner1 = isCombining(
-                  (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
-                  (&offset1, str1, 0, &bytesMatched1, get1)
-              );
-            }
-            
-            if(skip2 == FALSE) {
-              combiner2 = isCombining(
-                  (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
-                  (&offset2, str2, 0, &bytesMatched2, get2)
-              );
-            }
-            
-            if(skip1 == FALSE && skip2 == FALSE) {
-              if(combiner1 != combiner2) {
-                //if either of them is not a combining character or not equal then accentcheck is set to 1
-                //if accentcheck is already 1 then return the one thats greater
-                if(accentcheck == 2) {
-                  return (combiner1 > combiner2) ? 1 : -1;
-                }
-                else {
-                  accentcheck = 1;
-                }
-              }
-            }
-            
-            if(combiner1 == 0) {
-              skip1 = TRUE; 
-            }
-            else {
-              offset1+=bytesMatched1;
-            }
-
-            if(combiner2 == 0) {
-              skip2 = TRUE; 
-            }
-            else {
-              offset2+=bytesMatched2;
-            }
-          } while (skip1 == FALSE || skip2 == FALSE);
+          if((combinerResult = consumeCombining(
+              str1, str2,
+              &offset1, &offset2,
+              get1, get2,
+              &bytesMatched1, &bytesMatched2,
+              &accentcheck)) != 0) {
+            return combinerResult;
+          }
       
           if(firstChar) {
             firstChar = FALSE;
@@ -834,6 +785,10 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
             }
             else {
               comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
+
+              if((entry1->index - entry2->index) != 0) {
+                accentcheck = 1;
+              }
             }
           
             if(comparison != 0) {
@@ -850,60 +805,20 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
           return (entry1->script > char2) ? 1: -1; 
         }
 
-        offset1 += bytesMatched1;
-        offset2 += bytesMatched2;
+        if((combinerResult = consumeCombining(
+            str1, str2,
+            &offset1, &offset2,
+            get1, get2,
+            &bytesMatched1, &bytesMatched2,
+            &accentcheck)) != 0) {
+          return combinerResult;
+        }
 
-        skip1 = FALSE;
-        skip2 = FALSE;
-
-        do {
-          if(skip1 == FALSE) {
-           combiner1 = isCombining(
-                (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
-                (&offset1, str1, 0, &bytesMatched1, get1)
-            );
-          }
-          
-          if(skip2 == FALSE) {
-            combiner2 = isCombining(
-                (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
-                (&offset2, str2, 0, &bytesMatched2, get2)
-            );
-          }
-          
-          if(skip1 == FALSE && skip2 == FALSE) {
-            if(combiner1 != combiner2) {
-              //if either of them is not a combining character or not equal then accentcheck is set to 1
-              //if accentcheck is already 1 then return the one thats greater
-              if(accentcheck == 2) {
-                return (combiner1 > combiner2) ? 1 : -1;
-              }
-              else {
-                accentcheck = 1;
-              }
-            }
-          }
-          
-          if(combiner1 == 0) {
-            skip1 = TRUE; 
-          }
-          else {
-            offset1+=bytesMatched1;
-          }
-
-          if(combiner2 == 0) {
-            skip2 = TRUE; 
-          }
-          else {
-            offset2+=bytesMatched2;
-          }
-        } while (skip1 == FALSE || skip2 == FALSE);
-
-        char1found = 0;
-    
         if(firstChar) {
           firstChar = FALSE;
         }
+
+        char1found = 0;
       }
       else {
         offset2 += bytesMatched2;
@@ -925,54 +840,14 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
           return (char1 > char2) ? 1: -1; 
         }
 
-        offset1 += bytesMatched1;
-        offset2 += bytesMatched2;
-
-        skip1 = FALSE;
-        skip2 = FALSE;
-
-        do {
-          if(skip1 == FALSE) {
-           combiner1 = isCombining(
-                (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
-                (&offset1, str1, 0, &bytesMatched1, get1)
-            );
-          }
-          
-          if(skip2 == FALSE) {
-            combiner2 = isCombining(
-                (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
-                (&offset2, str2, 0, &bytesMatched2, get2)
-            );
-          }
-          
-          if(skip1 == FALSE && skip2 == FALSE) {
-            if(combiner1 != combiner2) {
-              //if either of them is not a combining character or not equal then accentcheck is set to 1
-              //if accentcheck is already 1 then return the one thats greater
-              if(accentcheck == 2) {
-                return (combiner1 > combiner2) ? 1 : -1;
-              }
-              else {
-                accentcheck = 1;
-              }
-            }
-          }
-          
-          if(combiner1 == 0) {
-            skip1 = TRUE; 
-          }
-          else {
-            offset1+=bytesMatched1;
-          }
-
-          if(combiner2 == 0) {
-            skip2 = TRUE; 
-          }
-          else {
-            offset2+=bytesMatched2;
-          }
-        } while (skip1 == FALSE || skip2 == FALSE);
+        if((combinerResult = consumeCombining(
+            str1, str2,
+            &offset1, &offset2,
+            get1, get2,
+            &bytesMatched1, &bytesMatched2,
+            &accentcheck)) != 0) {
+          return combinerResult;
+        }
 
         char1found = 0;
     
