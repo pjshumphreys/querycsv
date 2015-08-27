@@ -35,7 +35,6 @@ typedef void* yyscan_t;
 
 	/* operators */
 
-%left COLLATE
 %left OR
 %left AND
 %left NOT
@@ -72,7 +71,6 @@ typedef void* yyscan_t;
 
 select_stmt:
     SELECT
-    optional_distinct
     scalar_exp_commalist
     FROM table_references
     opt_where_clause
@@ -80,10 +78,6 @@ select_stmt:
     opt_having_clause
     opt_order_by_clause
     opt_into_clause
-  ;
-
-optional_distinct:
-  | DISTINCT
   ;
 
 scalar_exp_commalist:
@@ -96,8 +90,7 @@ optional_as_name: { $$ = NULL; }
   ;
 
 scalar_exp:
-    scalar_exp COLLATE NAME { if(queryData->parseMode != 1) { free($3); } $$ = NULL; }
-	|	scalar_exp '+' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_PLUS, $3); }
+    scalar_exp '+' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_PLUS, $3); }
 	|	scalar_exp '-' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_MINUS, $3); }
 	|	scalar_exp '*' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_MULTIPLY, $3); }
 	|	scalar_exp '/' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_DIVIDE, $3); }

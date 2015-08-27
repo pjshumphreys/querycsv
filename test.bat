@@ -1,1 +1,1 @@
-querycsv --run test1.qry
+wd -INItcmd="querycsv"

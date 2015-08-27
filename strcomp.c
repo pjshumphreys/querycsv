@@ -522,154 +522,49 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
       //if they both are null then the strings are equal. otherwise string 1 is lesser
       return -1;
     }
-    
-    //check if the current characters of each string are ascii
-    else if(*offset2 < 128 && *offset1 < 128) {
-      //compare letters
-      if(
-          *offset1 >= 'A' && *offset1 <= 'z' &&
-          (*offset1 >= 'a' || *offset1 <= 'Z')
+
+    //parse numbers
+    else if(
+        (*offset1 >= '0' && *offset1 <= '9') ||
+        (firstChar && (
+        (*offset1 == '.' && (*(offset1+1) >= '0' && *(offset1+1) <= '9')) ||
+        (*offset1 == '-' && ((*(offset1+1) >= '0' && *(offset1+1) <= '9') || (*(offset1+1) == '.' && (*(offset1+2) >= '0' && *(offset1+2) <= '9')))) ||
+        (*offset1 == '+' && ((*(offset1+1) >= '0' && *(offset1+1) <= '9') || (*(offset1+1) == '.' && (*(offset1+2) >= '0' && *(offset1+2) <= '9'))))
+        ))
+    ) {
+      if (
+        (*offset2 >= '0' && *offset2 <= '9') ||
+        (firstChar && (
+        (*offset2 == '.' && (*(offset2+1) >= '0' && *(offset2+1) <= '9')) ||
+        (*offset2 == '-' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9')))) ||
+        (*offset2 == '+' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9'))))
+        ))
       ) {
-        if(
-            *offset2 >= 'A' && *offset2 <= 'z' &&
-            (*offset2 >= 'a' || *offset2 <= 'Z')
-        ) {
-          //both characters are alphabetical, however we still need to honour the list in hash4.
-          //therefore we need to do unicode checking, but we do know that nether of the characters to
-          //compare is 0x34F. In addition, we may already have data associated with the
-          //first string which we can re-use
+        dbl1 = strtod((char *)offset1, (char **)&offset1);
+        dbl2 = strtod((char *)offset2, (char **)&offset2);
 
-          //read a character from string 2
-          char2 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))(&offset2, str2, 0, &bytesMatched2, get2);
-         
-          if(char1found == 0) {
-            char1 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))(&offset1, str1, 0, &bytesMatched1, get1);
-          }
-
-          if((entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1))) {
-            if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2))) {
-
-              //compare the lookup table entries
-              if(entry1->script == entry2->script) {
-                if(caseSensitive) {
-                  comparison = entry1->index - entry2->index;
-                }
-                else {
-                  comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
-
-                  if((entry1->index - entry2->index) != 0) {
-                    accentcheck = 1;
-                  }
-                }
-              
-                if(comparison != 0) {
-                  return comparison > 0 ? 1 : -1;
-                }
-              }
-              else {
-                //scripts are ordered
-                return entry1->script > entry2->script ? 1 : -1;
-              }
-            }
-            else if(entry1->script != char2) {
-              //compare codepoints
-              return (entry1->script > char2) ? 1 : -1;
-            }
-          }
-          else if ((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2)) && char1 != entry2->script) {
-            //compare codepoints
-            return (char1 > entry2->script) ? 1 : -1;
-          }
-          else if(char1 != char2) {
-            //compare codepoints
-            return (char1 > char2) ? 1 : -1;
-          }
-
-          //consume and compare all the remaining combining characters
-          if((combinerResult = consumeCombining(
-              str1, str2,
-              &offset1, &offset2,
-              get1, get2,
-              &bytesMatched1, &bytesMatched2,
-              &accentcheck)) != 0) {
-            return combinerResult;
-          }
+        //if the numbers parsed are not identical then we can return which string is lesser
+        if(dbl1 != dbl2) {
+          return (dbl1 < dbl2) ? -1 : 1;
         }
-        else {
-          //ascii non letters sort first
-          return 1;
-        }
-      }
-      else if(
-          *offset2 >= 'A' && *offset2 <= 'z' &&
-          (*offset2 >= 'a' || *offset2 <= 'Z')
-      ) {
-        //ascii non letters sort first
-        return -1;
-      }
-
-      //parse numbers
-      else if(
-          (*offset1 >= '0' && *offset1 <= '9') ||
-          (firstChar && (
-          (*offset1 == '.' && (*(offset1+1) >= '0' && *(offset1+1) <= '9')) ||
-          (*offset1 == '-' && ((*(offset1+1) >= '0' && *(offset1+1) <= '9') || (*(offset1+1) == '.' && (*(offset1+2) >= '0' && *(offset1+2) <= '9')))) ||
-          (*offset1 == '+' && ((*(offset1+1) >= '0' && *(offset1+1) <= '9') || (*(offset1+1) == '.' && (*(offset1+2) >= '0' && *(offset1+2) <= '9'))))
-          ))
-      ) {
-        if (
-          (*offset2 >= '0' && *offset2 <= '9') ||
-          (firstChar && (
-          (*offset2 == '.' && (*(offset2+1) >= '0' && *(offset2+1) <= '9')) ||
-          (*offset2 == '-' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9')))) ||
-          (*offset2 == '+' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9'))))
-          ))
-        ) {
-          dbl1 = strtod((char *)offset1, (char **)&offset1);
-          dbl2 = strtod((char *)offset2, (char **)&offset2);
-
-          //if the numbers parsed are not identical then we can return which string is lesser
-          if(dbl1 != dbl2) {
-            return (dbl1 < dbl2) ? -1 : 1;
-          }
-        }
-        else {
-          return 1;
-        }
-      }
-      else if (
-          (*offset2 >= '0' && *offset2 <= '9') ||
-          (firstChar && (
-          (*offset2 == '.' && (*(offset2+1) >= '0' && *(offset2+1) <= '9')) ||
-          (*offset2 == '-' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9')))) ||
-          (*offset2 == '+' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9'))))
-          ))
-        ) {
-
-        //non numbers sort first
-        return -1;
       }
       else {
-        //binary comparison on everything else
-        if(*offset1 != *offset2) {
-          return (*offset1 > *offset2) ? 1 : -1;
-        }
-
-        //update the offsets
-        offset1++;
-        offset2++;
-      }
-
-      //a previous iteration of the loop may have done a unicode check.
-      //clear the flag as we've just done a comparison
-      char1found = 0;
-      
-      if(firstChar) {
-        firstChar = FALSE;
+        //non numbers sort last
+        return -1;
       }
     }
+    else if (
+        (*offset2 >= '0' && *offset2 <= '9') ||
+        (firstChar && (
+        (*offset2 == '.' && (*(offset2+1) >= '0' && *(offset2+1) <= '9')) ||
+        (*offset2 == '-' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9')))) ||
+        (*offset2 == '+' && ((*(offset2+1) >= '0' && *(offset2+1) <= '9') || (*(offset2+1) == '.' && (*(offset2+2) >= '0' && *(offset2+2) <= '9'))))
+        ))
+      ) {
 
-    //in depth unicode checks for this iteration
+      //non numbers sort last
+      return 1;
+    }
 
     //character 1 has not yet been found
     else if (char1found == 0) {
@@ -863,11 +758,24 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
 }
 
 /*
+
+void reallocMsg(char *failureMessage, void** mem, size_t size) {
+  void * temp = NULL;
+  if((temp = realloc(*mem, size)) == NULL) {
+    fputs(failureMessage, stderr);
+    exit(EXIT_FAILURE);
+  }
+
+  *mem = temp;
+}
+
 int main(int argc, unsigned char** argv) {
   unsigned char *a, *b;
   if (argc == 3) {
-    a = strdup(argv[1]);
-    b = strdup(argv[2]);
+    //a = strdup(argv[1]);
+    //b = strdup(argv[2]);
+    a = strdup("-10hey");
+    b = strdup("Æon");
 
     printf("%d\n", strCompare(&a, &b, 0, (void (*)())getUnicodeChar, (void (*)())&getUnicodeChar));
 

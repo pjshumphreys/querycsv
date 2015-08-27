@@ -7,6 +7,7 @@
 
 #include "sql.h"
 #include "lexer.h"
+//#include "querycsv.h"
 
 /*skips the BOM if present from a file */
 FILE * fopen_skipBom(const char * filename) {
