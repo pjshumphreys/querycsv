@@ -64,7 +64,13 @@
 #define GRP_SUM 4
 #define GRP_COUNT 5
 #define GRP_CONCAT 6
-
+#define GRP_STAR 7
+#define GRP_DIS_AVG 8
+#define GRP_DIS_MIN 9
+#define GRP_DIS_MAX 10
+#define GRP_DIS_SUM 11
+#define GRP_DIS_COUNT 12
+#define GRP_DIS_CONCAT 13
 
 //structures
 struct resultColumn {
@@ -74,6 +80,7 @@ struct resultColumn {
   int groupType;
   char * groupText;
   double groupNum;
+  int groupCount;
   int groupingDone;
   char * resultColumnName;
   struct resultColumn* nextColumnInstance;

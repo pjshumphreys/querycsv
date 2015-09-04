@@ -1057,7 +1057,7 @@ int walkRejectRecord(
     retval = strCompare(
         &(expressionPtr->unionPtrs.leaves.leftPtr->value),
         &(expressionPtr->unionPtrs.leaves.rightPtr->value),
-        0,//expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive != 0,
+        expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive,
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar
       );
@@ -1110,7 +1110,7 @@ int walkRejectRecord(
       if(strCompare(
         &(expressionPtr->unionPtrs.leaves.leftPtr->value),
         &(currentAtom->content),
-        0,//expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive != 0,
+        expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive,
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar
       ) == 0) {
@@ -1554,7 +1554,7 @@ int recordCompare(const void * a, const void * b, void * c) {
     compare = strCompare(
         &output1,
         &output2,
-        0,//orderByClause->expressionPtr->caseSensitive,
+        2,//orderByClause->expressionPtr->caseSensitive,
         (void (*)())getUnicodeChar,
         (void (*)())getUnicodeChar
       );
@@ -1607,37 +1607,64 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
           if(field->leftNull == FALSE) {
             stringGet(&tempString, field);
 
-            switch(currentResultColumn->groupType) {
-              case GRP_COUNT:
-                if(query->groupCount > 1) {
-                  for(j = 1; j < query->groupCount; j++) {
-                    stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]));
+            if(currentResultColumn->groupType > GRP_STAR) {
+              if(query->groupCount > 1) {
+                for(j = 1; j < query->groupCount; j++) {
+                  stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]));
 
-                    if(strCompare(
-                      &tempString,
-                      &tempString2,
-                      TRUE,
-                      (void (*)())getUnicodeChar,
-                      (void (*)())getUnicodeChar
-                    ) == 0) {
-                      strFree(&tempString2);
-                      break;
-                    }
-
+                  if(strCompare(
+                    &tempString,
+                    &tempString2,
+                    TRUE,
+                    (void (*)())getUnicodeChar,
+                    (void (*)())getUnicodeChar
+                  ) == 0) {
                     strFree(&tempString2);
+                    break;
                   }
-                  if(j == query->groupCount) {
-                    currentResultColumn->groupNum++;
-                  }
+
+                  strFree(&tempString2);
                 }
-                else {
-                  currentResultColumn->groupNum++;
+              }
+              else {
+                j = query->groupCount;
+              }
+            }
+
+            switch(currentResultColumn->groupType) {
+              case GRP_DIS_COUNT:
+                if(j == query->groupCount) {
+                  currentResultColumn->groupCount++;
+                }
+              break;
+
+              case GRP_COUNT:
+                currentResultColumn->groupCount++;
+              break;
+
+              case GRP_DIS_AVG:
+              case GRP_DIS_SUM:
+                if(j == query->groupCount) {
+                  currentResultColumn->groupCount++;
+                  currentResultColumn->groupNum += strtod(tempString, NULL);
                 }
               break;
 
               case GRP_AVG:
               case GRP_SUM:
+                currentResultColumn->groupCount++;
                 currentResultColumn->groupNum += strtod(tempString, NULL);
+              break;
+
+              case GRP_DIS_CONCAT:
+                if(j == query->groupCount) {
+                  snprintf_d(
+                      &(currentResultColumn->groupText),
+                      "%s%s",
+                      currentResultColumn->groupText,
+                      tempString
+                    );
+                }
               break;
 
               case GRP_CONCAT:
@@ -1650,10 +1677,11 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
               break;
 
               case GRP_MIN:
+              case GRP_DIS_MIN:
                 if(currentResultColumn->groupText == NULL || strCompare(
                     &tempString,
                     &(currentResultColumn->groupText),
-                    0,//TRUE,
+                    2,//TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == -1) {
@@ -1667,10 +1695,11 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
               break;
                 
               case GRP_MAX:
+              case GRP_DIS_MAX:
                 if(currentResultColumn->groupText == NULL || strCompare(
                     &tempString,
                     &(currentResultColumn->groupText),
-                    0,//TRUE,
+                    2,//TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == 1) {
@@ -1722,10 +1751,19 @@ void getGroupedColumns(struct qryData * query) {
           //convert the aggregation types that need it back into a string
           switch(currentResultColumn->groupType) {
             case GRP_AVG:
-              currentResultColumn->groupNum = currentResultColumn->groupNum/query->groupCount;
-            case GRP_COUNT:
+            case GRP_DIS_AVG:
+              currentResultColumn->groupNum = currentResultColumn->groupNum /
+                currentResultColumn->groupCount;
             case GRP_SUM:
+            case GRP_DIS_SUM:
               snprintf_d(&(currentResultColumn->groupText), "%g", currentResultColumn->groupNum);
+            break;
+            case GRP_COUNT:
+            case GRP_DIS_COUNT:
+              snprintf_d(&(currentResultColumn->groupText), "%d", currentResultColumn->groupCount);
+            break;
+            case GRP_STAR:
+              snprintf_d(&(currentResultColumn->groupText), "%d", query->groupCount);
             break;
           }
         }
@@ -1797,6 +1835,7 @@ void cleanup_groupedColumns(
           
           strFree(&(currentResultColumn->groupText));
           currentResultColumn->groupNum = 0;
+          currentResultColumn->groupCount = 0;
         }
         
         currentReference = currentReference->nextReferenceWithName;
@@ -1847,13 +1886,13 @@ void groupResults(struct qryData * query, struct resultSet * results) {
 
     //if the current record to look at is identical to the previous one
     if(
-        i == len ||
-        query->groupByClause == NULL ||   //if no group by clause then every record is its own group
+        (query->groupByClause != NULL &&   //if no group by clause then every record is part of one group
         recordCompare(
           (void *)previousMatch,
           (void *)match,
           (void*)query->groupByClause
-        ) != 0
+        ) != 0) ||
+        i == len
       ) {
       //fix up the calculated columns that need it
       getGroupedColumns(query);

@@ -1,0 +1,3 @@
+select old_stamp_id,new_stamp_id
+from 'stamp.csv' as a
+order by old_stamp_id

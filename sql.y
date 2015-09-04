@@ -35,6 +35,7 @@ typedef void* yyscan_t;
 
 	/* operators */
 
+%left COLLATE
 %left OR
 %left AND
 %left NOT
@@ -90,7 +91,14 @@ optional_as_name: { $$ = NULL; }
   ;
 
 scalar_exp:
-    scalar_exp '+' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_PLUS, $3); }
+    scalar_exp COLLATE NAME {
+      if($1 != NULL) {
+        $1->caseSensitive = (stricmp($3,"_sensitive") == 0);
+      }
+      
+      free($3);
+  }
+  | scalar_exp '+' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_PLUS, $3); }
 	|	scalar_exp '-' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_MINUS, $3); }
 	|	scalar_exp '*' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_MULTIPLY, $3); }
 	|	scalar_exp '/' scalar_exp { $$ = parse_scalar_exp(queryData, $1, EXP_DIVIDE, $3); }
@@ -125,10 +133,10 @@ column_ref:
 	;
 
 function_ref:
-		AMMSC '(' '*' ')' { $$ = NULL; }
-	|	AMMSC '(' DISTINCT scalar_exp ')' { $$ = NULL; }
-	|	AMMSC '(' ALL scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $4); }
-	|	AMMSC '(' scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $3); }
+		AMMSC '(' '*' ')' { $$ = parse_function_ref_star(queryData, $1); }
+	|	AMMSC '(' DISTINCT scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $4, TRUE); }
+	|	AMMSC '(' ALL scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $4, FALSE); }
+	|	AMMSC '(' scalar_exp ')' { $$ = parse_function_ref(queryData, $1, $3, FALSE); }
 	;
 
 table_references:
@@ -188,7 +196,7 @@ atom_commalist:
 
 opt_group_by_clause:
 		/* empty */
-	|	GROUP BY column_ref_commalist
+	|	GROUP BY column_ref_commalist { queryData->hasGrouping = TRUE; }
 	;
 
 column_ref_commalist:

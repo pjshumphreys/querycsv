@@ -1,4 +1,22 @@
 //#include "querycsv.h"
+#include <stdio.h>
+#include <ctype.h>
+ 
+int stricmp(const char *p1, const char *p2) {
+  register unsigned char *s1 = (unsigned char *) p1;
+  register unsigned char *s2 = (unsigned char *) p2;
+  unsigned char c1, c2;
+ 
+  do {
+      c1 = (unsigned char) toupper((int)*s1++);
+      c2 = (unsigned char) toupper((int)*s2++);
+      if (c1 == '\0') {
+            return c1 - c2;
+      }
+  } while (c1 == c2);
+ 
+  return c1 - c2;
+}
 
 void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileName, char* tableName) {
   FILE* csvFile;
@@ -211,6 +229,7 @@ struct resultColumn* parse_new_output_column(
   newResultColumn->groupType = aggregationType;
   newResultColumn->groupText = NULL;
   newResultColumn->groupNum = 0;
+  newResultColumn->groupCount = 0;
   newResultColumn->groupingDone = FALSE;
 
   return newResultColumn;
@@ -771,7 +790,8 @@ void parse_grouping_spec(
 struct expression* parse_function_ref(
     struct qryData* queryData,
     long aggregationType,
-    struct expression *expressionPtr
+    struct expression *expressionPtr,
+    int isDistinct
   ) {
 
   struct expression* expressionPtr2 = NULL;
@@ -779,6 +799,10 @@ struct expression* parse_function_ref(
   
   if(queryData->parseMode != 1) {
     return NULL;
+  }
+
+  if(isDistinct) {
+    aggregationType+=GRP_STAR;
   }
 
   if(expressionPtr->containsAggregates) {
@@ -810,3 +834,27 @@ struct expression* parse_function_ref(
 
   return expressionPtr2;
 } 
+
+struct expression* parse_function_ref_star(
+    struct qryData* queryData,
+    long aggregationType
+  ) {
+
+  if(queryData->parseMode != 1) {
+    return NULL;
+  }
+
+  if(aggregationType != GRP_COUNT) {
+    //I don't think in sql you can aggregate an aggregate.
+    //therefore we should error out if we get to this point
+    fprintf(stderr,"only count(*) is valid");
+    exit(EXIT_FAILURE);
+  }
+  
+  return parse_function_ref(
+    queryData,
+    GRP_STAR,
+    parse_scalar_exp_literal(queryData, ""),
+    FALSE
+  );
+}

@@ -1,0 +1,5 @@
+select names
+from 'test3.csv' as test
+where names collate sensitive = 'Þfoo'
+order by names
+
