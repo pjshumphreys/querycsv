@@ -1,4 +1,7 @@
 //#include "querycsv.h"
+//#if WINDOWS
+//  #inlcude "win32.h"
+//#endif
 #include <stdio.h>
 #include <ctype.h>
  
@@ -108,7 +111,7 @@ void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileNam
     newReference = NULL;
     newColumn = NULL;
 
-    recordContinues = getCsvColumn(&(newTable->fileStream), &columnText, &columnLength, NULL, NULL);
+    recordContinues = getCsvColumn(&(newTable->fileStream), &columnText, &columnLength, NULL, NULL, (queryData->params & PRM_TRIM) == 0);
 
     snprintf_d(&columnText, "_%s", columnText);
 

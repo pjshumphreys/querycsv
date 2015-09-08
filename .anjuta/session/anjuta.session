@@ -3,13 +3,13 @@ Maximized=1
 Geometry=1366x717+0+27
 
 [File Loader]
-Files=../../strcomp.c#435%%%../../querycsv.c#1252
+Files=../../strcomp.c#435%%%../../querycsv.c#1979
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
+Program arguments=--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
 Program uri=../../querycsv
 Run in terminal=2
 Working directories=../../.
@@ -26,6 +26,6 @@ BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' '
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
 
 [Debugger]
-Watch=column
-Breakpoint=1:../../querycsv.c:894:0:%%%1:../../querycsv.c:892:0:
+Watch=(query->params & 2) != 0
+Breakpoint=1:../../querycsv.c:1980:0:
 Stop at beginning=2

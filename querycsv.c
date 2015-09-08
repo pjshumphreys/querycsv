@@ -171,31 +171,22 @@ int tztime_d(time_t *now, struct tm *local, struct tm *utc, char **output) {
 
 //write a formatted string into a string buffer. allocate/free memory as needed
 int snprintf_d(char** str, char* format, ...) {
-  FILE * pFile;
-  va_list args;
   size_t newSize;
-  char* newStr;
+  char* newStr = NULL;
+  va_list args;
   
-  //Check sanity of inputs and open /dev/null so that we can
-  //get the space needed for the new string. There's unfortunately no
-  //easier way to do this that uses only ISO functions. Filenames can only
-  //be portably specified in terms of the user's codepage as well :(
-  if(str == NULL || format == NULL || (pFile = fopen(DEVNULL, "wb")) == NULL) {
+  if(str == NULL || format == NULL) {
     return FALSE;
   }
 
   //get the space needed for the new string
   va_start(args, format);
-  newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
+  newSize = (size_t)(vsnprintf(newStr, 0, format, args)+1);
   va_end(args);
-
-  //close the file. We don't need to look at the return code as we were writing to /dev/null 
-  fclose(pFile);
 
   //Create a new block of memory with the correct size rather than using realloc
   //as any old values could overlap with the format string. quit on failure
-  if(newSize < 2 ||
-  (newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
+  if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
     return FALSE;
   }
 
@@ -205,16 +196,16 @@ int snprintf_d(char** str, char* format, ...) {
   va_end(args);
 
   //ensure null termination of the string
-  newStr[newSize] = L'\0';
+  newStr[newSize] = '\0';
 
   //free the old contents of the output if present
-  strFree(str);
+  free(str);
 
   //set the output pointer to the new pointer location
   *str = newStr;
   
   //everything occurred successfully
-  return TRUE;
+  return newSize;
 }
 
 //format a date into a string. allocate/free memory as needed
@@ -297,7 +288,7 @@ int strRTrim(char** value, size_t* strSize) {
   char* str;
   int size;
 
-  if(value == NULL || strSize == NULL) {
+  if(value == NULL || strSize == NULL || *value == NULL) {
     return FALSE;
   }
 
@@ -378,180 +369,159 @@ int getCsvColumn(
     char** value,
     size_t* strSize,
     int* quotedValue,
-    long* startPosition
+    long* startPosition,
+    int doTrim
   ) {
-
   int c;
   char *tempString = NULL;
-  int valueStarted = FALSE;
-  int valueFinished = FALSE;  
-  int quotedValue2 = FALSE;
+  int canEnd = TRUE;
+  int quotePossible = TRUE;
+  int exitCode = 0;
 
-  if(feof(*inputFile) != 0) {
-    return FALSE;
-  }
-
-  if (quotedValue != NULL) {
+  if(quotedValue != NULL) {
     *quotedValue = FALSE;
   }
 
   if(strSize != NULL) {
     *strSize = 0;
   }
-  
-  if (value == NULL) {
+
+  if(value == NULL) {
     value = &tempString;
   }
-  
-  //read until start of value
-  while (valueStarted == FALSE) {
+
+  if(startPosition != NULL) {
+    *startPosition = ftell(*inputFile);
+  }
+
+  if(feof(*inputFile) != 0) {
+    return FALSE;
+  }
+
+  //read a character
+  do {
     c = fgetc(*inputFile);
-    
+
     switch(c) {
-      case ',':
-        free(tempString);
-        return TRUE;
       case ' ':
-      case '\t':
+        strAppend(' ', value, strSize);
       break;
 
       case '\r':
-        if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
-          ungetc(c, *inputFile);
-        }
-      case EOF:
-      case '\n':
-        free(tempString);
-        return FALSE;
-      break;
-
-      case '"':
         if (quotedValue != NULL) {
           *quotedValue = TRUE;
         }
         
-        if(startPosition != NULL) {
-          *startPosition = ftell(*inputFile)-1;
+        if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
+          ungetc(c, *inputFile);
         }
-        
-        quotedValue2 = TRUE;
-        valueStarted = TRUE;
-      break;
-      
-      default:
-        ungetc(c, *inputFile);
-
-        if(startPosition != NULL) {
-          *startPosition = ftell(*inputFile);
+        else if (c == EOF) {
+          exitCode = 2;
+          break;
         }
 
-        valueStarted = TRUE;
-      break;
-    }
-  }
-
-  if(quotedValue2) {
-    //read until end of value
-    while (valueFinished == FALSE) {
-      c = fgetc(*inputFile);
-      
-      switch(c) {
-        case EOF:
-          free(tempString);
-          return FALSE;
-        break;
-
-        case '"':
-          c = fgetc(*inputFile);
-          if (c != '"') {
-            valueFinished = TRUE;
-            ungetc(c, *inputFile);
-            strAppend('\0', value, strSize);
-            if(strSize != NULL) {
-              (*strSize)--;
-            }
-          }
-          else {
-            strAppend(c, value, strSize);
-          }
-        break;
-
-        case '\r':
+      case '\n':        
+        if(canEnd) {
+          exitCode = 2;
+          break;
+        }
+        else {
           strAppend('\n', value, strSize);
-          if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
-            ungetc(c, *inputFile);
-          }
-        case '\0':
-        break;
+        }
+      break;
 
-        default:
-          strAppend(c, value, strSize);
-        break;
-      }
-    }
+      case '\0':
+        if (quotedValue != NULL) {
+          *quotedValue = TRUE;
+        }
+      break;
 
-    //read until comma, newline or EOF. text here is ignored
-    for ( ; ; ) {
-      c = fgetc(*inputFile);
-      
-      switch(c) {
-        case '\r':
-          if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
-            ungetc(c, *inputFile);
-          }
-        case '\n':
-        case EOF:
-          free(tempString);
-          return FALSE;
+      case EOF:
+        exitCode = 2;
         break;
-        case ',':
-          free(tempString);
-          return TRUE;
-        default:
-        break;
-      }
-    }
-  }
-  else {
-    //read until comma, newline or EOF. append any other bytes to the output string
-    for ( ; ; ) {
-      c = fgetc(*inputFile);
-      
-      switch(c) {
-        case '\r':
-          if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
-            ungetc(c, *inputFile);
-          }
-        case '\n':
-        case EOF:
-        case ',':
-          strRTrim(value, strSize);
-          strAppend('\0', value, strSize);
-          if(strSize != NULL) {
-            (*strSize)--;
-          }
-          free(tempString);
-          return c == ',';
-        break;
+      break;
 
-        case '\0':
-          if (quotedValue != NULL) {
-            *quotedValue = TRUE;
-          }
-        break;
+      case '"':
+        canEnd = FALSE;
+
+        if (quotedValue != NULL) {
+          *quotedValue = TRUE;
+        }
         
-        default:
-          strAppend(c, value, strSize);
-        break;
-      }
+        if(quotePossible) {
+          if(strSize != NULL) {
+            *strSize = 0;
+          }
+          
+          quotePossible = FALSE;          
+          
+          if(startPosition != NULL) {
+            *startPosition = ftell(*inputFile)-1;
+          }
+        }
+        else {
+          c = fgetc(*inputFile);
+
+          switch(c) {
+            case ' ':
+            case '\r':
+            case '\n':
+            case EOF:
+            case ',':
+              canEnd = TRUE;
+              ungetc(c, *inputFile);
+            break;
+
+            case '"':
+              strAppend('"', value, strSize);
+            break;
+
+            default:
+              strAppend('"', value, strSize);
+              ungetc(c, *inputFile);
+            break;
+          }
+        }
+      break;
+
+      case ',':
+        if(canEnd) {
+          exitCode = 1;
+          break;
+        }
+
+      default:
+        if(doTrim && quotePossible) {
+          if(strSize != NULL) {
+            *strSize = 0;
+          }
+          
+          if(startPosition != NULL) {
+            *startPosition = ftell(*inputFile)-1;
+          }
+        }
+        
+        quotePossible = FALSE;
+        strAppend(c, value, strSize);
+      break;
     }
+  } while (exitCode == 0);
+
+  if(doTrim) {
+    strRTrim(value, strSize);
+  }
+  
+  strAppend('\0', value, strSize);
+
+  if(strSize != NULL) {
+    (*strSize)--;
   }
 
   free(tempString);
-  return FALSE;
+  return exitCode == 1;
 }
 
-void stringGet(unsigned char **str, struct resultColumnValue* field) {
+void stringGet(unsigned char **str, struct resultColumnValue* field, int params) {
   long offset = ftell(*(field->source));
   
   fseek(*(field->source), field->startOffset, SEEK_SET);
@@ -559,7 +529,7 @@ void stringGet(unsigned char **str, struct resultColumnValue* field) {
   
   if (field->isQuoted) {
     //can't use a shortcut to get the string value, so get it the same way we did the last time
-    getCsvColumn(field->source,str,&(field->length),NULL,NULL);
+    getCsvColumn(field->source,str,&(field->length),NULL,NULL, (params & PRM_TRIM) == 0);
   }
   else {  
     //can use a shortcut to get the string value
@@ -601,6 +571,34 @@ FILE* openTemp(char** name) {
   return sfp;
 }
 
+void parseCommandLine(char* string, int * params) {
+  if(string && params) {
+    while(*string) {
+      switch(*string) {
+        case 't':
+        case 'T':
+          *params |= PRM_TRIM;
+        break;
+
+        case 's':
+        case 'S':
+          *params |= PRM_SPACE;        
+        break;
+        case 'i':
+        case 'I':
+          *params |= PRM_IMPORT;
+        break;
+        
+        case 'e':
+        case 'E':
+          *params |= PRM_EXPORT;
+        break;
+      }
+      string++;
+    }
+  }
+}
+
 void parseQuery(char* queryFileName, struct qryData * query) {
   FILE * queryFile = NULL;
   void * scanner;
@@ -637,6 +635,7 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   query->orderByClause = NULL;
   query->groupByClause = NULL;
   query->scratchpadName = NULL;
+  query->params = 0;
   query->scratchpad = openTemp(&(query->scratchpadName));
 
   //setup reentrant flex scanner data structure
@@ -845,7 +844,7 @@ void exp_uminus(char** value, double leftVal) {
 //the evaluated value must be freed later though.
 void getValue(
     struct expression* expressionPtr,
-    struct resultColumnValue * match
+    struct resultColumnParam * match
   ) {
   struct expression * calculatedField;
   struct resultColumn * column;
@@ -859,7 +858,7 @@ void getValue(
       //this input column (it should have just been filled out with a
       //value for the current record)
 
-      field = &(match[
+      field = &(match->ptr[
           ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->
           firstResultColumn->resultColumnIndex
         ]);
@@ -869,7 +868,7 @@ void getValue(
         expressionPtr->value = strdup("");
       }
       else {
-        stringGet(&(expressionPtr->value), field);
+        stringGet(&(expressionPtr->value), field, match->params);
       }
     } break;
 
@@ -891,10 +890,10 @@ void getValue(
     case EXP_GROUP: {
       column = (struct resultColumn *)(expressionPtr->unionPtrs.voidPtr);
       if(column->groupingDone) {
-        field = &(match[column->resultColumnIndex]);
+        field = &(match->ptr[column->resultColumnIndex]);
 
         if(field->leftNull == FALSE) {
-          stringGet(&(expressionPtr->value), field);
+          stringGet(&(expressionPtr->value), field, match->params);
           break;
         }
       }
@@ -1029,7 +1028,7 @@ void getValue(
 int walkRejectRecord(
     int currentTable,
     struct expression* expressionPtr,
-    struct resultColumnValue * match
+    struct resultColumnParam * match
   ) {
 
   int retval,i;
@@ -1136,6 +1135,10 @@ void getCalculatedColumns(
   struct columnReference* currentReference;
   struct resultColumn* currentResultColumn;
   struct columnRefHashEntry* currentHashEntry;
+  struct resultColumnParam matchParams;
+
+  matchParams.ptr = match;
+  matchParams.params = query->params;
 
   for(i = 0; i < query->columnReferenceHashTable->size; i++) {
     currentHashEntry = query->columnReferenceHashTable->table[i];
@@ -1165,7 +1168,7 @@ void getCalculatedColumns(
           match[j].startOffset = ftell(query->scratchpad);
 
           //get expression value for this match
-          getValue(currentReference->reference.calculatedPtr.expressionPtr, match);
+          getValue(currentReference->reference.calculatedPtr.expressionPtr, &matchParams);
 
           //store the value's length
           if(currentReference->reference.calculatedPtr.expressionPtr->leftNull) {
@@ -1198,8 +1201,12 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
   struct inputColumn* currentInputColumn;
   struct resultColumn* currentResultColumn;
   struct resultColumnValue columnOffsetData;
+  struct resultColumnParam matchParams;
   int recordHasColumn;
   int doLeftRecord = FALSE;
+
+  matchParams.params = query->params;
+  matchParams.ptr = match;
 
   //if secondaryInputTable is NULL then
   //the query hasn't returned any results yet.
@@ -1241,7 +1248,8 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
               NULL,
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
-              &(columnOffsetData.startOffset)
+              &(columnOffsetData.startOffset),
+              (query->params & PRM_TRIM) == 0
             );
 
           //these values should actually be set depending on whether the value was quoted or not
@@ -1279,7 +1287,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
 
       //consume any remaining column data that may exist in this record
       if(recordHasColumn == TRUE && !doLeftRecord) {
-        while(getCsvColumn(&(currentInputTable->fileStream), NULL, NULL, NULL, NULL)) {
+        while(getCsvColumn(&(currentInputTable->fileStream), NULL, NULL, NULL, NULL, (query->params & PRM_TRIM) == 0)) {
           //do nothing
         }
       }
@@ -1288,7 +1296,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
       if(walkRejectRecord(
           currentInputTable->fileIndex,
           query->joinsAndWhereClause,
-          match
+          &matchParams
         )) {
         if(doLeftRecord) {
           doLeftRecord = FALSE;
@@ -1320,7 +1328,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match) {
         if(!walkRejectRecord(
           currentInputTable->fileIndex+1, //+1 means all tables and *CALCULATED* columns
           query->joinsAndWhereClause,
-          match
+          &matchParams
         )) {
           return TRUE;
         }
@@ -1503,23 +1511,16 @@ void cleanup_inputTables(struct inputTable * currentInputTable) {
 
 void cleanup_query(struct qryData * query) {
   cleanup_columnReferences(query->columnReferenceHashTable);
-
   cleanup_resultColumns(query->firstResultColumn);
-
   cleanup_orderByClause(query->groupByClause);
-
   cleanup_orderByClause(query->orderByClause);
-
   cleanup_expression(query->joinsAndWhereClause);
-
   cleanup_inputTables(query->firstInputTable);
-
   free(query->intoFileName);
 
   //close the open files
   fclose(query->scratchpad);
   unlink(query->scratchpadName);
-  free(query->scratchpadName);
 }
 
 //compares two whole records to one another. multiple columns can be involved in this comparison.
@@ -1528,24 +1529,29 @@ int recordCompare(const void * a, const void * b, void * c) {
   char* string1, *string2, *output1, *output2;
   int compare;
 
+  struct resultColumnParam matchParams;
+  matchParams.params = ((struct qryData*)c)->params;
+  
   for(
-      orderByClause = (struct sortingList*)c;
+      orderByClause = ((struct qryData*)c)->useGroupBy?((struct qryData*)c)->groupByClause:((struct qryData*)c)->orderByClause;
       orderByClause != NULL;
       orderByClause = orderByClause->nextInList
     ) {
 
     //get the value of the expression using the values in record a
+    matchParams.ptr = (struct resultColumnValue*)a;
     getValue(
         orderByClause->expressionPtr,
-        (struct resultColumnValue*)a
+        &matchParams
       );
     string1 = output1 = orderByClause->expressionPtr->value;
     orderByClause->expressionPtr->value = NULL;
 
     //get the value of the expression using the values in record b
+    matchParams.ptr = (struct resultColumnValue*)b;
     getValue(
         orderByClause->expressionPtr,
-        (struct resultColumnValue*)b
+        &matchParams
       );
     string2 = output2 = orderByClause->expressionPtr->value;
     orderByClause->expressionPtr->value = NULL;
@@ -1605,12 +1611,12 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
           field = &(match[currentResultColumn->resultColumnIndex]);
 
           if(field->leftNull == FALSE) {
-            stringGet(&tempString, field);
+            stringGet(&tempString, field, query->params);
 
             if(currentResultColumn->groupType > GRP_STAR) {
               if(query->groupCount > 1) {
                 for(j = 1; j < query->groupCount; j++) {
-                  stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]));
+                  stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]), query->params);
 
                   if(strCompare(
                     &tempString,
@@ -1864,12 +1870,13 @@ void groupResults(struct qryData * query, struct resultSet * results) {
 
   //sort the records according to the group by clause
   if(query->groupByClause != NULL) {
+    query->useGroupBy = TRUE;
     qsort_s(
       (void*)resultsOrig.records,
       resultsOrig.recordCount,
       (query->columnCount)*sizeof(struct resultColumnValue),
       recordCompare,
-      (void*)query->groupByClause
+      (void*)query
     );
   }
  
@@ -1885,12 +1892,13 @@ void groupResults(struct qryData * query, struct resultSet * results) {
     match = &(resultsOrig.records[i*query->columnCount]);
 
     //if the current record to look at is identical to the previous one
+    query->useGroupBy = TRUE;
     if(
         (query->groupByClause != NULL &&   //if no group by clause then every record is part of one group
         recordCompare(
           (void *)previousMatch,
           (void *)match,
-          (void*)query->groupByClause
+          (void *)query
         ) != 0) ||
         i == len
       ) {
@@ -1922,37 +1930,40 @@ void groupResults(struct qryData * query, struct resultSet * results) {
   }
 }
 
-int needsEscaping(char* str) {
-  if(*str) {
-    if(*str == ' ' || *str == '\t') {
-      return TRUE;
+int needsEscaping(char* str, int params) {
+  if(
+    str == NULL ||
+    strcmp(str, (((params & PRM_EXPORT) == 0)?"\\N":"\\N")) == 0 ||
+    *str == ' ' ||
+    *str == '\t') {
+    return TRUE;
+  }
+     
+  while(*str) {
+    if(*str == '"' || *str == '\n' || *str == ',') {
+    return TRUE;
     }
-       
-    while(*str) {
-      if(*str == '"' || *str == '\n' || *str == ',') {
-      return TRUE;
-      }
-      str++;
-    }
+    str++;
+  }
 
-    str--;
-       
-    if(*str == ' ' || *str == '\t') {
-      return TRUE;
-    }
+  str--;
+     
+  if(*str == ' ' || *str == '\t') {
+    return TRUE;
   }
   
   return FALSE;
 }
 
 int outputResults(struct qryData * query, struct resultSet * results) {
-  int recordsOutput, i, j, len, firstColumn = TRUE;
+  int recordsOutput = -1, i, j, len, firstColumn = TRUE;
   FILE * outputFile = NULL;
   struct resultColumn* currentResultColumn;
   struct resultColumnValue* field;
 
   char *string = NULL;
   char *string2 = NULL;
+  char *string3 = (((query->params) & PRM_SPACE) != 0)?",":", ";
   
   if(query->intoFileName) {
     outputFile = fopen(query->intoFileName, "w");
@@ -1976,7 +1987,7 @@ int outputResults(struct qryData * query, struct resultSet * results) {
 
     if(currentResultColumn->isHidden == FALSE) {
       if (!firstColumn) {
-        fputs(", ", outputFile); 
+        fputs(string3, outputFile); 
       }
       else {
         firstColumn = FALSE;
@@ -2006,7 +2017,7 @@ int outputResults(struct qryData * query, struct resultSet * results) {
 
       if(currentResultColumn->isHidden == FALSE) {       
         if (!firstColumn) {
-          fputs(", ", outputFile);
+          fputs(string3, outputFile);
         }
         else {
           firstColumn = FALSE;
@@ -2016,16 +2027,19 @@ int outputResults(struct qryData * query, struct resultSet * results) {
 
         switch(field->leftNull) {
           case TRUE:
+            if(((query->params) & PRM_EXPORT) != 0) {
+              fputs("\\N", outputFile);
+            }
           break;
           
           default:
-            stringGet(&string, field);
+            stringGet(&string, field, query->params);
 
             //need to properly re-escape fields that need it
             if(*string == '\0') {
               fputs("\"\"", outputFile);  //empty string always needs escaping
             }
-            else if(needsEscaping(string)) {
+            else if(needsEscaping(string, query->params)) {
               string2 = strReplace("\"","\"\"", string);
               fputs("\"", outputFile);
               fputs(string2, outputFile);
@@ -2046,11 +2060,8 @@ int outputResults(struct qryData * query, struct resultSet * results) {
   }
 
   //close the output file
-  if(!(query->intoFileName)) {
+  if(query->intoFileName) {
     fclose(outputFile);
-    recordsOutput = results->recordCount;
-  }
-  else {
     recordsOutput = results->recordCount;
   }
 
@@ -2060,13 +2071,15 @@ int outputResults(struct qryData * query, struct resultSet * results) {
   return recordsOutput;
 }
 
-int runQuery(char* queryFileName) {
+int runQuery(char* queryFileName, char *params) {
   struct qryData query;
   struct resultSet results;
   struct resultColumnValue* match;
   int recordsOutput = -1;
-
+  
   parseQuery(queryFileName, &query);
+
+  parseCommandLine(params, &(query.params));
 
   //allocates space for the first record in the record set
   initResultSet(&query, &match, &results);
@@ -2094,12 +2107,13 @@ int runQuery(char* queryFileName) {
 
   //sort the offsets file according to query specification
   if(query.orderByClause != NULL) {
+    query.useGroupBy = FALSE;
     qsort_s(
       (void*)results.records,
       results.recordCount,
       (query.columnCount)*sizeof(struct resultColumnValue),
       recordCompare,
-      (void*)query.orderByClause
+      (void*)(&query)
     ); 
   }
 
@@ -2108,6 +2122,8 @@ int runQuery(char* queryFileName) {
   
   //free the query data structures
   cleanup_query(&query);
+
+  //free(query.scratchpadName);
 
   //free the result set data structures
   free(results.records);
@@ -2134,7 +2150,7 @@ int getColumnCount(char* inputFileName) {
   }
 
   //read csv columns until end of line occurs
-  while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL)) {
+  while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE)) {
     columnCount++;
   }
 
@@ -2163,7 +2179,7 @@ int getNextRecordOffset(char* inputFileName, long offset) {
   }
 
   //read csv columns until end of line occurs
-  while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL)) {
+  while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE)) {
     //do nothing
   }
 
@@ -2200,8 +2216,8 @@ int getColumnValue(char* inputFileName, long offset, int columnIndex) {
   //if it's not available we'll return an empty string 
   while(
         ++currentColumn != columnIndex ?
-        getCsvColumn(&inputFile, NULL, NULL, NULL, NULL):
-        (getCsvColumn(&inputFile, &output, &strSize, NULL, NULL) && FALSE)
+        getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE):
+        (getCsvColumn(&inputFile, &output, &strSize, NULL, NULL, TRUE) && FALSE)
       ) {
     //get next column
   }
@@ -2268,6 +2284,9 @@ int getCurrentDate() {
 }
 
 int main(int argc, char* argv[]) {
+  int argc2;
+  char ** argv2;
+    
   //supply a default temporary folder if none is present
   if(getenv(TEMP_VAR) == NULL) {
     putenv(DEFAULT_TEMP);
@@ -2282,35 +2301,43 @@ int main(int argc, char* argv[]) {
   //timezone data to the date functions)
   setlocale(LC_ALL, TDB_LOCALE);
 
+  argc2 = argc;
+  argv2 = argv;
+
+  #if WINDOWS
+    setupWin32(&argc2, &argv2);
+  #endif
+
   //identify which subcommand to run, using a very simple setup
-  if(argc > 1) {
+  if(argc2 > 1) {
     //run a query
-    if(strcmp(argv[1],"--run") == 0 && argc == 3) {
-      return runQuery(argv[2]);
+    if(strcmp(argv2[1],"--run") == 0 && argc2 > 2 && argc2 < 5 ) {
+      return runQuery(argv2[2], (argc2 == 3 ? NULL : argv2[3]));
     }
 
     //get the number of columns in a file
-    else if (strcmp(argv[1], "--columns") == 0 && argc == 3) {
-      return getColumnCount(argv[2]);
+    else if (strcmp(argv2[1], "--columns") == 0 && argc2 == 3) {
+      return getColumnCount(argv2[2]);
     }
     
     //get the file offset of the start of the next record in a file
-    else if (strcmp(argv[1], "--next") == 0 && argc == 4) {
-      return getNextRecordOffset(argv[2], atol(argv[3]));
+    else if (strcmp(argv2[1], "--next") == 0 && argc2 == 4) {
+      return getNextRecordOffset(argv2[2], atol(argv2[3]));
     }
     
     //get the unescaped value of column X of the record starting at the file offset
-    else if (strcmp(argv[1], "--value") == 0 && argc == 5) {
-      return getColumnValue(argv[2], atol(argv[3]), atoi(argv[4]));
+    else if (strcmp(argv2[1], "--value") == 0 && argc2 == 5) {
+      return getColumnValue(argv2[2], atol(argv2[3]), atoi(argv2[4]));
     }
 
     //get the current date in ISO8601 format (local time with UTC offset)
-    else if (strcmp(argv[1], "--date") == 0 && argc == 2) {
+    else if (strcmp(argv2[1], "--date") == 0 && argc2 == 2) {
       return getCurrentDate();
     }
   }
   
   //something else. print an error message and quit
   fputs(TDB_INVALID_COMMAND_LINE, stderr);
+
   return -1;
 }

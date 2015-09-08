@@ -1,14 +1,13 @@
 #define __STDC_WANT_LIB_EXT1__ 1  //for enabling qsort_s
+#define ECHO 1 //disables flex from outputing unmatched input
 #define FALSE 0
 #define TRUE  1
 
 #if MICROSOFT
-  #define DEVNULL "NUL"   //null filename on DOS/Windows
   #define TEMP_VAR "TEMP"
   #define DEFAULT_TEMP "TEMP=."
   #include <io.h>   //for unlink
 #else
-  #define DEVNULL "/dev/null"   //null filename on linux/OS X
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=/tmp"
   #include <unistd.h>   //for unlink
@@ -24,6 +23,10 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
+
+#if WINDOWS
+  #include "win32.h"
+#endif
 
 //translatable strings
 #include "en_gb.h"
@@ -71,6 +74,11 @@
 #define GRP_DIS_SUM 11
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
+
+#define PRM_TRIM 1
+#define PRM_SPACE 2
+#define PRM_IMPORT 4
+#define PRM_EXPORT 8
 
 //structures
 struct resultColumn {
@@ -170,6 +178,7 @@ struct qryData {
   int columnCount;
   int hiddenColumnCount;
   int groupCount;
+  int params;
   char* intoFileName;
   struct columnReferenceHash* columnReferenceHashTable; //used to get a reference to an input column given a column name
   struct inputTable* firstInputTable;
@@ -180,6 +189,7 @@ struct qryData {
   struct sortingList* groupByClause;
   FILE* scratchpad;
   char* scratchpadName;
+  int useGroupBy;
 };
 
 struct resultColumnValue { //this information should be stored in files
@@ -189,6 +199,11 @@ struct resultColumnValue { //this information should be stored in files
   int leftNull;
   size_t length;
   FILE ** source;
+};
+
+struct resultColumnParam {
+  int params;
+  struct resultColumnValue* ptr;
 };
 
 struct resultSet {
@@ -205,7 +220,7 @@ int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, vo
 long getUnicodeChar(unsigned char **offset, unsigned char **str, int plusBytes, int *bytesMatched, void (*get)());
 long getUnicodeCharFast(unsigned char **offset, unsigned char **str, int plusBytes, int* bytesMatched, void (*get)());
 
-int getCsvColumn(FILE** inputFile, char** value, size_t* strSize, int* quotedValue, long* startPosition);
+int getCsvColumn(FILE** inputFile, char** value, size_t* strSize, int* quotedValue, long* startPosition, int doTrim);
 
 /*
 void parse_table_factor(
