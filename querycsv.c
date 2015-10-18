@@ -155,7 +155,7 @@ int tztime_d(time_t *now, struct tm *local, struct tm *utc, char **output) {
       format = "%03i%02i";
     }
 
-    snprintf(*output, 6, format, hour_difference, minute_difference);
+    sprintf(*output, format, hour_difference, minute_difference);
   }
   
   if(local == NULL) {
@@ -167,45 +167,6 @@ int tztime_d(time_t *now, struct tm *local, struct tm *utc, char **output) {
   }
 
   return TRUE;
-}
-
-//write a formatted string into a string buffer. allocate/free memory as needed
-int snprintf_d(char** str, char* format, ...) {
-  size_t newSize;
-  char* newStr = NULL;
-  va_list args;
-  
-  if(str == NULL || format == NULL) {
-    return FALSE;
-  }
-
-  //get the space needed for the new string
-  va_start(args, format);
-  newSize = (size_t)(vsnprintf(newStr, 0, format, args)+1);
-  va_end(args);
-
-  //Create a new block of memory with the correct size rather than using realloc
-  //as any old values could overlap with the format string. quit on failure
-  if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
-    return FALSE;
-  }
-
-  //do the string formatting for real
-  va_start(args, format);
-  vsnprintf(newStr, newSize, format, args);
-  va_end(args);
-
-  //ensure null termination of the string
-  newStr[newSize] = '\0';
-
-  //free the old contents of the output if present
-  free(str);
-
-  //set the output pointer to the new pointer location
-  *str = newStr;
-  
-  //everything occurred successfully
-  return newSize;
 }
 
 //format a date into a string. allocate/free memory as needed
@@ -254,6 +215,53 @@ int strftime_d(char** ptr, char* format, struct tm* timeptr) {
   return TRUE;
 }
 
+//write a formatted string into a string buffer. allocate/free memory as needed
+int sprintf_d(char** str, char* format, ...) {
+  FILE * pFile;
+  size_t newSize;
+  char* newStr = NULL;
+  va_list args;
+  
+  //Check sanity of inputs and open /dev/null so that we can
+  //get the space needed for the new string. There's unfortunately no
+  //easier way to do this that uses only ISO functions. Filenames can only
+  //be portably specified in terms of the user's codepage as well :(
+  if(str == NULL || format == NULL || (pFile = fopen(DEVNULL, "wb")) == NULL) {
+    return FALSE;
+  }
+
+  //get the space needed for the new string
+  va_start(args, format);
+  newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
+  va_end(args);
+
+  //close the file. We don't need to look at the return code as we were writing to /dev/null 
+  fclose(pFile);
+
+  //Create a new block of memory with the correct size rather than using realloc
+  //as any old values could overlap with the format string. quit on failure
+  if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
+    return FALSE;
+  }
+
+  //do the string formatting for real. vsnprintf doesn't seem to be available on Lattice C
+  va_start(args, format);
+  vsprintf(newStr, format, args);
+  va_end(args);
+
+  //ensure null termination of the string
+  newStr[newSize] = '\0';
+
+  //free the old contents of the output if present
+  free(*str);
+
+  //set the output pointer to the new pointer location
+  *str = newStr;
+  
+  //everything occurred successfully
+  return newSize;
+}
+
 //append a character into a string with a given length, using realloc
 int strAppend(char c, char** value, size_t* strSize) {
   char* temp;
@@ -283,7 +291,7 @@ int strAppend(char c, char** value, size_t* strSize) {
 }
 
 //decrement size of a string to represent right trimming whitespace 
-int strRTrim(char** value, size_t* strSize) {
+int strRTrim(char** value, size_t* strSize, char* minSize) {
   char* end;
   char* str;
   int size;
@@ -296,7 +304,7 @@ int strRTrim(char** value, size_t* strSize) {
   size = *strSize;
 
   end = str + size - 1;
-  while(end > str && (*end == ' ' || *end == '\t')) {
+  while(end > str && end != minSize && (*end == ' ' || *end == '\t')) {
     end--;
     size--;
   }
@@ -377,6 +385,7 @@ int getCsvColumn(
   int canEnd = TRUE;
   int quotePossible = TRUE;
   int exitCode = 0;
+  char* minSize = NULL;
 
   if(quotedValue != NULL) {
     *quotedValue = FALSE;
@@ -404,14 +413,13 @@ int getCsvColumn(
 
     switch(c) {
       case ' ':
+        if(!canEnd) {
+          minSize = &((*value)[*strSize]);
+        }
         strAppend(' ', value, strSize);
       break;
 
       case '\r':
-        if (quotedValue != NULL) {
-          *quotedValue = TRUE;
-        }
-        
         if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
           ungetc(c, *inputFile);
         }
@@ -420,12 +428,16 @@ int getCsvColumn(
           break;
         }
 
-      case '\n':        
+      case '\n':
         if(canEnd) {
           exitCode = 2;
           break;
         }
         else {
+          if (quotedValue != NULL) {
+            *quotedValue = TRUE;
+          }
+          strAppend('\r', value, strSize);
           strAppend('\n', value, strSize);
         }
       break;
@@ -508,7 +520,7 @@ int getCsvColumn(
   } while (exitCode == 0);
 
   if(doTrim) {
-    strRTrim(value, strSize);
+    strRTrim(value, strSize, minSize);
   }
   
   strAppend('\0', value, strSize);
@@ -548,40 +560,17 @@ void stringGet(unsigned char **str, struct resultColumnValue* field, int params)
   fflush(*(field->source));  
 }
 
-FILE* openTemp(char** name) {
-  int fd = -1;
-  FILE *sfp;
-  
-  snprintf_d(name, "%s/XXXXXXXX", getenv(TEMP_VAR));
-  
-  if (
-      (fd = mkstemp(*name)) == -1 ||
-      (sfp = fdopen(fd, "wb+")) == NULL
-    ) {
-
-    if (fd != -1) {
-      close(fd);
-      unlink(*name);
-      strFree(name);
-    }
-  
-    fputs("Couldn't create scratchpad file", stderr);
-    exit(EXIT_FAILURE);
-  }
-  return sfp;
-}
-
 void parseCommandLine(char* string, int * params) {
   if(string && params) {
     while(*string) {
       switch(*string) {
-        case 't':
-        case 'T':
+        case 'p':
+        case 'P':
           *params |= PRM_TRIM;
         break;
 
-        case 's':
-        case 'S':
+        case 't':
+        case 'T':
           *params |= PRM_SPACE;        
         break;
         case 'i':
@@ -592,6 +581,11 @@ void parseCommandLine(char* string, int * params) {
         case 'e':
         case 'E':
           *params |= PRM_EXPORT;
+        break;
+
+        case 'b':
+        case 'B':
+          *params |= PRM_BOM;
         break;
       }
       string++;
@@ -621,6 +615,12 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   }
 
   //setup the initial values in the queryData structure
+  if((query->scratchpad = tmpfile()) == NULL) {
+    fclose(queryFile);
+    fputs("Couldn't create scratchpad file", stderr);
+    exit(EXIT_FAILURE);
+  }
+
   query->parseMode = 0;   //specify we want to just read the file data for now
   query->hasGrouping = FALSE;
   query->columnCount = 0;
@@ -634,9 +634,7 @@ void parseQuery(char* queryFileName, struct qryData * query) {
   query->joinsAndWhereClause = NULL;
   query->orderByClause = NULL;
   query->groupByClause = NULL;
-  query->scratchpadName = NULL;
   query->params = 0;
-  query->scratchpad = openTemp(&(query->scratchpadName));
 
   //setup reentrant flex scanner data structure
   yylex_init(&scanner);
@@ -826,7 +824,7 @@ void exp_divide(char** value, double leftVal, double rightVal) {
     *value = strdup("Infinity");
   }
   else {
-    snprintf_d(value, "%g", leftVal/rightVal);
+    sprintf_d(value, "%g", leftVal/rightVal);
   }
 }
 
@@ -835,7 +833,7 @@ void exp_uminus(char** value, double leftVal) {
     *value = strdup("0");
   }
   else {
-    snprintf_d(value, "%g", leftVal*-1);
+    sprintf_d(value, "%g", leftVal*-1);
   }
 }
 
@@ -917,7 +915,7 @@ void getValue(
         expressionPtr->value = strdup("");
       }
       else {
-        snprintf_d(
+        sprintf_d(
             &(expressionPtr->value),
             "%g",
             strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
@@ -973,7 +971,7 @@ void getValue(
       else {
         switch(expressionPtr->type){
           case EXP_PLUS:
-            snprintf_d(
+            sprintf_d(
                 &(expressionPtr->value),
                 "%g",
                 strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)+
@@ -982,7 +980,7 @@ void getValue(
           break;
 
           case EXP_MINUS:
-            snprintf_d(
+            sprintf_d(
                 &(expressionPtr->value),
                 "%g",
                 strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)-
@@ -991,7 +989,7 @@ void getValue(
           break;
 
           case EXP_MULTIPLY:
-            snprintf_d(
+            sprintf_d(
                 &(expressionPtr->value),
                 "%g",
                 strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)*
@@ -1008,7 +1006,7 @@ void getValue(
           break;
 
           case EXP_CONCAT:
-            snprintf_d(
+            sprintf_d(
                 &(expressionPtr->value),
                 "%s%s",
                 expressionPtr->unionPtrs.leaves.leftPtr->value,
@@ -1520,7 +1518,6 @@ void cleanup_query(struct qryData * query) {
 
   //close the open files
   fclose(query->scratchpad);
-  unlink(query->scratchpadName);
 }
 
 //compares two whole records to one another. multiple columns can be involved in this comparison.
@@ -1664,7 +1661,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
 
               case GRP_DIS_CONCAT:
                 if(j == query->groupCount) {
-                  snprintf_d(
+                  sprintf_d(
                       &(currentResultColumn->groupText),
                       "%s%s",
                       currentResultColumn->groupText,
@@ -1674,7 +1671,7 @@ void updateRunningCounts(struct qryData * query, struct resultColumnValue * matc
               break;
 
               case GRP_CONCAT:
-                snprintf_d(
+                sprintf_d(
                     &(currentResultColumn->groupText),
                     "%s%s",
                     currentResultColumn->groupText,
@@ -1762,14 +1759,14 @@ void getGroupedColumns(struct qryData * query) {
                 currentResultColumn->groupCount;
             case GRP_SUM:
             case GRP_DIS_SUM:
-              snprintf_d(&(currentResultColumn->groupText), "%g", currentResultColumn->groupNum);
+              sprintf_d(&(currentResultColumn->groupText), "%g", currentResultColumn->groupNum);
             break;
             case GRP_COUNT:
             case GRP_DIS_COUNT:
-              snprintf_d(&(currentResultColumn->groupText), "%d", currentResultColumn->groupCount);
+              sprintf_d(&(currentResultColumn->groupText), "%d", currentResultColumn->groupCount);
             break;
             case GRP_STAR:
-              snprintf_d(&(currentResultColumn->groupText), "%d", query->groupCount);
+              sprintf_d(&(currentResultColumn->groupText), "%d", query->groupCount);
             break;
           }
         }
@@ -1966,14 +1963,18 @@ int outputResults(struct qryData * query, struct resultSet * results) {
   char *string3 = (((query->params) & PRM_SPACE) != 0)?",":", ";
   
   if(query->intoFileName) {
-    outputFile = fopen(query->intoFileName, "w");
+    outputFile = fopen(query->intoFileName, "wb");
     if (outputFile == NULL) {
       fputs ("opening output file failed", stderr);
       return -1;
     }
   }
-  else {
+  else {    
     outputFile = stdout;
+  }
+
+  if(((query->params) & PRM_BOM) != 0) {
+    fputs("\xEF\xBB\xBF", outputFile);
   }
 
   firstColumn = TRUE;
@@ -1998,7 +1999,7 @@ int outputResults(struct qryData * query, struct resultSet * results) {
     }
   }
   
-  fputs("\n", outputFile);
+  fputs("\r\n", outputFile);
   
   //dereference the string offsets and lengths and write
   //to the output file. remove any that were there just for sorting purposes
@@ -2056,7 +2057,7 @@ int outputResults(struct qryData * query, struct resultSet * results) {
       j++;
     }
 
-    fputs("\n", outputFile);
+    fputs("\r\n", outputFile);
   }
 
   //close the output file
@@ -2256,8 +2257,8 @@ int getCurrentDate() {
   //place the utc offset in the output string.
   //%z unfortunately can't be used as it doesn't work properly
   //in some c library implementations (Watcom and MSVC)
-  if(snprintf_d(&output, "%%Y-%%m-%%dT%%H:%%M:%%S%s", output) == FALSE) {
-    fputs(TDB_SNPRINTFD_FAILED, stderr);
+  if(sprintf_d(&output, "%%Y-%%m-%%dT%%H:%%M:%%S%s", output) == FALSE) {
+    fputs(TDB_SPRINTFD_FAILED, stderr);
 
     strFree(&output);
 
@@ -2310,13 +2311,8 @@ int main(int argc, char* argv[]) {
 
   //identify which subcommand to run, using a very simple setup
   if(argc2 > 1) {
-    //run a query
-    if(strcmp(argv2[1],"--run") == 0 && argc2 > 2 && argc2 < 5 ) {
-      return runQuery(argv2[2], (argc2 == 3 ? NULL : argv2[3]));
-    }
-
     //get the number of columns in a file
-    else if (strcmp(argv2[1], "--columns") == 0 && argc2 == 3) {
+    if (strcmp(argv2[1], "--columns") == 0 && argc2 == 3) {
       return getColumnCount(argv2[2]);
     }
     
@@ -2330,10 +2326,34 @@ int main(int argc, char* argv[]) {
       return getColumnValue(argv2[2], atol(argv2[3]), atoi(argv2[4]));
     }
 
-    //get the current date in ISO8601 format (local time with UTC offset)
-    else if (strcmp(argv2[1], "--date") == 0 && argc2 == 2) {
-      return getCurrentDate();
+    //get the unescaped trimmed value of column X of the record starting at the file offset
+    else if (strcmp(argv2[1], "--trimval") == 0 && argc2 == 5) {
+      return getColumnValue(argv2[2], atol(argv2[3]), atoi(argv2[4]));
     }
+
+    //get the current date in ISO8601 format (local time with UTC offset)
+    else if (strcmp(argv2[1], "--date") == 0 && argc2 == 3) {
+      if(strcmp(argv2[2], "now") == 0) {
+        return getCurrentDate();
+      }
+      else {
+        fputs("not supported", stderr);
+
+        return -1;
+      }
+    }
+
+    //run a query
+    else if(argc2 == 3) {
+      return runQuery(argv2[2], argv2[1]);
+    }
+
+    else if(argc2 == 2) {
+      return runQuery(argv2[1], NULL);
+    }
+  }
+  else {
+    //launch interactive mode
   }
   
   //something else. print an error message and quit

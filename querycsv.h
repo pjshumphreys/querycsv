@@ -3,19 +3,6 @@
 #define FALSE 0
 #define TRUE  1
 
-#if MICROSOFT
-  #define TEMP_VAR "TEMP"
-  #define DEFAULT_TEMP "TEMP=."
-  #include <io.h>   //for unlink
-#else
-  #define TEMP_VAR "TMPDIR"
-  #define DEFAULT_TEMP "TMPDIR=/tmp"
-  #include <unistd.h>   //for unlink
-  //reentrant qsort
-  #include "sort_r.h"
-  #define qsort_s sort_r
-#endif
-
 //standard lib headers
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,9 +11,43 @@
 #include <locale.h>
 #include <time.h>
 
-#if WINDOWS
-  #include "win32.h"
+#if MICROSOFT
+  #define DEVNULL "NUL"   //null filename on DOS/Windows
+  #define TEMP_VAR "TEMP"
+  #define DEFAULT_TEMP "TEMP=."
+  #define MAX_UTF8_PATH 780 // (_MAX_PATH)*3
+
+  struct dirent {
+    unsigned  d_type;
+    time_t    d_ctime; //-1 for FAT file systems
+    time_t    d_atime; //-1 for FAT file systems
+    time_t    d_mtime;
+    long      d_size; //64-bit size info
+    char      d_name[MAX_UTF8_PATH]; 
+    char      d_first; //flag for 1st time
+    long      d_handle; //handle to pass to FindNext
+  };
+
+  #define DIR struct dirent
+
+  DIR *opendir(const char *name);
+  struct dirent *readdir(DIR *inval);
+  int closedir(DIR * inval);
+
+  #if WINDOWS
+    #include "win32.h"
+  #endif
+#else
+  #define DEVNULL "/dev/null"   //null filename on linux/OS X
+  #define TEMP_VAR "TMPDIR"
+  #define DEFAULT_TEMP "TMPDIR=/tmp"
+  #include <dirent.h>   //for opendir, readdir & closedir
+  //reentrant qsort
+  #include "sort_r.h"
+  #define qsort_s sort_r
 #endif
+
+
 
 //translatable strings
 #include "en_gb.h"
@@ -79,6 +100,7 @@
 #define PRM_SPACE 2
 #define PRM_IMPORT 4
 #define PRM_EXPORT 8
+#define PRM_BOM 16
 
 //structures
 struct resultColumn {
@@ -188,7 +210,7 @@ struct qryData {
   struct sortingList* orderByClause;
   struct sortingList* groupByClause;
   FILE* scratchpad;
-  char* scratchpadName;
+  //char* scratchpadName;
   int useGroupBy;
 };
 
@@ -214,7 +236,7 @@ struct resultSet {
 
 //function prototypes
 
-int snprintf_d(char** str, char* format, ...);
+int sprintf_d(char** str, char* format, ...);
 void reallocMsg(char *failureMessage, void** mem, size_t size);
 int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, void (*get1)(), void (*get2)());
 long getUnicodeChar(unsigned char **offset, unsigned char **str, int plusBytes, int *bytesMatched, void (*get)());

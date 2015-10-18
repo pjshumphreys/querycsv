@@ -120,13 +120,13 @@ literal:
 column_ref:
 		NAME {
       if(parse_column_ref_unsuccessful(queryData, &($$), NULL, $1)) {
-        fprintf(stderr, "unknown or ambiguous column name\n");
+        fputs("unknown or ambiguous column name\n", stderr);
         YYERROR;
       }
     }
 	|	NAME '.' NAME {
       if(parse_column_ref_unsuccessful(queryData, &($$), $1, $3)) {
-        fprintf(stderr, "unknown or ambiguous column name\n");
+        fputs("unknown or ambiguous column name\n", stderr);
         YYERROR;
       }
     }

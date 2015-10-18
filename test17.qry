@@ -1,0 +1,3 @@
+select names,nm
+from 'test17.csv' as test
+

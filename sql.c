@@ -1824,7 +1824,7 @@ yyreduce:
 #line 121 "sql.y" /* yacc.c:1646  */
     {
       if(parse_column_ref_unsuccessful(queryData, &((yyval.referencePtr)), NULL, (yyvsp[0].strval))) {
-        fprintf(stderr, "unknown or ambiguous column name\n");
+        fputs("unknown or ambiguous column name\n", stderr);
         YYERROR;
       }
     }
@@ -1835,7 +1835,7 @@ yyreduce:
 #line 127 "sql.y" /* yacc.c:1646  */
     {
       if(parse_column_ref_unsuccessful(queryData, &((yyval.referencePtr)), (yyvsp[-2].strval), (yyvsp[0].strval))) {
-        fprintf(stderr, "unknown or ambiguous column name\n");
+        fputs("unknown or ambiguous column name\n", stderr);
         YYERROR;
       }
     }

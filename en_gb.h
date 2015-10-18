@@ -4,7 +4,7 @@
 #define TDB_COULDNT_OPEN_INPUT "Couldn't open input file\n"
 #define TDB_NOT_YET_IMPLEMENTED "Not yet implemented\n"
 #define TDB_TZTIMED_FAILED "tztime_d failed\n"
-#define TDB_SNPRINTFD_FAILED "snprintf_d failed\n"
+#define TDB_SPRINTFD_FAILED "sprintf_d failed\n"
 #define TDB_STRFTIMED_FAILED "strftime_d failed\n"
 #define TDB_COULDNT_SEEK "Couldn't seek to specified file offset\n"
 #define TDB_PARSER_SYNTAX "A syntax error occurred when parsing the input file\n"

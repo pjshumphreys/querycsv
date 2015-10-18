@@ -124,7 +124,7 @@
 
 [A-Za-z][A-Za-z0-9_]*	{
     yylval->strval = NULL;
-    snprintf_d(&(yylval->strval), "_%s", yytext);
+    sprintf_d(&(yylval->strval), "_%s", yytext);
     return NAME;
 }
 

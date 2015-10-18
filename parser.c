@@ -113,7 +113,7 @@ void parse_table_factor(struct qryData* queryData, int isLeftJoin, char* fileNam
 
     recordContinues = getCsvColumn(&(newTable->fileStream), &columnText, &columnLength, NULL, NULL, (queryData->params & PRM_TRIM) == 0);
 
-    snprintf_d(&columnText, "_%s", columnText);
+    sprintf_d(&columnText, "_%s", columnText);
 
     //test whether a column with this name already exists in the hashtable
     currentReference = lookup_string(queryData->columnReferenceHashTable, columnText);
@@ -342,7 +342,7 @@ struct resultColumn* parse_exp_commalist(
           exit(EXIT_FAILURE);
         }
       }
-      else if(snprintf_d(&resultColumnName, TDB_UNTITLED_COLUMN) == FALSE) {
+      else if(sprintf_d(&resultColumnName, TDB_UNTITLED_COLUMN) == FALSE) {
         fputs(TDB_MALLOC_FAILED, stderr);
         exit(EXIT_FAILURE);
       }
@@ -353,7 +353,7 @@ struct resultColumn* parse_exp_commalist(
 
     queryData->hiddenColumnCount++;
 
-    if(snprintf_d(&resultColumnName, "%d", queryData->hiddenColumnCount) == FALSE) {
+    if(sprintf_d(&resultColumnName, "%d", queryData->hiddenColumnCount) == FALSE) {
       fputs(TDB_MALLOC_FAILED, stderr);
       exit(EXIT_FAILURE);
     }
@@ -811,7 +811,7 @@ struct expression* parse_function_ref(
   if(expressionPtr->containsAggregates) {
     //I don't think in sql you can aggregate an aggregate.
     //therefore we should error out if we get to this point
-    fprintf(stderr,"can't aggregate an aggregate");
+    fputs("can't aggregate an aggregate", stderr);
     exit(EXIT_FAILURE);
   }
 
@@ -850,7 +850,7 @@ struct expression* parse_function_ref_star(
   if(aggregationType != GRP_COUNT) {
     //I don't think in sql you can aggregate an aggregate.
     //therefore we should error out if we get to this point
-    fprintf(stderr,"only count(*) is valid");
+    fputs("only count(*) is valid",stderr);
     exit(EXIT_FAILURE);
   }
   

@@ -402,7 +402,7 @@ int isNumberWithGetByteLength(char *offset, int *lastMatchedBytes, int firstChar
       ))) {
 
     if(*string == '-' || *string == '+') {
-      *string++;
+      string++;
     }
     
     while(
@@ -410,7 +410,7 @@ int isNumberWithGetByteLength(char *offset, int *lastMatchedBytes, int firstChar
       (decimalNotFound && (*string == '.' || *string == ',') &&
       !(decimalNotFound = FALSE))
     ) {
-      *string++;
+      string++;
     }
 
     *(lastMatchedBytes)+=string-offset-1;
@@ -664,7 +664,6 @@ int strNumberCompare(char * input1, char * input2) {
 int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, void (*get1)(), void (*get2)()) {
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
-  double dbl1 = 0, dbl2 = 0;
   struct hash4Entry *entry1, *entry2;
   int firstChar = TRUE, comparison = 0, char1found = FALSE;
   int bytesMatched1 = 0, bytesMatched2 = 0;

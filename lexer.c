@@ -1639,7 +1639,7 @@ YY_RULE_SETUP
 #line 125 "sql.l"
 {
     yylval->strval = NULL;
-    snprintf_d(&(yylval->strval), "_%s", yytext);
+    sprintf_d(&(yylval->strval), "_%s", yytext);
     return NAME;
 }
 	YY_BREAK

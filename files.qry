@@ -1,0 +1,3 @@
+select [path], '/', [name], [size], [mtime]
+from 'files.csv' as a
+order by [path], [name]
