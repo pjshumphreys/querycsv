@@ -10,9 +10,13 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <wchar.h>
 
 #define DEVNULL "NUL"
 #define MAX_UTF8_PATH 780 // (_MAX_PATH)*3
+
+int strAppendUTF8(long codepoint, unsigned char ** nfdString, int nfdLength);
+int strAppend(char c, char** value, size_t* strSize);
 
 struct dirent {
   unsigned  d_type;
@@ -28,8 +32,10 @@ struct dirent {
 typedef struct dirent DIR;
 
 int hasUtf8 = FALSE;
+int usingInput = FALSE;
 int usingOutput = FALSE;
 int usingError = FALSE;
+HANDLE std_in;
 HANDLE std_out;
 HANDLE std_err;
 char **argv_w32 = NULL;
@@ -38,6 +44,68 @@ char *test = NULL;
 void cleanup_w32() {
   free(test);
   free(argv_w32);
+}
+
+void strAppendChars_w32(FILE* stream, char** value, size_t* strSize) {
+  char c;
+  char c2;
+  wchar_t wc = 0;
+  wchar_t wc2 = 0;
+  long lwc;
+  DWORD charsRead;
+  size_t oldSize = *strSize;
+
+  if(usingInput) {
+    ReadConsoleW(std_in, &wc, 1, &charsRead, NULL);
+
+    if(wc > 0xD7FF && wc < 0xDC00) {
+      ReadConsoleW(std_in, &wc2, 1, &charsRead, NULL);
+
+      if (wc2 > 0xDBFF && wc2 < 0xE000) {
+        wc -= 0xD800;
+        wc2 -= 0xDC00;
+        lwc = (((long)wc) << 10) + wc2 + 0x010000;
+        *strSize = strAppendUTF8(lwc, value, *strSize);
+        fprintf_w32(stdout, "%d, ", lwc);
+      }
+      else {
+        *strSize = strAppendUTF8(wc, value, *strSize);
+        *strSize = strAppendUTF8(wc2, value, *strSize);
+        fprintf_w32(stdout, "%d, ", wc);
+        fprintf_w32(stdout, "%d, ", wc2);
+
+      }
+    }
+    else if (wc == L'\xD') {
+      *strSize = strAppendUTF8('\n', value, *strSize);
+    }
+    else {
+      *strSize = strAppendUTF8(wc, value, *strSize);
+      fprintf_w32(stdout, "%d, ", wc);
+    }
+
+   // strAppend('\0', value, strSize);
+   // (*strSize)--;
+
+   // fprintf_w32(stdout, "%", &((*value)[oldSize]));
+
+    return;
+  }
+
+  c = fgetc(stream);
+
+  if (c == '\r') {
+    c2 = fgetc(stream);
+
+    if(c2 != '\n') {
+      strAppend(c, value, strSize);
+    }
+
+    strAppend(c2, value, strSize);
+  }
+  else {
+    strAppend(c, value, strSize);
+  }
 }
 
 char* getcwd_w32(char* buf, size_t size) {
@@ -151,13 +219,20 @@ void setupWin32(int * argc, char *** argv) {
   int notInQuotes = TRUE;
   int maybeNewField = TRUE;
   int argc_w32 = 0;
-    
+   
+     
   if(IsValidCodePage(CP_UTF8)) {
     hasUtf8 = TRUE;
+    std_in = GetStdHandle(STD_INPUT_HANDLE);
     std_out = GetStdHandle(STD_OUTPUT_HANDLE);
     std_err = GetStdHandle(STD_ERROR_HANDLE);
     usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
     usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
+    usingInput = (std_in != INVALID_HANDLE_VALUE && GetConsoleMode(std_in, &mode));
+
+    if(usingInput) {
+      //SetConsoleMode(std_in, 0);//mode & ~(ENABLE_ECHO_INPUT|ENABLE_LINE_INPUT));
+    }
 
     szArglist = GetCommandLineW();
 

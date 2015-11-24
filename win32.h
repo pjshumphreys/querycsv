@@ -1,3 +1,4 @@
+#include <windows.h>
 /*
 #define MAX_UTF8_PATH 780 // (_MAX_PATH)*3
 
@@ -20,11 +21,13 @@ int closedir(DIR * inval);
 */
 
 void setupWin32(int * argc, char *** argv);
+void strAppendChars_w32(FILE* stream, char** value, size_t* strSize);
 int fputs_w32(const char *str, FILE *stream);
 int fprintf_w32(FILE *stream, const char *format, ...);
 FILE *fopen_w32(const char *filename, const char *mode);
 char* getcwd_w32(char* buf, size_t size);
 
+#define strAppendChars strAppendChars_w32
 #define fputs fputs_w32
 #define fopen fopen_w32
 #define fprintf fprintf_w32

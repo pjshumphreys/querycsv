@@ -3,15 +3,15 @@
 
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = ttyraw3.o
+OBJECTS = lexer.o sql.o strcomp.o
 INCFLAGS = 
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = 
 
-all: ttyraw
+all: querycsv
 
-ttyraw: $(OBJECTS)
-	$(CC) -o ttyraw $(OBJECTS) $(LDFLAGS) $(LIBS)
+querycsv: $(OBJECTS)
+	$(CC) -o querycsv $(OBJECTS) $(LDFLAGS) $(LIBS)
 
 .SUFFIXES:
 .SUFFIXES:	.c .cc .C .cpp .o

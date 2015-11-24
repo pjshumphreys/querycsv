@@ -2,7 +2,7 @@
 <dock-layout>
   <layout name="__default__">
     <dock name="__dock_1" floating="no" width="-1" height="-1" floatx="0" floaty="0" skip-taskbar="yes">
-      <paned orientation="vertical" locked="no" iconified="no" closed="no" position="365">
+      <paned orientation="vertical" locked="no" iconified="no" closed="no" position="392">
         <paned orientation="horizontal" locked="no" iconified="no" closed="no" position="352">
           <notebook orientation="vertical" locked="no" iconified="no" closed="no" page="3">
             <item name="AnjutaFileManager" orientation="vertical" locked="no" iconified="no" closed="no"/>
@@ -26,14 +26,14 @@
                 <item name="AnjutaSamplePlugin" orientation="horizontal" locked="no" iconified="no" closed="yes"/>
                 <item name="AnjutaGladeEditor" orientation="horizontal" locked="no" iconified="no" closed="yes"/>
                 <item name="AnjutaSubversionLogViewer" orientation="horizontal" locked="no" iconified="no" closed="yes"/>
-                <item name="AnjutaDebuggerMemory" orientation="vertical" locked="no" iconified="no" closed="no"/>
+                <item name="AnjutaDebuggerMemory" orientation="vertical" locked="no" iconified="no" closed="yes"/>
               </notebook>
             </paned>
             <notebook orientation="vertical" locked="no" iconified="no" closed="yes" page="-1"/>
           </paned>
         </paned>
         <notebook orientation="vertical" locked="no" iconified="no" closed="no" page="3">
-          <item name="AnjutaDebuggerWatch" orientation="vertical" locked="no" iconified="no" closed="yes"/>
+          <item name="AnjutaDebuggerWatch" orientation="vertical" locked="no" iconified="no" closed="no"/>
           <item name="AnjutaDebuggerBreakpoints" orientation="vertical" locked="no" iconified="no" closed="yes"/>
           <item name="AnjutaTerminal" orientation="vertical" locked="no" iconified="no" closed="no"/>
           <item name="AnjutaMessageView" orientation="vertical" locked="no" iconified="no" closed="no"/>
