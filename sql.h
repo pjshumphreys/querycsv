@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.4.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,20 +79,20 @@ typedef void* yyscan_t;
     CREATE = 278,
     CURRENT = 279,
     CURSOR = 280,
-    DECIMAL = 281,
+    DESIMAL = 281,
     DECLARE = 282,
     DEFAULT = 283,
-    DELETE = 284,
+    DELEET = 284,
     DESC = 285,
     DISTINCT = 286,
-    DOUBLE = 287,
+    DUBBLE = 287,
     ELSE = 288,
     END = 289,
-    ERROR = 290,
+    ERRER = 290,
     ESCAPE = 291,
     EXISTS = 292,
     FETCH = 293,
-    FLOAT = 294,
+    FLOWT = 294,
     FOR = 295,
     FOREIGN = 296,
     FOUND = 297,
@@ -101,7 +101,7 @@ typedef void* yyscan_t;
     GRANT = 300,
     GROUP = 301,
     HAVING = 302,
-    IN = 303,
+    INN = 303,
     INDICATOR = 304,
     INSERT = 305,
     INTEGER = 306,
@@ -152,7 +152,7 @@ typedef void* yyscan_t;
     WORK = 351,
     COBOL = 352,
     FORTRAN = 353,
-    PASCAL = 354,
+    PASKAL = 354,
     PLI = 355,
     C = 356,
     ADA = 357,
@@ -167,7 +167,7 @@ typedef void* yyscan_t;
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
+
 union YYSTYPE
 {
 #line 27 "sql.y" /* yacc.c:1909  */
@@ -181,6 +181,8 @@ union YYSTYPE
 
 #line 183 "sql.h" /* yacc.c:1909  */
 };
+
+typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif

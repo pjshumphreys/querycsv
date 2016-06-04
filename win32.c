@@ -215,11 +215,12 @@ void setupWin32(int * argc, char *** argv) {
   DWORD mode;
   LPWSTR szArglist;
   int i, j;
-  int size_needed;
+  int sizeNeeded;
   int notInQuotes = TRUE;
   int maybeNewField = TRUE;
   int argc_w32 = 0;
    
+  setmode(fileno(stdout),O_BINARY);
      
   if(IsValidCodePage(CP_UTF8)) {
     hasUtf8 = TRUE;
@@ -241,17 +242,17 @@ void setupWin32(int * argc, char *** argv) {
       exit(EXIT_FAILURE);
     }
 
-    size_needed = WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, NULL, 0, NULL, NULL);
+    sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, NULL, 0, NULL, NULL);
 
-    if((test = (char*)malloc(sizeof(char)*size_needed)) == NULL) {
+    if((test = (char*)malloc(sizeof(char)*sizeNeeded)) == NULL) {
       fprintf_w32(stderr, "couldn't get command line\n");
       exit(EXIT_FAILURE);
     }
     
-    WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, test, size_needed, NULL, NULL);
+    WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, test, sizeNeeded, NULL, NULL);
 
-    //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32 or dos when using HXRT
-    for(i = 0, j = 0; i < size_needed; ) {
+    //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32 or dos when using HXRT. behaviour should be as described on "the old new thing"
+    for(i = 0, j = 0; i < sizeNeeded; ) {
       switch(test[i]) {
         case '\\':
           if(maybeNewField) {
@@ -259,13 +260,12 @@ void setupWin32(int * argc, char *** argv) {
             maybeNewField = FALSE;
           }
 
-          if(test[i+1] == '\\') {
+          if(i+2 < sizeNeeded && test[i+1] == '\\' && test[i+2] == '"') {
             test[j] = '\\';
-            test[j+1] = '\\';
             i+=2;
-            j+=2;
+            j++;
           }
-          else if(test[i+1] == '"') {
+          else if(i+1 < sizeNeeded && test[i+1] == '"') {
             test[j] = '"';
             i+=2;
             j++;
@@ -300,7 +300,6 @@ void setupWin32(int * argc, char *** argv) {
 
         case '\0':
           i++;
-          j++;
         break;
         
         default:
@@ -324,7 +323,7 @@ void setupWin32(int * argc, char *** argv) {
     atexit(cleanup_w32);
     maybeNewField = TRUE;
     
-    for(i = 0, j = 0; i < size_needed; i++) {
+    for(i = 0, j = 0; i < sizeNeeded; i++) {
       if(test[i] == '\0') {
         maybeNewField = TRUE;
       }
