@@ -1,25 +1,17 @@
 [Anjuta]
-Maximized=1
 Geometry=1366x717+0+27
 
 [File Loader]
-Files=../../ttyraw3.c#939
+Files=split/main.c#69%%%split/runQuery.c#10%%%split/readQuery.c#127%%%lexer.c#2902
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
-Program uri=../../ttyraw%%%../../querycsv%%%../../listdir
+Program arguments=test.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
+Program uri=querycsv%%%ttyraw%%%listdir
 Run in terminal=2
-Working directories=../../.%%%../../../../../../.%%%../../test%%%../../../../.
-
-[Project Manager]
-Expand=querycsv
-
-[Debugger]
-Watch=currentPosition%%%lineHeadLength + lineTailLength%%%sequence%%%sequenceLength
-Stop at beginning=2
+Working directories=.%%%.%%%test%%%.
 
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized
@@ -28,3 +20,8 @@ BuildArgs/Default=--enable-maintainer-mode
 BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
 BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
+
+[Debugger]
+Watch=currentPosition%%%lineHeadLength + lineTailLength%%%sequence%%%sequenceLength
+Breakpoint=1:split/main.c:8:0:%%%1:split/readQuery.c:96:0:%%%1:split/readQuery.c:118:0:
+Stop at beginning=2

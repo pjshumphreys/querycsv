@@ -1,6 +1,4 @@
 %{
-#include <stdio.h>
-#include <string.h>
 #include "querycsv.h"
 #include "sql.h"
 
@@ -85,7 +83,7 @@
 (?i:PRIMARY)		TOK(PRIMARY)
 (?i:PRIVILEGES)		TOK(PRIVILEGES)
 (?i:PROCEDURE)		TOK(PROCEDURE)
-(?i:PUBLIC)		TOK(PUBLIC)
+(?i:PUBLIC)		TOK(PUBLIK)
 (?i:REAL)		TOK(REAL)
 (?i:REFERENCES)		TOK(REFERENCES)
 (?i:ROLLBACK)		TOK(ROLLBACK)
@@ -124,7 +122,7 @@
 
 [A-Za-z][A-Za-z0-9_]*	{
     yylval->strval = NULL;
-    sprintf_d(&(yylval->strval), "_%s", yytext);
+    d_sprintf(&(yylval->strval), "_%s", yytext);
     return NAME;
 }
 
@@ -188,12 +186,3 @@
 
 .		/* random non-SQL text. trigger a syntax error */
 %%
-
-void yyerror2(long lineno, char *text) {
-  fprintf(stderr, TDB_LEX_UNTERMINATED);
-}
-
-int yyerror(const char *msg) {
-    fprintf(stderr, msg);
-    return 1;
-}

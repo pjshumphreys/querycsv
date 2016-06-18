@@ -1,3 +1,6 @@
+#ifndef QUERYCSV_H
+#define QUERYCSV_H 1
+
 #define __STDC_WANT_LIB_EXT1__ 1  //for enabling qsort_s
 #define ECHO 1 //disables flex from outputing unmatched input
 #define FALSE 0
@@ -5,6 +8,7 @@
 
 //standard lib headers
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -45,9 +49,9 @@
   //reentrant qsort
   #include "sort_r.h"
   #define qsort_s sort_r
+  #include <strings.h>
+  #define stricmp strcasecmp
 #endif
-
-
 
 //translatable strings
 #include "en_gb.h"
@@ -109,7 +113,8 @@ struct resultColumn {
   int isCalculated;
   int groupType;
   char * groupText;
-  double groupNum;
+  //CC65 double groupNum;
+  int groupNum;
   int groupCount;
   int groupingDone;
   char * resultColumnName;
@@ -234,103 +239,32 @@ struct resultSet {
   struct resultColumnValue* records;
 };
 
+struct hash1Entry {
+  int length;
+  const long * codepoints;
+};
+
+struct hash2Entry {
+  long codepoint;
+  int length;
+  const long * codepoints;
+};
+
+struct hash3Entry {
+  long codepoint;
+  //int priority;
+  int order;
+};
+
+struct hash4Entry {
+  const char *name;
+  int script;
+  int index;
+  int islower;
+};
+
 //function prototypes
+struct hash4Entry *in_word_set(register const char *str,register unsigned int len);
+#include "gen.h"
+#endif
 
-int sprintf_d(char** str, char* format, ...);
-void reallocMsg(char *failureMessage, void** mem, size_t size);
-int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, void (*get1)(), void (*get2)());
-long getUnicodeChar(unsigned char **offset, unsigned char **str, int plusBytes, int *bytesMatched, void (*get)());
-long getUnicodeCharFast(unsigned char **offset, unsigned char **str, int plusBytes, int* bytesMatched, void (*get)());
-
-int getCsvColumn(FILE** inputFile, char** value, size_t* strSize, int* quotedValue, long* startPosition, int doTrim);
-
-/*
-void parse_table_factor(
-    struct qryData* queryData,
-    int isLeftJoin,
-    char* fileName,
-    char* tableName
-  );
-
-int parse_column_ref_unsuccessful(
-    struct qryData* queryData,
-    struct columnReference** result,
-    char* tableName,
-    char* columnName
-  );
-
-struct resultColumn* parse_exp_commalist(
-    struct qryData* queryData,
-    struct expression* expressionPtr,
-    char* outputColumnName,
-    int makeHidden
-  );
-
-struct expression* parse_scalar_exp_literal(
-    struct qryData* queryData,
-    char* literal
-  );
-
-struct expression * parse_scalar_exp(
-    struct qryData* queryData,
-    struct expression* leftPtr,
-    int operator,
-    struct expression* rightPtr
-  );
-
-struct expression* parse_scalar_exp_column_ref(
-    struct qryData* queryData,
-    struct columnReference* referencePtr
-  );
-
-void parse_where_clause(
-    struct qryData* queryData,
-    struct expression* expressionPtr
-  );
-
-struct expression* parse_in_predicate(
-    struct qryData* queryData,
-    struct expression* leftPtr,
-    int isNotIn,
-    struct atomEntry* lastEntryPtr
-  );
-
-struct atomEntry* parse_atom_commalist(
-    struct qryData* queryData,
-    struct atomEntry* lastEntryPtr,
-    char* newEntry
-  );
-
-void parse_ordering_spec(
-    struct qryData* queryData,
-    struct expression *expressionPtr,
-    int isDescending
-  );
-
-void parse_grouping_spec(
-    struct qryData* queryData,
-    struct expression *expressionPtr
-  );
-
-struct expression* parse_function_ref(
-    struct qryData* queryData,
-    long aggregationType,
-    struct expression *expressionPtr
-  );
-*/
-struct columnReferenceHash* create_hash_table(int size);
-unsigned int hashfunc(struct columnReferenceHash *hashtable, char *str);
-struct columnReference *lookup_string(struct columnReferenceHash *hashtable, char *str);
-
-int add_string(
-    struct columnReferenceHash *hashtable,
-    char *str,
-    struct columnReference *new_list
-  );
-
-void free_table(struct columnReferenceHash *hashtable);
-
-char *strReplace(char *search, char *replace, char *subject);
-void yyerror2(long lineno, char *text);
-
-FILE * fopen_skipBom(const char * filename);

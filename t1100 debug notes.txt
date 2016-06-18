@@ -1,0 +1,23 @@
+6017:3d79
+6017:489d
+    :485c
+6017:4885
+6017:4889
+
+486d
+4885 outer loop? different?
+
+
+
+
+4889 same
+48a2 different
+ (t1100 never gets there)
+
+
+489b
+
+at 4862, bx is e0ae
+
+
+4891

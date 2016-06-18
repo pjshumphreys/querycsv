@@ -3,7 +3,8 @@
 
 CC = gcc
 CFLAGS = -g -Wall
-OBJECTS = lexer.o sql.o strcomp.o
+SOURCES = lexer.c sql.c hash4.c $(wildcard split/*.c)
+OBJECTS = $(SOURCES:%.c=%.o)
 INCFLAGS = 
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = 
@@ -23,7 +24,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f *.o
+	rm -f $(OBJECTS)
 
 .PHONY: all
 .PHONY: count

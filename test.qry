@@ -1,3 +1,4 @@
 select names
-from 'test3.csv' as test
+from 'test.csv' as test
 order by names
+--into 'output.txt'

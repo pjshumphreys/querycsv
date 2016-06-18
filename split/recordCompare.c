@@ -1,0 +1,60 @@
+#include "querycsv.h"
+
+int recordCompare(const void * a, const void * b, void * c)
+//compares two whole records to one another. multiple columns can be involved in this comparison.
+{
+  struct sortingList* orderByClause;
+  char* string1, *string2, *output1, *output2;
+  int compare;
+
+  struct resultColumnParam matchParams;
+  matchParams.params = ((struct qryData*)c)->params;
+
+  for(
+      orderByClause = ((struct qryData*)c)->useGroupBy?((struct qryData*)c)->groupByClause:((struct qryData*)c)->orderByClause;
+      orderByClause != NULL;
+      orderByClause = orderByClause->nextInList
+    ) {
+
+    //get the value of the expression using the values in record a
+    matchParams.ptr = (struct resultColumnValue*)a;
+    getValue(
+        orderByClause->expressionPtr,
+        &matchParams
+      );
+    string1 = output1 = orderByClause->expressionPtr->value;
+    orderByClause->expressionPtr->value = NULL;
+
+    //get the value of the expression using the values in record b
+    matchParams.ptr = (struct resultColumnValue*)b;
+    getValue(
+        orderByClause->expressionPtr,
+        &matchParams
+      );
+    string2 = output2 = orderByClause->expressionPtr->value;
+    orderByClause->expressionPtr->value = NULL;
+
+    //do the comparison of the two current expression values
+    compare = strCompare(
+        &output1,
+        &output2,
+        2,//orderByClause->expressionPtr->caseSensitive,
+        (void (*)())getUnicodeChar,
+        (void (*)())getUnicodeChar
+      );
+
+    //clean up used memory. The string1 & string2 pointers might be made
+    //stale (and freed automatically) by unicode NFD normalisation in
+    //strCompare function
+    strFree(&output1);
+    strFree(&output2);
+
+    // if the fields didn't compare as being the same, then return which was greater
+    if(compare != 0) {
+      return orderByClause->isDescending?-compare:compare;
+    }
+  }
+
+  //all fields to compare compared equally
+  return 0;
+}

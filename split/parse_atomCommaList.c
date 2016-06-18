@@ -1,0 +1,32 @@
+#include "querycsv.h"
+
+struct atomEntry* parse_atomCommaList(
+    struct qryData* queryData,
+    struct atomEntry* lastEntryPtr,
+    char* newEntry
+  ) {
+
+  struct atomEntry* newEntryPtr;
+  
+  if(queryData->parseMode != 1) {
+    return NULL;
+  }
+
+  reallocMsg(TDB_MALLOC_FAILED, (void**)(&newEntryPtr), sizeof(struct atomEntry));
+
+  if(lastEntryPtr == NULL) {
+    newEntryPtr->index = 1;
+    newEntryPtr->nextInList = newEntryPtr;
+  }
+  else {
+    newEntryPtr->index = lastEntryPtr->index+1;
+    newEntryPtr->nextInList = lastEntryPtr->nextInList;
+    lastEntryPtr->nextInList = newEntryPtr;
+  }
+
+  newEntryPtr->content = newEntry;
+
+  return newEntryPtr;
+}
+
+
