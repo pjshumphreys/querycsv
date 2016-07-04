@@ -9,7 +9,4 @@ void cleanup_query(struct qryData * query)
   cleanup_expression(query->joinsAndWhereClause);
   cleanup_inputTables(query->firstInputTable);
   free(query->intoFileName);
-
-  //close the open files
-  fclose(query->scratchpad);
 }

@@ -1,27 +1,22 @@
 #include "querycsv.h"
 
-FILE *skipBom(const char *filename)
 /*skips the BOM if present from a file */
-{
-  FILE * file;
-  int c, c2, c3;
+FILE *skipBom(const char *filename) {
+  FILE *file;
 
   file = fopen(filename, "rb");
 
   if (file != NULL) {
-    if((c = fgetc(file)) == 239) {
-      if((c2 = fgetc(file)) == 187) {
-        if((c3 = fgetc(file)) == 191) {
-          return file;
-        }
-
-        ungetc(c3, file);
-      }
-
-      ungetc(c2, file);
+    //skip over the bom if present
+    if(fgetc(file) == 239 && fgetc(file) == 187 && fgetc(file) == 191) {
+      return file;
     }
 
-    ungetc(c, file);
+    //the byte order mark was not found, and calling ungetc multiple times is not
+    //portable (doesn't work on cc65). Therefore we just close and reopen the file
+    fclose(file);
+
+    file = fopen(filename, "rb");
   }
 
   return file;

@@ -1,7 +1,10 @@
 #include "querycsv.h"
 
-void readCommandLine(char* string, int * params)
-{
+void readParams(
+    char *string,
+    int *params
+  ) {
+
   if(string && params) {
     while(*string) {
       switch(*string) {

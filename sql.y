@@ -46,12 +46,12 @@ typedef void* yyscan_t;
 	/* literal keyword tokens */
 
 %token ALL ANY AS ASC AUTHORIZATION BETWEEN BY CASE
-%token CHARACTER CHECK CLOSE COMMIT CONTINUE CONCAT CREATE CURRENT
+%token CHARACTER CHECK CLOSE COMMIT COMMAND CONTINUE CONCAT CREATE CURRENT
 %token CURSOR DESIMAL DECLARE DEFAULT DELEET DESC DISTINCT DUBBLE ELSE END
 %token ERRER ESCAPE EXISTS FETCH FLOWT FOR FOREIGN FOUND FROM GOTO
 %token GRANT GROUP HAVING INN INDICATOR INSERT INTEGER INTO
 %token IS JOIN KEY LANGUAGE LEFT LIKE MODULE NULLX NUMERIC OF ON
-%token OPEN OPTION ORDER PARAMETER PRECISION PRIMARY PRIVILEGES PROCEDURE
+%token OPEN OPTION ORDER PARAMS PARAMETER PRECISION PRIMARY PRIVILEGES PROCEDURE
 %token PUBLIK REAL REFERENCES ROLLBACK SCHEMA SELECT SET
 %token SMALLINT SOME SQLCODE SQLERROR TABLE THEN TO UNION
 %token UNIQUE UPDATE USER VALUES VIEW WHEN WHENEVER WHERE WITH WORK
@@ -69,7 +69,13 @@ typedef void* yyscan_t;
 %type <atomPtr> atom_commalist
 %%
 
-select_stmt:
+command_or_select:
+    COMMAND STRING ';' {
+    if(queryData->parseMode != 1) {
+      runCommand($2);
+    }
+  }
+  | opt_params
     SELECT
     scalar_exp_commalist
     FROM table_references
@@ -80,8 +86,15 @@ select_stmt:
     opt_into_clause
   ;
 
+opt_params:
+  | PARAMS STRING ';' {
+    if(queryData->parseMode != 1) {
+      readParams($2, &(queryData->params));
+    }
+  }
+
 scalar_exp_commalist:
-		scalar_exp optional_as_name {parse_expCommaList(queryData, $1, $2, GRP_NONE); }
+		scalar_exp optional_as_name { parse_expCommaList(queryData, $1, $2, GRP_NONE); }
 	|	scalar_exp_commalist ',' scalar_exp optional_as_name {parse_expCommaList(queryData, $3, $4, GRP_NONE); }
 	;
 

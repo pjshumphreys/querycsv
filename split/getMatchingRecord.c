@@ -10,8 +10,8 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
   int recordHasColumn;
   int doLeftRecord = FALSE;
 
-  matchParams.params = query->params;
   matchParams.ptr = match;
+  matchParams.params = query->params;
 
   //if secondaryInputTable is NULL then
   //the query hasn't returned any results yet.
@@ -50,7 +50,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
         if(recordHasColumn == TRUE && !doLeftRecord) {
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
-              NULL,
+              &(columnOffsetData.value),
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
               &(columnOffsetData.startOffset),
@@ -60,7 +60,6 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
           //these values should actually be set depending on whether the value was quoted or not
           //if the value is quoted we should probably also NFD normalise it before writing to the scratchpad
           columnOffsetData.isNormalized = FALSE;
-          columnOffsetData.source = &(currentInputTable->fileStream);
           columnOffsetData.leftNull = FALSE;
         }
 
@@ -71,7 +70,7 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
           columnOffsetData.length = 0;
           columnOffsetData.isQuoted = FALSE;
           columnOffsetData.isNormalized = TRUE; //an empty string needs no unicode normalization
-          columnOffsetData.source = &(query->scratchpad);
+          columnOffsetData.value = strdup("");
         }
 
         //put the values retrieved into each of the columns in the output match
@@ -92,7 +91,14 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
 
       //consume any remaining column data that may exist in this record
       if(recordHasColumn == TRUE && !doLeftRecord) {
-        while(getCsvColumn(&(currentInputTable->fileStream), NULL, NULL, NULL, NULL, (query->params & PRM_TRIM) == 0)) {
+        while(getCsvColumn(
+            &(currentInputTable->fileStream),
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            (query->params & PRM_TRIM) == 0
+          )) {
           //do nothing
         }
       }

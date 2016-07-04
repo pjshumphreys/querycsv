@@ -1,3 +1,4 @@
+%includes
 %compare-strncmp
 %struct-type
 struct hash4Entry {
@@ -5,8 +6,7 @@ struct hash4Entry {
   int script;
   int index;
   int islower;
-};
-#include <string.h>
+}
 %%
 "a",127,1,0
 "A",127,2,1

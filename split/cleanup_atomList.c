@@ -1,7 +1,9 @@
 #include "querycsv.h"
 
-void cleanup_atomList(struct atomEntry * currentAtom)
-{
+void cleanup_atomList(
+    struct atomEntry *currentAtom
+  ) {
+
   struct atomEntry* next;
   while(currentAtom != NULL) {
     next = currentAtom->nextInList;

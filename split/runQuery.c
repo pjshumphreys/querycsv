@@ -1,69 +1,99 @@
 #include "querycsv.h"
 
-int runQuery(char* queryFileName, char *params)
-{
+int runQuery(
+    char* queryFileName
+  ) {
   struct qryData query;
-  struct resultSet results;
-  struct resultColumnValue* match;
+  struct resultColumnValue* match = NULL;
   int recordsOutput = -1;
 
   readQuery(queryFileName, &query);
 
-  readCommandLine(params, &(query.params));
+  //allocates space for the next record in the record set
+  reallocMsg(
+    "couldn't initialise resultset",
+    (void**)&match,
+    (query.columnCount)*sizeof(struct resultColumnValue)
+  );
 
-  //allocates space for the first record in the record set
-  initResultSet(&query, &match, &results);
+  //if there is no sorting of results required and the user didn't
+  //specify an output file then output the results to the screen as soon as they become available
+  if(
+      query.orderByClause == NULL &&
+      query.intoFileName == NULL &&
+      query.groupByClause == NULL
+    ) {
 
-  while(getMatchingRecord(&query, match)) {
-    //if there is no sorting of results required and the user didn't
-    //specify an output file then output the result to the screen
-    if(
-        query.orderByClause == NULL &&
-        query.groupByClause == NULL &&
-        query.intoFileName == NULL
-      ) {
+    //output the header
+    outputHeader(&query); 
 
+    while(getMatchingRecord(&query, match)) {
       //print record to stdout
+      outputResult(0, match, &query);
+      match = NULL;
+
+      reallocMsg(
+        "couldn't initialise resultset",
+        (void**)&match,
+        (query.columnCount)*sizeof(struct resultColumnValue)
+      );
     }
 
-    //add another record to the result set
-    appendToResultSet(&query, match, &results);
+    //the last record wasn't used
+    free(match);
+    match = NULL;
   }
+  else {
+    if(query.groupByClause != NULL) {
+      query.useGroupBy = TRUE;
+    }
 
-  //perform group by operations if it was specified in the query
-  if(query.hasGrouping == TRUE) {
-    groupResults(&query, &results);
-  }
+    while(getMatchingRecord(&query, match)) {
+      //add another record to the result set.
+      //The match variable's allocated memory is the responsibility of the tree now
+      tree_insert(&query, match, &(query.resultSet));
+      match = NULL;
 
-  //sort the offsets file according to query specification
-  if(query.orderByClause != NULL) {
-    query.useGroupBy = FALSE;
-    qsort_s(
-      (void*)results.records,
-      results.recordCount,
-      (query.columnCount)*sizeof(struct resultColumnValue),
-      recordCompare,
-      (void*)(&query)
+      reallocMsg(
+        "couldn't initialise resultset",
+        (void**)&match,
+        (query.columnCount)*sizeof(struct resultColumnValue)
+      );
+    }
+
+    //the last record wasn't used
+    free(match);
+    match = NULL;
+
+    //perform group by operations if it was specified in the query
+    if(query.groupByClause != NULL) {
+      groupResults(&query);
+      query.useGroupBy = FALSE;
+    }
+
+    //output the results to the specified file
+    outputHeader(&query);
+
+    //output each record
+    tree_walkAndCleanup(
+      &query,
+      &(query.resultSet),
+      &outputResult
     );
-  }
 
-  //output the results to the specified file
-  recordsOutput = outputResults(&query, &results);
+    //close the output file
+    if(query.intoFileName) {
+      fclose(query.outputFile);
+    }
+
+    //output the number of records returned iff there was an into clause specified
+    if(recordsOutput != -1) {
+      fprintf(stdout, "%d", query.recordCount);
+    }
+  }
 
   //free the query data structures
   cleanup_query(&query);
-
-  //free(query.scratchpadName);
-
-  //free the result set data structures
-  free(results.records);
-
-  free(match);
-
-  //output the number of records returned iff there was an into clause specified
-  if(recordsOutput != -1) {
-    fprintf(stdout, "%d", recordsOutput);
-  }
 
   return 0;
 }

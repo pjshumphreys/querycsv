@@ -2,10 +2,12 @@
 #include "sql.h"
 #include "lexer.h"
 
-void readQuery(char* queryFileName, struct qryData * query)
-{
-  FILE * queryFile = NULL;
-  void * scanner;
+void readQuery(
+    char *queryFileName,
+    struct qryData *query
+  ) {
+  FILE *queryFile = NULL;
+  void *scanner;
   struct inputTable* currentInputTable;
   struct columnReference* currentReferenceWithName;
   struct resultColumn* currentResultColumn;
@@ -25,26 +27,24 @@ void readQuery(char* queryFileName, struct qryData * query)
   }
 
   //setup the initial values in the queryData structure
-  if((query->scratchpad = tmpfile()) == NULL) {
-    fclose(queryFile);
-    fputs("Couldn't create scratchpad file", stderr);
-    exit(EXIT_FAILURE);
-  }
 
   query->parseMode = 0;   //specify we want to just read the file data for now
   query->hasGrouping = FALSE;
+  query->useGroupBy = FALSE;
   query->columnCount = 0;
   query->hiddenColumnCount = 0;
+  query->recordCount = 0;
   query->groupCount = 0;
+  query->params = 0;
   query->intoFileName = NULL;
+  query->columnReferenceHashTable = hash_createTable(32);
   query->firstInputTable = NULL;
   query->secondaryInputTable = NULL;
-  query->columnReferenceHashTable = hash_createTable(32);
   query->firstResultColumn = NULL;
   query->joinsAndWhereClause = NULL;
   query->orderByClause = NULL;
   query->groupByClause = NULL;
-  query->params = 0;
+  query->resultSet = NULL;
 
   //setup reentrant flex scanner data structure
   yylex_init(&scanner);
@@ -80,6 +80,8 @@ void readQuery(char* queryFileName, struct qryData * query)
     break;
   }
 
+  query->newLine = query->intoFileName?"\r\n":"\n";
+
   //set query->firstInputTable to actually be the first input table.
   query->firstInputTable = currentInputTable =
   (query->secondaryInputTable != NULL ?
@@ -101,17 +103,17 @@ void readQuery(char* queryFileName, struct qryData * query)
 
   //for every column reference in the hash table, fix up the nextReferenceWithName fields
   for(i=0; i<query->columnReferenceHashTable->size; i++) {
-      currentHashEntry = query->columnReferenceHashTable->table[i];
+    currentHashEntry = query->columnReferenceHashTable->table[i];
 
-      while(currentHashEntry != NULL) {
-        if(currentHashEntry->content->nextReferenceWithName) {
-          currentReferenceWithName = currentHashEntry->content->nextReferenceWithName->nextReferenceWithName;
-          currentHashEntry->content->nextReferenceWithName->nextReferenceWithName = NULL;
-          currentHashEntry->content->nextReferenceWithName = currentReferenceWithName;
-        }
-
-        currentHashEntry = currentHashEntry->nextReferenceInHash;
+    while(currentHashEntry != NULL) {
+      if(currentHashEntry->content->nextReferenceWithName) {
+        currentReferenceWithName = currentHashEntry->content->nextReferenceWithName->nextReferenceWithName;
+        currentHashEntry->content->nextReferenceWithName->nextReferenceWithName = NULL;
+        currentHashEntry->content->nextReferenceWithName = currentReferenceWithName;
       }
+
+      currentHashEntry = currentHashEntry->nextReferenceInHash;
+    }
   }
 
   //clean up the re-entrant flex scanner
@@ -123,9 +125,14 @@ void readQuery(char* queryFileName, struct qryData * query)
   //get set up for the second stage (populating the rest of the qryData structure using the cached data from stage 1)
   query->parseMode = 1;
 
-  //rewind the file
-  fseek(queryFile, 0, SEEK_SET);
-
+  //rewind the file. Can't use fseek though as it doesn't work on CC65
+  fclose(queryFile);
+  queryFile = fopen(queryFileName, "r");
+  if(queryFile == NULL) {
+    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+    exit(EXIT_FAILURE);
+  }
+  
   //setup reentrant flex scanner data structure
   yylex_init(&scanner);
 
@@ -185,7 +192,6 @@ void readQuery(char* queryFileName, struct qryData * query)
 
   //clean up the re-entrant flex scanner
   yylex_destroy(scanner);
-
 
   //close the query file
   fclose(queryFile);

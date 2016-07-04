@@ -1,28 +1,36 @@
 #include "querycsv.h"
 
-int d_sprintf(char** str, char* format, ...)
 //write a formatted string into a string buffer. allocate/free memory as needed
-{
-  FILE * pFile;
+int d_sprintf(char** str, char* format, ...) {
   size_t newSize;
   char* newStr = NULL;
   va_list args;
+  FILE * pFile;
 
-  //Check sanity of inputs and open /dev/null so that we can
-  //get the space needed for the new string. There's unfortunately no
-  //easier way to do this that uses only ISO functions. Filenames can only
-  //be portably specified in terms of the user's codepage as well :(
-  if(str == NULL || format == NULL || (pFile = fopen(DEVNULL, "wb")) == NULL) {
+  //Check sanity of inputs
+  if(str == NULL || format == NULL) {
     return FALSE;
   }
 
-  //get the space needed for the new string
-  va_start(args, format);
-  newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
-  va_end(args);
+  #ifdef HAS_VSNPRINTF
+    //get the space needed for the new string
+    va_start(args, format);
+    newSize = (size_t)(vsnprintf(NULL, 0, format, args)+1); //plus L'\0'
+    va_end(args);
+  #else
+    //open /dev/null so that we can get the space needed for the new string.
+    if ((pFile = fopen(DEVNULL, "wb")) == NULL) {
+      return FALSE;
+    }
 
-  //close the file. We don't need to look at the return code as we were writing to /dev/null
-  fclose(pFile);
+    //get the space needed for the new string
+    va_start(args, format);
+    newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
+    va_end(args);
+
+    //close the file. We don't need to look at the return code as we were writing to /dev/null
+    fclose(pFile);
+  #endif
 
   //Create a new block of memory with the correct size rather than using realloc
   //as any old values could overlap with the format string. quit on failure

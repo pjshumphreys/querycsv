@@ -1,7 +1,10 @@
 #include "querycsv.h"
 
-int getNextRecordOffset(char* inputFileName, long offset)
-{
+int getNextRecordOffset(
+    char* inputFileName,
+    long offset
+  ) {
+
   FILE * inputFile = NULL;
 
   //attempt to open the input file

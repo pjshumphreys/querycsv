@@ -1,7 +1,16 @@
 #include "querycsv.h"
 
-void stringGet(unsigned char **str, struct resultColumnValue* field, int params)
-{
+void stringGet(
+    unsigned char **str,
+    struct resultColumnValue* field,
+    int params
+  ) {
+
+  if(str != NULL) {
+    *str = strdup(field->value);
+  }
+
+  /*
   long offset = ftell(*(field->source));
 
   fseek(*(field->source), field->startOffset, SEEK_SET);
@@ -26,4 +35,5 @@ void stringGet(unsigned char **str, struct resultColumnValue* field, int params)
   //reset the file offset as we don't know what else the file is being used for
   fseek(*(field->source), offset, SEEK_SET);
   fflush(*(field->source));
+  */
 }

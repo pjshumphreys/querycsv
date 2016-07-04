@@ -1,12 +1,15 @@
 #include "querycsv.h"
 
-void getCalculatedColumns(struct qryData* query, struct resultColumnValue* match, int runAggregates)
-{
+void getCalculatedColumns(
+    struct qryData *query,
+    struct resultColumnValue *match,
+    int runAggregates
+  ) {
 
   int i, j;
-  struct columnReference* currentReference;
-  struct resultColumn* currentResultColumn;
-  struct columnRefHashEntry* currentHashEntry;
+  struct columnReference *currentReference;
+  struct resultColumn *currentResultColumn;
+  struct columnRefHashEntry *currentHashEntry;
   struct resultColumnParam matchParams;
 
   matchParams.ptr = match;
@@ -32,12 +35,12 @@ void getCalculatedColumns(struct qryData* query, struct resultColumnValue* match
           j = currentResultColumn->resultColumnIndex;
           match[j].isQuoted = FALSE;
           match[j].isNormalized = FALSE;
-          match[j].source = &(query->scratchpad);
+          //match[j].source = &(query->scratchpad);
 
           //seek to the end of the scratchpad file and update the start position
-          fseek(query->scratchpad, 0, SEEK_END);
-          fflush(query->scratchpad);
-          match[j].startOffset = ftell(query->scratchpad);
+          //fseek(query->scratchpad, 0, SEEK_END);
+          //fflush(query->scratchpad);
+          match[j].startOffset = 0;//ftell(query->scratchpad);
 
           //get expression value for this match
           getValue(currentReference->reference.calculatedPtr.expressionPtr, &matchParams);
@@ -46,17 +49,20 @@ void getCalculatedColumns(struct qryData* query, struct resultColumnValue* match
           if(currentReference->reference.calculatedPtr.expressionPtr->leftNull) {
             match[j].length = 0;
             match[j].leftNull = TRUE;
+            match[j].value = strdup("");
           }
           else {
             match[j].leftNull = FALSE;
             match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
-
+            match[j].value = currentReference->reference.calculatedPtr.expressionPtr->value;
+            
             //write the value to the scratchpad file
-            fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad);
+            //fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad);
           }
 
           //free the expression value for this match
-          strFree(&(currentReference->reference.calculatedPtr.expressionPtr->value));
+          //strFree(&(currentReference->reference.calculatedPtr.expressionPtr->value));
+          currentReference->reference.calculatedPtr.expressionPtr->value = NULL;
         }
 
         currentReference = currentReference->nextReferenceWithName;

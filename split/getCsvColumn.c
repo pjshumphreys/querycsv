@@ -1,13 +1,20 @@
 #include "querycsv.h"
 
-int getCsvColumn(FILE ** inputFile, char** value, size_t* strSize, int* quotedValue, long* startPosition, int doTrim)
-{
+int getCsvColumn(
+    FILE **inputFile,
+    char **value,
+    size_t *strSize,
+    int *quotedValue,
+    long *startPosition,
+    int doTrim
+  ) {
+
   int c;
   char *tempString = NULL;
   int canEnd = TRUE;
   int quotePossible = TRUE;
   int exitCode = 0;
-  char* minSize = NULL;
+  char *minSize = NULL;
 
   if(quotedValue != NULL) {
     *quotedValue = FALSE;

@@ -1,7 +1,6 @@
 #ifndef QUERYCSV_H
 #define QUERYCSV_H 1
 
-#define __STDC_WANT_LIB_EXT1__ 1  //for enabling qsort_s
 #define ECHO 1 //disables flex from outputing unmatched input
 #define FALSE 0
 #define TRUE  1
@@ -42,15 +41,16 @@
     #include "win32.h"
   #endif
 #else
-  #define DEVNULL "/dev/null"   //null filename on linux/OS X
+  #define HAS_VSNPRINTF 1   //this function is available on windows but doesn't work properly there
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=/tmp"
   #include <dirent.h>   //for opendir, readdir & closedir
-  //reentrant qsort
-  #include "sort_r.h"
-  #define qsort_s sort_r
-  #include <strings.h>
-  #define stricmp strcasecmp
+
+  //used if the compiler doesn't have stricmp
+  #ifdef NO_STRICMP
+    #include <strings.h>
+    #define stricmp strcasecmp
+  #endif
 #endif
 
 //translatable strings
@@ -93,18 +93,23 @@
 #define GRP_COUNT 5
 #define GRP_CONCAT 6
 #define GRP_STAR 7
-#define GRP_DIS_AVG 8
+#define GRP_DIS_AVG 8   //DIS = Distinct
 #define GRP_DIS_MIN 9
 #define GRP_DIS_MAX 10
 #define GRP_DIS_SUM 11
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
 
-#define PRM_TRIM 1
-#define PRM_SPACE 2
+//output parameters. Now specified as part of the input grammar 
+#define PRM_TRIM 1    //left trim and right trim whitespace from each column value 
+#define PRM_SPACE 2   //put a space before each column value tat's not the first 
 #define PRM_IMPORT 4
 #define PRM_EXPORT 8
-#define PRM_BOM 16
+#define PRM_BOM 16    //output a utf-8 byte order mark before the file contents
+
+#define TRE_BLACK 1
+#define TRE_RED 2
+#define TRE_FREED 3
 
 //structures
 struct resultColumn {
@@ -112,22 +117,21 @@ struct resultColumn {
   int isHidden;
   int isCalculated;
   int groupType;
-  char * groupText;
-  //CC65 double groupNum;
-  int groupNum;
+  char *groupText;
+  double groupNum;
   int groupCount;
   int groupingDone;
-  char * resultColumnName;
-  struct resultColumn* nextColumnInstance;
-  struct resultColumn* nextColumnInResults;
+  char *resultColumnName;
+  struct resultColumn *nextColumnInstance;
+  struct resultColumn *nextColumnInResults;
 };
 
 struct inputColumn {
   int columnIndex;  //position of this column within a csv record
-  char* fileColumnName; //name according to csv header record
-  void* inputTablePtr;  //reference back to the parent table
-  struct resultColumn* firstResultColumn;    //links to where this column is output into the result set
-  struct inputColumn* nextColumnInTable;
+  char *fileColumnName; //name according to csv header record
+  void *inputTablePtr;  //reference back to the parent table
+  struct resultColumn *firstResultColumn;    //links to where this column is output into the result set
+  struct inputColumn *nextColumnInTable;
 };
 
 struct inputTable {
@@ -136,16 +140,16 @@ struct inputTable {
   int isLeftJoined;
   int noLeftRecord;
   long firstRecordOffset;  //where in the file the beginning of the first record is located 
-  char* queryTableName;  //according to the query
-  FILE* fileStream;
-  struct inputTable* nextInputTable;
-  struct inputColumn* firstInputColumn;   
+  char *queryTableName;  //according to the query
+  FILE *fileStream;
+  struct inputTable *nextInputTable;
+  struct inputColumn *firstInputColumn;   
 };
 
 struct atomEntry {
   int index;
-  char * content;
-  struct atomEntry * nextInList;
+  char *content;
+  struct atomEntry *nextInList;
 };
 
 struct expression {
@@ -154,38 +158,38 @@ struct expression {
   int minColumn;
   int containsAggregates;
   int leftNull;
+  int caseSensitive;
+  char *value;
   union {
     struct {
-      struct expression * leftPtr;
-      struct expression * rightPtr;
+      struct expression *leftPtr;
+      struct expression *rightPtr;
     } leaves;
-    void * voidPtr;
+    void *voidPtr;
     struct {
-      struct expression * leftPtr;
-      struct atomEntry * lastEntryPtr;
+      struct expression *leftPtr;
+      struct atomEntry *lastEntryPtr;
     } inLeaves;
   } unionPtrs;
-  int caseSensitive;
-  char* value;
 };
 
 struct columnReference {
-  char* referenceName; //if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as'
+  char *referenceName; //if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as'
   int referenceType;  //1 - actual input column, 2 - expression
   union {
-    struct inputColumn* columnPtr;
+    struct inputColumn *columnPtr;
     struct {
-      struct expression* expressionPtr;
-      struct resultColumn* firstResultColumn;    //links to where this column is output into the result set
+      struct expression *expressionPtr;
+      struct resultColumn *firstResultColumn;    //links to where this column is output into the result set
     } calculatedPtr;
   } reference; //a pointer to the information we want
-  struct columnReference* nextReferenceWithName; //if this is non null and the query didn't specify which table to use then we should error
+  struct columnReference *nextReferenceWithName; //if this is non null and the query didn't specify which table to use then we should error
 };
 
 struct columnRefHashEntry {
-  char* referenceName; //if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as'
-  struct columnReference* content;
-  struct columnRefHashEntry* nextReferenceInHash;
+  char *referenceName; //if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as'
+  struct columnReference *content;
+  struct columnRefHashEntry *nextReferenceInHash;
 };
 
 struct columnReferenceHash {
@@ -194,29 +198,9 @@ struct columnReferenceHash {
 };
 
 struct sortingList {
-  struct expression * expressionPtr;
+  struct expression *expressionPtr;
   int isDescending;       
   struct sortingList *nextInList;
-};
-
-struct qryData {
-  int parseMode;  //0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure
-  int hasGrouping;
-  int columnCount;
-  int hiddenColumnCount;
-  int groupCount;
-  int params;
-  char* intoFileName;
-  struct columnReferenceHash* columnReferenceHashTable; //used to get a reference to an input column given a column name
-  struct inputTable* firstInputTable;
-  struct inputTable* secondaryInputTable;   //initially the last left joined input table. Then the current input table when getting matching records
-  struct resultColumn * firstResultColumn;
-  struct expression* joinsAndWhereClause;
-  struct sortingList* orderByClause;
-  struct sortingList* groupByClause;
-  FILE* scratchpad;
-  //char* scratchpadName;
-  int useGroupBy;
 };
 
 struct resultColumnValue { //this information should be stored in files
@@ -225,29 +209,55 @@ struct resultColumnValue { //this information should be stored in files
   int isNormalized;
   int leftNull;
   size_t length;
-  FILE ** source;
+  char *value;  //pre normalised value
+};
+
+//results are sorted in a binary tree for quick in order retrieval
+struct resultTree {
+  struct resultTree *left;
+  struct resultTree *right;
+  struct resultTree *parent;
+  struct resultColumnValue *columns;
+  int type;
+};
+
+struct qryData {
+  int parseMode;  //0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure,
+  int hasGrouping;
+  int columnCount;
+  int hiddenColumnCount;
+  int recordCount;
+  int groupCount;
+  int useGroupBy;
+  int params;
+  char *intoFileName;
+  char *newLine;
+  FILE *outputFile;
+  struct columnReferenceHash *columnReferenceHashTable; //used to get a reference to an input column given a column name
+  struct inputTable *firstInputTable;
+  struct inputTable *secondaryInputTable;   //initially the last left joined input table. Then the current input table when getting matching records
+  struct resultColumn *firstResultColumn;
+  struct expression *joinsAndWhereClause;
+  struct sortingList *orderByClause;
+  struct sortingList *groupByClause;
+  struct resultTree *resultSet; //stored as a binary tree now
+  struct resultColumnValue *match;
 };
 
 struct resultColumnParam {
   int params;
-  struct resultColumnValue* ptr;
-};
-
-struct resultSet {
-  size_t recordCount;
-  //FILE* recordCache;  //collection instances of resultColumn
-  struct resultColumnValue* records;
+  struct resultColumnValue *ptr;
 };
 
 struct hash1Entry {
   int length;
-  const long * codepoints;
+  const long *codepoints;
 };
 
 struct hash2Entry {
   long codepoint;
   int length;
-  const long * codepoints;
+  const long *codepoints;
 };
 
 struct hash3Entry {

@@ -1,8 +1,12 @@
 #include "querycsv.h"
 
-int recordCompare(const void * a, const void * b, void * c)
 //compares two whole records to one another. multiple columns can be involved in this comparison.
-{
+int recordCompare(
+    const void *a,
+    const void *b,
+    void *c
+  ) {
+
   struct sortingList* orderByClause;
   char* string1, *string2, *output1, *output2;
   int compare;
@@ -11,7 +15,9 @@ int recordCompare(const void * a, const void * b, void * c)
   matchParams.params = ((struct qryData*)c)->params;
 
   for(
-      orderByClause = ((struct qryData*)c)->useGroupBy?((struct qryData*)c)->groupByClause:((struct qryData*)c)->orderByClause;
+      orderByClause = ((struct qryData*)c)->useGroupBy?
+          ((struct qryData*)c)->groupByClause:
+          ((struct qryData*)c)->orderByClause;
       orderByClause != NULL;
       orderByClause = orderByClause->nextInList
     ) {
