@@ -5,7 +5,6 @@ int runQuery(
   ) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
-  int recordsOutput = -1;
 
   readQuery(queryFileName, &query);
 
@@ -84,10 +83,8 @@ int runQuery(
     //close the output file
     if(query.intoFileName) {
       fclose(query.outputFile);
-    }
 
-    //output the number of records returned iff there was an into clause specified
-    if(recordsOutput != -1) {
+      //output the number of records returned iff there was an into clause specified
       fprintf(stdout, "%d", query.recordCount);
     }
   }

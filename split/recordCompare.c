@@ -57,7 +57,7 @@ int recordCompare(
 
     // if the fields didn't compare as being the same, then return which was greater
     if(compare != 0) {
-      return orderByClause->isDescending?-compare:compare;
+      return orderByClause->isDescending?compare:-compare;
     }
   }
 

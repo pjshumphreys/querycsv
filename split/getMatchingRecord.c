@@ -48,6 +48,8 @@ int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
         //if it returns false we use an empty string for the value instead
 
         if(recordHasColumn == TRUE && !doLeftRecord) {
+          columnOffsetData.value = NULL;
+          
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
               &(columnOffsetData.value),

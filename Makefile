@@ -2,10 +2,10 @@
 ## Created by Anjuta
 
 CC = gcc
-CFLAGS = -g -Wall -DNO_STRICMP -I/home/user/Projects/querycsv
+CFLAGS = -g -Wall -DNO_STRICMP 
 SOURCES = lexer.c sql.c hash4.c $(wildcard split/*.c)
 OBJECTS = $(SOURCES:%.c=%.o)
-INCFLAGS = 
+INCFLAGS = -I/home/user/Projects/querycsv
 LDFLAGS = -Wl,-rpath,/usr/local/lib
 LIBS = 
 

@@ -30,7 +30,8 @@ void tree_walkAndCleanup(
         currentResult->columns,
         i
       );
-      
+
+      currentResult->type = TRE_FREED;
       i+=1;
     }
 

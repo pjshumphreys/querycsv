@@ -66,7 +66,7 @@ void outputResult(
   }
 
   strFree(&string);
-  cleanup_matchValues(query, columns);
+  cleanup_matchValues(query, &columns);
 
   fputs(query->newLine, outputFile);
 }

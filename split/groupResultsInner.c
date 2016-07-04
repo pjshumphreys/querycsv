@@ -41,7 +41,8 @@ void groupResultsInner(
       query->useGroupBy = TRUE;
     }
     else {
-      cleanup_matchValues(query, previousMatch);
+      cleanup_matchValues(query, &previousMatch);
+      free(previousMatch);
     }
 
     if(i < query->recordCount) {
