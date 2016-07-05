@@ -1,9 +1,8 @@
 #include "querycsv.h"
 
-int isCombiningChar(long codepoint)
-{
-  #include "hash3.h"
+#include "hash3.h"
 
+int isCombiningChar(long codepoint) {
   struct hash3Entry * result;
 
   if(

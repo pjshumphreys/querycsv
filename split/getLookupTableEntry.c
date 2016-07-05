@@ -1,9 +1,15 @@
 #include "querycsv.h"
 
-struct hash4Entry * getLookupTableEntry(unsigned char **offset, unsigned char **str, int *lastMatchedBytes, void (*get)(), int firstChar)
-{
-  static struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
-  struct hash4Entry * temp = NULL, *temp2 = NULL;
+static struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
+
+struct hash4Entry *getLookupTableEntry(
+    unsigned char **offset,
+    unsigned char **str,
+    int *lastMatchedBytes,
+    void (*get)(),
+    int firstChar
+  ) {
+  struct hash4Entry *temp = NULL, *temp2 = NULL;
   int totalBytes = 0;
 
   if(isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {

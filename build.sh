@@ -1,8 +1,8 @@
-#gcc makeheaders.c -o makeheaders
+gcc makeheaders.c -o makeheaders
 ./makeheaders ./split/*.c -h > gen.h
 cat split/*.c >querycsv.c
 gperf hash4.gperf > hash4.c
 bison sql.y
 flex sql.l
-cc -DNO_STRICMP -Os sql.c lexer.c hash4.c querycsv.c -o querycsv
+cc -DNO_STRICMP -Os sql.c lexer.c hash1.c hash2.c hash3.c hash4.c querycsv.c -o querycsv
 

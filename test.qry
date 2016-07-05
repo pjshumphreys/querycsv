@@ -1,0 +1,4 @@
+select names
+from 'test.csv' as test
+order by names
+--into 'output.txt'

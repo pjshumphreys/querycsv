@@ -28,7 +28,7 @@ int runQuery(
 
     while(getMatchingRecord(&query, match)) {
       //print record to stdout
-      outputResult(0, match, &query);
+      outputResult(&query, match, 0);
       match = NULL;
 
       reallocMsg(

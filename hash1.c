@@ -1,8 +1,15 @@
 #include "querycsv.h"
 
-int normaliseAndGet(unsigned char **offset, unsigned char **str, int plusBytes, int *bytesMatched, int bytesRead, struct hash2Entry* entry)
-{
-  #include "hash1.h"
+#include "hash1.h"
+
+int normaliseAndGet(
+    unsigned char **offset,
+    unsigned char **str,
+    int plusBytes,
+    int *bytesMatched,
+    int bytesRead,
+    struct hash2Entry* entry
+  ) {
   
   int offsetInt = *offset - *str;
   unsigned char * nfdString = NULL;

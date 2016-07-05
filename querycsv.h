@@ -275,6 +275,19 @@ struct hash4Entry {
 
 //function prototypes
 struct hash4Entry *in_word_set(register const char *str,register unsigned int len);
+
+int normaliseAndGet(
+    unsigned char **offset,
+    unsigned char **str,
+    int plusBytes,
+    int *bytesMatched,
+    int bytesRead,
+    struct hash2Entry* entry
+  );
+
+int isCombiningChar(long codepoint);
+
+struct hash2Entry* isInHash2(long codepoint);
 #include "gen.h"
 #endif
 

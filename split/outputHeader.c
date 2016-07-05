@@ -17,7 +17,7 @@ void outputHeader(
 
     if (query->outputFile == NULL) {
       fputs ("opening output file failed", stderr);
-      return -1;
+      return;
     }
   }
   else {

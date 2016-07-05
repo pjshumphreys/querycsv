@@ -1,13 +1,16 @@
 #include "querycsv.h"
 
-void getValue(struct expression* expressionPtr, struct resultColumnParam * match)
 //getValue can be passed a scalar expression's abstract syntax
 //tree and it will evaluate it and turn it into a literal string of text characters.
 //the evaluated value must be freed later though.
-{
-  struct expression * calculatedField;
-  struct resultColumn * column;
-  struct resultColumnValue * field;
+void getValue(
+    struct expression *expressionPtr,
+    struct resultColumnParam *match
+  ) {
+
+  struct expression *calculatedField;
+  struct resultColumn *column;
+  struct resultColumnValue *field;
 
   expressionPtr->leftNull = FALSE;
 

@@ -1,5 +1,5 @@
 /* Unicode combining diacritic characters and their priorities */
-const struct hash3Entry hash3EntryMap[745] = {
+static const struct hash3Entry hash3EntryMap[745] = {
   {0x0300,/*230,*/334},
   {0x0301,/*230,*/332},
   {0x0302,/*230,*/336},
