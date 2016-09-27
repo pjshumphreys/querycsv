@@ -1,7 +1,8 @@
 #include "querycsv.h"
 
-int needsEscaping(char* str, int params)
-{
+int needsEscaping(char *str, int params) {
+  MAC_YIELD
+
   if(
     str == NULL ||
     strcmp(str, (((params & PRM_EXPORT) == 0)?"\\N":"\\N")) == 0 ||

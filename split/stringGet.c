@@ -2,9 +2,11 @@
 
 void stringGet(
     unsigned char **str,
-    struct resultColumnValue* field,
+    struct resultColumnValue *field,
     int params
   ) {
+
+  MAC_YIELD
 
   if(str != NULL) {
     *str = strdup(field->value);

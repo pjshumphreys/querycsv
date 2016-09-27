@@ -1,15 +1,16 @@
-
 #include "querycsv.h"
 
-void updateRunningCounts(struct qryData * query, struct resultColumnValue * match) {
-  struct columnRefHashEntry* currentHashEntry;
-  struct columnReference* currentReference;
-  struct resultColumn* currentResultColumn;
-  struct resultColumnValue* field;
-  char* tempString = NULL;
-  char* tempString2 = NULL;
+void updateRunningCounts(struct qryData *query, struct resultColumnValue *match) {
+  struct columnRefHashEntry *currentHashEntry;
+  struct columnReference *currentReference;
+  struct resultColumn *currentResultColumn;
+  struct resultColumnValue *field;
+  char *tempString = NULL;
+  char *tempString2 = NULL;
 
   int i, j;
+
+  MAC_YIELD
 
   query->groupCount++;
 

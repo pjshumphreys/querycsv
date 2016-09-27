@@ -1,11 +1,12 @@
 #include "querycsv.h"
 
-int getCurrentDate()
-{
+int getCurrentDate() {
   time_t now;
   struct tm local;
 
   char *output = NULL;
+
+  MAC_YIELD
 
   //get unix epoch seconds
   time(&now);

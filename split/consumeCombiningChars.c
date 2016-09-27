@@ -1,8 +1,19 @@
 #include "querycsv.h"
 
-int consumeCombiningChars(unsigned char **str1, unsigned char **str2, unsigned char **offset1, unsigned char **offset2, void (*get1)(), void (*get2)(), int * bytesMatched1, int * bytesMatched2, int * accentcheck)
-{
+int consumeCombiningChars(
+    unsigned char **str1,
+    unsigned char **str2,
+    unsigned char **offset1,
+    unsigned char **offset2,
+    void (*get1)(),
+    void (*get2)(),
+    int *bytesMatched1,
+    int *bytesMatched2,
+    int *accentcheck
+) {
   int combiner1, combiner2, skip1 = FALSE, skip2 = FALSE;
+
+  MAC_YIELD
 
   (*offset1)+=(*bytesMatched1);
   (*offset2)+=(*bytesMatched2);

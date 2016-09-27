@@ -1,0 +1,7 @@
+vbcc (amiga)
+cc65 (c64)
+basilisk+mpw (m68kmac/powermac)
+rpcemu+norcroft (risc os)
+emscripten (html5)
+gcc (linux/mac os x)
+dosbox+watcom (dos/windows)

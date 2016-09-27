@@ -1,7 +1,9 @@
 #include "querycsv.h"
 
-int strAppendUTF8(long codepoint, unsigned char ** nfdString, int nfdLength)
-{
+int strAppendUTF8(long codepoint, unsigned char **nfdString, int nfdLength) {
+
+  MAC_YIELD
+
   if (codepoint < 0x80) {
     reallocMsg("realloc failure\n", (void**)nfdString, nfdLength+1);
 

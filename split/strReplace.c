@@ -3,7 +3,9 @@
 char *strReplace(char *search, char *replace, char *subject) {
   char *replaced = (char*)calloc(1, 1), *temp = NULL;
   char *p = subject, *p3 = subject, *p2;
-  int  found = 0;
+  int found = 0;
+
+  MAC_YIELD
 
   if(
       search == NULL ||

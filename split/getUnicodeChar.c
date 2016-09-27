@@ -13,6 +13,8 @@ long getUnicodeChar(
   long codepoint;
   unsigned char *temp = (unsigned char *)((*offset) + plusBytes);
 
+  MAC_YIELD
+
   //if the current byte offset is a valid utf-8 character that's not overlong or decomposable then return it
   if(*temp < 0x80) {
     //read 1 byte. no overlong checks needed as a 1 byte code can

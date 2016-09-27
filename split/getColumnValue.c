@@ -1,15 +1,17 @@
 #include "querycsv.h"
 
 int getColumnValue(
-    char* inputFileName,
+    char *inputFileName,
     long offset,
     int columnIndex
   ) {
 
-  FILE * inputFile = NULL;
-  char* output = (char*)malloc(1);
+  FILE *inputFile = NULL;
+  char *output = (char*)malloc(1);
   size_t strSize = 0;
   int currentColumn = 0;
+
+  MAC_YIELD
 
   //attempt to open the input file
   inputFile = skipBom(inputFileName);

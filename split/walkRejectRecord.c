@@ -3,12 +3,14 @@
 //TRUE means the record was rejected.  FALSE means the record should not yet be rejected
 int walkRejectRecord(
     int currentTable,
-    struct expression* expressionPtr,
-    struct resultColumnParam * match
+    struct expression *expressionPtr,
+    struct resultColumnParam *match
   ) {
 
-  int retval,i;
-  struct atomEntry * currentAtom;
+  int retval, i;
+  struct atomEntry *currentAtom;
+
+  MAC_YIELD
 
   if(expressionPtr == NULL || currentTable < expressionPtr->minTable) {
     return FALSE;

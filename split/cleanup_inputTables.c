@@ -1,8 +1,10 @@
 #include "querycsv.h"
 
-void cleanup_inputTables(struct inputTable * currentInputTable)
-{
-  struct inputTable* next;
+void cleanup_inputTables(struct inputTable *currentInputTable) {
+  struct inputTable *next;
+
+  MAC_YIELD
+
   while(currentInputTable != NULL) {
     next = currentInputTable->nextInputTable;
 

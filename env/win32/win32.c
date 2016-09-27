@@ -106,7 +106,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
   return retval;
 }
 
-void setupWin32(int * argc, char *** argv) {
+void setupWin32(int *argc, char ***argv) {
   DWORD mode;
   LPWSTR szArglist;
   int i, j;

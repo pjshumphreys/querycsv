@@ -5,7 +5,9 @@ struct expression *parse_scalarExpLiteral(
     char *literal
   ) {
 
-  struct expression* expressionPtr = NULL;
+  struct expression *expressionPtr = NULL;
+
+  MAC_YIELD
   
   if(queryData->parseMode != 1) {
     return NULL;

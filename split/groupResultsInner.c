@@ -9,6 +9,8 @@ void groupResultsInner(
 
   struct resultColumnValue *previousMatch;
 
+  MAC_YIELD
+
   //loop over each record in the result set, other than the first one
   if(i) {
     previousMatch = query->match;

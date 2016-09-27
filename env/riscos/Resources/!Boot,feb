@@ -1,0 +1,14 @@
+|>$.QueryCSV.!QueryCSV.!Boot
+|
+If "<Boot$OSVersion>" >= "500" Then IconSprites <Obey$Dir>.5Sprites Else If "<Boot$OSVersion>" >= "400" Then IconSprites <Obey$Dir>.4Sprites Else IconSprites <Obey$Dir>.!Sprites
+|
+|
+Set Alias$@RunType_090 Run <Obey$Dir>.!Run %%*0
+Set File$Type_090 CSVQuery
+|
+|
+Set QueryCSV$Dir <Obey$Dir>
+|
+|
+SetMacro Alias$RunQueryCSV Run <QueryCSV$Dir>.!Run <Obey$Dir>
+

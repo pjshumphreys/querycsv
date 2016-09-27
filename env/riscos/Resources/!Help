@@ -1,0 +1,3 @@
+   QueryCSV
+   ~~~~~~~~
+   Purpose:  Generate a joined/filtered csv file from source csv files and a query description.

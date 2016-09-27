@@ -1,7 +1,9 @@
 #include "querycsv.h"
 
-void cleanup_expression(struct expression * currentExpression)
-{
+void cleanup_expression(struct expression *currentExpression) {
+
+  MAC_YIELD
+
   if(currentExpression != NULL) {
     switch(currentExpression->type) {
       case EXP_IN:

@@ -1,12 +1,13 @@
 #include "querycsv.h"
 
-int d_strftime(char** ptr, char* format, struct tm* timeptr)
 //format a date into a string. allocate/free memory as needed
-{
+int d_strftime(char **ptr, char *format, struct tm *timeptr) {
   size_t length = 32; //starting value
   size_t length2 = 0;
   char *output = NULL;
   char *output2 = NULL;
+
+  MAC_YIELD
 
   if(ptr == NULL || format == NULL) {
     return FALSE;

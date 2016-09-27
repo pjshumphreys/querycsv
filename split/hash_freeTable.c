@@ -4,6 +4,8 @@ void hash_freeTable(struct columnReferenceHash *hashtable) {
   int i;
   struct columnRefHashEntry *list, *temp;
 
+  MAC_YIELD
+
   if (hashtable==NULL) {
     return;
   }

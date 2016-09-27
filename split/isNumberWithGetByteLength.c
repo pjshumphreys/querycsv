@@ -1,9 +1,14 @@
 #include "querycsv.h"
 
-int isNumberWithGetByteLength(unsigned char *offset, int *lastMatchedBytes, int firstChar)
-{
+int isNumberWithGetByteLength(
+    unsigned char *offset,
+    int *lastMatchedBytes,
+    int firstChar
+) {
   int decimalNotFound = TRUE;
-  unsigned char * string = offset;
+  unsigned char *string = offset;
+
+  MAC_YIELD
 
   if(
       (*offset >= '0' && *offset <= '9') ||

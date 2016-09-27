@@ -7,8 +7,10 @@ struct expression *parse_functionRef(
     int isDistinct
   ) {
 
-  struct expression* expressionPtr2 = NULL;
-  struct resultColumn* columnPtr = NULL;
+  struct expression *expressionPtr2 = NULL;
+  struct resultColumn *columnPtr = NULL;
+
+  MAC_YIELD
   
   if(queryData->parseMode != 1) {
     return NULL;

@@ -1,11 +1,13 @@
 #include "querycsv.h"
 
 //write a formatted string into a string buffer. allocate/free memory as needed
-int d_sprintf(char** str, char* format, ...) {
+int d_sprintf(char **str, char *format, ...) {
   size_t newSize;
-  char* newStr = NULL;
+  char *newStr = NULL;
   va_list args;
-  FILE * pFile;
+  FILE *pFile;
+
+  MAC_YIELD
 
   //Check sanity of inputs
   if(str == NULL || format == NULL) {

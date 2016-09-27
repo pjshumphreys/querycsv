@@ -1,9 +1,13 @@
 #include "querycsv.h"
 
-void parse_whereClause(struct qryData* queryData, struct expression* expressionPtr)
-{
-  struct expression* currentClauses;
-  struct expression* newClause;
+void parse_whereClause(
+    struct qryData *queryData,
+    struct expression *expressionPtr
+) {
+  struct expression *currentClauses;
+  struct expression *newClause;
+
+  MAC_YIELD
 
   if(queryData->parseMode != 1) {
     return;

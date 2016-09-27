@@ -1,9 +1,10 @@
 #include "querycsv.h"
 
-int getColumnCount(char* inputFileName)
-{
-  FILE * inputFile = NULL;
+int getColumnCount(char *inputFileName) {
+  FILE *inputFile = NULL;
   int columnCount = 1;
+
+  MAC_YIELD
 
   //attempt to open the input file
   inputFile = skipBom(inputFileName);

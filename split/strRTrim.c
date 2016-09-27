@@ -1,10 +1,12 @@
 #include "querycsv.h"
 
 //decrement size of a string to represent right trimming whitespace 
-int strRTrim(char** value, size_t* strSize, char* minSize) {
-  char* end;
-  char* str;
+int strRTrim(char **value, size_t *strSize, char *minSize) {
+  char *end;
+  char *str;
   int size;
+
+  MAC_YIELD
 
   if(value == NULL || strSize == NULL || *value == NULL) {
     return FALSE;

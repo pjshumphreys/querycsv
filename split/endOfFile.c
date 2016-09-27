@@ -5,6 +5,8 @@
 int endOfFile(FILE* stream) {
   int c;
 
+  MAC_YIELD
+
   c = fgetc(stream);
   ungetc(c, stream);
 

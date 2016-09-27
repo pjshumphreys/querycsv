@@ -1,0 +1,23 @@
+|>$.QueryCSV.!QueryCSV.!Run
+|
+| Startup file for QueryCSV
+|
+If "<Boot$OSVersion>" >= "500" Then IconSprites <Obey$Dir>.5Sprites Else If "<Boot$OSVersion>" >= "400" Then IconSprites <Obey$Dir>.4Sprites Else IconSprites <Obey$Dir>.!Sprites
+|
+Set Alias$@RunType_090 Run <Obey$Dir>.!Run %%*0
+Set File$Type_090 CSVQuery
+|
+|
+WimpSlot -min 128K
+|
+|
+RMEnsure UtilityModule 3.10 Error This application only runs on RISC OS 3.10 or later
+RMEnsure SharedCLibrary 5.34 Error This application requires version 5.34 or later
+RMEnsure FPEmulator 2.87 Error This application requires the FP Emulator module (is it unplugged?)
+RMEnsure TaskWindow 0.47 Error This application requires the Task Window module (is it unplugged?)
+|
+|
+Set QueryCSV$Dir <Obey$Dir>
+|
+|
+TaskWindow "<QueryCSV$Dir>.!RunImage" %*0

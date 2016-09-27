@@ -1,12 +1,13 @@
 #include "querycsv.h"
 
-void getGroupedColumns(struct qryData *query)
-{
-  struct columnRefHashEntry* currentHashEntry;
-  struct columnReference* currentReference;
-  struct resultColumn* currentResultColumn;
+void getGroupedColumns(struct qryData *query) {
+  struct columnRefHashEntry *currentHashEntry;
+  struct columnReference *currentReference;
+  struct resultColumn *currentResultColumn;
 
   int i;
+
+  MAC_YIELD
 
   //for each column in the output result set ...
   for(i = 0; i < query->columnReferenceHashTable->size; i++) {

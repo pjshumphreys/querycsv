@@ -1,9 +1,10 @@
 #include "querycsv.h"
 
-int strAppend(char c, char** value, size_t* strSize)
 //append a character into a string with a given length, using realloc
-{
-  char* temp;
+int strAppend(char c, char **value, size_t *strSize) {
+  char *temp;
+
+  MAC_YIELD
 
   //validate inputs
   //increase value length by 1 character

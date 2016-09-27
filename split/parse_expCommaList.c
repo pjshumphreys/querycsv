@@ -7,10 +7,12 @@ struct resultColumn *parse_expCommaList(
     int aggregationType
   ) {
 
-  struct columnReference* currentReference = NULL;
-  struct columnReference* newReference = NULL;
-  struct columnReference* newReference2 = NULL;
-  struct resultColumn* newResultColumn = NULL;
+  struct columnReference *currentReference = NULL;
+  struct columnReference *newReference = NULL;
+  struct columnReference *newReference2 = NULL;
+  struct resultColumn *newResultColumn = NULL;
+
+  MAC_YIELD
 
   //ensure we have finished opening all the files we need
   if(queryData->parseMode != 1) {

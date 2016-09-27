@@ -1,13 +1,21 @@
 #include "querycsv.h"
 
-int strCompare(unsigned char **str1, unsigned char **str2, int caseSensitive, void (*get1)(), void (*get2)())
-{
+int strCompare(
+    unsigned char **str1,
+    unsigned char **str2,
+    int caseSensitive,
+    void (*get1)(),
+    void (*get2)()
+  ) {
+
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
   struct hash4Entry *entry1, *entry2;
   int firstChar = TRUE, comparison = 0, char1found = FALSE;
   int bytesMatched1 = 0, bytesMatched2 = 0;
   int accentcheck = 0, combinerResult;
+
+  MAC_YIELD
 
   for( ; ; ) {  //we'll quit from this function via other means
     //check if we've reached the end of string 2

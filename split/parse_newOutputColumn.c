@@ -8,7 +8,9 @@ struct resultColumn *parse_newOutputColumn(
     int aggregationType
   ) {
 
-  struct resultColumn* newResultColumn = NULL;
+  struct resultColumn *newResultColumn = NULL;
+
+  MAC_YIELD
 
   reallocMsg(TDB_MALLOC_FAILED, (void**)(&newResultColumn), sizeof(struct resultColumn));
 

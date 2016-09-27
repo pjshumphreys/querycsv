@@ -1,11 +1,10 @@
 #include "querycsv.h"
 
-void groupResults(
-    struct qryData *query
-  ) {
-
+void groupResults(struct qryData *query) {
   struct resultTree *resultsOrig;
   struct resultColumn *currentResultColumn;
+
+  MAC_YIELD
 
   //backup the original result set
   resultsOrig = query->resultSet;

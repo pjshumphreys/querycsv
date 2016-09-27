@@ -8,13 +8,15 @@ void readQuery(
   ) {
   FILE *queryFile = NULL;
   void *scanner;
-  struct inputTable* currentInputTable;
-  struct columnReference* currentReferenceWithName;
-  struct resultColumn* currentResultColumn;
-  struct sortingList* currentSortingList;
-  struct columnRefHashEntry* currentHashEntry;
+  struct inputTable *currentInputTable;
+  struct columnReference *currentReferenceWithName;
+  struct resultColumn *currentResultColumn;
+  struct sortingList *currentSortingList;
+  struct columnRefHashEntry *currentHashEntry;
 
   int inputTableIndex = 2, i;
+
+  MAC_YIELD
 
   //read the query file and create the data structures we'll need
   ///////////////////////////////////////////////////////////////

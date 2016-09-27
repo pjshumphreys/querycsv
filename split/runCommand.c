@@ -1,8 +1,7 @@
 #include "querycsv.h"
 
-void runCommand(
-    char *string
-  ) {
+void runCommand(char *string) {
+  MAC_YIELD
 /*
     //get the number of columns in a file
     if (strcmp(argv2[1], "--columns") == 0 && argc2 == 3) {

@@ -1,10 +1,10 @@
 #include "querycsv.h"
 
-int runQuery(
-    char* queryFileName
-  ) {
+int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
+
+  MAC_YIELD
 
   readQuery(queryFileName, &query);
 

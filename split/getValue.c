@@ -12,6 +12,8 @@ void getValue(
   struct resultColumn *column;
   struct resultColumnValue *field;
 
+  MAC_YIELD
+
   expressionPtr->leftNull = FALSE;
 
   switch(expressionPtr->type) {

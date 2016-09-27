@@ -1,11 +1,15 @@
 #include "querycsv.h"
 
-int d_tztime(time_t *now, struct tm *local, struct tm *utc, char **output)
 //get localtime, gmtime and utc offset string from a time_t. allocate/free memory as needed
 //any of the last three parameters can be skipped by passing null
-{
-  struct tm * lcl;
-  struct tm * gm;
+int d_tztime(
+    time_t *now,
+    struct tm *local,
+    struct tm *utc,
+    char **output
+) {
+  struct tm *lcl;
+  struct tm *gm;
 
   int hourlcl;
   int hourutc;
@@ -13,8 +17,10 @@ int d_tztime(time_t *now, struct tm *local, struct tm *utc, char **output)
   int hour_difference;
   int minute_difference;
 
-  char* output2;
-  char* format = "+%02i%02i";
+  char *output2;
+  char *format = "+%02i%02i";
+
+  MAC_YIELD
 
   if(now == NULL) {
     return FALSE;

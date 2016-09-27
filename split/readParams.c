@@ -1,9 +1,8 @@
 #include "querycsv.h"
 
-void readParams(
-    char *string,
-    int *params
-  ) {
+void readParams(char *string, int *params) {
+
+  MAC_YIELD
 
   if(string && params) {
     while(*string) {

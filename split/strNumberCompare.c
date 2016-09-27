@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-int strNumberCompare(char * input1, char * input2) {
+int strNumberCompare(char *input1, char *input2) {
   char* string1 = input1;
   char* string2 = input2;
   int decimalNotFound1 = TRUE;
@@ -9,6 +9,8 @@ int strNumberCompare(char * input1, char * input2) {
   int negate = 1;
   int do1 = TRUE;
   int do2 = TRUE;
+
+  MAC_YIELD
   
   //if the first character of only one of the numbers is negative,
   //then the positive one is greater. We still need to skip the digits though

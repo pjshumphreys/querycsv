@@ -8,7 +8,9 @@ int parse_columnRefUnsuccessful(
     char *columnName
   ) {
 
-  struct columnReference* currentReference = NULL;
+  struct columnReference *currentReference = NULL;
+
+  MAC_YIELD
 
   //ensure we have built up the hash table with all data from the source csv files first
   if(queryData->parseMode != 1) {

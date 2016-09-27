@@ -5,6 +5,8 @@ struct expression *parse_functionRefStar(
     long aggregationType
   ) {
 
+  MAC_YIELD
+
   if(queryData->parseMode != 1) {
     return NULL;
   }

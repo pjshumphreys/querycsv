@@ -4,6 +4,8 @@
 FILE *skipBom(const char *filename) {
   FILE *file;
 
+  MAC_YIELD
+
   file = fopen(filename, "rb");
 
   if (file != NULL) {

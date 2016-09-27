@@ -7,8 +7,10 @@ void outputHeader(
   int recordsOutput = -1, i, j, len, firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
   struct resultColumnValue *field;
-  FILE* outputFile;
+  FILE *outputFile;
   char *separator = (((query->params) & PRM_SPACE) != 0)?",":", ";
+
+  MAC_YIELD
 
   //set up the output context
   if(query->intoFileName) {

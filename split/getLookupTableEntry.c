@@ -12,6 +12,8 @@ struct hash4Entry *getLookupTableEntry(
   struct hash4Entry *temp = NULL, *temp2 = NULL;
   int totalBytes = 0;
 
+  MAC_YIELD
+
   if(isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
     return &numberEntry;
   }

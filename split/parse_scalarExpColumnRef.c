@@ -7,7 +7,9 @@ struct expression *parse_scalarExpColumnRef(
   ) {
 
   struct expression *expressionPtr = NULL, *expressionColumnPtr;
-  struct inputColumn* columnPtr = NULL;
+  struct inputColumn *columnPtr = NULL;
+
+  MAC_YIELD
   
   if(queryData->parseMode != 1) {
     return NULL;

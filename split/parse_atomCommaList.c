@@ -1,12 +1,14 @@
 #include "querycsv.h"
 
-struct atomEntry* parse_atomCommaList(
-    struct qryData* queryData,
-    struct atomEntry* lastEntryPtr,
-    char* newEntry
+struct atomEntry *parse_atomCommaList(
+    struct qryData *queryData,
+    struct atomEntry *lastEntryPtr,
+    char *newEntry
   ) {
 
-  struct atomEntry* newEntryPtr;
+  struct atomEntry *newEntryPtr;
+
+  MAC_YIELD
   
   if(queryData->parseMode != 1) {
     return NULL;

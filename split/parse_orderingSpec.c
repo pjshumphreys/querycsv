@@ -8,6 +8,8 @@ void parse_orderingSpec(
 
   struct sortingList *sortingListPtr = NULL;
 
+  MAC_YIELD
+
   if(queryData->parseMode != 1) {
     return;
   }

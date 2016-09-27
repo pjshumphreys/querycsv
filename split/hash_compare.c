@@ -1,8 +1,12 @@
 #include "querycsv.h"
 
-unsigned int hash_compare(struct columnReferenceHash *hashtable, char *str)
-{
+unsigned int hash_compare(
+    struct columnReferenceHash *hashtable,
+    char *str
+) {
   unsigned int hashval;
+
+  MAC_YIELD
   
   /* we start our hash out at 0 */
   hashval = 0;

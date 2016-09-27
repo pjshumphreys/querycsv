@@ -1,10 +1,17 @@
 #include "querycsv.h"
 
-long getUnicodeCharFast(unsigned char **offset, unsigned char **str, int plusBytes, int* bytesMatched, void (*get)())
 //getUnicodeCharFast does not check for invalid or overlong bytes.
 //it also presumes the the entire string is already in nfd form
-{
+long getUnicodeCharFast(
+    unsigned char **offset,
+    unsigned char **str,
+    int plusBytes,
+    int *bytesMatched,
+    void (*get)()
+) {
   unsigned char *temp = (unsigned char *)(*(offset+plusBytes));
+
+  MAC_YIELD
   
   if(*temp < 0x80) {
     //return the information we obtained

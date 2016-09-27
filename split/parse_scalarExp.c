@@ -4,10 +4,12 @@ struct expression *parse_scalarExp(
     struct qryData *queryData,
     struct expression *leftPtr,
     int operator,
-    struct expression* rightPtr
+    struct expression *rightPtr
   ) {
 
   struct expression *expressionPtr = NULL;
+
+  MAC_YIELD
 
   if(queryData->parseMode != 1) {
     return NULL;

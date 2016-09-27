@@ -1,14 +1,16 @@
 #include "querycsv.h"
 
-int getMatchingRecord(struct qryData* query, struct resultColumnValue* match)
+int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
 {
-  struct inputTable* currentInputTable;
-  struct inputColumn* currentInputColumn;
-  struct resultColumn* currentResultColumn;
+  struct inputTable *currentInputTable;
+  struct inputColumn *currentInputColumn;
+  struct resultColumn *currentResultColumn;
   struct resultColumnValue columnOffsetData;
   struct resultColumnParam matchParams;
   int recordHasColumn;
   int doLeftRecord = FALSE;
+
+  MAC_YIELD
 
   matchParams.ptr = match;
   matchParams.params = query->params;

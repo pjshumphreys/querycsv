@@ -1,21 +1,23 @@
 #include "querycsv.h"
 
 void parse_tableFactor(
-    struct qryData* queryData,
+    struct qryData *queryData,
     int isLeftJoin,
     char *fileName,
     char *tableName
   ) {
 
-  FILE* csvFile;
-  struct inputTable* newTable = NULL;
-  struct columnReference* currentReference = NULL;
-  struct columnReference* newReference;
-  struct inputColumn* newColumn;
-  char* columnText = NULL;
-  char* columnText2 = NULL;
+  FILE *csvFile;
+  struct inputTable *newTable = NULL;
+  struct columnReference *currentReference = NULL;
+  struct columnReference *newReference;
+  struct inputColumn *newColumn;
+  char *columnText = NULL;
+  char *columnText2 = NULL;
   size_t columnLength = 0;
   int recordContinues = TRUE;
+
+  MAC_YIELD
 
   //ensure we are trying to open all the files we need
   if(queryData->parseMode != 0) {

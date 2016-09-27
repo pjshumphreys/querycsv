@@ -9,6 +9,8 @@ struct expression *parse_inPredicate(
 
   struct expression *expressionPtr = NULL;
 
+  MAC_YIELD
+
   if(queryData->parseMode != 1) {
     return NULL;
   }

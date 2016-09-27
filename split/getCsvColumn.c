@@ -16,6 +16,8 @@ int getCsvColumn(
   int exitCode = 0;
   char *minSize = NULL;
 
+  MAC_YIELD
+
   if(quotedValue != NULL) {
     *quotedValue = FALSE;
   }

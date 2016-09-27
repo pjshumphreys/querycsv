@@ -1,7 +1,8 @@
 #include "querycsv.h"
 
-void cleanup_query(struct qryData * query)
-{
+void cleanup_query(struct qryData *query) {
+  MAC_YIELD
+  
   cleanup_columnReferences(query->columnReferenceHashTable);
   cleanup_resultColumns(query->firstResultColumn);
   cleanup_orderByClause(query->groupByClause);

@@ -1,10 +1,11 @@
 #include "querycsv.h"
 
-struct columnReferenceHash* hash_createTable(int size)
-{
-  struct columnReferenceHash* new_table;
+struct columnReferenceHash *hash_createTable(int size) {
+  struct columnReferenceHash *new_table;
 
   int i;
+
+  MAC_YIELD
 
   if (size < 1) {
     return NULL; /* invalid size for table */

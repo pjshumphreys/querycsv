@@ -7,11 +7,14 @@ int recordCompare(
     void *c
   ) {
 
-  struct sortingList* orderByClause;
-  char* string1, *string2, *output1, *output2;
+  struct sortingList *orderByClause;
+  char *string1, *string2, *output1, *output2;
   int compare;
 
   struct resultColumnParam matchParams;
+
+  MAC_YIELD
+
   matchParams.params = ((struct qryData*)c)->params;
 
   for(

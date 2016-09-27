@@ -10,6 +10,8 @@ int tree_insert(
   struct resultTree *newResult;
   int comparison;
 
+  MAC_YIELD
+
   if(root == NULL) {
     //Huh? no memory location was specified to hold the tree?
     //Just exit and let the author of the calling function figure out their mistake

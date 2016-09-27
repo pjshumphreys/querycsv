@@ -1,10 +1,15 @@
 #include "querycsv.h"
 
-int hash_addString(struct columnReferenceHash *hashtable, char *str, struct columnReference *new_list)
-{
+int hash_addString(
+    struct columnReferenceHash *hashtable,
+    char *str,
+    struct columnReference *new_list
+) {
     struct columnReference *current_list;
-    struct columnRefHashEntry* new_list2;
+    struct columnRefHashEntry *new_list2;
     unsigned int hashval = hash_compare(hashtable, str);
+
+    MAC_YIELD
 
     /* Does item already exist? */
     current_list = hash_lookupString(hashtable, str);

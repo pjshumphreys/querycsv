@@ -6,15 +6,16 @@ void outputResult(
     struct resultColumnValue *columns,
     int currentIndex
   ) {
-
-  struct resultColumn* currentResultColumn;
-  struct resultColumnValue* field;
+  struct resultColumn *currentResultColumn;
+  struct resultColumnValue *field;
   int firstColumn = TRUE, j;
-  FILE* outputFile = query->outputFile;
+  FILE *outputFile = query->outputFile;
   char *separator = (((query->params) & PRM_SPACE) != 0)?",":", ";
 
   char *string = NULL;
   char *string2 = NULL;
+
+  MAC_YIELD
 
   //for output columns
   j=0;

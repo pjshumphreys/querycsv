@@ -12,6 +12,8 @@ void getCalculatedColumns(
   struct columnRefHashEntry *currentHashEntry;
   struct resultColumnParam matchParams;
 
+  MAC_YIELD
+
   matchParams.ptr = match;
   matchParams.params = query->params;
 
