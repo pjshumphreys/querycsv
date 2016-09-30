@@ -1,0 +1,46 @@
+initially only 2 character encodings are supported:
+
+* 8bit (It is always available but is specific to each build environment.)
+
+* utf8 (default encoding. Invalid or overlong bytes are interpreted as the codepoint according to the 8bit equivalent when reading files)
+
+
+8bit codepage for each build:
+
+c64=petscii
+atarist=atari
+mac=macroman
+powermac=macroman
+dos=cp437
+win32=windows1252
+linux=windows1252
+riscos=windows1252
+amiga=windows1252
+html5=windows1252
+
+
+character set specifiers required in the grammar:
+
+* filenames (8bit)
+* query file (utf8)
+* each input csv file (utf8)
+* the output (utf8)
+
+
+if the platform is not one of win32, linux, html5 or powermac and the query file doesn't specify an output file or encoding then the 8bit one is used for output to stdout (because the environment doesn't have native unicode support). 
+
+iconv may also be compiled in, in which case every encoding the implementation supports becomes available (I'd like to do this for everything other than the c64 and dos builds)
+
+I'd like to port the nodejs iconv-lite module from javascript to c to provide an mit licenced implementation at a later date
+
+byte order marks that aren't the utf-8 one trigger an abort if iconv support isn't compiled in.
+
+
+character set conversion notes (when using iconv)
+-------------------------------------------------
+
+file encodings can be detected by a byte order mark.
+
+character encodings which can contain null bytes are converted to utf-8. Then the converted file is opened instead.
+
+null bytes otherwise detected trigger an abort.
