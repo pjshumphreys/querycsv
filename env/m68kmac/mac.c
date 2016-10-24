@@ -43,6 +43,8 @@
 #include <Resources.h>
 #include <TextUtils.h>
 #include <Menus.h>
+#include <ControlDefinitions.h>
+#include <Scrap.h>
 #endif
 
 #include <SIO.h>
@@ -90,6 +92,14 @@ typedef struct {
   ProcPtr       docClik;
 } DocumentRecord, *DocumentPeek;
 
+struct lineOffsets {
+  int lineLength;
+  struct lineOffsets *nextLine;
+};
+
+struct lineOffsets *firstLine = NULL;
+struct lineOffsets *lastLine = NULL;
+SInt32 textUsed = 0;
 
 #define APP_NAME_STRING "\pQueryCSV"
 #define SCREEN_WIDTH 320
@@ -180,6 +190,10 @@ Boolean gInBackground;
 /*	kTextMargin is the number of pixels we leave blank at the edge of the window. */
 #define kTextMargin				2
 
+/*	kButtonScroll is how many pixels to scroll horizontally when the button part
+	of the horizontal scrollbar is pressed. */
+#define kButtonScroll			4
+
 WindowPtr mainWindowPtr = nil;
 
 //  A reference to our assembly language routine that gets attached to the clikLoop
@@ -244,7 +258,7 @@ void alertUserNum(int value) {
   //type Str255 is an array in MPW 3
   sprintf((char*)&message, "test %d", value);
   c2pstr((char*)message);
-  
+
   ParamText(message, (unsigned char *)"", (unsigned char *)"", (unsigned char *)"");
   Alert(rUserAlert, nil);
 }
@@ -278,23 +292,29 @@ static pascal OSErr appleEventOpenDoc(
   long        itemsInList;
   long        index;
   OSErr       result;
+  Boolean     showMessage = false;
+  char *text = NULL;
+  char *text2 = NULL;
 
-  if(
-      (result = AEGetParamDesc(
-        theAppleEvent,
-        keyDirectObject,
-        typeAEList,
-        &docList
-      ) != 0) ||
-      (result = AECountItems(&docList, &itemsInList)) != 0
-  ) {
-    return result;
+  if(!windowNotOpen) {
+    alertUser(eFileOpen);
   }
+  else {
+    if(
+        (result = AEGetParamDesc(
+          theAppleEvent,
+          keyDirectObject,
+          typeAEList,
+          &docList
+        ) != 0) ||
+        (result = AECountItems(&docList, &itemsInList)) != 0
+    ) {
+      return result;
+    }
 
-  for(index = 1; index <= itemsInList; index++) {
     if(result = AEGetNthPtr(
         &docList,
-        index,
+        1,
         typeFSS,
         &keyword,
         &returnedType,
@@ -305,12 +325,27 @@ static pascal OSErr appleEventOpenDoc(
       return result;
     }
 
+    result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID);
+
     //Spin up a thread. set the volume and folder for that thread also
-    if(windowNotOpen) {
-      windowNotOpen = false;
+    text = malloc(256); //SFReply.fName is a STR63, plus 1 for the null character
+
+    if(text != NULL) {
+      p2cstrcpy(text, theFSSpec.name);
+      text2 = realloc(text, strlen(text)+1);
+
+      if(text2 != NULL) {
+        progArg = text2;
+
+        windowNotOpen = false;
+      }
+      else {
+        free(text);
+      }
     }
-    else {
-      Alert(rAboutAlert, nil);
+
+    if(!windowNotOpen && itemsInList > 1) {
+      alertUser(eFileOpen);
     }
   }
 
@@ -372,7 +407,6 @@ void setupAppleEvents() {
 }
 
 void setupMenus() {
-  long result;
   MenuRef menu;
   MenuHandle myMenus[5];
   int i;
@@ -419,10 +453,10 @@ void restoreSettings() {
   if (strh != (StringHandle) nil) {
     memcpy(fontName, *strh, 256);
     p2cstr(fontName);
-    windowZoomed = atoi((char *)fontName); 
+    windowZoomed = atoi((char *)fontName);
     ReleaseResource((Handle)strh);
   }
-  
+
   //font size (in a bit of a roundabout way but I know this'll work)
   strh = GetString(rFontSizePrefStr);
   if (strh != (StringHandle) nil) {
@@ -458,18 +492,18 @@ void saveSettings() {
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh2 = GetString(rZoomPrefStr);
   if (strh2 != (StringHandle) nil) {
-    sprintf((char *)str, "%d", windowZoomed); 
+    sprintf((char *)str, "%d", windowZoomed);
     c2pstr((char *)str);
     memcpy(*strh2, str, 256);
     ChangedResource((Handle)strh2);
     WriteResource((Handle)strh2);
     ReleaseResource((Handle)strh2);
   }
-  
+
   //font size (in a bit of a roundabout way but I know this'll work)
   strh2 = GetString(rFontSizePrefStr);
   if (strh2 != (StringHandle) nil) {
-    sprintf((char *)str, "%d", fontSizeIndex); 
+    sprintf((char *)str, "%d", fontSizeIndex);
     c2pstr((char *)str);
     memcpy(*strh2, str, 256);
     ChangedResource((Handle)strh2);
@@ -560,6 +594,7 @@ void adjustMenus() {
   int i, len;
   Boolean found = false;
   Str255 currentFontName;
+  TEHandle te;
 
 	menu = GetMenuHandle(mFile);
 	if(!windowNotOpen) {
@@ -568,12 +603,14 @@ void adjustMenus() {
     menu = GetMenuHandle(mEdit);
     EnableItem(menu, mEditSelectAll);
 
-    //if(textSelected) {
-      //EnableItem(menu, mEditCopy);
-    //}
-    //else {
-      //DisableItem(menu, mEditCopy);
-    //}
+    te = ((DocumentPeek) mainWindowPtr)->docTE;
+
+    if ((*te)->selStart < (*te)->selEnd) {
+      EnableItem(menu, mEditCopy);
+    }
+    else {
+      DisableItem(menu, mEditCopy);
+    }
   }
 
   menu = GetMenuHandle(mFont);
@@ -708,7 +745,7 @@ void getTERect(WindowPtr window, Rect *teRect) {
   teRect->right = teRect->right - 15;
 }
 
-void adjustScrollbars(WindowPtr window, Boolean needsResize) {
+void adjustScrollBars(WindowPtr window, Boolean needsResize) {
   DocumentPeek doc;
   Rect teRect;
 
@@ -742,7 +779,7 @@ void adjustScrollbars(WindowPtr window, Boolean needsResize) {
   }
 
   //mess with max and current value
-  adjustScrollbarValues(window, needsResize);                        
+  adjustScrollbarValues(window, needsResize);
 
   //Now, restore visibility in case we never had to ShowControl during adjustment
   (*doc->docVScroll)->contrlVis = kControlVisible;
@@ -753,24 +790,41 @@ void adjustScrollbars(WindowPtr window, Boolean needsResize) {
 #include <StandardFile.h>
 
 OSStatus openFileDialog() {
-  Point       where;
+  Point where;
   unsigned const char prompt = '\0';
-  OSType      typeList = 'TEXT';
-  SFReply     reply;
-  OSErr       result;
+  OSType typeList = 'TEXT';
+  SFReply reply;
+  OSErr result;
+  char *text = NULL;
+  char *text2 = NULL;
 
   where.h = where.v = 70;
 
   SFGetFile(where, &prompt, nil, 1, &typeList, nil, &reply);
 
   if(reply.good) {
-    result = SetVol(reply.fName, reply.vRefNum);
+    result = SetVol(NULL, reply.vRefNum);
 
+    /* error check */
     if(result != 0) {
-      /* error check */
+
     }
 
-    windowNotOpen = false;
+    text = malloc(256); //SFReply.fName is a STR63, plus 1 for the null character
+
+    if(text != NULL) {
+      p2cstrcpy(text, reply.fName);
+      text2 = realloc(text, strlen(text)+1);
+
+      if(text2 != NULL) {
+        progArg = text2;
+
+        windowNotOpen = false;
+      }
+      else {
+        free(text);
+      }
+    }
   }
 
   return noErr;
@@ -784,16 +838,16 @@ OSStatus openFileDialog() {
 void saveWindow(WindowPtr window) {
 	Rect *rptr;
   Rect windRect;
-  Handle wind, font;
+  Handle wind;
 
   ZoomWindow(window, inZoomIn, window == FrontWindow());
 
   windRect = getWindowBounds(window);
-  
+
   wind = (Handle)GetResource('WIND', rDocWindow);
 
   LocalToGlobal(&((Point)windRect));
-  
+
 	HLock(wind);
 	rptr = (Rect *) *wind;
 
@@ -843,7 +897,7 @@ void getLocalUpdateRgn(WindowPtr window, RgnHandle localRgn) {
 }
 
 void resizedWindow(WindowPtr window) {
-  adjustScrollbars(window, true);
+  adjustScrollBars(window, true);
   adjustTE(window);
   InvalRect(&window->portRect);
 }
@@ -901,7 +955,6 @@ void openWindow() {
   DocumentPeek doc;
   Rect viewRect, destRect;
   Boolean proceed;
-  Rect windowRect;
 
   //Attempt to allocate some memory to bind the generic window to TextEdit functionality
   storage = NewPtr(sizeof(DocumentRecord));
@@ -945,7 +998,7 @@ void openWindow() {
 
   //attempt to create a TextEdit control and bind
   //it to our window/document structure
-  doc->docTE = TENew(&destRect, &viewRect);
+  doc->docTE = TEStyleNew(&destRect, &viewRect);
 
   //only proceed if the TextEdit control was successfully created
   proceed = doc->docTE != nil;
@@ -976,7 +1029,7 @@ void openWindow() {
     //Adjust & draw the controls, then show the window.
     //False to adjustScrollValues means musn't redraw; technically, of course,
     //the window is hidden so it wouldn't matter whether we called ShowControl or not.
-    adjustScrollbars(window, true);
+    adjustScrollBars(window, true);
     adjustScrollbarValues(window, false);
     ShowWindow(window);
 
@@ -1006,8 +1059,6 @@ void idleWindow() {
 }
 
 void repaintWindow(WindowPtr window) {
-  Rect tempRect;
-
   if (isApplicationWindow(window)) {
     BeginUpdate(window);
 
@@ -1019,7 +1070,7 @@ void repaintWindow(WindowPtr window) {
       DrawGrowIcon(window);
       TEUpdate(&window->portRect, ((DocumentPeek) window)->docTE);
     }
-    
+
     EndUpdate(window);
   }
 }
@@ -1096,6 +1147,63 @@ pascal void PascalClikLoop(void) {
   DisposeRgn(region);
 }
 
+void setFont(SInt16 menuItem) {
+  TextStyle styleRec;
+
+  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
+
+  if(!mainWindowPtr) {
+    return;
+  }
+
+  GetFNum(fontName, &(styleRec.tsFont));
+
+  TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
+  TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+
+  adjustScrollBars(mainWindowPtr, false);
+}
+
+short doGetSize(SInt16 menuItem) {
+  switch(menuItem) {
+    case 1:
+      return 9;
+    case 2:
+      return 10;
+    case 3:
+      return 12;
+    case 4:
+      return 14;
+    case 5:
+      return 18;
+    case 6:
+      return 24;
+    case 7:
+      return 36;
+  }
+
+  return 10;
+}
+
+void setFontSize(SInt16 menuItem) {
+  TextStyle styleRec;
+
+  fontSizeIndex = menuItem;
+
+  if(!mainWindowPtr) {
+    return;
+  }
+
+  styleRec.tsSize = doGetSize(fontSizeIndex);
+
+  TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  TESetStyle(doSize, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
+  TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+
+  adjustScrollBars(mainWindowPtr, false);
+}
+
 /*
   Gets called from our assembly language routine, AsmClikLoop, which is in
   turn called by the TEClick toolbox routine. It returns the address of the
@@ -1149,23 +1257,198 @@ void menuSelect(long mResult) {
     case mEdit: {
       switch(theItem) {
         case mEditCopy: {
+          if (ZeroScrap() == noErr) {
+            if(mainWindowPtr){
+              TECopy(((DocumentPeek)mainWindowPtr)->docTE);
+            }
+
+            // after copying, export the TE scrap
+            if (TEToScrap() != noErr) {
+              //AlertUser(eNoCopy);
+              ZeroScrap();
+            }
+          }
+
         } break;
 
         case mEditSelectAll: {
+          TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
         } break;
       }
     } break;
 
     case mFont: {
-      GetMenuItemText(GetMenuHandle(mFont), theItem, fontName);
+      setFont(theItem);
     } break;
 
     case mSize: {
-      fontSizeIndex = theItem;
+      setFontSize(theItem);
     } break;
   }
 
   HiliteMenu(0);
+}
+
+void commonAction(ControlHandle control, short *amount) {
+  short value, max;
+
+  value = GetControlValue(control);        /* get current value */
+  max = GetControlMaximum(control);        /* and maximum value */
+  *amount = value - *amount;
+
+  if (*amount < 0) {
+    *amount = 0;
+  }
+  else if (*amount > max) {
+    *amount = max;
+  }
+
+  SetControlValue(control, *amount);
+  *amount = value - *amount;    /* calculate the real change */
+}
+
+pascal void VActionProc(ControlHandle control, short part) {
+  short       amount;
+  WindowPtr   window;
+  TEPtr       te;
+
+  /* if it was actually in the control */
+  if (part != 0) {
+    window = (*control)->contrlOwner;
+    te = *((DocumentPeek) window)->docTE;
+
+    switch (part) {
+      case kControlUpButtonPart:        /* one line */
+      case kControlDownButtonPart: {
+        amount = 1;
+      } break;
+
+      case kControlPageUpPart:          /* one page */
+      case kControlPageDownPart: {
+        amount = (te->viewRect.bottom - te->viewRect.top) / te->lineHeight;
+      } break;
+    }
+
+    if (
+        part == kControlDownButtonPart ||
+        part == kControlPageDownPart
+    ) {
+      amount = -amount;                /* reverse direction for a downer */
+    }
+
+    commonAction(control, &amount);
+
+    if (amount != 0) {
+      TEScroll(0, amount * te->lineHeight, ((DocumentPeek) window)->docTE);
+    }
+  }
+}
+
+
+/*
+  Determines how much to change the value of the horizontal scrollbar by and how
+  much to scroll the TE record.
+*/
+#pragma segment Main
+pascal void HActionProc(ControlHandle control, short part) {
+  short       amount;
+  WindowPtr   window;
+  TEPtr       te;
+
+  if (part != 0) {
+    window = (*control)->contrlOwner;
+    te = *((DocumentPeek) window)->docTE;
+
+    switch (part) {
+      case kControlUpButtonPart:                /* a few pixels */
+      case kControlDownButtonPart: {
+        amount = kButtonScroll;
+      } break;
+
+      case kControlPageUpPart:                        /* a page */
+      case kControlPageDownPart: {
+        amount = te->viewRect.right - te->viewRect.left;
+      } break;
+    }
+
+    if (
+        part == kControlDownButtonPart ||
+        part == kControlPageDownPart
+    ) {
+      amount = -amount;   /* reverse direction */
+    }
+
+    commonAction(control, &amount);
+
+    if (amount != 0) {
+      TEScroll(amount, 0, ((DocumentPeek) window)->docTE);
+    }
+  }
+}
+
+void contentClick(WindowPtr window, EventRecord *event) {
+  Point           mouse;
+  ControlHandle   control;
+  short           part, value;
+  Boolean         shiftDown;
+  DocumentPeek    doc;
+  Rect            teRect;
+
+  if (isApplicationWindow(window)) {
+    SetPort(window);
+
+    /* get the click position */
+    mouse = event->where;
+    GlobalToLocal(&mouse);
+
+    doc = (DocumentPeek) window;
+
+    /* see if we are in the viewRect. if so, we wonÕt check the controls */
+    getTERect(window, &teRect);
+
+    if (PtInRect(mouse, &teRect)) {
+      /* see if we need to extend the selection */
+      shiftDown = (event->modifiers & shiftKey) != 0;        /* extend if Shift is down */
+      TEClick(mouse, shiftDown, doc->docTE);
+    }
+    else {
+      part = FindControl(mouse, window, &control);
+
+      switch (part) {
+        case 0: {
+          /* do nothing for viewRect case */
+        } break;
+
+        case kControlIndicatorPart: {
+          value = GetControlValue(control);
+          part = TrackControl(control, mouse, nil);
+
+          if (part != 0) {
+            value -= GetControlValue(control);
+
+            /* value now has CHANGE in value; if value changed, scroll */
+            if (value != 0) {
+              if (control == doc->docVScroll) {
+                TEScroll(0, value * (*doc->docTE)->lineHeight, doc->docTE);
+              }
+              else {
+                TEScroll(value, 0, doc->docTE);
+              }
+            }
+          }
+        } break;
+
+        default: {    /* they clicked in an arrow, so track & scroll */
+          if (control == doc->docVScroll) {
+            value = TrackControl(control, mouse, (ControlActionUPP) VActionProc);
+          }
+          else {
+            value = TrackControl(control, mouse, (ControlActionUPP) HActionProc);
+          }
+        } break;
+      }
+    }
+  }
 }
 
 /* Handles mouse down events */
@@ -1178,6 +1461,9 @@ void mouseClick(EventRecord *event) {
     case inContent: {
       if(window != FrontWindow()) {
         SelectWindow(window);
+      }
+      else {
+        contentClick(window, event);
       }
     } break;
 
@@ -1234,7 +1520,7 @@ void loopTick() {
 #endif
 
   GetNextEvent(everyEvent, &event);
-  
+
   switch(event.what) {
     case nullEvent: {
       idleWindow();
@@ -1291,6 +1577,14 @@ void loopTick() {
   }
 }
 
+void macYield() {
+  loopTick(); // get one event
+
+	if(quit)	{
+		ExitToShell(); // does not return to sioDemoRead...
+	}
+}
+
 /*
   if you're looking for the main() function, this is it.
   the runtime libraries in MPW provide hooks that allow
@@ -1313,7 +1607,7 @@ pascal void sioDemoInit(int *mainArgc, char ***mainArgv) {
   }
 
   if(quit) {
-		raise(SIGABRT);
+		ExitToShell(); //raise(SIGABRT);
 	}
   else if(!windowNotOpen) {
     openWindow();
@@ -1333,23 +1627,148 @@ pascal void sioDemoRead(
   *nCharsUsed = 0;
 }
 
+void output(char *buffer, SInt32 nChars, Boolean isBold) {
+  char* startPoint = buffer;
+  SInt32 lineChars = 0;
+  SInt32 charsLeft = nChars;
+  long temp;
+  struct lineOffsets *temp2;
+	TextStyle theStyle;
+  TEHandle docTE;
+  Boolean skipByte;
+
+  if(!mainWindowPtr) {
+    return;
+  }
+
+  docTE = ((DocumentPeek)mainWindowPtr)->docTE;
+
+  //GetFNum(fontName, &(theStyle.tsFont));
+  //theStyle.tsSize = doGetSize(fontSizeIndex);
+  theStyle.tsFace = isBold?bold:normal;
+
+  //first run initialization
+  if(firstLine == NULL) {
+    firstLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
+
+    if(firstLine == NULL) {
+      ExitToShell();
+    }
+
+    lastLine = firstLine;
+    lastLine->lineLength = 0;
+    lastLine->nextLine = NULL;
+  }
+
+  do {
+    skipByte = false;
+    
+    //use funky for/switch construct to output/append until a newline or end of string
+    for(;;) {
+      if(charsLeft < 1) {
+        break;
+      }
+
+      switch(startPoint[lineChars]) {
+        case '\r':
+          startPoint[lineChars] = '\n';
+
+          if(startPoint[lineChars+1] == '\n') {
+            skipByte = true;
+          }
+        case '\n':
+          lineChars++;
+        case '\0':
+          charsLeft--;
+          break;
+        default:
+          lineChars++;
+          charsLeft--;
+          continue;
+      }
+
+      break;
+    }
+
+    //While the line length plus the total length used is greater than 32767 and
+    //there are lines to be removed (not the last line) then remove the first line
+    while((temp = textUsed+lineChars) > 32767 && firstLine != lastLine) {
+      TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
+      TESetSelect(0, firstLine->lineLength, docTE);
+      TEDelete(docTE);
+
+      textUsed -= firstLine->lineLength;
+
+      temp2 = firstLine;
+      firstLine = firstLine->nextLine;
+      free(temp2);
+      temp2 = NULL;
+      TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
+    }
+
+    //If the line length greater than 32767 then remove the last line of text.
+    //Otherwise insert the text gathered.
+    if((temp = lineChars+(lastLine->lineLength)) > 32767) {
+      TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
+      TESetSelect(0, lastLine->lineLength, docTE);
+      TEDelete(docTE);
+      lastLine->lineLength = 0;
+      textUsed = 0;
+      TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
+    }
+    else {
+      TESetSelect(32767, 32767, docTE);
+      TESetStyle(doFace, &theStyle, false, docTE);
+      TEInsert(startPoint, lineChars, docTE);
+      lastLine->lineLength = temp;
+      textUsed += lineChars;
+    }
+
+    //allocate another line if one is needed
+    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
+      lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
+
+      if(lastLine->nextLine == NULL) {
+        ExitToShell();
+      }
+
+      lastLine = lastLine->nextLine;
+      lastLine->lineLength = 0;
+      lastLine->nextLine = NULL;
+    }
+
+    //update the starting point for the next line to be output
+    startPoint = &(startPoint[lineChars]);
+
+    //eat /n after /r (as in /r/n)
+    if(skipByte) {
+      startPoint++;
+      charsLeft--;
+    }
+  } while (charsLeft > 0);   //any more characters to be output?
+
+  adjustScrollBars(mainWindowPtr, false);
+}
+
+
 pascal void sioDemoWrite(SInt16 filenum, char *buffer, SInt32 nChars) {
 	if(filenum == kSIOStdOutNum) {
-		//output( buffer, nChars, blackColor, gStdOutWindow );
+		output(buffer, nChars, false);
 	}
 	else if(filenum == kSIOStdErrNum) {
-		//output( buffer, nChars, redColor, gStdOutWindow );
+		output(buffer, nChars, true);
 	}
 
 	loopTick(); // get one event
 
 	if(quit)	{
-		raise(SIGABRT); // does not return to sioDemoRead...
+		ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
 	}
 }
 
+
 pascal void sioDemoExit(void) {
-  //free(progArg);
+  free(progArg);
 
   while(!quit) {
 		// loop until user quits.
@@ -1370,7 +1789,28 @@ pascal void (*__sioWrite)(SInt16 filenum, char *buffer, SInt32 nChars) = sioDemo
 pascal void (*__sioExit)(void) = sioDemoExit;
 
 int main(int argc, char **argv) {
-  printf("hello");
+  int size = 1024, pos;
+  int c;
+  char *buffer = (char *)malloc(size);
 
+  FILE *f = fopen(argv[1], "rb");
+  if(f) {
+    do { // read all lines in file
+      pos = 0;
+      do{ // read one line
+        c = fgetc(f);
+        if(c != EOF) buffer[pos++] = (char)c;
+        if(pos >= size - 1) { // increase buffer length - leave room for 0
+          size *=2;
+          buffer = (char*)realloc(buffer, size);
+        }
+      }while(c != EOF && c != '\n');
+      buffer[pos] = 0;
+      // line is now in buffer
+      printf("%s", buffer);
+    } while(c != EOF); 
+    fclose(f);           
+  }
+  free(buffer);
   return 0;
 }

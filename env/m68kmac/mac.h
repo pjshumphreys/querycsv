@@ -25,6 +25,7 @@
 #define	eNoWindow     9
 #define	eExceedChar   10
 #define	eNoPaste      11
+#define	eFileOpen     12
 
 #define kMBarDisplayed 128
 

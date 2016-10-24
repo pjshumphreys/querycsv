@@ -144,7 +144,8 @@ resource 'STR#' (kErrStrings, purgeable) {
 	"Not enough memory to do Paste";
 	"Cannot create window";
 	"Cannot exceed 32,000 characters";
-	"Cannot do Paste"
+	"Cannot do Paste";
+  "A file is already open in QueryCSV. Close that one first"
 	}
 };
 
