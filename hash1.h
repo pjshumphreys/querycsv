@@ -1,4 +1,4 @@
-/*/CP437 mapping table*/
+/*CP437 mapping table*/
 static const long
   hash1_0[] = {0x43, 0x327},  //#LATIN CAPITAL LETTER C WITH CEDILLA
   hash1_1[] = {0x75, 0x308},  //#LATIN SMALL LETTER U WITH DIAERESIS

@@ -14,7 +14,20 @@
 #include <locale.h>
 #include <time.h>
 
-#if MICROSOFT
+#ifdef __unix__
+  #define MAC_YIELD
+  #define HAS_VSNPRINTF   //this function is available on windows but doesn't work properly there
+  #define TEMP_VAR "TMPDIR"
+  #define DEFAULT_TEMP "TMPDIR=/tmp"
+  #include <dirent.h>   //for opendir, readdir & closedir
+
+  //used as stricmp isn't part of posix doesn't have stricmp
+  #include <strings.h>
+  #define stricmp strcasecmp
+#endif
+
+#ifdef __MSDOS__ || __WINDOWS__
+  #define MAC_YIELD
   #define DEVNULL "NUL"   //null filename on DOS/Windows
   #define TEMP_VAR "TEMP"
   #define DEFAULT_TEMP "TEMP=."
@@ -26,7 +39,7 @@
     time_t    d_atime; //-1 for FAT file systems
     time_t    d_mtime;
     long      d_size; //64-bit size info
-    char      d_name[MAX_UTF8_PATH]; 
+    char      d_name[MAX_UTF8_PATH];
     char      d_first; //flag for 1st time
     long      d_handle; //handle to pass to FindNext
   };
@@ -37,20 +50,26 @@
   struct dirent *readdir(DIR *inval);
   int closedir(DIR * inval);
 
-  #if WINDOWS
+  #if __WINDOWS__
     #include "win32.h"
   #endif
-#else
-  #define HAS_VSNPRINTF 1   //this function is available on windows but doesn't work properly there
-  #define TEMP_VAR "TMPDIR"
-  #define DEFAULT_TEMP "TMPDIR=/tmp"
-  #include <dirent.h>   //for opendir, readdir & closedir
+#endif
 
-  //used if the compiler doesn't have stricmp
-  #ifdef NO_STRICMP
-    #include <strings.h>
-    #define stricmp strcasecmp
+#ifdef __APPLE__
+#ifdef __MACH__
+  #define MAC_YIELD
+#else
+  #define MAC_YIELD macYield();
+#endif
+  //macs don't have stricmp, so we provide our own implementation
+  #ifdef __unix__
+    #undef stricmp   //this function is available on windows but doesn't work properly there
+    #undef HAS_VSNPRINTF   //this function is available on windows but doesn't work properly there
   #endif
+  int stricmp(const char *str1, const char *str2);
+  #define DEVNULL "Dev:Null"   //null filename on MacOS Classic (i.e. pre OS X)
+  #define TEMP_VAR "TMPDIR"
+  #define DEFAULT_TEMP "TMPDIR=:"
 #endif
 
 //translatable strings
@@ -100,9 +119,9 @@
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
 
-//output parameters. Now specified as part of the input grammar 
-#define PRM_TRIM 1    //left trim and right trim whitespace from each column value 
-#define PRM_SPACE 2   //put a space before each column value tat's not the first 
+//output parameters. Now specified as part of the input grammar
+#define PRM_TRIM 1    //left trim and right trim whitespace from each column value
+#define PRM_SPACE 2   //put a space before each column value tat's not the first
 #define PRM_IMPORT 4
 #define PRM_EXPORT 8
 #define PRM_BOM 16    //output a utf-8 byte order mark before the file contents
@@ -139,11 +158,11 @@ struct inputTable {
   int columnCount;
   int isLeftJoined;
   int noLeftRecord;
-  long firstRecordOffset;  //where in the file the beginning of the first record is located 
+  long firstRecordOffset;  //where in the file the beginning of the first record is located
   char *queryTableName;  //according to the query
   FILE *fileStream;
   struct inputTable *nextInputTable;
-  struct inputColumn *firstInputColumn;   
+  struct inputColumn *firstInputColumn;
 };
 
 struct atomEntry {
@@ -199,7 +218,7 @@ struct columnReferenceHash {
 
 struct sortingList {
   struct expression *expressionPtr;
-  int isDescending;       
+  int isDescending;
   struct sortingList *nextInList;
 };
 
