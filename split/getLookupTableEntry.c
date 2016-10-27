@@ -18,7 +18,7 @@ struct hash4Entry *getLookupTableEntry(
     return &numberEntry;
   }
   
-  while((temp = in_word_set(*offset, totalBytes+(*lastMatchedBytes)))) {
+  while((temp = in_word_set((char const *)(*offset), totalBytes+(*lastMatchedBytes)))) {
     //the match is so far holding up. 
 
     //keep this match for later as it may be the last one we find

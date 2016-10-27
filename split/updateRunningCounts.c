@@ -32,16 +32,16 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
           field = &(match[currentResultColumn->resultColumnIndex]);
 
           if(field->leftNull == FALSE) {
-            stringGet(&tempString, field, query->params);
+            stringGet((unsigned char **)(&tempString), field, query->params);
 
             if(currentResultColumn->groupType > GRP_STAR) {
               if(query->groupCount > 1) {
                 for(j = 1; j < query->groupCount; j++) {
-                  stringGet(&tempString2, &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]), query->params);
+                  stringGet((unsigned char **)(&tempString2), &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]), query->params);
 
                   if(strCompare(
-                    &tempString,
-                    &tempString2,
+                    (unsigned char **)(&tempString),
+                    (unsigned char **)(&tempString2),
                     TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
@@ -106,8 +106,8 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
               case GRP_MIN:
               case GRP_DIS_MIN:
                 if(currentResultColumn->groupText == NULL || strCompare(
-                    &tempString,
-                    &(currentResultColumn->groupText),
+                    (unsigned char **)(&tempString),
+                    (unsigned char **)(&(currentResultColumn->groupText)),
                     2,//TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
@@ -124,8 +124,8 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
               case GRP_MAX:
               case GRP_DIS_MAX:
                 if(currentResultColumn->groupText == NULL || strCompare(
-                    &tempString,
-                    &(currentResultColumn->groupText),
+                    (unsigned char **)(&tempString),
+                    (unsigned char **)(&(currentResultColumn->groupText)),
                     2,//TRUE,
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar

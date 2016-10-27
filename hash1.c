@@ -22,7 +22,7 @@ int normaliseAndGet(
   struct hash1Entry const * lookupresult;
 
   //if the allocation failed, print an error messge and exit
-  reallocMsg(TDB_MALLOC_FAILED, (void**)&nfdString, strlen(*str)+1);
+  reallocMsg(TDB_MALLOC_FAILED, (void**)&nfdString, strlen((const char *)(*str))+1);
 
   //copy the string matched up to now directly into the output string
   memcpy(nfdString, (void*)(*str), offsetInt);

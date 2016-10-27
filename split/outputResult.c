@@ -43,7 +43,7 @@ void outputResult(
         } break;
 
         default: {
-          stringGet(&string, field, query->params);
+          stringGet((unsigned char **)(&string), field, query->params);
 
           //need to properly re-escape fields that need it
           if(*string == '\0') {

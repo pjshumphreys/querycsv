@@ -26,7 +26,7 @@
   #define stricmp strcasecmp
 #endif
 
-#ifdef __MSDOS__ || __WINDOWS__
+#ifdef MICROSOFT
   #define MAC_YIELD
   #define DEVNULL "NUL"   //null filename on DOS/Windows
   #define TEMP_VAR "TEMP"
@@ -50,17 +50,23 @@
   struct dirent *readdir(DIR *inval);
   int closedir(DIR * inval);
 
-  #if __WINDOWS__
+  #ifdef WINDOWS
     #include "win32.h"
   #endif
 #endif
 
-#ifdef __APPLE__
-#ifdef __MACH__
+#ifdef MPW_C
+//#ifdef __MACH__
+//  #define MAC_YIELD
+//#else
+  void macYield();
   #define MAC_YIELD
-#else
-  #define MAC_YIELD macYield();
-#endif
+  //macYield();
+//#endif
+  #define YY_NO_UNISTD_H
+  #undef putenv   //on MPW putenv has the wrong signature
+  int putenv(char *string);
+  char* strdup(const char* s);
   //macs don't have stricmp, so we provide our own implementation
   #ifdef __unix__
     #undef stricmp   //this function is available on windows but doesn't work properly there

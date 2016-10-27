@@ -32,7 +32,7 @@ void getValue(
         expressionPtr->value = strdup("");
       }
       else {
-        stringGet(&(expressionPtr->value), field, match->params);
+        stringGet((unsigned char **)(&(expressionPtr->value)), field, match->params);
       }
     } break;
 
@@ -57,7 +57,7 @@ void getValue(
         field = &(match->ptr[column->resultColumnIndex]);
 
         if(field->leftNull == FALSE) {
-          stringGet(&(expressionPtr->value), field, match->params);
+          stringGet((unsigned char **)(&(expressionPtr->value)), field, match->params);
           break;
         }
       }

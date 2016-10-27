@@ -45,8 +45,8 @@ int recordCompare(
 
     //do the comparison of the two current expression values
     compare = strCompare(
-        &output1,
-        &output2,
+        (unsigned char **)(&output1),
+        (unsigned char **)(&output2),
         2,//orderByClause->expressionPtr->caseSensitive,
         (void (*)())getUnicodeChar,
         (void (*)())getUnicodeChar

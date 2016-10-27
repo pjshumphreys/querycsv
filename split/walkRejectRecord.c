@@ -32,8 +32,8 @@ int walkRejectRecord(
     }
 
     retval = strCompare(
-        &(expressionPtr->unionPtrs.leaves.leftPtr->value),
-        &(expressionPtr->unionPtrs.leaves.rightPtr->value),
+        (unsigned char **)(&(expressionPtr->unionPtrs.leaves.leftPtr->value)),
+        (unsigned char **)(&(expressionPtr->unionPtrs.leaves.rightPtr->value)),
         expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive,
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar
@@ -85,8 +85,8 @@ int walkRejectRecord(
         currentAtom = currentAtom->nextInList
       ) {
       if(strCompare(
-        &(expressionPtr->unionPtrs.leaves.leftPtr->value),
-        &(currentAtom->content),
+        (unsigned char **)(&(expressionPtr->unionPtrs.leaves.leftPtr->value)),
+        (unsigned char **)(&(currentAtom->content)),
         expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive,
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar

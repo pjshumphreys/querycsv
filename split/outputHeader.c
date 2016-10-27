@@ -4,9 +4,8 @@
 void outputHeader(
     struct qryData *query
   ) {
-  int recordsOutput = -1, i, j, len, firstColumn = TRUE;
+  int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
-  struct resultColumnValue *field;
   FILE *outputFile;
   char *separator = (((query->params) & PRM_SPACE) != 0)?",":", ";
 
@@ -18,7 +17,7 @@ void outputHeader(
     query->outputFile = fopen(query->intoFileName, "wb");
 
     if (query->outputFile == NULL) {
-      fputs ("opening output file failed", stderr);
+      fputs("opening output file failed", stderr);
       return;
     }
   }

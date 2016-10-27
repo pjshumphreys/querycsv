@@ -1,6 +1,6 @@
 CC = gcc
 GPERF = gperf
-CFLAGS = -g -Wall -DNO_STRICMP 
+CFLAGS = -g -Wall
 SOURCES = $(wildcard split/*.c)
 OBJECTS = $(SOURCES:%.c=%.o)
 INCFLAGS = -I/home/user/Projects/querycsv
@@ -41,13 +41,24 @@ sql.o: lexer.c gen.h en_gb.h querycsv.h
 lexer.o: gen.h en_gb.h querycsv.h
 
 querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4.o querycsv.o
-	$(CC) -o querycsv sql.o lexer.o hash1.o hash2.o hash3.o hash4.o querycsv.o $(LDFLAGS) $(LIBS)
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/posix/ \;
+	find . -maxdepth 1 -type f -iname \*.o ! -exec mv {} env/posix/ \;
+	cd env/posix; $(CC) -o querycsv sql.o lexer.o hash1.o hash2.o hash3.o hash4.o querycsv.o $(LDFLAGS) $(LIBS)
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
+	cd env/dos; unix2dos *
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/win32/ \;
+	cd env/win32; unix2dos *
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/m68kmac/ \;
+	cd env/m68kmac; unix2mac *
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
 	rm -f *.o makeheaders querycsv gen.h querycsv.c hash4.c sql.c lexer.c sql.h lexer.h
+	cd env/dos; find . -maxdepth 1 ! -path './dbuild.bat' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/win32; find . -maxdepth 1 ! -path './win32.c' ! -path './win32.h' ! -path './wbuild.bat' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/m68kmac; find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;
 
 .PHONY: all
 .PHONY: count

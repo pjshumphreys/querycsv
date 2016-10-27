@@ -1,0 +1,10 @@
+vbcc (amiga/atarist)
+cc65 (c64)
+basilisk+mpw (m68kmac/powermac)
+rpcemu+norcroft (risc os)
+emscripten (html5)
+gcc (linux/mac os x)
+dosbox+watcom (dos/windows)
+
+
+disk images are created for riscos, amiga, m68kmac and powermac. This is because the filesystems contain additional metadata needed for executables to work correctly and that info can't be put into a windows zip file.

@@ -5,7 +5,9 @@ int d_sprintf(char **str, char *format, ...) {
   size_t newSize;
   char *newStr = NULL;
   va_list args;
+  #ifndef HAS_VSNPRINTF
   FILE *pFile;
+  #endif
 
   MAC_YIELD
 

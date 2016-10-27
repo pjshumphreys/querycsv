@@ -9,7 +9,7 @@ void stringGet(
   MAC_YIELD
 
   if(str != NULL) {
-    *str = strdup(field->value);
+    *str = (unsigned char *)(strdup((char const *)(field->value)));
   }
 
   /*

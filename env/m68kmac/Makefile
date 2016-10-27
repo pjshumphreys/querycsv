@@ -1,98 +1,1 @@
-#   File:       Makefile
-#   Target:     QueryCSV
-#   Created:    Sunday, September 25, 2016 11:29:18 PM
-
-
-MAKEFILE        = Makefile
-¥MondoBuild¥    = {MAKEFILE}  # Make blank to avoid rebuilds when makefile is modified
-
-ObjDir          = :
-Includes        = 
-
-Sym-68K         = -sym on
-
-COptions        = {Includes} {Sym-68K} -model near -opt space 
-
-
-### Source Files ###
-
-SrcFiles        =  ¶
-				  mac.c #¶
-				  #querycsv.c
-
-RezFiles        =  ¶
-				  mac.r ¶
-				  size.r
-
-### Object Files ###
-
-ObjFiles-68K    =  ¶
-				  "{ObjDir}mac.c.o" ¶
-				  "{ObjDir}TEGlue.a.o" #¶
-				  #"{ObjDir}querycsv.c.o"
-
-
-### Libraries ###
-
-LibFiles-68K    =  ¶
-				  "{Libraries}SIO.o" ¶
-					"{Libraries}MathLib.o" ¶
-				  "{CLibraries}StdCLib.o" ¶
-				  "{Libraries}MacRuntime.o" ¶
-				  "{Libraries}IntEnv.o" ¶
-				  "{Libraries}ToolLibs.o" ¶
-				  "{Libraries}Interface.o" ¶
-				  "{Libraries}AEObjectSupportLib.o"
-
-
-### Default Rules ###
-
-.c.o  Ä  .c  {¥MondoBuild¥}
-	{C} {depDir}{default}.c -o {targDir}{default}.c.o {COptions}
-
-.a.o  Ä  .a  {¥MondoBuild¥}
-	{Asm} {depDir}{default}.a -o {targDir}{default}.a.o {AOptions}
-
-### Build Rules ###
-
-all Ä QueryCSV
-
-QueryCSV  ÄÄ  {ObjFiles-68K} {LibFiles-68K} {¥MondoBuild¥}
-	ILink ¶
-		-o {Targ} ¶
-		{ObjFiles-68K} ¶
-		{LibFiles-68K} ¶
-		{Sym-68K} ¶
-		-mf -d ¶
-		-t 'APPL' ¶
-		-c 'qcsv' ¶
-		-model near ¶
-		-state rewrite ¶
-		-compact -pad 0
-	If "{Sym-68K}" =~ /-sym Å[nNuU]Å/
-		ILinkToSYM {Targ}.NJ -mf -sym 3.2 -c 'sade'MacOS:dirs:test:mac.c
-	End
-
-QueryCSV  ÄÄ  {¥MondoBuild¥}
-	Rez -rd {RezFiles} -o {Targ} -append
-
-
-### Required Dependencies ###
-
-"{ObjDir}mac.c.o"  Ä  mac.c
-#"{ObjDir}querycsv.c.o"  Ä  querycsv.c
-
-
-### Optional Dependencies ###
-### Build this target to generate "include file" dependencies. ###
-
-Dependencies  Ä  $OutOfDate
-	MakeDepend ¶
-		-append {MAKEFILE} ¶
-		-ignore "{CIncludes}" ¶
-		-objdir "{ObjDir}" ¶
-		-objext .o ¶
-		{Includes} ¶
-		{SrcFiles}
-
-
+#   File:       Makefile#   Target:     QueryCSV#   Created:    Sunday, September 25, 2016 11:29:18 PMMAKEFILE        = Makefile¥MondoBuild¥    = {MAKEFILE}  # Make blank to avoid rebuilds when makefile is modifiedObjDir          = :Includes        = Sym-68K         = -sym onCOptions        = {Includes} {Sym-68K} -model far -opt space ### Source Files ###SrcFiles        =  ¶				  lexer.c ¶				  sql.c ¶				  hash1.c ¶				  hash2.c ¶				  hash3.c ¶				  hash4.c ¶				  querycsv.c ¶				  mac.cRezFiles        =  ¶				  mac.r ¶				  size.r### Object Files ###ObjFiles-68K    =  ¶				  "{ObjDir}lexer.c.o" ¶				  "{ObjDir}sql.c.o" ¶				  "{ObjDir}hash1.c.o" ¶				  "{ObjDir}hash2.c.o" ¶				  "{ObjDir}hash3.c.o" ¶				  "{ObjDir}hash4.c.o" ¶				  "{ObjDir}querycsv.c.o" ¶				  "{ObjDir}mac.c.o" ¶				  "{ObjDir}TEGlue.a.o"### Libraries ###LibFiles-68K    =  ¶				  "{Libraries}SIO.o" ¶					"{Libraries}MathLib.o" ¶				  "{CLibraries}StdCLib.o" ¶				  "{Libraries}MacRuntime.o" ¶				  "{Libraries}IntEnv.o" ¶				  "{Libraries}ToolLibs.o" ¶				  "{Libraries}Interface.o" ¶				  "{Libraries}AEObjectSupportLib.o"### Default Rules ###.c.o  Ä  .c  {¥MondoBuild¥}	{C} {depDir}{default}.c -o {targDir}{default}.c.o {COptions}.a.o  Ä  .a  {¥MondoBuild¥}	{Asm} {depDir}{default}.a -o {targDir}{default}.a.o {AOptions}### Build Rules ###all Ä QueryCSVQueryCSV  ÄÄ  {ObjFiles-68K} {LibFiles-68K} {¥MondoBuild¥}	ILink ¶		-o {Targ} ¶		{ObjFiles-68K} ¶		{LibFiles-68K} ¶		{Sym-68K} ¶		-mf -d ¶		-t 'APPL' ¶		-c 'qcsv' ¶		-model far ¶		-state rewrite ¶		-compact -pad 0	If "{Sym-68K}" =~ /-sym Å[nNuU]Å/		ILinkToSYM {Targ}.NJ -mf -sym 3.2 -c 'sade'MacOS:dirs:test:mac.c	EndQueryCSV  ÄÄ  {¥MondoBuild¥}	Rez -rd {RezFiles} -o {Targ} -append### Required Dependencies ###"{ObjDir}mac.c.o"  Ä  mac.c"{ObjDir}lexer.c.o"  Ä  lexer.c"{ObjDir}sql.c.o"  Ä  sql.c"{ObjDir}hash1.c.o"  Ä  hash1.c"{ObjDir}hash2.c.o"  Ä  hash2.c"{ObjDir}hash3.c.o"  Ä  hash3.c"{ObjDir}hash4.c.o"  Ä  hash4.c"{ObjDir}querycsv.c.o"  Ä  querycsv.c### Optional Dependencies ###### Build this target to generate "include file" dependencies. ###Dependencies  Ä  $OutOfDate	MakeDepend ¶		-append {MAKEFILE} ¶		-ignore "{CIncludes}" ¶		-objdir "{ObjDir}" ¶		-objext .o ¶		{Includes} ¶		{SrcFiles}
