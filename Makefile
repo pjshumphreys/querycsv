@@ -50,6 +50,10 @@ querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4.o querycsv.o
 	cd env/win32; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/m68kmac/ \;
 	cd env/m68kmac; unix2mac *
+	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/riscos/c/ \;
+	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;
+	cd env/riscos/c; find . -name "*.c" | sed -e "p;s/\.c$$//" | xargs -n2 mv
+	cd env/riscos/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp

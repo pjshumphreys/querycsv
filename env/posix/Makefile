@@ -24,7 +24,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f $(OBJECTS)
+	rm -f $(OBJECTS) querycsv
 
 .PHONY: all
 .PHONY: count

@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
   argc2 = argc;
   argv2 = argv;
 
-  #if WINDOWS
+  #ifdef WINDOWS
     setupWin32(&argc2, &argv2);
   #endif
 

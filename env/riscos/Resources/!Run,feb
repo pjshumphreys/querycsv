@@ -2,13 +2,10 @@
 |
 | Startup file for QueryCSV
 |
-If "<Boot$OSVersion>" >= "500" Then IconSprites <Obey$Dir>.5Sprites Else If "<Boot$OSVersion>" >= "400" Then IconSprites <Obey$Dir>.4Sprites Else IconSprites <Obey$Dir>.!Sprites
-|
-Set Alias$@RunType_090 Run <Obey$Dir>.!Run %%*0
-Set File$Type_090 CSVQuery
+IconSprites <Obey$Dir>.!Sprites
 |
 |
-WimpSlot -min 128K
+WimpSlot -min 332K -max 332K
 |
 |
 RMEnsure UtilityModule 3.10 Error This application only runs on RISC OS 3.10 or later
@@ -18,6 +15,8 @@ RMEnsure TaskWindow 0.47 Error This application requires the Task Window module 
 |
 |
 Set QueryCSV$Dir <Obey$Dir>
+Set Alias$@RunType_090 TaskWindow "<QueryCSV$Dir>.querycsv %%*0" -wimpslot 300K -name QueryCSV
+Set File$Type_090 CSVQuery
 |
 |
-TaskWindow "<QueryCSV$Dir>.!RunImage" %*0
+Run <QueryCSV$Dir>.!RunImage

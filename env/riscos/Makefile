@@ -2,7 +2,7 @@
 
 COMPONENT  = QueryCSV
 TARGET     = !RunImage
-OBJS       = querycsv
+OBJS       = lexer sql hash1 hash2 hash3 hash4 querycsv
 CINCLUDES  = -Itbox:,C:
 LIBS       = ${EVENTLIB} ${TBOXLIB} ${WIMPLIB}
 INSTDIR    ?= <Install$Dir>
@@ -16,9 +16,91 @@ clean_all:: clean
         ${WIPE} ${INSTAPP} ${WFLAGS}
 
 # Dynamic dependencies:
+o.lexer:	c.lexer
+o.sql:	c.sql
+o.hash1:	c.hash1
+o.hash2:	c.hash2
+o.hash3:	c.hash3
+o.hash4:	c.hash4
 o.querycsv:	c.querycsv
-#o.querycsv:	C:h.wimp
-#o.querycsv:	C:h.toolbox
-#o.querycsv:	C:h.kernel
-#o.querycsv:	C:h.event
-#o.querycsv:	C:h.wimplib
+o.querycsv:	h.querycsv
+o.querycsv:	h.en_gb
+o.querycsv:	h.gen
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.sql
+o.querycsv:	h.lexer
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
+o.querycsv:	h.querycsv
