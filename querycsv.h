@@ -21,7 +21,7 @@
   #define DEFAULT_TEMP "TMPDIR=/tmp"
   #include <dirent.h>   //for opendir, readdir & closedir
 
-  //used as stricmp isn't part of posix doesn't have stricmp
+  //used as posix doesn't have stricmp
   #include <strings.h>
   #define stricmp strcasecmp
 #endif
@@ -63,7 +63,7 @@
   #define MAC_YIELD
   //macYield();
 //#endif
-  #define YY_NO_UNISTD_H
+  #define YY_NO_UNISTD_H 1
   #undef putenv   //on MPW putenv has the wrong signature
   int putenv(char *string);
   char* strdup(const char* s);
@@ -77,6 +77,23 @@
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=:"
 #endif
+
+#ifdef __CC_NORCROFT
+  #define MAC_YIELD
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF       //Norcroft is not a brain dead compiler
+  #include <errno.h>      // <errno.h> only has definitions for a small number of error types 
+  #include <unixlib.h>        //for strdup and strcasecmp
+  #define TEMP_VAR "TMPDIR"   //TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered
+  #define DEFAULT_TEMP "TMPDIR=:"
+  #define stricmp strcasecmp  //strcasecmp is defined in unixlib.h
+  int putenv(char* string);   //putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent)
+  void setupRiscOS(int *argc, char ***argv);  //additional stuff needed at start up
+  FILE *fopen_ros(const char *filename, const char *mode);
+  #define fopen fopen_ros
+#endif
+
+
 
 //translatable strings
 #include "en_gb.h"

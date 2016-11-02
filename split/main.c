@@ -25,6 +25,10 @@ int main(int argc, char *argv[]) {
     setupWin32(&argc2, &argv2);
   #endif
 
+  #ifdef __CC_NORCROFT
+    setupRiscOS(&argc2, &argv2);
+  #endif
+
   //identify whether to run a script or display the usage message
   if(argc2 == 2) {
     return runQuery(argv2[1]);

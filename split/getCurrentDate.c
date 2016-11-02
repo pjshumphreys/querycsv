@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-int getCurrentDate() {
+int getCurrentDate(void) {
   time_t now;
   struct tm local;
 
