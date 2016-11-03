@@ -22,28 +22,28 @@ struct expression *parse_scalarExpColumnRef(
   if(referencePtr->referenceType == REF_COLUMN) {
     expressionPtr->type = EXP_COLUMN;
 
-    //unbox csv column reference
+    /* unbox csv column reference */
     columnPtr = referencePtr->reference.columnPtr;
     
     expressionPtr->unionPtrs.voidPtr = (void *)(columnPtr);
     expressionPtr->minColumn = columnPtr->columnIndex;
     expressionPtr->minTable = ((struct inputTable*)columnPtr->inputTablePtr)->fileIndex;
 
-    //this line might need to be changed
+    /* this line might need to be changed */
     expressionPtr->containsAggregates = FALSE;
   }
   else {
     expressionPtr->type = EXP_CALCULATED;
 
-    //unbox calculated expression column
+    /* unbox calculated expression column */
     expressionColumnPtr = referencePtr->reference.calculatedPtr.expressionPtr;
 
-    //TODO: fill out these 3 fields with the correct value
+    /* TODO: fill out these 3 fields with the correct value */
     expressionPtr->unionPtrs.voidPtr = (void *)(expressionColumnPtr);
     expressionPtr->minColumn = expressionColumnPtr->minColumn;
     expressionPtr->minTable = expressionColumnPtr->minTable;
 
-    //this line might need to be changed
+    /* this line might need to be changed */
     expressionPtr->containsAggregates = expressionColumnPtr->containsAggregates;
   }
   

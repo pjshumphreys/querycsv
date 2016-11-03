@@ -38,7 +38,7 @@ int getCsvColumn(
     return FALSE;
   }
 
-  //read a character
+  /* read a character */
   do {
     c = fgetc(*inputFile);
 

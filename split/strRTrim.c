@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-//decrement size of a string to represent right trimming whitespace 
+/* decrement size of a string to represent right trimming whitespace  */
 int strRTrim(char **value, size_t *strSize, char *minSize) {
   char *end;
   char *str;

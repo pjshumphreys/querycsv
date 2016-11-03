@@ -9,7 +9,7 @@ void cleanup_matchValues(
 
   MAC_YIELD
 
-  //for each column in the output result set ...
+  /* for each column in the output result set ... */
   for(i = 0, len = query->columnCount; i < len; i++) {
     free((*match)[i].value);
   }

@@ -24,12 +24,12 @@ typedef void* yyscan_t;
 %parse-param { yyscan_t scanner }
 
 %union {
-	//double floatval;
+	/* double floatval; */
 	long intval;
-	char * strval;
-  struct columnReference * referencePtr;
-  struct expression* expressionPtr;
-  struct atomEntry* atomPtr;
+	char *strval;
+  struct columnReference *referencePtr;
+  struct expression *expressionPtr;
+  struct atomEntry *atomPtr;
 }
 
 	/* operators */

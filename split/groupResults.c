@@ -6,17 +6,17 @@ void groupResults(struct qryData *query) {
 
   MAC_YIELD
 
-  //backup the original result set
+  /* backup the original result set */
   resultsOrig = query->resultSet;
   query->resultSet = NULL;
 
-  //keep a reference to the current record
+  /* keep a reference to the current record */
   query->match = getFirstRecord(
     resultsOrig,
     query
   );
 
-  //store a copy of the first record and initialise the running totals
+  /* store a copy of the first record and initialise the running totals */
   updateRunningCounts(query, query->match);
 
   tree_walkAndCleanup(
@@ -25,7 +25,7 @@ void groupResults(struct qryData *query) {
     &groupResultsInner
   );
 
-  //mark each column as having had grouping performed
+  /* mark each column as having had grouping performed */
   currentResultColumn = query->firstResultColumn;
   while(currentResultColumn != NULL) {
     currentResultColumn->groupingDone = TRUE;

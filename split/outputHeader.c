@@ -11,7 +11,7 @@ void outputHeader(
 
   MAC_YIELD
 
-  //set up the output context
+  /* set up the output context */
   if(query->intoFileName) {
     query->newLine = "\r\n";
     query->outputFile = fopen(query->intoFileName, "wb");
@@ -28,12 +28,12 @@ void outputHeader(
 
   outputFile = query->outputFile;
 
-  //write the byte order mark if it was requested
+  /* write the byte order mark if it was requested */
   if(((query->params) & PRM_BOM) != 0) {
     fputs("\xEF\xBB\xBF", outputFile);
   }
 
-  //write column headers to the output file
+  /* write column headers to the output file */
   for(
       currentResultColumn = query->firstResultColumn;
       currentResultColumn != NULL;
@@ -48,7 +48,7 @@ void outputHeader(
         firstColumn = FALSE;
       }
 
-      //strip over the leading underscore
+      /* strip over the leading underscore */
       fputs((currentResultColumn->resultColumnName)+1, outputFile);
     }
   }

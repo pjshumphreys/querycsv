@@ -14,11 +14,11 @@ void parse_whereClause(
   }
 
   if(queryData->joinsAndWhereClause == NULL) {
-    //first join or where clause. just use it dirrectly
+    /* first join or where clause. just use it dirrectly */
     queryData->joinsAndWhereClause = expressionPtr;
   }
   else {
-    //get current clauses
+    /* get current clauses */
     currentClauses = queryData->joinsAndWhereClause;
 
     newClause = NULL;
@@ -40,8 +40,8 @@ void parse_whereClause(
       newClause->unionPtrs.leaves.leftPtr = expressionPtr;
       newClause->unionPtrs.leaves.rightPtr = currentClauses;
 
-      //The minimum table and column needed to evaluate this
-      //sub-expression is the greater of the two operands
+      /* The minimum table and column needed to evaluate this */
+      /* sub-expression is the greater of the two operands */
       newClause->minColumn = currentClauses->minColumn;
       newClause->minTable = currentClauses->minTable;
     }
@@ -49,8 +49,8 @@ void parse_whereClause(
       newClause->unionPtrs.leaves.leftPtr = currentClauses;
       newClause->unionPtrs.leaves.rightPtr = expressionPtr;
 
-      //The minimum table and column needed to evaluate this
-      //sub-expression is the greater of the two operands
+      /* The minimum table and column needed to evaluate this */
+      /* sub-expression is the greater of the two operands */
       newClause->minColumn = expressionPtr->minColumn;
       newClause->minTable = expressionPtr->minTable;
     }

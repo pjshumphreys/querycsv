@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-//output a record to stdio
+/* output a record to stdio */
 void outputResult(
     struct qryData *query,
     struct resultColumnValue *columns,
@@ -17,7 +17,7 @@ void outputResult(
 
   MAC_YIELD
 
-  //for output columns
+  /* for output columns */
   j=0;
   for(
       currentResultColumn = query->firstResultColumn;
@@ -45,9 +45,9 @@ void outputResult(
         default: {
           stringGet((unsigned char **)(&string), field, query->params);
 
-          //need to properly re-escape fields that need it
+          /* need to properly re-escape fields that need it */
           if(*string == '\0') {
-            fputs("\"\"", outputFile);  //empty string always needs escaping
+            fputs("\"\"", outputFile);  /* empty string always needs escaping */
           }
           else if(needsEscaping(string, query->params)) {
             string2 = strReplace("\"","\"\"", string);

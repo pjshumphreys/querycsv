@@ -17,7 +17,7 @@ struct hash2Entry* isInHash2(long codepoint) {
     return NULL;
   }
 
-  //TODO: check each of the hash maps in turn, and if an entry is found, copy it to RAM and return the copy
+  /* TODO: check each of the hash maps in turn, and if an entry is found, copy it to RAM and return the copy */
   return (struct hash2Entry*)bsearch(
       (const void*)&codepoint,
       (const void*)&hash2,

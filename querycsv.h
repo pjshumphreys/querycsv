@@ -1,11 +1,11 @@
 #ifndef QUERYCSV_H
 #define QUERYCSV_H 1
 
-#define ECHO 1 //disables flex from outputing unmatched input
+#define ECHO 1 /* disables flex from outputing unmatched input */
 #define FALSE 0
 #define TRUE  1
 
-//standard lib headers
+/* standard lib headers */
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -16,32 +16,34 @@
 
 #ifdef __unix__
   #define MAC_YIELD
-  #define HAS_VSNPRINTF   //this function is available on windows but doesn't work properly there
+  #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+  #define HAS_STRDUP
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=/tmp"
-  #include <dirent.h>   //for opendir, readdir & closedir
+  #include <dirent.h>   /* for opendir, readdir & closedir */
 
-  //used as posix doesn't have stricmp
+  /* used as posix doesn't have stricmp */
   #include <strings.h>
   #define stricmp strcasecmp
 #endif
 
 #ifdef MICROSOFT
   #define MAC_YIELD
-  #define DEVNULL "NUL"   //null filename on DOS/Windows
+  #define HAS_STRDUP
+  #define DEVNULL "NUL"   /* null filename on DOS/Windows */
   #define TEMP_VAR "TEMP"
   #define DEFAULT_TEMP "TEMP=."
-  #define MAX_UTF8_PATH 780 // (_MAX_PATH)*3
+  #define MAX_UTF8_PATH 780 /* (_MAX_PATH)*3 */
 
   struct dirent {
     unsigned  d_type;
-    time_t    d_ctime; //-1 for FAT file systems
-    time_t    d_atime; //-1 for FAT file systems
+    time_t    d_ctime; /* -1 for FAT file systems */
+    time_t    d_atime; /* -1 for FAT file systems */
     time_t    d_mtime;
-    long      d_size; //64-bit size info
+    long      d_size; /* 64-bit size info */
     char      d_name[MAX_UTF8_PATH];
-    char      d_first; //flag for 1st time
-    long      d_handle; //handle to pass to FindNext
+    char      d_first; /* flag for 1st time */
+    long      d_handle; /* handle to pass to FindNext */
   };
 
   #define DIR struct dirent
@@ -56,24 +58,23 @@
 #endif
 
 #ifdef MPW_C
-//#ifdef __MACH__
-//  #define MAC_YIELD
-//#else
+/*#ifdef __MACH__
+    #define MAC_YIELD
+#else */
   void macYield();
   #define MAC_YIELD
-  //macYield();
-//#endif
+  /* macYield(); */
+/* #endif */
   #define YY_NO_UNISTD_H 1
-  #undef putenv   //on MPW putenv has the wrong signature
+  #undef putenv   /* on MPW putenv has the wrong signature */
   int putenv(char *string);
-  char* strdup(const char* s);
-  //macs don't have stricmp, so we provide our own implementation
+  /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__
-    #undef stricmp   //this function is available on windows but doesn't work properly there
-    #undef HAS_VSNPRINTF   //this function is available on windows but doesn't work properly there
+    #undef stricmp   /* this function is available on windows but doesn't work properly there */
+    #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
   #endif
   int stricmp(const char *str1, const char *str2);
-  #define DEVNULL "Dev:Null"   //null filename on MacOS Classic (i.e. pre OS X)
+  #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=:"
 #endif
@@ -81,14 +82,15 @@
 #ifdef __CC_NORCROFT
   #define MAC_YIELD
   #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF       //Norcroft is not a brain dead compiler
-  #include <errno.h>      // <errno.h> only has definitions for a small number of error types 
-  #include <unixlib.h>        //for strdup and strcasecmp
-  #define TEMP_VAR "TMPDIR"   //TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered
+  #define HAS_VSNPRINTF       /* Norcroft is not a brain dead compiler */
+  #define HAS_STRDUP
+  #include <errno.h>      /* <errno.h> only has definitions for a small number of error types */
+  #include <unixlib.h>        /* for strdup and strcasecmp */
+  #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
   #define DEFAULT_TEMP "TMPDIR=."
-  #define stricmp strcasecmp  //strcasecmp is defined in unixlib.h
-  int putenv(char* string);   //putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent)
-  void setupRiscOS(int *argc, char ***argv);  //additional stuff needed at start up
+  #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+  int putenv(char* string);   /* putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent) */
+  void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
   FILE *fopen_ros(const char *filename, const char *mode);
   #define fopen fopen_ros
 #endif
@@ -97,18 +99,19 @@
   #define MAC_YIELD
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF
-  #define TEMP_VAR "TMPDIR"   //TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered
+  #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
   #define DEFAULT_TEMP "TMPDIR=."
   void setupAmiga(int* argc, char*** argv);
+  #include <clib/utility_protos.h>
+  #define stricmp Stricmp
+  int putenv(char *string);
+  #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
 #endif
 
-
-
-
-//translatable strings
+/* translatable strings */
 #include "en_gb.h"
 
-//sub expression types
+/* sub expression types */
 #define EXP_COLUMN 1
 #define EXP_LITERAL 2
 #define EXP_CALCULATED 3
@@ -132,11 +135,11 @@
 #define EXP_NOTIN 21
 #define EXP_GROUP 22
 
-//identifier reference types
+/* identifier reference types */
 #define REF_COLUMN 1
 #define REF_EXPRESSION 2
 
-//grouping types
+/* grouping types */
 #define GRP_NONE 0
 #define GRP_AVG 1
 #define GRP_MIN 2
@@ -145,25 +148,25 @@
 #define GRP_COUNT 5
 #define GRP_CONCAT 6
 #define GRP_STAR 7
-#define GRP_DIS_AVG 8   //DIS = Distinct
+#define GRP_DIS_AVG 8   /* DIS = Distinct */
 #define GRP_DIS_MIN 9
 #define GRP_DIS_MAX 10
 #define GRP_DIS_SUM 11
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
 
-//output parameters. Now specified as part of the input grammar
-#define PRM_TRIM 1    //left trim and right trim whitespace from each column value
-#define PRM_SPACE 2   //put a space before each column value tat's not the first
+/* output parameters. Now specified as part of the input grammar */
+#define PRM_TRIM 1    /* left trim and right trim whitespace from each column value */
+#define PRM_SPACE 2   /* put a space before each column value tat's not the first */
 #define PRM_IMPORT 4
 #define PRM_EXPORT 8
-#define PRM_BOM 16    //output a utf-8 byte order mark before the file contents
+#define PRM_BOM 16    /* output a utf-8 byte order mark before the file contents */
 
 #define TRE_BLACK 1
 #define TRE_RED 2
 #define TRE_FREED 3
 
-//structures
+/* structures */
 struct resultColumn {
   int resultColumnIndex;
   int isHidden;
@@ -179,10 +182,10 @@ struct resultColumn {
 };
 
 struct inputColumn {
-  int columnIndex;  //position of this column within a csv record
-  char *fileColumnName; //name according to csv header record
-  void *inputTablePtr;  //reference back to the parent table
-  struct resultColumn *firstResultColumn;    //links to where this column is output into the result set
+  int columnIndex;  /* position of this column within a csv record */
+  char *fileColumnName; /* name according to csv header record */
+  void *inputTablePtr;  /* reference back to the parent table */
+  struct resultColumn *firstResultColumn;    /* links to where this column is output into the result set */
   struct inputColumn *nextColumnInTable;
 };
 
@@ -191,8 +194,8 @@ struct inputTable {
   int columnCount;
   int isLeftJoined;
   int noLeftRecord;
-  long firstRecordOffset;  //where in the file the beginning of the first record is located
-  char *queryTableName;  //according to the query
+  long firstRecordOffset;  /* where in the file the beginning of the first record is located */
+  char *queryTableName;  /* according to the query */
   FILE *fileStream;
   struct inputTable *nextInputTable;
   struct inputColumn *firstInputColumn;
@@ -226,20 +229,20 @@ struct expression {
 };
 
 struct columnReference {
-  char *referenceName; //if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as'
-  int referenceType;  //1 - actual input column, 2 - expression
+  char *referenceName; /* if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as' */
+  int referenceType;  /* 1 - actual input column, 2 - expression */
   union {
     struct inputColumn *columnPtr;
     struct {
       struct expression *expressionPtr;
-      struct resultColumn *firstResultColumn;    //links to where this column is output into the result set
+      struct resultColumn *firstResultColumn;    /* links to where this column is output into the result set */
     } calculatedPtr;
-  } reference; //a pointer to the information we want
-  struct columnReference *nextReferenceWithName; //if this is non null and the query didn't specify which table to use then we should error
+  } reference; /* a pointer to the information we want */
+  struct columnReference *nextReferenceWithName; /* if this is non null and the query didn't specify which table to use then we should error */
 };
 
 struct columnRefHashEntry {
-  char *referenceName; //if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as'
+  char *referenceName; /* if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as' */
   struct columnReference *content;
   struct columnRefHashEntry *nextReferenceInHash;
 };
@@ -255,27 +258,27 @@ struct sortingList {
   struct sortingList *nextInList;
 };
 
-struct resultColumnValue { //this information should be stored in files
+struct resultColumnValue { /* this information should be stored in files */
   long startOffset;
   int isQuoted;
   int isNormalized;
   int leftNull;
   size_t length;
-  char *value;  //pre normalised value
+  char *value;  /* pre normalised value */
 };
 
-//results are sorted in a binary tree for quick in order retrieval
-//TODO: make the tree_insert function use a red black tree algorithm
+/* results are sorted in a binary tree for quick in order retrieval */
+/* TODO: make the tree_insert function use a red black tree algorithm */
 struct resultTree {
   struct resultTree *left;
   struct resultTree *right;
   struct resultTree *parent;
   struct resultColumnValue *columns;
-  int type; //red, black or freed
+  int type; /* red, black or freed */
 };
 
 struct qryData {
-  int parseMode;  //0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure,
+  int parseMode;  /* 0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure, */
   int hasGrouping;
   int columnCount;
   int hiddenColumnCount;
@@ -286,14 +289,14 @@ struct qryData {
   char *intoFileName;
   char *newLine;
   FILE *outputFile;
-  struct columnReferenceHash *columnReferenceHashTable; //used to get a reference to an input column given a column name
+  struct columnReferenceHash *columnReferenceHashTable; /* used to get a reference to an input column given a column name */
   struct inputTable *firstInputTable;
-  struct inputTable *secondaryInputTable;   //initially the last left joined input table. Then the current input table when getting matching records
+  struct inputTable *secondaryInputTable;   /* initially the last left joined input table. Then the current input table when getting matching records */
   struct resultColumn *firstResultColumn;
   struct expression *joinsAndWhereClause;
   struct sortingList *orderByClause;
   struct sortingList *groupByClause;
-  struct resultTree *resultSet; //stored as a binary tree now
+  struct resultTree *resultSet; /* stored as a binary tree now */
   struct resultColumnValue *match;
 };
 
@@ -315,7 +318,7 @@ struct hash2Entry {
 
 struct hash3Entry {
   long codepoint;
-  //int priority;
+  /* int priority; */
   int order;
 };
 
@@ -326,7 +329,7 @@ struct hash4Entry {
   int islower;
 };
 
-//function prototypes
+/* function prototypes */
 struct hash4Entry *in_word_set(register const char *str,register unsigned int len);
 
 int normaliseAndGet(

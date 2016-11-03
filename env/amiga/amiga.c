@@ -1,9 +1,13 @@
+#include "querycsv.h"
+#undef main
+int realmain(int argc, char **argv);
 #include <stdio.h>
-#include <stdlib.h>
+#include <errno.h>
 #include <intuition/intuition.h>
 #include <workbench/startup.h>
 
 struct IntuitionBase *IntuitionBase = NULL;
+struct Library *UtilityBase = NULL;
 
 struct IntuiText hello_text4 = {
     AUTOFRONTPEN,
@@ -77,38 +81,37 @@ void shutdownfoo(void) {
   fclose(stdout);
 }
 
-void setupAmiga(int* argc, char*** argv) {
+/* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
+int main(int argc, char** argv) {
   struct WBStartup *argmsg;
   struct WBArg *wbarg;
   int idx;
   FILE* fp;
 
-  if(*argc == 0) {
+  if(argc == 0) {
     argmsg = (struct WBStartup *)argv;
-    *argc = argmsg->sm_NumArgs;
 
-    if(*argc != 2) {
+    if(argmsg->sm_NumArgs < 2) {
       IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0);
       AutoRequest(NULL, &hello_text, NULL, &ok_text, NULL, NULL, 358, 85);
       CloseLibrary(IntuitionBase);
       exit(EXIT_FAILURE);
     }
 
-    if((myargv = malloc(3*sizeof(char*))) == NULL) {
-      exit(EXIT_FAILURE);
-    }
-
     /* open console for reading and writing so that we can prevent the console window
     from closing until enter has been pressed */
     if((fp = freopen("CON:30/30/510/175/QueryCSV", "a+", stdout)) == NULL) {
+      exit(EXIT_FAILURE);
+    }
+
+    atexit(shutdownfoo);
+
+    if((myargv = malloc(3*sizeof(char*))) == NULL) {
       free(myargv);
       exit(EXIT_FAILURE);
     }
 
-    *argv = myargv;
-    atexit(shutdownfoo);
-
-    for(idx = 0, wbarg = argmsg->sm_ArgList; idx < (*argc); idx++, wbarg++) {
+    for(idx = 0, wbarg = argmsg->sm_ArgList; idx < argmsg->sm_NumArgs; idx++, wbarg++) {
       if(olddir != (BPTR)-1) {
         CurrentDir(olddir);
         olddir = (BPTR)-1;
@@ -121,6 +124,44 @@ void setupAmiga(int* argc, char*** argv) {
       myargv[idx] = wbarg->wa_Name;
     }
 
-    myargv[argc] = NULL;
+    myargv[idx] = (char *)0;
+
+    return realmain(idx, myargv);
   }
+  else {
+    return realmain(argc, argv);
+  }
+}
+
+int putenv(char* string) {
+  char* key = NULL;
+  char* value = NULL;
+  FILE *envFile;
+  
+  if(
+      string == NULL ||
+      string[0] == '=' ||
+      !d_sprintf(&key, "ENV:%s", string) ||
+      (value = (char *)strchr(key, (int)('='))) == NULL
+  ) {
+    free(key);
+    errno = ENOMEM;
+    return -1;
+  }
+  
+  value[0] = '\0';
+  value++;
+
+  if((envFile = fopen(key, "w")) == NULL) {
+    free(key);
+    errno = ENOMEM;
+    return -1;
+  }
+
+  fputs(value, envFile);
+  fclose(envFile);
+
+  free(key);
+
+  return 0;
 }

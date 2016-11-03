@@ -1,4 +1,4 @@
-//some translatable text strings
+/* some translatable text strings */
 #define TDB_DEFAULT_TZ "TZ=GMT0BST,M3.5.0/1,M10.5.0/2"
 #define TDB_LOCALE "en_GB.UTF8"
 #define TDB_COULDNT_OPEN_INPUT "Couldn't open input file\n"

@@ -35,7 +35,7 @@ struct expression *parse_scalarExp(
     rightPtr->minColumn < leftPtr->minColumn)
   ) {
       
-    //if the operator is commutable, then re-order so that the minimum table reference is on the left
+    /* if the operator is commutable, then re-order so that the minimum table reference is on the left */
     if(
         operator == EXP_PLUS ||
         operator == EXP_MULTIPLY ||
@@ -50,8 +50,8 @@ struct expression *parse_scalarExp(
       expressionPtr->unionPtrs.leaves.rightPtr = rightPtr;
     }
 
-    //The minimum table and column needed to evaluate this
-    //sub-expression is the greater of the two operands
+    /* The minimum table and column needed to evaluate this */
+    /* sub-expression is the greater of the two operands */
     expressionPtr->minColumn = leftPtr->minColumn;
     expressionPtr->minTable = leftPtr->minTable;
 

@@ -14,7 +14,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
 
   query->groupCount++;
 
-  //for each column in the output result set ...
+  /* for each column in the output result set ... */
   for(i = 0; i < query->columnReferenceHashTable->size; i++) {
     currentHashEntry = query->columnReferenceHashTable->table[i];
 
@@ -23,7 +23,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
       currentReference = currentHashEntry->content;
 
       while(currentReference != NULL) {
-        //... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way
+        /* ... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way */
         if(
             currentReference->referenceType == REF_EXPRESSION &&
             (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
@@ -108,7 +108,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
                 if(currentResultColumn->groupText == NULL || strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
-                    2,//TRUE,
+                    2,    /* TRUE, */
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == -1) {
@@ -126,7 +126,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
                 if(currentResultColumn->groupText == NULL || strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
-                    2,//TRUE,
+                    2,    /* TRUE, */
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == 1) {
@@ -147,7 +147,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
         currentReference = currentReference->nextReferenceWithName;
       }
 
-      //go to the next reference in the hash table
+      /* go to the next reference in the hash table */
       currentHashEntry = currentHashEntry->nextReferenceInHash;
     }
   }

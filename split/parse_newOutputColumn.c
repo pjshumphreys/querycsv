@@ -14,7 +14,7 @@ struct resultColumn *parse_newOutputColumn(
 
   reallocMsg(TDB_MALLOC_FAILED, (void**)(&newResultColumn), sizeof(struct resultColumn));
 
-  //insert this new output column into the list in the query data
+  /* insert this new output column into the list in the query data */
   if(queryData->firstResultColumn == NULL) {
     newResultColumn->resultColumnIndex = 0;
     queryData->firstResultColumn = newResultColumn;
@@ -22,16 +22,16 @@ struct resultColumn *parse_newOutputColumn(
   }
   else {
     newResultColumn->resultColumnIndex = queryData->firstResultColumn->resultColumnIndex+1;
-    newResultColumn->nextColumnInResults = queryData->firstResultColumn->nextColumnInResults;   //maintain circularly linked list for now
+    newResultColumn->nextColumnInResults = queryData->firstResultColumn->nextColumnInResults;   /* maintain circularly linked list for now */
     queryData->firstResultColumn->nextColumnInResults = newResultColumn;
     queryData->firstResultColumn = newResultColumn;
   }
   
-  //fill out the rest of the necessary fields
+  /* fill out the rest of the necessary fields */
   newResultColumn->isHidden = isHidden2;
   newResultColumn->isCalculated = isCalculated2;
   newResultColumn->resultColumnName = resultColumnName2;
-  newResultColumn->nextColumnInstance = NULL;   //TODO: this field needs to be filled out properly
+  newResultColumn->nextColumnInstance = NULL;   /* TODO: this field needs to be filled out properly */
 
   newResultColumn->groupType = aggregationType;
   newResultColumn->groupText = NULL;

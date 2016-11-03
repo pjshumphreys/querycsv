@@ -13,4 +13,4 @@ void reallocMsg(char *failureMessage, void **mem, size_t size) {
   *mem = temp;
 }
 
-//static void* binaryTree;  //if malloc, calloc or realloc fail then try cleaning up some memory by flushing our binary tree to disk
+/* static void* binaryTree;  // if malloc, calloc or realloc fail then try cleaning up some memory by flushing our binary tree to disk */

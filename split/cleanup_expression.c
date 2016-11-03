@@ -13,11 +13,11 @@ void cleanup_expression(struct expression *currentExpression) {
       break;
 
       case EXP_COLUMN:
-        //the memory used by the input column will be freed elsewhere
+        /* the memory used by the input column will be freed elsewhere */
       break;
 
       case EXP_GROUP:
-        //the memory used here is cleaned up elsewhere
+        /* the memory used here is cleaned up elsewhere */
       break;
 
       case EXP_LITERAL:
@@ -25,7 +25,7 @@ void cleanup_expression(struct expression *currentExpression) {
       break;
 
       case EXP_CALCULATED:
-        //TODO: confirm that the expression will be freed elsewhere
+        /* TODO: confirm that the expression will be freed elsewhere */
       break;
 
       case EXP_UMINUS:

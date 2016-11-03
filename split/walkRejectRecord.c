@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-//TRUE means the record was rejected.  FALSE means the record should not yet be rejected
+/* TRUE means the record was rejected.  FALSE means the record should not yet be rejected */
 int walkRejectRecord(
     int currentTable,
     struct expression *expressionPtr,
@@ -92,12 +92,12 @@ int walkRejectRecord(
         (void (*)())&getUnicodeChar
       ) == 0) {
         strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
-        return expressionPtr->type == EXP_NOTIN;  //FALSE
+        return expressionPtr->type == EXP_NOTIN;  /* FALSE */
       }
     }
 
     strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
-    return expressionPtr->type != EXP_NOTIN;  //TRUE
+    return expressionPtr->type != EXP_NOTIN;  /* TRUE */
   }
 
   return FALSE;

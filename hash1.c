@@ -21,13 +21,13 @@ int normaliseAndGet(
   long codepoint;
   struct hash1Entry const * lookupresult;
 
-  //if the allocation failed, print an error messge and exit
+  /* if the allocation failed, print an error messge and exit */
   reallocMsg(TDB_MALLOC_FAILED, (void**)&nfdString, strlen((const char *)(*str))+1);
 
-  //copy the string matched up to now directly into the output string
+  /* copy the string matched up to now directly into the output string */
   memcpy(nfdString, (void*)(*str), offsetInt);
 
-  //if we've done the work of finding an entry then we should make use of it to populate the codepoint array initially
+  /* if we've done the work of finding an entry then we should make use of it to populate the codepoint array initially */
   if(plusBytes != 0 || entry == NULL) {
     bufferLength = 0;
   }
@@ -39,24 +39,24 @@ int normaliseAndGet(
     *offset += bytesRead;
   }
 
-  for( ; ; ) {  //the get a codepoint code will break out of this loop
-    //while there are still unexamined codepoints in the buffer
+  for( ; ; ) {  /* the get a codepoint code will break out of this loop */
+    /* while there are still unexamined codepoints in the buffer */
     while(i != bufferLength) {
       if(isCombiningChar(codepointBuffer[i]) == 0) {
-        //if i=0 then there were no combining characters at the head of the buffer
-        //if i=1 then there is only 1 combining character at the head of the
-        //buffer. therefore it doesn't need sorting
+        /* if i=0 then there were no combining characters at the head of the buffer */
+        /* if i=1 then there is only 1 combining character at the head of the */
+        /* buffer. therefore it doesn't need sorting */
         if(i > 1) { 
-          //TODO: qsort the combining characters that preceed this codepoint
+          /* TODO: qsort the combining characters that preceed this codepoint */
         }
 
-        //output all the codepoints up to and including this one as utf-8 sequences
+        /* output all the codepoints up to and including this one as utf-8 sequences */
         for(j = 0; j <= i; j++) {
           nfdLength = strAppendUTF8(codepointBuffer[j], &nfdString, nfdLength);
         }
         
         bufferLength-=++i;
-        memmove((void*)codepointBuffer, (void*)&codepointBuffer[i], bufferLength*sizeof(long)); //downward in memory i number of codepoints
+        memmove((void*)codepointBuffer, (void*)&codepointBuffer[i], bufferLength*sizeof(long)); /* downward in memory i number of codepoints */
         i = 0;
       }
       else {
@@ -64,34 +64,34 @@ int normaliseAndGet(
       }
     }
 
-    //try getting a unicode code point
-    //if it's invalid or overlong, read the bytes as CP-437. and read the first byte using hash 1
-    //otherwise check if it's decomposable.
-    //if it's decomposable, put the entire sequence into the buffer then continue
-    //otherwise just put the codepoint into the buffer then continue
+    /* try getting a unicode code point */
+    /* if it's invalid or overlong, read the bytes as CP-437. and read the first byte using hash 1 */
+    /* otherwise check if it's decomposable. */
+    /* if it's decomposable, put the entire sequence into the buffer then continue */
+    /* otherwise just put the codepoint into the buffer then continue */
     plusBytes = 0;
     bytesRead = 0;
 
     if(**offset < 0x80) {
-      //if offset is 0 then we've reached the end of the string. quit the do loop
+      /* if offset is 0 then we've reached the end of the string. quit the do loop */
       if(**offset == 0) {
         break;
       }
       
       bytesRead = 1;
               
-      //read 1 byte. no overlong checks needed as a 1 byte code can
-      //never be overlong, and is never a combining character
+      /* read 1 byte. no overlong checks needed as a 1 byte code can */
+      /* never be overlong, and is never a combining character */
       reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
       codepointBuffer[bufferLength++] = (long)(*((*offset)++));
 
       continue;
     }
     
-    //ensure the current byte is the start of a valid utf-8 sequence
+    /* ensure the current byte is the start of a valid utf-8 sequence */
     if(**offset > 0xC1) {
       if (**offset < 0xE0) { 
-        //read 2 bytes
+        /* read 2 bytes */
         if(
             (*((*offset)+1) & 0xC0) == 0x80
         ) {
@@ -100,7 +100,7 @@ int normaliseAndGet(
         }
       }
       else if (**offset < 0xF0) {
-        //read 3 bytes
+        /* read 3 bytes */
         if(
             (*((*offset)+1) & 0xC0) == 0x80 &&
             (*(*offset) != 0xE0 || *((*offset)+1) > 0x9F) &&
@@ -111,7 +111,7 @@ int normaliseAndGet(
         }
       }
       else if (**offset < 0xF5) {
-        //read 4 bytes
+        /* read 4 bytes */
         if(
             (*((*offset)+1) & 0xC0) == 0x80 &&
             (*(*offset) != 0xF0 || *((*offset)+1) > 0x8F) &&
@@ -125,9 +125,9 @@ int normaliseAndGet(
       }
     }
 
-    //consume any other bytes using the CP-437 character set
+    /* consume any other bytes using the CP-437 character set */
     if(bytesRead == 0) {
-      //do a lookup using hash1
+      /* do a lookup using hash1 */
       lookupresult = &hash1[(*((*offset)++))-128];
 
       reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
@@ -135,15 +135,15 @@ int normaliseAndGet(
       bufferLength += lookupresult->length;
     }
     else if((entry = isInHash2(codepoint)) == NULL) {
-      //the codepoint we found was not decomposable. just put it in the buffer
+      /* the codepoint we found was not decomposable. just put it in the buffer */
       reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
       codepointBuffer[bufferLength] = codepoint;
       bufferLength += 1;
     }
     else {
-      //a decomposable codepoint was found in hash 2.
+      /* a decomposable codepoint was found in hash 2. */
 
-      //put the whole byte sequence into the buffer
+      /* put the whole byte sequence into the buffer */
       reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
       memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(long));
       bufferLength += entry->length;
@@ -152,26 +152,26 @@ int normaliseAndGet(
   }
 
   if(i > 1) { 
-    //TODO: qsort the combining characters that preceed this codepoint
+    /* TODO: qsort the combining characters that preceed this codepoint */
   }
 
-  //output the rest of the codepoints (which will all be combining characters)
+  /* output the rest of the codepoints (which will all be combining characters) */
   for(j = 0; j < i; j++) {
     nfdLength = strAppendUTF8(codepointBuffer[j], &nfdString, nfdLength);
   }
 
-  //append null to the string
+  /* append null to the string */
   strAppendUTF8(0, &nfdString, nfdLength);
 
-  //free the codepoint buffer
+  /* free the codepoint buffer */
   free(codepointBuffer);
   
-  //swap out the string that will be searched from now on. free the old version
+  /* swap out the string that will be searched from now on. free the old version */
   free(*str);
   *str = nfdString;
   (*offset) = (unsigned char *)((*str) + offsetInt);
 
-  //the whole string has been normalized to nfd form.
-  //now use the fast version to get the next codepoint
+  /* the whole string has been normalized to nfd form. */
+  /* now use the fast version to get the next codepoint */
   return getUnicodeCharFast(offset, str, plusBytes, bytesMatched, (void (*)())getUnicodeCharFast);
 }

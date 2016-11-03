@@ -1,8 +1,8 @@
 #include "querycsv.h"
 
-//getValue can be passed a scalar expression's abstract syntax
-//tree and it will evaluate it and turn it into a literal string of text characters.
-//the evaluated value must be freed later though.
+/* getValue can be passed a scalar expression's abstract syntax */
+/* tree and it will evaluate it and turn it into a literal string of text characters. */
+/* the evaluated value must be freed later though. */
 void getValue(
     struct expression *expressionPtr,
     struct resultColumnParam *match
@@ -18,9 +18,9 @@ void getValue(
 
   switch(expressionPtr->type) {
     case EXP_COLUMN: {
-      //get the value of the first instance in the result set of
-      //this input column (it should have just been filled out with a
-      //value for the current record)
+      /* get the value of the first instance in the result set of */
+      /* this input column (it should have just been filled out with a */
+      /* value for the current record) */
 
       field = &(match->ptr[
           ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->

@@ -6,22 +6,22 @@ int getColumnCount(char *inputFileName) {
 
   MAC_YIELD
 
-  //attempt to open the input file
+  /* attempt to open the input file */
   inputFile = skipBom(inputFileName);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return -1;
   }
 
-  //read csv columns until end of line occurs
+  /* read csv columns until end of line occurs */
   while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE)) {
     columnCount++;
   }
 
-  //output the number of columns we counted
+  /* output the number of columns we counted */
   fprintf(stdout, "%d", columnCount);
 
-  //close the input file and return
+  /* close the input file and return */
   fclose(inputFile);
   return 0;
 }

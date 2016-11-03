@@ -13,8 +13,8 @@ int tree_insert(
   MAC_YIELD
 
   if(root == NULL) {
-    //Huh? no memory location was specified to hold the tree?
-    //Just exit and let the author of the calling function figure out their mistake
+    /* Huh? no memory location was specified to hold the tree? */
+    /* Just exit and let the author of the calling function figure out their mistake */
     return FALSE;
   }
 
@@ -29,15 +29,15 @@ int tree_insert(
   newResult->type = TRE_BLACK;
 
   if(*root == NULL) {
-    //No entries have been inserted at all.
-    //Just insert the data into a new node
+    /* No entries have been inserted at all. */
+    /* Just insert the data into a new node */
     *root = newResult;
     return TRUE;
   }
   else {
-    //navigate down the tree, and insert the new data into the correct place within it
+    /* navigate down the tree, and insert the new data into the correct place within it */
 
-    //start at the top
+    /* start at the top */
     currentResult = *root;
 
     for( ; ; ) {

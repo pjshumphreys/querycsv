@@ -35,8 +35,8 @@ int consumeCombiningChars(
 
     if(skip1 == FALSE && skip2 == FALSE) {
       if(combiner1 != combiner2) {
-        //if either of them is not a combining character or not equal then accentcheck is set to 1
-        //if accentcheck is already 1 then return the one thats greater
+        /* if either of them is not a combining character or not equal then accentcheck is set to 1 */
+        /* if accentcheck is already 1 then return the one thats greater */
         if(*accentcheck == 2) {
           return (combiner1 > combiner2) ? 1 : -1;
         }

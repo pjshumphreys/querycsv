@@ -9,7 +9,7 @@ void getGroupedColumns(struct qryData *query) {
 
   MAC_YIELD
 
-  //for each column in the output result set ...
+  /* for each column in the output result set ... */
   for(i = 0; i < query->columnReferenceHashTable->size; i++) {
     currentHashEntry = query->columnReferenceHashTable->table[i];
 
@@ -17,14 +17,14 @@ void getGroupedColumns(struct qryData *query) {
       currentReference = currentHashEntry->content;
 
       while(currentReference != NULL) {
-        //... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way
+        /* ... check if the current column in the result set is a grouped one, and increment/set the group variables in the appropriate way */
         if(
             currentReference->referenceType == REF_EXPRESSION &&
             (currentResultColumn = currentReference->reference.calculatedPtr.firstResultColumn) != NULL &&
             currentResultColumn->groupType != GRP_NONE
           ) {
 
-          //convert the aggregation types that need it back into a string
+          /* convert the aggregation types that need it back into a string */
           switch(currentResultColumn->groupType) {
             case GRP_AVG:
             case GRP_DIS_AVG:
@@ -47,7 +47,7 @@ void getGroupedColumns(struct qryData *query) {
         currentReference = currentReference->nextReferenceWithName;
       }
 
-      //go to the next reference in the hash table
+      /* go to the next reference in the hash table */
       currentHashEntry = currentHashEntry->nextReferenceInHash;
     }
   }

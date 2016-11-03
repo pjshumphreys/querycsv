@@ -12,8 +12,8 @@ int strNumberCompare(char *input1, char *input2) {
 
   MAC_YIELD
   
-  //if the first character of only one of the numbers is negative,
-  //then the positive one is greater. We still need to skip the digits though
+  /* if the first character of only one of the numbers is negative, */
+  /* then the positive one is greater. We still need to skip the digits though */
   if(*string1 == '-') {
     string1++;
 
@@ -25,7 +25,7 @@ int strNumberCompare(char *input1, char *input2) {
       compare = -1;
     }
     else {
-      //if both are negative, then the subsequent results need to be reversed
+      /* if both are negative, then the subsequent results need to be reversed */
       negate = -1;
       string2++;
     }
@@ -45,7 +45,7 @@ int strNumberCompare(char *input1, char *input2) {
   }
 
   if(compare == 0) {
-    //skip the leading zeros of both numbers
+    /* skip the leading zeros of both numbers */
     while(*string1 == '0') {
       string1++;
     }
@@ -57,14 +57,14 @@ int strNumberCompare(char *input1, char *input2) {
     input1 = string1;
     input2 = string2;
 
-    //the number whose digits finish first is the smaller.
-    //We still need to skip the remaining digits though
+    /* the number whose digits finish first is the smaller. */
+    /* We still need to skip the remaining digits though */
     while(compare == 0) {
       if(*string1 > '9' || *string1 < '0') {
         if(*string2 > '9' || *string2 < '0') {
-          //if both numbers finish at the same time then
-          //rewind and look at the individual digits
-          //we don't need to skip the remaining digits
+          /* if both numbers finish at the same time then */
+          /* rewind and look at the individual digits */
+          /* we don't need to skip the remaining digits */
           string1 = input1;
           string2 = input2;
 
@@ -97,7 +97,7 @@ int strNumberCompare(char *input1, char *input2) {
 
             if(do1) {
               if(do2) {
-                //neither number has finished yet.
+                /* neither number has finished yet. */
                 if(*string1 >= '0' &&
                     *string1 <= '9' &&
                     *string2 >= '0' &&
@@ -116,8 +116,8 @@ int strNumberCompare(char *input1, char *input2) {
               string2++;
             }
             else {
-              //both numbers have finished
-              //the numbers are entirely equal
+              /* both numbers have finished */
+              /* the numbers are entirely equal */
 
               return 0;
             }
