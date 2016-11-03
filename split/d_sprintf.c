@@ -19,7 +19,7 @@ int d_sprintf(char **str, char *format, ...) {
   #ifdef HAS_VSNPRINTF
     //get the space needed for the new string
     va_start(args, format);
-    newSize = (size_t)(vsnprintf(NULL, 0, format, args)+1); //plus L'\0'
+    newSize = (size_t)(vsnprintf(NULL, 0, format, args)+1); //plus '\0'
     va_end(args);
   #else
     //open /dev/null so that we can get the space needed for the new string.
@@ -29,7 +29,7 @@ int d_sprintf(char **str, char *format, ...) {
 
     //get the space needed for the new string
     va_start(args, format);
-    newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
+    newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus '\0'
     va_end(args);
 
     //close the file. We don't need to look at the return code as we were writing to /dev/null
@@ -38,7 +38,7 @@ int d_sprintf(char **str, char *format, ...) {
 
   //Create a new block of memory with the correct size rather than using realloc
   //as any old values could overlap with the format string. quit on failure
-  if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
+  if((newStr = (char*)malloc(newSize)) == NULL) {
     return FALSE;
   }
 

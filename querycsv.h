@@ -85,13 +85,23 @@
   #include <errno.h>      // <errno.h> only has definitions for a small number of error types 
   #include <unixlib.h>        //for strdup and strcasecmp
   #define TEMP_VAR "TMPDIR"   //TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered
-  #define DEFAULT_TEMP "TMPDIR=:"
+  #define DEFAULT_TEMP "TMPDIR=."
   #define stricmp strcasecmp  //strcasecmp is defined in unixlib.h
   int putenv(char* string);   //putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent)
   void setupRiscOS(int *argc, char ***argv);  //additional stuff needed at start up
   FILE *fopen_ros(const char *filename, const char *mode);
   #define fopen fopen_ros
 #endif
+
+#ifdef __VBCC__
+  #define MAC_YIELD
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF
+  #define TEMP_VAR "TMPDIR"   //TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered
+  #define DEFAULT_TEMP "TMPDIR=."
+  void setupAmiga(int* argc, char*** argv);
+#endif
+
 
 
 

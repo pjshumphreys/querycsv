@@ -29,6 +29,10 @@ int main(int argc, char *argv[]) {
     setupRiscOS(&argc2, &argv2);
   #endif
 
+  #ifdef __VBCC__
+    setupAmiga(&argc2, &argv2);
+  #endif
+
   //identify whether to run a script or display the usage message
   if(argc2 == 2) {
     return runQuery(argv2[1]);

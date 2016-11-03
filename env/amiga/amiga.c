@@ -1,6 +1,7 @@
-/* Hello World in C for Intution (Amiga GUI) */
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <intuition/intuition.h>
+#include <workbench/startup.h>
 
 struct IntuitionBase *IntuitionBase = NULL;
 
@@ -37,7 +38,6 @@ struct IntuiText hello_text2 = {
     &hello_text3
   };
 
-
 struct IntuiText hello_text = {
     AUTOFRONTPEN,
     AUTOBACKPEN,
@@ -60,8 +60,67 @@ struct IntuiText ok_text = {
     AUTONEXTTEXT
   };
 
-int main(int argc, char **argv) {
-  IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0);
-  AutoRequest(NULL, &hello_text, NULL, &ok_text, NULL, NULL, 358, 85);
-  CloseLibrary(IntuitionBase);
+BPTR olddir = (BPTR)-1;
+char **myargv = NULL;
+
+void shutdownfoo(void) {
+  free(myargv);
+
+  if(olddir != (BPTR)-1) {
+    CurrentDir(olddir);
+    olddir = (BPTR)-1;
+  }
+
+  printf("\nPRESS ENTER TO QUIT\n");
+  setvbuf(stdout, NULL, _IONBF, 0);
+  while(fgetc(stdout) != 10) { /* Do nothing */}
+  fclose(stdout);
+}
+
+void setupAmiga(int* argc, char*** argv) {
+  struct WBStartup *argmsg;
+  struct WBArg *wbarg;
+  int idx;
+  FILE* fp;
+
+  if(*argc == 0) {
+    argmsg = (struct WBStartup *)argv;
+    *argc = argmsg->sm_NumArgs;
+
+    if(*argc != 2) {
+      IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0);
+      AutoRequest(NULL, &hello_text, NULL, &ok_text, NULL, NULL, 358, 85);
+      CloseLibrary(IntuitionBase);
+      exit(EXIT_FAILURE);
+    }
+
+    if((myargv = malloc(3*sizeof(char*))) == NULL) {
+      exit(EXIT_FAILURE);
+    }
+
+    /* open console for reading and writing so that we can prevent the console window
+    from closing until enter has been pressed */
+    if((fp = freopen("CON:30/30/510/175/QueryCSV", "a+", stdout)) == NULL) {
+      free(myargv);
+      exit(EXIT_FAILURE);
+    }
+
+    *argv = myargv;
+    atexit(shutdownfoo);
+
+    for(idx = 0, wbarg = argmsg->sm_ArgList; idx < (*argc); idx++, wbarg++) {
+      if(olddir != (BPTR)-1) {
+        CurrentDir(olddir);
+        olddir = (BPTR)-1;
+      }
+
+      if(wbarg->wa_Lock != (BPTR)0) {
+        olddir = CurrentDir(wbarg->wa_Lock);
+      }
+      
+      myargv[idx] = wbarg->wa_Name;
+    }
+
+    myargv[argc] = NULL;
+  }
 }

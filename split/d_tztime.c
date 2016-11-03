@@ -64,7 +64,7 @@ int d_tztime(
     hourlcl = lcl->tm_hour;
     hourutc = gm->tm_hour;
 
-    output2 = (char*)realloc((void*)*output, 6*sizeof(char));
+    output2 = (char*)realloc((void*)*output, 6);
 
     if(output2 == NULL) {
       if(local == NULL) {
