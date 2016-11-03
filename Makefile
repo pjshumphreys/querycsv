@@ -64,10 +64,15 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f *.o makeheaders querycsv gen.h querycsv.c hash4.c sql.c lexer.c sql.h lexer.h
-	cd env/dos; find . -maxdepth 1 ! -path './dbuild.bat' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/win32; find . -maxdepth 1 ! -path './win32.c' ! -path './win32.h' ! -path './wbuild.bat' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	rm -f makeheaders querycsv gen.h querycsv.c hash4.c sql.c lexer.c sql.h lexer.h
+	cd env/posix; rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
+	cd env/dos; find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/win32; find . -maxdepth 1 ! -path './win32.c' ! -path './win32.h' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/m68kmac; find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;
+	cd env/riscos; rm -rf o od \!QueryCSV/querycsv,ff8
+	cd env/riscos/c; find . -maxdepth 1 ! -path './riscos' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/riscos/h; find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/amiga; rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
 
 .PHONY: all
 .PHONY: count
