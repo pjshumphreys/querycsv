@@ -9,6 +9,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
   struct resultColumnParam matchParams;
   int recordHasColumn;
   int doLeftRecord = FALSE;
+  long templong = 0;
 
   MAC_YIELD
 
@@ -51,13 +52,13 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
 
         if(recordHasColumn == TRUE && !doLeftRecord) {
           columnOffsetData.value = NULL;
-          
+          templong = columnOffsetData.startOffset;
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
               &(columnOffsetData.value),
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
-              &(columnOffsetData.startOffset),
+              &(templong),
               (query->params & PRM_TRIM) == 0
             );
 
@@ -158,7 +159,8 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
     /* end of records */
 
     /* rewind the file, but skip the column headers line */
-    fseek(currentInputTable->fileStream, currentInputTable->firstRecordOffset, SEEK_SET);
+    /* TODO: replace the fseek reference with our own code as fseek doesn't work in cc65*/
+    myfseek(currentInputTable->fileStream, currentInputTable->firstRecordOffset, SEEK_SET);
     currentInputTable->noLeftRecord = TRUE;
 
     /* go back up the list of tables. */

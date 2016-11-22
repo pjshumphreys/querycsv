@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>QueryCSV</title>
+<base href="/" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
+<!-- For Chrome for Android: -->
+<link rel="icon" sizes="192x192" href="touch-icon-192x192.png" />
+<!-- For iPhone 6 Plus with @3× display: -->
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="apple-touch-icon-180x180-precomposed.png" />
+<!-- For iPad with @2× display running iOS ≥ 7: -->
+<link rel="apple-touch-icon-precomposed" sizes="152x152" href="apple-touch-icon-152x152-precomposed.png" />
+<!-- For iPad with @2× display running iOS ≤ 6: -->
+<link rel="apple-touch-icon-precomposed" sizes="144x144" href="apple-touch-icon-144x144-precomposed.png" />
+<!-- For iPhone with @2× display running iOS ≥ 7: -->
+<link rel="apple-touch-icon-precomposed" sizes="120x120" href="apple-touch-icon-120x120-precomposed.png" />
+<!-- For iPhone with @2× display running iOS ≤ 6: -->
+<link rel="apple-touch-icon-precomposed" sizes="114x114" href="apple-touch-icon-114x114-precomposed.png" />
+<!-- For the iPad mini and the first- and second-generation iPad (@1× display) on iOS ≥ 7: -->
+<link rel="apple-touch-icon-precomposed" sizes="76x76" href="apple-touch-icon-76x76-precomposed.png" />
+<!-- For the iPad mini and the first- and second-generation iPad (@1× display) on iOS ≤ 6: -->
+<link rel="apple-touch-icon-precomposed" sizes="72x72" href="apple-touch-icon-72x72-precomposed.png" />
+<!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
+<link rel="apple-touch-icon-precomposed" href="apple-touch-icon-precomposed.png" /><!-- 57×57px -->
+
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="animations.css" />
+</head>
+<body>
+  <div id="pt-main" class="pt-perspective">
+    <div class="pt-page pt-page-folder pt-page-current">
+      <div
+        class="header"><div
+        id="normal"><button
+        type="button" class="icon" id="addFile" title="Add file"
+        data-text="Please enter a name for the new file">&#xe900;</button><button
+        type="button" class="icon" id="addFolder" title="Add folder"
+        data-text="Please enter a name for the new folder">&#xe901;</button><div
+        class="icon upload" id="uploadFile"><span><input
+        type="file" title="Upload file" /></span></div><button
+        type="button" class="icon swith" title="Settings">&#xe903;</button></div><div
+        id="alt"><button
+        type="button" class="backButton"><span
+        class="icon2">&#xe913;</span> <span id="selectionCount">1</span> selected</button><span
+        class="iconGroup"><button
+        type="button" class="icon" id="selectAllButton"
+        title="Select all">&#xe919;</button><button
+        type="button" class="icon" id="renameButton" title="Rename"
+        data-text="Please enter a new name for
+&#34;{0}&#34;">&#xe90d;</button></span><button
+        type="button" class="icon"
+        title="Cut">&#xe904;</button><button
+        type="button" class="icon"
+        title="Copy">&#xe905;</button><button
+        type="button" class="icon" id="delete"
+        title="Delete">&#xe907;</button></div></div>
+      <div id="wrapper2">
+        <div id="scroller2">
+          <ul><li class="active"><button type="button" class="folder" data-filepath="/Documents/">Documents</button></li></ul>
+        </div>
+      </div>
+      <div class="wrapper fileList currentFolder" id="folder1">
+        <div class="scroller"><ul></ul></div>
+      </div>
+      <div class="wrapper fileList" id="folder2">
+        <div class="scroller"><ul></ul></div>
+      </div>
+      <div id="footer">
+      </div>
+    </div>
+    <div class="pt-page pt-page-settings">
+      <div class="header"><button type="button" class="backButton"><span class="icon2">&#xe913;</span>Files</button></div>
+      <div class="wrapper3">
+        <h2>SORT SETTINGS</h2>
+        <label for="sortBy">Sort by</label><br />
+        <select name="sortBy" id="sortBy">
+          <option value="1">Name</option>
+          <option value="2">Size</option>
+          <option value="3">Last Modified</option>
+        </select>
+        <hr />
+        <div class="reverse">
+          <input type="checkbox" name="ascending" id="ascending" /><label for="ascending">In ascending order</label><br />
+          <span data-on="Sort in ascending order" data-off="Sort in descending order">Sort in descending order</span>
+        </div>
+        <h2>ADVANCED FEATURES</h2>
+        <div class="reverse">
+          <input type="checkbox" name="usePicup" id="usePicup" /><label for="usePicup">Use Picup for file uploads</label><br />
+          <span data-on="Use Picup for file uploads" data-off="Don't use Picup for file uploads">Don't use Picup for file uploads</span>
+        </div>
+      </div>
+    </div>
+    <div class="pt-page pt-page-open">
+      <div class="header"><button type="button" class="backButton"><span class="icon2">&#xe913;</span>Files</button><button type="button" id="cancelButton"><span class="icon">&#xe916;</span> Cancel <span class="icon2">&#xe917;</span></button></div>
+      <div class="wrapper3 ActionWrapper">
+        <div><button type="button" class="fileAction" id="edit"><span class="icon">&#xe90c;</span><span>Edit</span></button><a download='untitled1.csv' id="downloadButton" href="#" class="fileAction"><span class="icon">&#xe90e;</span><span>Download</span></a><button type="button" class="fileAction" id="launch"><span class="icon">&#xe90f;</span><span>Launch</span></button></div>
+        <div class="saveDialog">
+          <span>Do you want to save the changes made to <span id="showPathName"></span>?</span>
+          <div>
+            <button type="button" class="fileAction" id="yes"><span class="icon">&#xe908;</span><span>Yes</span></button> &nbsp;
+            <button type="button" class="fileAction" id="no"><span class="icon">&#xe909;</span><span>No</span></button> &nbsp;
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pt-page pt-page-editor">
+      <div class="header"><button type="button" class="backButton"><span class="icon2">&#xe913;</span>Actions</button><button type="button" id="saveButton"><span class="icon">&#xe918;</span> Save</button></div>
+      <div class="wrapper3" id="editor">
+        <div class="scroller"><span></span><textarea></textarea></div>
+      </div>
+    </div>
+    <div class="pt-page pt-page-console">
+      <div class="header"><button type="button" class="backButton"><span class="icon2">&#xe913;</span>Actions</button></div>
+      <div class="wrapper3" id="console"><div class="scroller"><div class="pre"></div></div></div>
+    </div>    
+  </div>
+  <script src="startup.js"></script>
+</body>
+</html>

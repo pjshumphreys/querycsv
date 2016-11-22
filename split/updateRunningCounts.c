@@ -7,6 +7,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
   struct resultColumnValue *field;
   char *tempString = NULL;
   char *tempString2 = NULL;
+  double tempFloat;
 
   int i, j;
 
@@ -73,14 +74,16 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
               case GRP_DIS_SUM:
                 if(j == query->groupCount) {
                   currentResultColumn->groupCount++;
-                  currentResultColumn->groupNum += strtod(tempString, NULL);
+                  tempFloat = strtod(tempString, NULL);
+                  currentResultColumn->groupNum = fadd(currentResultColumn->groupNum, tempFloat);
                 }
               break;
 
               case GRP_AVG:
               case GRP_SUM:
                 currentResultColumn->groupCount++;
-                currentResultColumn->groupNum += strtod(tempString, NULL);
+                tempFloat = strtod(tempString, NULL);
+                currentResultColumn->groupNum = fadd(currentResultColumn->groupNum, tempFloat);
               break;
 
               case GRP_DIS_CONCAT:

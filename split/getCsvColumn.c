@@ -15,6 +15,7 @@ int getCsvColumn(
   int quotePossible = TRUE;
   int exitCode = 0;
   char *minSize = NULL;
+  long offset = 0;
 
   MAC_YIELD
 
@@ -31,7 +32,7 @@ int getCsvColumn(
   }
 
   if(startPosition != NULL) {
-    *startPosition = ftell(*inputFile);
+    offset = *startPosition;
   }
 
   if(feof(*inputFile) != 0) {
@@ -40,6 +41,7 @@ int getCsvColumn(
 
   /* read a character */
   do {
+    offset++;
     c = fgetc(*inputFile);
 
     switch(c) {
@@ -51,7 +53,9 @@ int getCsvColumn(
       break;
 
       case '\r':
+        offset++;
         if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
+          offset--;
           ungetc(c, *inputFile);
         }
         else if (c == EOF) {
@@ -97,12 +101,9 @@ int getCsvColumn(
           }
 
           quotePossible = FALSE;
-
-          if(startPosition != NULL) {
-            *startPosition = ftell(*inputFile)-1;
-          }
         }
         else {
+          offset++;
           c = fgetc(*inputFile);
 
           switch(c) {
@@ -112,6 +113,7 @@ int getCsvColumn(
             case EOF:
             case ',':
               canEnd = TRUE;
+              offset--;
               ungetc(c, *inputFile);
             break;
 
@@ -121,6 +123,7 @@ int getCsvColumn(
 
             default:
               strAppend('"', value, strSize);
+              offset--;
               ungetc(c, *inputFile);
             break;
           }
@@ -138,10 +141,6 @@ int getCsvColumn(
           if(strSize != NULL) {
             *strSize = 0;
           }
-
-          if(startPosition != NULL) {
-            *startPosition = ftell(*inputFile)-1;
-          }
         }
 
         quotePossible = FALSE;
@@ -158,6 +157,10 @@ int getCsvColumn(
 
   if(strSize != NULL) {
     (*strSize)--;
+  }
+
+  if(startPosition != NULL) {
+    *startPosition = offset;
   }
 
   free(tempString);

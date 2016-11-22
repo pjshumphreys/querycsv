@@ -86,6 +86,7 @@ int runQuery(char *queryFileName) {
 
       /* output the number of records returned iff there was an into clause specified */
       fprintf(stdout, "%d", query.recordCount);
+      fflush(stdout);
     }
   }
 

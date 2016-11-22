@@ -14,7 +14,7 @@ int getColumnValue(
   MAC_YIELD
 
   /* attempt to open the input file */
-  inputFile = skipBom(inputFileName);
+  inputFile = skipBom(inputFileName, NULL);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     strFree(&output);
@@ -22,7 +22,8 @@ int getColumnValue(
   }
 
   /* seek to offset */
-  if(fseek(inputFile, offset, SEEK_SET) != 0) {
+  /* TODO. replace the fseek reperence with our own implementation as fseek doesn't work in cc65 */
+  if(myfseek(inputFile, offset, SEEK_SET) != 0) {
     fputs(TDB_COULDNT_SEEK, stderr);
     strFree(&output);
     return -1;

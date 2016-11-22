@@ -1,7 +1,7 @@
 #include "querycsv.h"
 
 /*skips the BOM if present from a file */
-FILE *skipBom(const char *filename) {
+FILE *skipBom(const char *filename, long* offset) {
   FILE *file;
 
   MAC_YIELD
@@ -11,6 +11,10 @@ FILE *skipBom(const char *filename) {
   if (file != NULL) {
     /* skip over the bom if present */
     if(fgetc(file) == 239 && fgetc(file) == 187 && fgetc(file) == 191) {
+      if(offset) {
+        *offset = 3;
+      }
+
       return file;
     }
 
@@ -19,6 +23,10 @@ FILE *skipBom(const char *filename) {
     fclose(file);
 
     file = fopen(filename, "rb");
+  }
+
+  if(offset) {
+    *offset = 0;
   }
 
   return file;

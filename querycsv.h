@@ -14,10 +14,38 @@
 #include <locale.h>
 #include <time.h>
 
+/* ugly hacks to raise the game of cc65 */
+#ifndef __CC65__
+  #define __fastcall__ /* do nothing */
+
+  /* duplicates of the macros in cc65-floatlib that just use the native floating point support */
+  #define fadd(_f,_a) (_f+_a)
+  #define fsub(_f,_a) (_f-_a)
+  #define fmul(_f,_a) (_f*_a)
+  #define fdiv(_f,_a) (_f/_a)
+  #define fcmp(_d,_s) (_d!=_s)
+  #define ctof(_s) ((double)_s)
+  #define ftostr(_f,_a) d_sprintf(_f, "%g", _a) /* d_sprintf knows how to convert doubles to strings */
+  #define fneg(_f) (_f*-1)
+#else
+  #define MAC_YIELD
+  #define HAS_VSNPRINTF
+  #define TEMP_VAR "TMPDIR"
+
+  #include "floatlib/float.h" /* fudges kinda support for floating point into cc65 by utilising functionality in the c64 basic rom */
+  #define ftostr(_d,_a) {reallocMsg("test", (void**)_d, 33);_ftostr(*(_d),_a);reallocMsg("test", (void**)_d, strlen(*(_d))+1);} /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
+  #define fneg(_d) _fneg(_d) 
+  double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
+#endif
+
+#ifdef EMSCRIPTEN
+  #define main realmain
+#endif
+
 #ifdef __unix__
   #define MAC_YIELD
   #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
-  #define HAS_STRDUP
+  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=/tmp"
   #include <dirent.h>   /* for opendir, readdir & closedir */
@@ -29,7 +57,7 @@
 
 #ifdef MICROSOFT
   #define MAC_YIELD
-  #define HAS_STRDUP
+  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
   #define DEVNULL "NUL"   /* null filename on DOS/Windows */
   #define TEMP_VAR "TEMP"
   #define DEFAULT_TEMP "TEMP=."
@@ -66,14 +94,14 @@
   /* macYield(); */
 /* #endif */
   #define YY_NO_UNISTD_H 1
-  #undef putenv   /* on MPW putenv has the wrong signature */
-  int putenv(char *string);
+  //#undef putenv   /* on MPW putenv has the wrong signature */
+  //int putenv(char *string);
   /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__
     #undef stricmp   /* this function is available on windows but doesn't work properly there */
     #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
   #endif
-  int stricmp(const char *str1, const char *str2);
+  //int stricmp(const char *str1, const char *str2);
   #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=:"
@@ -83,7 +111,7 @@
   #define MAC_YIELD
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF       /* Norcroft is not a brain dead compiler */
-  #define HAS_STRDUP
+  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
   #include <errno.h>      /* <errno.h> only has definitions for a small number of error types */
   #include <unixlib.h>        /* for strdup and strcasecmp */
   #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */

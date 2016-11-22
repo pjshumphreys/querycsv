@@ -1,6 +1,6 @@
 CC = gcc
 GPERF = gperf
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -std=c99 -ansi
 SOURCES = $(wildcard split/*.c)
 OBJECTS = $(SOURCES:%.c=%.o)
 INCFLAGS = -I/home/user/Projects/querycsv

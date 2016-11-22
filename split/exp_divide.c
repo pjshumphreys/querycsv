@@ -1,12 +1,18 @@
 #include "querycsv.h"
 
-void exp_divide(char **value, double leftVal, int rightVal) {
-  MAC_YIELD
+void exp_divide(char **value, double leftVal, double rightVal) {
+  double temp;
   
-  if(rightVal == 0.0) {
-    *value = strdup("Infinity");
+  MAC_YIELD
+
+  temp = ctof(0);
+  
+  if(fcmp(rightVal, temp)) {
+    temp = fdiv(leftVal, rightVal);
+
+    ftostr(value, temp);
   }
   else {
-    d_sprintf(value, "%g", leftVal/rightVal);
+    *value = strdup("Infinity");
   }
 }

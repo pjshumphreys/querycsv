@@ -16,6 +16,7 @@ void parse_tableFactor(
   char *columnText2 = NULL;
   size_t columnLength = 0;
   int recordContinues = TRUE;
+  long headerByteLength = 0;
 
   MAC_YIELD
 
@@ -26,8 +27,8 @@ void parse_tableFactor(
     return;
   }
 
-  /* try to prevent heap fragmentation */
-  csvFile = (FILE *)malloc(sizeof(FILE));
+  /* try to prevent heap fragmentation by shuffing the */
+  csvFile = fopen(fileName, "rb");
   columnText = strdup(tableName);
   columnText2 = strdup(fileName);
 
@@ -38,17 +39,18 @@ void parse_tableFactor(
 
   free(fileName);
   free(tableName);
-  free(csvFile);
+  fclose(csvFile);
   
   /* try opening the file specified in the query */
-  csvFile = skipBom(columnText2);
+  csvFile = skipBom(columnText2, &headerByteLength);
   tableName = strdup(columnText);
+  fileName = strdup(columnText2);
   free(columnText);
   free(columnText2);  /* free the filename string data as we don't need it any more */
 
   columnText = NULL;
 
-  if(csvFile == NULL || tableName == NULL) {
+  if(csvFile == NULL || tableName == NULL || fileName == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     exit(EXIT_FAILURE);
   }
@@ -98,7 +100,14 @@ void parse_tableFactor(
     newReference = NULL;
     newColumn = NULL;
 
-    recordContinues = getCsvColumn(&(newTable->fileStream), &columnText, &columnLength, NULL, NULL, (queryData->params & PRM_TRIM) == 0);
+    recordContinues = getCsvColumn(
+        &(newTable->fileStream),
+        &columnText,
+        &columnLength,
+        NULL,
+        &headerByteLength,
+        (queryData->params & PRM_TRIM
+      ) == 0);
 
     d_sprintf(&columnText, "_%s", columnText);
 
@@ -174,8 +183,8 @@ void parse_tableFactor(
     columnLength = 0;
   } while(recordContinues);
 
-  /* keep the current offset of the csv file as we'll need it when we're searching for matching results  */
-  newTable->firstRecordOffset = ftell(newTable->fileStream);
+  /* keep the current offset of the csv file as we'll need it when we're searching for matching results. avoid using ftell as it doesn't work in cc65 */
+  newTable->firstRecordOffset = headerByteLength;
 
   /* keep an easy to retrieve count of the number of columns in the csv file */
   newTable->columnCount = newTable->firstInputColumn->columnIndex;

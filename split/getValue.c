@@ -11,6 +11,8 @@ void getValue(
   struct expression *calculatedField;
   struct resultColumn *column;
   struct resultColumnValue *field;
+  double temp1;
+  double temp2;
 
   MAC_YIELD
 
@@ -81,11 +83,8 @@ void getValue(
         expressionPtr->value = strdup("");
       }
       else {
-        d_sprintf(
-            &(expressionPtr->value),
-            "%g",
-            strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
-          );
+        temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+        ftostr(&(expressionPtr->value), temp1);
       }
 
       strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
@@ -137,30 +136,21 @@ void getValue(
       else {
         switch(expressionPtr->type){
           case EXP_PLUS:
-            d_sprintf(
-                &(expressionPtr->value),
-                "%g",
-                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)+
-                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-              );
+            temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+            temp2 = fadd(temp1, strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
+            ftostr(&(expressionPtr->value), temp2);
           break;
 
           case EXP_MINUS:
-            d_sprintf(
-                &(expressionPtr->value),
-                "%g",
-                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)-
-                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-              );
+            temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+            temp2 = fsub(temp1, strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
+            ftostr(&(expressionPtr->value), temp2);
           break;
 
           case EXP_MULTIPLY:
-            d_sprintf(
-                &(expressionPtr->value),
-                "%g",
-                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)*
-                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-              );
+            temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+            temp2 = fmul(temp1, strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
+            ftostr(&(expressionPtr->value), temp2);
           break;
 
           case EXP_DIVIDE:
