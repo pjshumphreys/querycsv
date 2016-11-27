@@ -8,9 +8,16 @@ EASYFLASH_LED     = $80
 EASYFLASH_16K     = $07
 EASYFLASH_KILL    = $04
 
+;.export _exit
+;.export __STARTUP__ : absolute = 1      ; Mark as startup
+
+.import _main
+
+.import initlib, donelib, copydata
+.import zerobss
+.import BSOUT
+.import __RAM1_START__, __RAM1_SIZE__     ; Linker generated
 .import __ENTRY_LOAD__
-
-
 
 ; This code runs in Ultimax mode after reset, so this memory becomes
 ; visible at $E000..$FFFF first and must contain a reset vector
@@ -43,8 +50,6 @@ l1:
     jmp $0100
 
 startUpCode:
-
-
 
 .segment  "LOADER"
 
@@ -107,8 +112,6 @@ kill:
 
 startUpEnd:
 
-
-
 .segment "ENTRY"
 
 ;entry point is here!
@@ -158,7 +161,7 @@ E386:
   jmp $E386
 
 message:
-  .byte "       QUERYCSV BY PAUL HUMPHREYS", 13, 0
+  .byte "       querycsv by paul humphreys", 13, 0
 
   ; jump table with our own [if], [rem] and [sys] statements.
   ; [if] and [rem] necessary to make the new jump table work properly
@@ -276,22 +279,16 @@ AA9A:
   sta EASYFLASH_BANK
   lda #EASYFLASH_16K
   sta EASYFLASH_CONTROL
-  jmp foobar
+  jmp premain
 
 jumpback:
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
+  and #$FE
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
   rts
-
-initenv:
-  lda #0
-  tax
-  rts
-
-
 
 ;reset vectors. these appear at $FFFA onwards when the machine is turned on
 .segment "VECTORS"
@@ -303,12 +300,34 @@ reti:
   rti ; we don't need the IRQ vector and can put RTI here to save space :)
   .byte $FF
 
-
-
 ; This resides on HIROM, it becomes visible at $a000
-.segment  "CODE"
+.segment "CODE"
 
-foobar:
-  lda $41
-  sta $0400
+.include "zeropage.inc"
+.include "c64.inc"
+
+premain:
+  lda #14
+  jsr BSOUT
+
+  jsr zerobss
+  jsr copydata
+
+  lda $01       ; 6510 On-chip 8-bit Input/Output Register
+  ora #$07
+  and #$FE
+  sta $01       ; 6510 On-chip 8-bit Input/Output Register
+
+  ; and here
+  ; Set argument stack ptr
+  lda #<(__RAM1_START__ + __RAM1_SIZE__)
+  sta sp
+  lda #>(__RAM1_START__ + __RAM1_SIZE__)
+  sta sp + 1
+
+  jsr initlib
+  jsr _main
+
+_exit:
+  jsr donelib
   jmp jumpback
