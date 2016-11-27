@@ -16,8 +16,11 @@ EASYFLASH_KILL    = $04
 .import initlib, donelib, copydata
 .import zerobss
 .import BSOUT
-.import __RAM1_START__, __RAM1_SIZE__     ; Linker generated
-.import __ENTRY_LOAD__
+.import __RAM_START__, __RAM_SIZE__     ; Linker generated
+.import __LOADER_LOAD__
+.import __STARTUP_LOAD__
+
+__LOADER_LOAD2__  = __LOADER_LOAD__+$4000
 
 ; This code runs in Ultimax mode after reset, so this memory becomes
 ; visible at $E000..$FFFF first and must contain a reset vector
@@ -43,17 +46,16 @@ startWait:
     ; copy the final start-up code to RAM (bottom of CPU stack)
     ldx #(startUpEnd - startUpBegin)
 l1:
-    lda startUpCode, x
+    lda __LOADER_LOAD2__, x
     sta $0100, x
     dex
     bpl l1
     jmp $0100
 
-startUpCode:
-
 .segment  "LOADER"
 
 startUpBegin:
+
   ; === this code is copied to the stack area, does some inits ===
   ; === scans the keyboard and kills the cartridge or          ===
   ; === starts the main application                            ===
@@ -94,7 +96,7 @@ startUpBegin:
   ; it may be a good idea to let exomizer do this in real life
   ldx #0
 lp1:
-  lda __ENTRY_LOAD__,x
+  lda __STARTUP_LOAD__,x
   sta $c000,x
   dex
   bne lp1
@@ -112,7 +114,7 @@ kill:
 
 startUpEnd:
 
-.segment "ENTRY"
+.segment "STARTUP"
 
 ;entry point is here!
 entry:
@@ -269,11 +271,12 @@ E12A:
   bmi AA9A      ; Print String From Memory
   jmp $E12D     ; continue where sys left off
 
+.byte $FF, $FF, $FF
+
 AA9A:
-  jsr $AB21     ; Output String
+  ;jsr $AB21     ; Output String
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
-  and #$FE
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #1
   sta EASYFLASH_BANK
@@ -302,10 +305,8 @@ reti:
 
 ; This resides on HIROM, it becomes visible at $a000
 .segment "CODE"
-
 .include "zeropage.inc"
 .include "c64.inc"
-
 premain:
   lda #14
   jsr BSOUT
@@ -320,9 +321,9 @@ premain:
 
   ; and here
   ; Set argument stack ptr
-  lda #<(__RAM1_START__ + __RAM1_SIZE__)
+  lda #<(__RAM_START__ + __RAM_SIZE__)
   sta sp
-  lda #>(__RAM1_START__ + __RAM1_SIZE__)
+  lda #>(__RAM_START__ + __RAM_SIZE__)
   sta sp + 1
 
   jsr initlib

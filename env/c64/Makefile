@@ -7,7 +7,7 @@ name := querycsv
 ld_config := linker.cfg
 
 obj :=
-obj += querycsv.o
+obj += crt0.o
 obj += obj/c64.o
 
 INCLUDE  := include
@@ -30,7 +30,7 @@ obj/%.o: obj/%.s obj
 	ca65 -t c64 -o $@ $<
 
 ###############################################################################
-crt0.o: querycsv.s obj
+%.o: %.s obj
 	ca65 -t c64 -o $@ $<
 
 ###############################################################################
