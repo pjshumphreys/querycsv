@@ -15,7 +15,6 @@ void parse_orderingSpec(
   }
   
   reallocMsg(
-      "couldn't allocate sortingList entry",
       (void**)&(sortingListPtr),
       sizeof(struct sortingList)
     );

@@ -24,7 +24,7 @@ void stringGet(
   }
   else {
     //can use a shortcut to get the string value
-    reallocMsg("alloc failed", (void**)str, field->length+1);
+    reallocMsg((void**)str, field->length+1);
 
     if(fread(*str, 1, field->length, *(field->source)) != field->length) {
       fputs("didn't read string properly\n", stderr);

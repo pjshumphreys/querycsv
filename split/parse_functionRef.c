@@ -35,7 +35,7 @@ struct expression *parse_functionRef(
 
   /* we then want to create a new expression node that references this new column */
   /* create an expression node that references the new hidden column */
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&expressionPtr2), sizeof(struct expression));
+  reallocMsg((void**)(&expressionPtr2), sizeof(struct expression));
 
   expressionPtr2->type = EXP_GROUP;
   expressionPtr2->value = NULL;

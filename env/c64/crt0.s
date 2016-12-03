@@ -13,14 +13,24 @@ EASYFLASH_KILL    = $04
 
 .import _main
 
-.import initlib, donelib, copydata
+.importzp       ptr1, ptr2, tmp1
+.import donelib
 .import zerobss
 .import BSOUT
 .import __RAM_START__, __RAM_SIZE__     ; Linker generated
 .import __LOADER_LOAD__
 .import __STARTUP_LOAD__
+.import __RAM2_LAST__, __RAM2_START__, __ROML0_START__
+.export premain
+.export farcall2, farret2
 
 __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
+
+.segment "DATA"
+.incbin "padded.bin"
+
+.segment "LIBC"
+.incbin "libc.bin"
 
 ; This code runs in Ultimax mode after reset, so this memory becomes
 ; visible at $E000..$FFFF first and must contain a reset vector
@@ -103,7 +113,7 @@ lp1:
   inc lp1+2
   inc lp1+5
   lda lp1+5
-  eor #$c2
+  eor #$c4
   bne lp1 
   jmp entry
 
@@ -271,8 +281,6 @@ E12A:
   bmi AA9A      ; Print String From Memory
   jmp $E12D     ; continue where sys left off
 
-.byte $FF, $FF, $FF
-
 AA9A:
   ;jsr $AB21     ; Output String
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
@@ -282,7 +290,77 @@ AA9A:
   sta EASYFLASH_BANK
   lda #EASYFLASH_16K
   sta EASYFLASH_CONTROL
-  jmp premain
+
+.include "zeropage.inc"
+.include "c64.inc"
+premain:
+  lda #14
+  jsr BSOUT
+
+  jsr zerobss
+
+  ; copydata won't work for us as it needs to do DATA *and* RODATA, so we roll our our memory copying code instead
+  lda #0
+  sta EASYFLASH_BANK
+
+  ldx #<__ROML0_START__
+  stx ptr1
+  ldx #>__ROML0_START__
+  stx ptr1+1
+  ldx #<__RAM2_START__
+  stx ptr2
+  ldx #>__RAM2_START__
+  stx ptr2+1
+
+  datSize = __RAM2_LAST__ - __RAM2_START__
+
+movedown:
+  ldy #0
+  ldx #>datSize
+  beq MD2
+MD1:
+  lda (ptr1),Y ; move a page at a time
+  sta (ptr2),Y
+  iny
+  bne MD1
+  inc ptr1+1
+  inc ptr2+1
+  dex
+  bne MD1
+MD2:
+  ldx #<datSize
+  beq MD4
+MD3:
+  lda (ptr1),Y ; move the remaining bytes
+  sta (ptr2),Y
+  iny
+  dex
+  bne MD3
+MD4:
+
+  lda $01       ; 6510 On-chip 8-bit Input/Output Register
+  ora #$07
+  and #$FE
+  sta $01       ; 6510 On-chip 8-bit Input/Output Register
+
+  ; and here
+  ; Set argument stack ptr
+  lda #<($A000)
+  sta sp
+  lda #>($A000)
+  sta sp + 1
+
+  lda #2
+  sta EASYFLASH_BANK
+  jsr initlib2
+  lda #1
+  sta currentBank
+  sta EASYFLASH_BANK
+  ;jsr initlib
+  jsr _main
+
+_exit:
+  jsr donelib
 
 jumpback:
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
@@ -293,6 +371,82 @@ jumpback:
   sta EASYFLASH_CONTROL
   rts
 
+farcall2:   ;backup the original return address then swap it for our paging out return code. This should hopefully work as all of the c standard library is in 1 page and doesn't call non stdlib c functions, so more than 1 backup return address shouldn't be needed
+  sta aRegBackup
+  pla 
+  sta stackBackup+1
+  pla
+  sta stackBackup
+  lda #>(farret2-1)
+  pha
+  lda #<(farret2-1)
+  pha
+  lda aRegBackup
+farcall:
+  sta aRegBackup
+  lda highAddressTable, x
+  pha
+  lda lowAddressTable, x
+  pha
+  lda bankTable, x
+  php
+  pha
+  lda currentBank
+  tsx
+  inx
+  inx
+  inx
+  inx
+  sta bankStack, x
+  pla
+  plp
+  sta currentBank
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  ldx xRegBackup
+  rts ; non local jmp to the real function
+
+farret2:
+  sta aRegBackup
+  stx xRegBackup
+  lda stackBackup
+  pha
+  lda stackBackup+1
+  pha
+  tsx
+  lda bankStack, x
+  sta currentBank
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  ldx xRegBackup
+  rts
+
+farret:
+  sta aRegBackup
+  stx xRegBackup
+  tsx
+  lda bankStack, x
+  sta currentBank
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  ldx xRegBackup
+  rts
+
+.include "tables.inc"
+
+.segment "BSS"
+
+aRegBackup:
+  .byte $00
+xRegBackup:
+  .byte $00
+currentBank:
+  .byte $00
+stackBackup:
+  .word $0000
+bankStack:
+  .res 256
+
 ;reset vectors. these appear at $FFFA onwards when the machine is turned on
 .segment "VECTORS"
 
@@ -302,33 +456,3 @@ jumpback:
 reti:
   rti ; we don't need the IRQ vector and can put RTI here to save space :)
   .byte $FF
-
-; This resides on HIROM, it becomes visible at $a000
-.segment "CODE"
-.include "zeropage.inc"
-.include "c64.inc"
-premain:
-  lda #14
-  jsr BSOUT
-
-  jsr zerobss
-  jsr copydata
-
-  lda $01       ; 6510 On-chip 8-bit Input/Output Register
-  ora #$07
-  and #$FE
-  sta $01       ; 6510 On-chip 8-bit Input/Output Register
-
-  ; and here
-  ; Set argument stack ptr
-  lda #<(__RAM_START__ + __RAM_SIZE__)
-  sta sp
-  lda #>(__RAM_START__ + __RAM_SIZE__)
-  sta sp + 1
-
-  jsr initlib
-  jsr _main
-
-_exit:
-  jsr donelib
-  jmp jumpback

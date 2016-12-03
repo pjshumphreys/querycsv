@@ -17,7 +17,7 @@ int getColumnValue(
   inputFile = skipBom(inputFileName, NULL);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    strFree(&output);
+    freeAndZero(output);
     return -1;
   }
 
@@ -25,7 +25,7 @@ int getColumnValue(
   /* TODO. replace the fseek reperence with our own implementation as fseek doesn't work in cc65 */
   if(myfseek(inputFile, offset, SEEK_SET) != 0) {
     fputs(TDB_COULDNT_SEEK, stderr);
-    strFree(&output);
+    freeAndZero(output);
     return -1;
   }
 
@@ -43,7 +43,7 @@ int getColumnValue(
   fputs(output, stdout);
 
   /* free the string memory */
-  strFree(&output);
+  freeAndZero(output);
 
   /* close the input file and return */
   fclose(inputFile);

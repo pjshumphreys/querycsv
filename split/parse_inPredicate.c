@@ -15,7 +15,7 @@ struct expression *parse_inPredicate(
     return NULL;
   }
 
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&expressionPtr), sizeof(struct expression));
+  reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->type = isNotIn==TRUE?EXP_NOTIN:EXP_IN;
   expressionPtr->value = NULL;

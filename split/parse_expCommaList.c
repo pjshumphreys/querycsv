@@ -56,7 +56,7 @@ struct resultColumn *parse_expCommaList(
 
     /* no column with this name has been defined at all. just create the new column reference and insert it into the hash table */
     if(currentReference == NULL) {
-      reallocMsg(TDB_MALLOC_FAILED, (void**)(&newReference), sizeof(struct columnReference));
+      reallocMsg((void**)(&newReference), sizeof(struct columnReference));
 
       newReference->referenceName = resultColumnName;
       newReference->nextReferenceWithName = NULL;
@@ -69,11 +69,11 @@ struct resultColumn *parse_expCommaList(
       /* the text already exists, so we don't need the copy in resultColumnName any longer */
       free(resultColumnName);
 
-      reallocMsg(TDB_MALLOC_FAILED, (void**)(&newReference), sizeof(struct columnReference));
+      reallocMsg((void**)(&newReference), sizeof(struct columnReference));
 
       /* if the reference returned is of type REF_COLUMN (i.e. a column in a csv file), make a copy of it, overwrite the original with the new one then insert the copy afterwards */
       if(currentReference->referenceType == REF_COLUMN) {
-        reallocMsg(TDB_MALLOC_FAILED, (void**)(&newReference2), sizeof(struct columnReference));
+        reallocMsg((void**)(&newReference2), sizeof(struct columnReference));
 
         /* switch the current and new references */
         memcpy(newReference, currentReference, sizeof(struct columnReference));

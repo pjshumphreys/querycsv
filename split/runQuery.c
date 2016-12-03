@@ -10,7 +10,6 @@ int runQuery(char *queryFileName) {
 
   /* allocates space for the next record in the record set */
   reallocMsg(
-    "couldn't initialise resultset",
     (void**)&match,
     (query.columnCount)*sizeof(struct resultColumnValue)
   );
@@ -32,7 +31,6 @@ int runQuery(char *queryFileName) {
       match = NULL;
 
       reallocMsg(
-        "couldn't initialise resultset",
         (void**)&match,
         (query.columnCount)*sizeof(struct resultColumnValue)
       );
@@ -54,7 +52,6 @@ int runQuery(char *queryFileName) {
       match = NULL;
 
       reallocMsg(
-        "couldn't initialise resultset",
         (void**)&match,
         (query.columnCount)*sizeof(struct resultColumnValue)
       );

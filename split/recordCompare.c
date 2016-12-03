@@ -55,8 +55,8 @@ int recordCompare(
     /* clean up used memory. The string1 & string2 pointers might be made */
     /* stale (and freed automatically) by unicode NFD normalisation in */
     /* strCompare function */
-    strFree(&output1);
-    strFree(&output2);
+    freeAndZero(output1);
+    freeAndZero(output2);
 
     /*  if the fields didn't compare as being the same, then return which was greater */
     if(compare != 0) {

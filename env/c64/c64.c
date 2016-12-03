@@ -8,11 +8,15 @@ double strtod(const char* str, char** endptr) {
 
 #include <stdio.h>
 
-int main(void)
-{
-    puts("Hello, world");
+char* waterspout = "Hello, world";
 
-    for (;;)
-        ++*(unsigned char*)0xd020;
+int main(void) {
+  fputs(waterspout, stdout);
+
+  for (;;) {
+    ++*(unsigned char*)0xd020;
+  }
+
+  return 0;
 }
 

@@ -13,7 +13,7 @@ struct expression *parse_scalarExpLiteral(
     return NULL;
   }
 
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&expressionPtr), sizeof(struct expression));
+  reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->type = EXP_LITERAL;
   expressionPtr->value = NULL;

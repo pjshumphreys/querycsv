@@ -17,7 +17,7 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
     output2 = realloc((void*)output, length*sizeof(char));
 
     if(output2 == NULL) {
-      strFree(&output);
+      freeAndZero(output);
 
       return FALSE;
     }
@@ -35,13 +35,13 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
 
   /* quit if the shrinking didn't work successfully */
   if(output2 == NULL) {
-    strFree(&output);
+    freeAndZero(output);
 
     return FALSE;
   }
 
   /* free the contents of ptr then update it to point to the string we've built up */
-  strFree(ptr);
+  freeAndZero(*ptr);
   *ptr = output2;
 
   /* everything completed successfully */

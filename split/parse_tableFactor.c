@@ -56,7 +56,7 @@ void parse_tableFactor(
   }
 
   /* allocate the storage space for the new table's data */
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&newTable), sizeof(struct inputTable));
+  reallocMsg((void**)(&newTable), sizeof(struct inputTable));
 
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
@@ -117,7 +117,7 @@ void parse_tableFactor(
     /* if a column with this name is already in the hash table */
     if(currentReference == NULL) {
       /* create the new column record */
-      reallocMsg(TDB_MALLOC_FAILED, (void**)(&newReference), sizeof(struct columnReference));
+      reallocMsg((void**)(&newReference), sizeof(struct columnReference));
 
       /* store the column name */
       newReference->referenceName = columnText;
@@ -134,7 +134,7 @@ void parse_tableFactor(
       free(columnText);
 
       /* create the new column record */
-      reallocMsg(TDB_MALLOC_FAILED, (void**)(&newReference), sizeof(struct columnReference));
+      reallocMsg((void**)(&newReference), sizeof(struct columnReference));
 
       /* store the column name */
       newReference->referenceName = currentReference->referenceName;
@@ -153,7 +153,7 @@ void parse_tableFactor(
 
     newReference->referenceType = REF_COLUMN;
 
-    reallocMsg(TDB_MALLOC_FAILED, (void**)(&newColumn), sizeof(struct inputColumn));
+    reallocMsg((void**)(&newColumn), sizeof(struct inputColumn));
 
     newReference->reference.columnPtr = newColumn;
 

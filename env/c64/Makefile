@@ -45,7 +45,7 @@ obj:
 
 $(name).bin: $(obj) $(ld_config)
 	ld65 -o $@ -m $@.map -C $(ld_config) $(obj) \
-		-L /usr/local/lib/cc65/lib --lib c64.lib
+		-L /usr/local/lib/cc65/lib -m querycsv.map -Ln querycsv.lbl --lib c64.lib
 
 .PHONY: clean
 clean:

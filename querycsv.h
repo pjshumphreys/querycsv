@@ -14,6 +14,8 @@
 #include <locale.h>
 #include <time.h>
 
+#define freeAndZero(p) { free(p); p = 0; }
+
 /* ugly hacks to raise the game of cc65 */
 #ifndef __CC65__
   #define __fastcall__ /* do nothing */

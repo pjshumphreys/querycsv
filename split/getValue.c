@@ -50,7 +50,7 @@ void getValue(
       expressionPtr->leftNull = calculatedField->leftNull;
       expressionPtr->value = strdup(calculatedField->value);
 
-      strFree(&(calculatedField->value));
+      freeAndZero(calculatedField->value);
     } break;
 
     case EXP_GROUP: {
@@ -87,7 +87,7 @@ void getValue(
         ftostr(&(expressionPtr->value), temp1);
       }
 
-      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
     } break;
 
     case EXP_UMINUS: {
@@ -107,7 +107,7 @@ void getValue(
           );
       }
 
-      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
     } break;
 
     default: {
@@ -172,8 +172,8 @@ void getValue(
         }
       }
 
-      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
-      strFree(&(expressionPtr->unionPtrs.leaves.rightPtr->value));
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
+      freeAndZero(expressionPtr->unionPtrs.leaves.rightPtr->value);
     } break;
   }
 }

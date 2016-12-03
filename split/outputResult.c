@@ -54,7 +54,7 @@ void outputResult(
             fputs("\"", outputFile);
             fputs(string2, outputFile);
             fputs("\"", outputFile);
-            strFree(&string2);
+            freeAndZero(string2);
           }
           else {
             fputs(string, outputFile);
@@ -66,7 +66,7 @@ void outputResult(
     j++;
   }
 
-  strFree(&string);
+  freeAndZero(string);
   cleanup_matchValues(query, &columns);
 
   fputs(query->newLine, outputFile);

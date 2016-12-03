@@ -17,7 +17,7 @@ int getCurrentDate(void) {
   if(d_tztime(&now, &local, NULL, &output) == FALSE) {
     fputs(TDB_TZTIMED_FAILED, stderr);
 
-    strFree(&output);
+    freeAndZero(output);
 
     return -1;
   };
@@ -28,7 +28,7 @@ int getCurrentDate(void) {
   if(d_sprintf(&output, "%%Y-%%m-%%dT%%H:%%M:%%S%s", output) == FALSE) {
     fputs(TDB_SPRINTFD_FAILED, stderr);
 
-    strFree(&output);
+    freeAndZero(output);
 
     return -1;
   };
@@ -37,7 +37,7 @@ int getCurrentDate(void) {
   if(d_strftime(&output, output, &local) == FALSE) {
     fputs(TDB_STRFTIMED_FAILED, stderr);
 
-    strFree(&output);
+    freeAndZero(output);
 
     return -1;
   }
@@ -46,7 +46,7 @@ int getCurrentDate(void) {
   fputs(output, stdout);
 
   /* free the string data */
-  strFree(&output);
+  freeAndZero(output);
 
   /* quit */
   return 0;

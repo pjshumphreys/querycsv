@@ -47,11 +47,11 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
                     (void (*)())getUnicodeChar,
                     (void (*)())getUnicodeChar
                   ) == 0) {
-                    strFree(&tempString2);
+                    freeAndZero(tempString2);
                     break;
                   }
 
-                  strFree(&tempString2);
+                  freeAndZero(tempString2);
                 }
               }
               else {
@@ -143,7 +143,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
               break;
             }
 
-            strFree(&tempString);
+            freeAndZero(tempString);
           }
         }
 

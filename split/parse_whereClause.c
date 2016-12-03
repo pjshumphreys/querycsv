@@ -24,7 +24,6 @@ void parse_whereClause(
     newClause = NULL;
 
     reallocMsg(
-        "couldn't allocate clause memory",
         (void**)&(newClause),
         sizeof(struct expression)
       );

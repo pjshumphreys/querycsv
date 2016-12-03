@@ -25,8 +25,8 @@ int walkRejectRecord(
         expressionPtr->unionPtrs.leaves.rightPtr->leftNull
       ) {
 
-      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
-      strFree(&(expressionPtr->unionPtrs.leaves.rightPtr->value));
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
+      freeAndZero(expressionPtr->unionPtrs.leaves.rightPtr->value);
 
       return FALSE;
     }
@@ -39,8 +39,8 @@ int walkRejectRecord(
         (void (*)())&getUnicodeChar
       );
 
-    strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
-    strFree(&(expressionPtr->unionPtrs.leaves.rightPtr->value));
+    freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
+    freeAndZero(expressionPtr->unionPtrs.leaves.rightPtr->value);
 
     switch(expressionPtr->type) {
       case EXP_EQ:
@@ -74,7 +74,7 @@ int walkRejectRecord(
     getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
 
     if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
-      strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
       return FALSE;
     }
 
@@ -91,12 +91,12 @@ int walkRejectRecord(
         (void (*)())&getUnicodeChar,
         (void (*)())&getUnicodeChar
       ) == 0) {
-        strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+        freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
         return expressionPtr->type == EXP_NOTIN;  /* FALSE */
       }
     }
 
-    strFree(&(expressionPtr->unionPtrs.leaves.leftPtr->value));
+    freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
     return expressionPtr->type != EXP_NOTIN;  /* TRUE */
   }
 

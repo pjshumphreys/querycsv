@@ -15,7 +15,7 @@ struct expression *parse_scalarExpColumnRef(
     return NULL;
   }
 
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&expressionPtr), sizeof(struct expression));
+  reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->value = NULL;
 

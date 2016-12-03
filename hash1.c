@@ -22,7 +22,7 @@ int normaliseAndGet(
   struct hash1Entry const * lookupresult;
 
   /* if the allocation failed, print an error messge and exit */
-  reallocMsg(TDB_MALLOC_FAILED, (void**)&nfdString, strlen((const char *)(*str))+1);
+  reallocMsg((void**)&nfdString, strlen((const char *)(*str))+1);
 
   /* copy the string matched up to now directly into the output string */
   memcpy(nfdString, (void*)(*str), offsetInt);
@@ -33,7 +33,7 @@ int normaliseAndGet(
   }
   else {
     bufferLength = entry->length;
-    reallocMsg("realloc failure\n", (void**)&codepointBuffer, bufferLength*sizeof(long));
+    reallocMsg((void**)&codepointBuffer, bufferLength*sizeof(long));
     memcpy(codepointBuffer, (void*)(entry->codepoints), bufferLength*sizeof(long));
     entry = NULL;
     *offset += bytesRead;
@@ -82,7 +82,7 @@ int normaliseAndGet(
               
       /* read 1 byte. no overlong checks needed as a 1 byte code can */
       /* never be overlong, and is never a combining character */
-      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
+      reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
       codepointBuffer[bufferLength++] = (long)(*((*offset)++));
 
       continue;
@@ -130,13 +130,13 @@ int normaliseAndGet(
       /* do a lookup using hash1 */
       lookupresult = &hash1[(*((*offset)++))-128];
 
-      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
+      reallocMsg((void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
       memcpy(&(codepointBuffer[bufferLength]), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
       bufferLength += lookupresult->length;
     }
     else if((entry = isInHash2(codepoint)) == NULL) {
       /* the codepoint we found was not decomposable. just put it in the buffer */
-      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
+      reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
       codepointBuffer[bufferLength] = codepoint;
       bufferLength += 1;
     }
@@ -144,7 +144,7 @@ int normaliseAndGet(
       /* a decomposable codepoint was found in hash 2. */
 
       /* put the whole byte sequence into the buffer */
-      reallocMsg("realloc failure\n", (void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
+      reallocMsg((void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
       memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(long));
       bufferLength += entry->length;
       entry = NULL;

@@ -5,7 +5,6 @@ void appendToResultSet(
     struct resultColumnValue *match,
     struct resultSet* results) {
   reallocMsg(
-    "couldn't append record to resultset",
     (void**)&(results->records),
     (query->recordCount+1)*(query->columnCount)*sizeof(struct resultColumnValue)
   );

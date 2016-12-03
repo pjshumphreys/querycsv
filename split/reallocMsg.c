@@ -1,12 +1,12 @@
 #include "querycsv.h"
 
-void reallocMsg(char *failureMessage, void **mem, size_t size) {
+void reallocMsg(void **mem, size_t size) {
   void *temp = NULL;
 
   MAC_YIELD
   
   if((temp = realloc(*mem, size)) == NULL) {
-    fputs(failureMessage, stderr);
+    fputs(TDB_MALLOC_FAILED, stderr);
     exit(EXIT_FAILURE);
   }
 

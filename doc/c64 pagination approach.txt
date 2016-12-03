@@ -1,0 +1,16 @@
+compile all functions to asm, replace jmp _* with 6 zero bytes, rts with 3 zero bytes and resolve external functions to 0
+
+divide up any functions that are bigger than 8k
+
+group them into sets, firstly so that imports are minimised, secondly to fill up 8k pages
+
+add a mapping of function names to pages
+
+
+compile each set into assembly, then replace jmp _* with 6 zero bytes, rts with 3 zero bytes. generate a vice mapping for each set.
+
+create a page that has wrappers to the stdlib c functions in it, to prevent duplication?
+
+how will the floatlib code be laid out?
+
+"rts" instructions replaced with "jmp farret"

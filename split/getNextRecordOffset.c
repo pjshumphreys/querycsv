@@ -20,12 +20,12 @@ int getNextRecordOffset(char *inputFileName, long offset) {
   }
 
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE)) {
+  while(getCsvColumn(&inputFile, NULL, NULL, NULL, &offset, TRUE)) {
     /* do nothing */
   }
 
   /* get current file position */
-  fprintf(stdout, "%ld", ftell(inputFile));
+  fprintf(stdout, "%ld", offset);
 
   /* close the input file and return */
   fclose(inputFile);

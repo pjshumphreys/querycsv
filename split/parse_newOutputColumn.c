@@ -12,7 +12,7 @@ struct resultColumn *parse_newOutputColumn(
 
   MAC_YIELD
 
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&newResultColumn), sizeof(struct resultColumn));
+  reallocMsg((void**)(&newResultColumn), sizeof(struct resultColumn));
 
   /* insert this new output column into the list in the query data */
   if(queryData->firstResultColumn == NULL) {

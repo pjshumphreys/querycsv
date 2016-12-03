@@ -14,7 +14,6 @@ void parse_groupingSpec(
   }
   
   reallocMsg(
-      "couldn't allocate sortingList entry",
       (void**)&(sortingListPtr),
       sizeof(struct sortingList)
     );

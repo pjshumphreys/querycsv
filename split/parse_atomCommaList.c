@@ -14,7 +14,7 @@ struct atomEntry *parse_atomCommaList(
     return NULL;
   }
 
-  reallocMsg(TDB_MALLOC_FAILED, (void**)(&newEntryPtr), sizeof(struct atomEntry));
+  reallocMsg((void**)(&newEntryPtr), sizeof(struct atomEntry));
 
   if(lastEntryPtr == NULL) {
     newEntryPtr->index = 1;
