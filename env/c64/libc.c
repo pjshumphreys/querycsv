@@ -48,7 +48,7 @@ int foobar(char *string, char* format, ...) {
   memset(string, 0, 4);
   strcat(string, c);
   strncat(string, c, 2);
-  memcpy(string+1, string, 2);
+  /* memcpy(string+1, string, 2); */
   memmove(string+1, string, 2);
   /*bsearch (string, string, 2, 2, compar);*/
 
@@ -63,7 +63,8 @@ int foobar(char *string, char* format, ...) {
   fwrite(string, 1, 1, stdout);
   fputc(num, stderr);
   fputs(string, stdout);
-  fprintf(stdout,fmt, num);
+  fprintf(stdout, fmt, num);
+  printf(fmt, num);
   fflush(stdout);
   sprintf(string,fmt, num);
 

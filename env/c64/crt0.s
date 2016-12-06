@@ -21,7 +21,8 @@ EASYFLASH_KILL    = $04
 .import __LOADER_LOAD__
 .import __STARTUP_LOAD__
 .import __RAM2_LAST__, __RAM2_START__, __ROML0_START__
-.export premain
+
+.export entry,premain
 .export farcall2, farret2
 
 __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
@@ -113,7 +114,7 @@ lp1:
   inc lp1+2
   inc lp1+5
   lda lp1+5
-  eor #$c4
+  eor #$c7
   bne lp1 
   jmp entry
 
@@ -125,6 +126,9 @@ kill:
 startUpEnd:
 
 .segment "STARTUP"
+farret:
+  jmp farret3
+.include "tables.inc"
 
 ;entry point is here!
 entry:
@@ -299,7 +303,7 @@ premain:
 
   jsr zerobss
 
-  ; copydata won't work for us as it needs to do DATA *and* RODATA, so we roll our our memory copying code instead
+  ; copydata won't work for us as it needs to do DATA *and* RODATA, so we roll our own memory copying code instead
   lda #0
   sta EASYFLASH_BANK
 
@@ -421,7 +425,7 @@ farret2:
   ldx xRegBackup
   rts
 
-farret:
+farret3:
   sta aRegBackup
   stx xRegBackup
   tsx
@@ -432,14 +436,95 @@ farret:
   ldx xRegBackup
   rts
 
-.include "tables.inc"
+FUNC0:
+  sta aRegBackup
+  lda #>(__basicoff-1)
+  pha
+  lda #<(__basicoff-1)
+  pha
+  lda highAddressTable, x
+  pha
+  lda lowAddressTable, x
+  pha
+  lda aRegBackup
+  ldx xRegBackup
+  jmp __basicon
+
+FUNC1:
+  sta aRegBackup
+  lda #>(__basicoff2-1)
+  pha
+  lda #<(__basicoff2-1)
+  pha
+  lda highAddressTable, x
+  pha
+  lda lowAddressTable, x
+  pha
+  lda #2
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  lda xRegBackup
+  jsr ___float_float_to_fac    ; also pops pointer to float
+  jmp __basicon
+
+FUNC2:
+  sta aRegBackup
+  lda #>(__basicoff2-1)
+  pha
+  lda #<(__basicoff2-1)
+  pha
+  lda highAddressTable, x
+  pha
+  lda lowAddressTable, x
+  pha
+  lda #2
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  lda xRegBackup
+  jsr ___float_float_to_fac_arg
+  lda $61
+  jmp __basicon
+
+FUNC3:
+  sta aRegBackup
+  lda #>(__basicoff2-1)
+  pha
+  lda #<(__basicoff2-1)
+  pha
+  lda highAddressTable, x
+  pha
+  lda lowAddressTable, x
+  pha
+  lda #2
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  ldx xRegBackup
+  jsr ___float_float_to_fac_arg
+
+;---------------------------------------------------------------------------------------------
+
+__basicon:
+        sei
+        ldx #$37
+        stx $01
+        rts ; non local jmp to the real function
+__basicoff:
+        ldx #$36
+        stx $01
+        cli
+        rts
+__basicoff2:
+        ldx #$36
+        stx $01
+        cli
+        jsr ___float_fac_to_float
+        sta aRegBackup
+        lda currentBank
+        sta EASYFLASH_BANK
+        lda aRegBackup
+        rts
 
 .segment "BSS"
-
-aRegBackup:
-  .byte $00
-xRegBackup:
-  .byte $00
 currentBank:
   .byte $00
 stackBackup:
