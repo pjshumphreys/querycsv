@@ -505,15 +505,21 @@ FUNC3:
 
 __basicon:
         sei
+        ldx #EASYFLASH_KILL
+        stx EASYFLASH_CONTROL
         ldx #$37
         stx $01
         rts ; non local jmp to the real function
 __basicoff:
+        ldx #EASYFLASH_16K
+        stx EASYFLASH_CONTROL
         ldx #$36
         stx $01
         cli
         rts
 __basicoff2:
+        ldx #EASYFLASH_16K
+        stx EASYFLASH_CONTROL
         ldx #$36
         stx $01
         cli

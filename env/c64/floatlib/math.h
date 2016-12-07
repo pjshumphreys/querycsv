@@ -3,7 +3,7 @@
 #define _MATH_H_
 
 
-#include "float.h"
+#include "floatlib/float.h"
 
 /* math functions */
 

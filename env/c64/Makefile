@@ -8,7 +8,7 @@ ld_config := linker.cfg
 
 obj :=
 obj += crt0.o
-obj += obj/c64.o
+obj += obj/floattest.o
 
 INCLUDE  := include
 
