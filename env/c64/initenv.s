@@ -4,10 +4,10 @@
 __RAM2_TOTAL__ = __RAM2_LAST__ - __RAM2_START__
 
 .segment "DATA"
-.incbin "floatlib/padded.bin"
+.incbin "floatlibdata2.bin"
 
 .segment "INIT"
-.incbin "floatlib/floatlib.bin"
+.incbin "floatlib.bin"
 
 .segment "CODE"
 

@@ -8,6 +8,15 @@
 //cat paddedFile.bin querycsv2.bin > querycsv.bin
 //bin2efcrt querycsv.bin querycsv.crt
 
+
+//find * -name "*.c" -print0 | sed -z "s/\.c$//g" | xargs -0 -I {} sh -c 'rm ../labels.s; egrep -v "\b_'{}'\b" ../labels.inc > ../labels.s; cl65 -o '{}'.bin -T -t c64 -O -Os --static-locals -W -C page-template.cfg ../labels.s '{}'.c;rm '{}'.o;'
+
+//gcc -I /usr/local/lib/cc65/include/ -D __CC65__ -U __unix__ -U __GNUC__ -E sql.c > sql2.c
+//sed '/^[#] [0-9]*/d' sql2.c > sql3.c
+//indent sql3.c
+
+//printf '\x31\xc0\xc3' | dd of=test_blob bs=1 seek=100 count=3 conv=notrunc
+
 var pages = [
   [
     "skipbom",
@@ -115,7 +124,7 @@ var functionsList=[
   ["BASIC_FAC_testsgn",   0, 0xBC2B, "FUNC0"],   /* in: FAC(x1) out: a=0 (x1=0) a=1 (x1>0) a=255 (x1<0) */
   ["BASIC_FAC_Poly1",     0, 0xE059, "FUNC0"],   /* in: FAC x  a/y ptr to poly (1byte grade,5bytes per coefficient) */
 
-  /*normally these functions are wrapped by more code, but we need to be able to call them in a raw form */
+  /*normally these functions are wrapped by more code, but we need to be able to call them in a raw form as as well */
   ["BASIC_FAC_Atn",       0, 0xE30E, "FUNC0"],   /* in/out: FAC */
   ["BASIC_ARG_FAC_Div",   0, 0xBB12, "FUNC0"],   /* in: ARG,FAC out:FAC */
   ["BASIC_ARG_FAC_Add",   0, 0xB86A, "FUNC0"],    /* in: ARG,FAC out:FAC */
@@ -179,7 +188,96 @@ var functionsList=[
   ["_vfprintf",           2, 0xBA2E, "farcall2"],
   ["_vsnprintf",          2, 0xBA57, "farcall2"],
   ["_vsprintf",           2, 0xBB1F, "farcall2"],
-  ["_write",              2, 0xA7B8, "farcall2"]
+  ["_write",              2, 0xA7B8, "farcall2"],
+
+  /* functions that make up querycsv specifically */
+  ["_cleanup_atomList",             0, 0x0001, "farcall"],
+  ["_cleanup_columnReferences",     0, 0x0001, "farcall"],
+  ["_cleanup_expression",           0, 0x0001, "farcall"],
+  ["_cleanup_inputColumns",         0, 0x0001, "farcall"],
+  ["_cleanup_inputTables",          0, 0x0001, "farcall"],
+  ["_cleanup_matchValues",          0, 0x0001, "farcall"],
+  ["_cleanup_orderByClause",        0, 0x0001, "farcall"],
+  ["_cleanup_query",                0, 0x0001, "farcall"],
+  ["_cleanup_resultColumns",        0, 0x0001, "farcall"],
+  ["_combiningCharCompare",         0, 0x0001, "farcall"],
+  ["_consumeCombiningChars",        0, 0x0001, "farcall"],
+  ["_d_sprintf",                    0, 0x0001, "farcall"],
+  ["_d_strftime",                   0, 0x0001, "farcall"],
+  ["_d_tztime",                     0, 0x0001, "farcall"],
+  ["_endOfFile",                    0, 0x0001, "farcall"],
+  ["_exp_divide",                   0, 0x0001, "farcall"],
+  ["_exp_uminus",                   0, 0x0001, "farcall"],
+  ["_getCalculatedColumns",         0, 0x0001, "farcall"],
+  ["_getColumnCount",               0, 0x0001, "farcall"],
+  ["_getColumnValue",               0, 0x0001, "farcall"],
+  ["_getCsvColumn",                 0, 0x0001, "farcall"],
+  ["_getCurrentDate",               0, 0x0001, "farcall"],
+  ["_getFirstRecord",               0, 0x0001, "farcall"],
+  ["_getGroupedColumns",            0, 0x0001, "farcall"],
+  ["_getLookupTableEntry",          0, 0x0001, "farcall"],
+  ["_getMatchingRecord",            0, 0x0001, "farcall"],
+  ["_getNextRecordOffset",          0, 0x0001, "farcall"],
+  ["_getUnicodeChar",               0, 0x0001, "farcall"],
+  ["_getUnicodeCharFast",           0, 0x0001, "farcall"],
+  ["_getValue",                     0, 0x0001, "farcall"],
+  ["_groupResults",                 0, 0x0001, "farcall"],
+  ["_groupResultsInner",            0, 0x0001, "farcall"],
+  ["_hash_addString",               0, 0x0001, "farcall"],
+  ["_hash_compare",                 0, 0x0001, "farcall"],
+  ["_hash_createTable",             0, 0x0001, "farcall"],
+  ["_hash_freeTable",               0, 0x0001, "farcall"],
+  ["_hash_lookupString",            0, 0x0001, "farcall"],
+  ["_in_word_set",                  0, 0x0001, "farcall"],
+  ["_isCombiningChar",              0, 0x0001, "farcall"],
+  ["_isInHash2",                    0, 0x0001, "farcall"],
+  ["_isNumberWithGetByteLength",    0, 0x0001, "farcall"],
+  ["_myfseek",                      0, 0x0001, "farcall"],
+  ["_needsEscaping",                0, 0x0001, "farcall"],
+  ["_normaliseAndGet",              0, 0x0001, "farcall"],
+  ["_outputHeader",                 0, 0x0001, "farcall"],
+  ["_outputResult",                 0, 0x0001, "farcall"],
+  ["_parse_atomCommaList",          0, 0x0001, "farcall"],
+  ["_parse_columnRefUnsuccessful",  0, 0x0001, "farcall"],
+  ["_parse_expCommaList",           0, 0x0001, "farcall"],
+  ["_parse_functionRef",            0, 0x0001, "farcall"],
+  ["_parse_functionRefStar",        0, 0x0001, "farcall"],
+  ["_parse_groupingSpec",           0, 0x0001, "farcall"],
+  ["_parse_inPredicate",            0, 0x0001, "farcall"],
+  ["_parse_newOutputColumn",        0, 0x0001, "farcall"],
+  ["_parse_orderingSpec",           0, 0x0001, "farcall"],
+  ["_parse_scalarExp",              0, 0x0001, "farcall"],
+  ["_parse_scalarExpColumnRef",     0, 0x0001, "farcall"],
+  ["_parse_scalarExpLiteral",       0, 0x0001, "farcall"],
+  ["_parse_tableFactor",            0, 0x0001, "farcall"],
+  ["_parse_whereClause",            0, 0x0001, "farcall"],
+  ["_readParams",                   0, 0x0001, "farcall"],
+  ["_readQuery",                    0, 0x0001, "farcall"],
+  ["_reallocMsg",                   0, 0x0001, "farcall"],
+  ["_recordCompare",                0, 0x0001, "farcall"],
+  ["_runCommand",                   0, 0x0001, "farcall"],
+  ["_runQuery",                     0, 0x0001, "farcall"],
+  ["_skipBom",                      0, 0x0001, "farcall"],
+  ["_strAppend",                    0, 0x0001, "farcall"],
+  ["_strAppendUTF8",                0, 0x0001, "farcall"],
+  ["_strCompare",                   0, 0x0001, "farcall"],
+  ["_strdup",                       0, 0x0001, "farcall"],
+  ["_stringGet",                    0, 0x0001, "farcall"],
+  ["_strNumberCompare",             0, 0x0001, "farcall"],
+  ["_strReplace",                   0, 0x0001, "farcall"],
+  ["_strRTrim",                     0, 0x0001, "farcall"],
+  ["_strtod",                       0, 0x0001, "farcall"],
+  ["_tree_insert",                  0, 0x0001, "farcall"],
+  ["_tree_walkAndCleanup",          0, 0x0001, "farcall"],
+  ["_updateRunningCounts",          0, 0x0001, "farcall"],
+  ["_walkRejectRecord",             0, 0x0001, "farcall"],
+  ["_yyerror2",                     0, 0x0001, "farcall"],
+  ["_yyerror",                      0, 0x0001, "farcall"],
+  ["_yylex",                        0, 0x0001, "farcall"],
+  ["_yylex_destroy",                0, 0x0001, "farcall"],
+  ["_yylex_init",                   0, 0x0001, "farcall"],
+  ["_yyparse",                      0, 0x0001, "farcall"],
+  ["_yyset_in",                     0, 0x0001, "farcall"]
 ];
 
 console.log(".export _stdin\n\

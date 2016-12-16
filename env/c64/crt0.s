@@ -23,7 +23,7 @@ EASYFLASH_KILL    = $04
 .import __RAM2_LAST__, __RAM2_START__, __ROML0_START__
 
 .export entry,premain
-.export farcall2, farret2
+.export farcall2, farret, farret2
 
 __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
 
@@ -114,7 +114,7 @@ lp1:
   inc lp1+2
   inc lp1+5
   lda lp1+5
-  eor #$c7
+  eor #$cc
   bne lp1 
   jmp entry
 
