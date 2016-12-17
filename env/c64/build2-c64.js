@@ -1,8 +1,7 @@
-var i  = 0;
+var i = 0;
 
 var execSync = require('child_process').execSync;
-var spawn = require('child_process').spawn;
-var fs = require('fs');
+var fs = require('graceful-fs');
 var readline = require('readline');
 
 var hashMap = {};
@@ -84,6 +83,7 @@ var functionsList2 = [
 
 var functionsList3 = [
   /* standard C library functions */
+  ["_strtod",             2, 0x0001, "farcall"],
   ["_calloc",             2, 0x0001, "farcall2"],
   ["_clearerr",           2, 0x0001, "farcall2"],
   ["_close",              2, 0x0001, "farcall2"],
@@ -134,7 +134,10 @@ var functionsList3 = [
   ["_isCombiningChar",    0, 0x0001, "farcall"],
   ["_hash",               0, 0x0001, "farcall"],
   ["_in_word_set",        0, 0x0001, "farcall"],
-
+  ["_yylex_destroy",      0, 0x0001, "farcall"],
+  ["_yylex_init",         0, 0x0001, "farcall"],
+  ["_yyparse",            0, 0x0001, "farcall"],
+  ["_yyset_in",           0, 0x0001, "farcall"]
 ];
 
 var defines = {
@@ -146,11 +149,12 @@ var defines = {
   "___float_float_to_fac": 0,
   "___float_float_to_fac_arg": 0,
   "aRegBackup": 0,
-  "xRegBackup": 0
+  "xRegBackup": 0,
+  "_numberEntry": 0
 };
 
-//compile cc65-floatlib. 
-////////////////////////
+//create the cc65-floatlib include 
+//////////////////////////////////
 
 var tables = fs.createWriteStream('floatlib/tables.inc');
 
@@ -178,10 +182,13 @@ for(i = 0; i < functionsList2.length; i++) {
 
 tables.end(part1);
 
+//compile cc65-floatlib. 
+////////////////////////
+
 function part1(){
   console.log(1);
 
-  execSync("cl65 -I ./floatlib -T -t c64 -Ln floatlib.lbl -vm -O -Os --static-locals -W -C floatlib.cfg floatlib/float.s floatlib.c");
+  execSync("cl65 -I ./floatlib -T -t c64 -Ln floatlib.lbl --config floatlib.cfg floatlib/float.s floatlib.c");
 
   execSync("((echo -n \"ibase=16; \" && grep __RAM2_TOTAL__ floatlib.lbl | sed -n \"s/al \([^ ]*\).*"+"/\1/p\") | bc)|xargs -I {} dd if=/dev/zero bs=1 count={} of=floatlibdata2.bin");
 
@@ -227,7 +234,7 @@ function part2() {
   console.log(2);
 
   //compile fake program that uses c library
-  execSync("cl65 -T -t c64 -Ln libc.lbl -O -Os --static-locals -W -C libc.cfg libc.c initenv.s");
+  execSync("cl65 -T -t c64 -Ln libc.lbl -O -Os --static-locals --config libc.cfg libc.c initenv.s");
 
   execSync("((echo -n \"ibase=16; \" && grep __RAM2_TOTAL__ libc.lbl | sed -n \"s/al \([^ ]*\).*"+"/\1/p\") | bc)|xargs -I {} dd if=/dev/zero bs=1 count={} of=padded.bin");
 
@@ -242,6 +249,7 @@ function part2() {
 }
 
 var code;
+var code2;
 function part3() {
   console.log(3);
 
@@ -255,8 +263,18 @@ function part3() {
 
   var data = fs.createWriteStream('data.s');
   code = fs.createWriteStream('code.s');
-  var func;
+  code2 = fs.createWriteStream('labels.s');
+  var func = [];
   var active = code;
+
+  function writePause(stream, text) {
+    if(!stream.write(text)) {
+      lineReader.pause();
+      stream.on('drain', function() {
+        lineReader.resume();
+      });
+    } 
+  }
 
   lineReader.on('line', function(line) {
     var name;
@@ -264,25 +282,33 @@ function part3() {
       name = line.replace(/\.segment	"/, "").match(/[_0-9A-Z]+/)[0];
       
       if(name == "CODE") {
-        active = func;
+        if(func.length) {
+          active = func[func.length-1];
+        }
+        else {
+          active = code;
+        }
       }
       else {
         active = data;
-        active.write(line+"\n");
+        writePause(active, line+"\n");
       }
     }
-    else if(/\.export/.test(line)) {
+    else if(/\.export/.test(line) || /\.endproc/.test(line)) {
       //do nothing
     }
     else if (/^\.proc\s+/.test(line)) {
-      if(func) {
-        func.end();
-      }
-
       name = (line.replace(/^\.proc\s+/, "")).match(/[^:]+/)[0];
-      func = fs.createWriteStream('s/'+name+'.s');
-      active = func;
-      active.write(".include \"code.s\"\n.export "+name+"\n"+line+"\n");
+      func.push(fs.createWriteStream('s/'+name+'.s'));
+      
+      active = func[func.length-1];
+
+      if(name == '_main') {
+        writePause(active, ".include \"../code.s\"\n.export "+name+"\n"+line+"\n");
+      }
+      else {
+        writePause(active, ".include \"../code2.s\"\n.export "+name+"\n"+line+"\n");
+      }
 
       //add an entry for each into the mapping table
       if(name !== "_main") {
@@ -294,51 +320,67 @@ function part3() {
       if(active) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
 
-        active.write(".export "+name.toLowerCase()+"\n");
-        active.write(line.replace(name, name.toLowerCase())+"\n");
+        writePause(active, ".export "+name.toLowerCase()+"\n");
+        writePause(active, line.replace(name, name.toLowerCase())+"\n");
       }
     }
     else if (active === data && /^[a-z0-9A-Z]+\s+:=/.test(line)) {
       if(active) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
 
-        active.write(".export "+name.toLowerCase()+"\n");
+        writePause(active, ".export "+name.toLowerCase()+"\n");
 
         line = line.replace(name, name.toLowerCase())
         var name2 = line.match(/L[0-9A-F]+/);
         if(name2) {
-          active.write(line.replace(name2[0], name2[0].toLowerCase())+"\n");
+          writePause(active, line.replace(name2[0], name2[0].toLowerCase())+"\n");
         }
         else {
-          active.write(line+"\n");
+          writePause(active, line+"\n");
         }
       }
     }
     else {
-      if(active) {
+      //if(active) {
         name = line.match(/L[0-9A-F]+[^:]/);
         if(name && active === data) {
-          active.write(line.replace(name[0], name[0].toLowerCase())+"aaa\n");
+          writePause(active, line.replace(name[0], name[0].toLowerCase())+"\n");
         }
         else {
-          active.write(line+"\n");
+          if(active == code && (!/\.import\b/.test(line))) {
+            writePause(code2, line+"\n");
+          }
+          writePause(active, line+"\n");
         }
-      }
+      //}
     }
   });
-  
+
+  var j;
   lineReader.on('close', function() {
     data.write(".export _main\n\
 .segment	\"CODE\"\n\
 _main:\n\
 inx");
 
-    if(func) {
-      func.end();
-    }
-    
-    data.end(part4);
+    j = func.length;
+
+    data.end(part3a);
   });
+
+  function part3a() {
+    for(i = 0; i < func.length; i++) {
+      writePause(func[i], ".endproc\n");
+      func[i].end(part3b);
+    }
+  }
+  
+  function part3b() {
+    j--;
+    if(j == 0) {
+      part4();
+    }
+  }
 }
 
 function part4() {
@@ -347,22 +389,23 @@ function part4() {
   //compile data, rodata and bss segments. generate an assembly language include of all the labels
   execSync("cl65 -Ln data.lbl -C data.cfg data.s");
 
-  var lineReader = readline.createInterface({
+  var lineReader2 = readline.createInterface({
     input: fs.createReadStream('data.lbl')
   });
 
-  lineReader.on('line', function(line) {
+  lineReader2.on('line', function(line) {
     var name = line.replace(/^al [0-9A-F]+ \./, "");
 
     if(name.match(/l[0-9a-f]{4}/)) {
       var address = parseInt(line.match(/[0-9A-F]+/), 16);
      
       code.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
+      code2.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
       execSync("sed -i 's/"+name.toUpperCase()+"/"+name+"/g' s/*");
     }
   });
-  
-  lineReader.on('close', function() {
+
+  lineReader2.on('close', function() {
     code.end(part5);
   });
 }
@@ -399,8 +442,45 @@ function part5() {
 function part6() {
   console.log(6);
 
-  execSync("cl65 -Ln main.lbl -T -t c64 -C linker.cfg crt0.s s/_main.s");
+  execSync("cl65 -Ln main.lbl -T -t c64 --config linker.cfg crt0.s s/_main.s");
 
+  //read the label file and update each function address
+  //////////////////////////////////////////////////////
+  var lineReader = readline.createInterface({
+    input: fs.createReadStream('main.lbl')
+  });
+
+  for(i in defines) {
+    code2.write(i+" = $"+("0000"+((defines[i]).toString(16).toUpperCase())).substr(-4)+"\n");
+  }
+
+  code2.write(".export _main\n_main = $0100\n");
+  code2.write(".import pushl0\n");
+  
+  lineReader.on('line', function(line) {
+    var name = line.replace(/^al [0-9A-F]+ \./, "");
+    var address = parseInt(line.match(/[0-9A-F]+/), 16);
+     
+    if(name == "farret") {  
+      code2.write("farret = $"+("0000"+(address.toString(16).toUpperCase())).substr(-4)+"\n");
+    }
+    
+    if(hashMap.hasOwnProperty(name)) {  
+      code2.write(name+" = $"+("0000"+(address.toString(16).toUpperCase())).substr(-4)+"\n");
+    }
+  });
+  
+  lineReader.on('close', function() {
+    code2.end(part7);
+  });
+
+}
+
+function part7() {
+  console.log(7);
+
+  execSync("pushd s; find * -name \"*.s\" -print0 | sed -z \"s/\.s$//g\" | xargs -0 -I {} sh -c 'rm ../code2.s; egrep -v \"\b'{}'\b\" ../labels.s > ../code2.s; cat ../code2.s';popd" /*cl65 -o ../obj/'{}'.bin -T -t c64 -C ../page-template.cfg '{}'.s;rm '{}'.o;';popd"*/);
+  
   //compile each function separately to identify all their sizes
 
   //create an include file that defines all functions except the one being compiled

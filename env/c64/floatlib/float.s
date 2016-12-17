@@ -1,10 +1,17 @@
+	.autoimport	on
+	.case		on
+	.debuginfo	off
+	.importzp	sp, sreg, regsave, regbank
+	.importzp	tmp1, tmp2, tmp3, tmp4, ptr1, ptr2, ptr3, ptr4
+  .export __strtod
+
 .segment "HIRAM"
 farret: ;put a couple of 'nop's after the rts so this can become a jmp later without affecting the alignment
   rts
   nop
   nop
 
-.include "floatlib/tables.inc"
+.include "tables.inc"
 
 FUNC0:
   sta aRegBackup
@@ -457,6 +464,34 @@ __strtof:
         tya
         jsr BASIC_string_to_FAC
         jsr ___float_fac_to_float    ; also pops pointer to float
+        jmp farret
+
+__strtod:
+        lda ptr1
+        sta $22
+        ldx ptr1+1
+        stx $23
+        tya
+        jsr BASIC_string_to_FAC
+        jsr ___float_fac_to_float    ; also pops pointer to float
+
+;  if(bytesMatched != NULL) {
+;    *bytesMatched = &(text[y]);
+;  }
+        jsr ldaxysp
+        sta ptr1
+        stx ptr1+1
+
+        lda #$7A
+        ldx #$7B
+
+        ldy #$00
+        sta (ptr1),y
+        iny
+        txa
+        sta (ptr1),y
+
+        jsr incsp6
         jmp farret
 
 ; convert char to float
