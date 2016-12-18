@@ -1,6 +1,8 @@
 var i = 0;
 
 var execSync = require('child_process').execSync;
+var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 var fs = require('graceful-fs');
 var readline = require('readline');
 
@@ -156,6 +158,7 @@ var defines = {
 //create the cc65-floatlib include 
 //////////////////////////////////
 
+//*
 var tables = fs.createWriteStream('floatlib/tables.inc');
 
 for(i = 0; i < functionsList.length; i++) {
@@ -181,6 +184,8 @@ for(i = 0; i < functionsList2.length; i++) {
 }
 
 tables.end(part1);
+//*/
+//part7();
 
 //compile cc65-floatlib. 
 ////////////////////////
@@ -188,7 +193,9 @@ tables.end(part1);
 function part1(){
   console.log(1);
 
-  execSync("cl65 -I ./floatlib -T -t c64 -Ln floatlib.lbl --config floatlib.cfg floatlib/float.s floatlib.c");
+  execSync("./cc65 -I ./floatlib -T -t c64 floatlib.c");
+
+  execSync("cl65 -I ./floatlib -T -t c64 -Ln floatlib.lbl --config floatlib.cfg floatlib/float.s floatlib.s");
 
   execSync("((echo -n \"ibase=16; \" && grep __RAM2_TOTAL__ floatlib.lbl | sed -n \"s/al \([^ ]*\).*"+"/\1/p\") | bc)|xargs -I {} dd if=/dev/zero bs=1 count={} of=floatlibdata2.bin");
 
@@ -476,18 +483,78 @@ function part6() {
 
 }
 
+var files;
+
 function part7() {
   console.log(7);
 
-  execSync("pushd s; find * -name \"*.s\" -print0 | sed -z \"s/\.s$//g\" | xargs -0 -I {} sh -c 'rm ../code2.s; egrep -v \"\b'{}'\b\" ../labels.s > ../code2.s; cat ../code2.s';popd" /*cl65 -o ../obj/'{}'.bin -T -t c64 -C ../page-template.cfg '{}'.s;rm '{}'.o;';popd"*/);
-  
   //compile each function separately to identify all their sizes
-
   //create an include file that defines all functions except the one being compiled
 
-  //use a bin packing algorithm to group the functions and produce a binary of each 8k page
+  execSync("pushd s; find * -name \"*.s\" -print0 | sed -z \"s/\\.s$//g\" | xargs -0 -I {} sh -c 'rm ../code2.s; egrep -v \"\\b'{}'\\b\" ../labels.s > ../code2.s;cl65 -o ../obj/'{}'.bin -T -t c64 -C ../page-template.cfg '{}'.s;rm '{}'.o;';popd");
 
-  //read the addresses and page numbers of each function back into the table
+
+  //use a bin packing algorithm to group the functions and produce a binary of each 8k page
+  var list = exec("sh -c 'pushd obj > /dev/null;find * -type f -print0 | xargs -0 stat --printf=\"%s %n\\n\" | sort -rh;popd > /dev/null'");
+  
+  var lineReader = readline.createInterface({
+    input: list.stdout
+  });
+
+  var maxSize = 9205;
+
+  files = [];
+  var totalSizes = [];
+
+  lineReader.on('line', function(line) {
+    
+    var size = parseInt(line.match(/^[0-9]+/)[0], 10);
+    var name = line.replace(/^[0-9]+ /,"");
+    var count =-1;
+
+    if(size > maxSize) {
+      throw "file too big";
+    }
+    
+    for(i=0;;i++) {
+      if(i==files.length) {
+        files.push([]);
+        count++;
+        totalSizes.push(0);
+      }
+
+      if(totalSizes[i]+size < maxSize) {
+        files[i].push(name);
+        totalSizes[i]+=size;
+        break;
+      }
+    }
+  });
+
+  lineReader.on('close', part8);
+}
+
+function part8() {
+  console.log(8);
+  var i = 0;
+  var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
+
+  //compile each page and then update the addresses and page numbers of each function in the table
+  for(i = 0; i< files.length;i++) {
+    var regexes = files[i].map(function(x) {
+      return x.replace(/\.bin$/g, "");
+    }).reduce(function(a,b) {
+      return a+(a==="("?"":"|")+"(\\b"+b.replace(matchOperatorsRe, '\\$&')+"\\b)";
+    }, "(")+")";
+
+    var names = files[i].map(function(x) {
+      return JSON.stringify(x.replace(/\.bin$/g, ".s"));
+    }).join(" ");
+
+    execSync("pushd s;rm ../code2.s; egrep -Ev \""+regexes+"\" ../labels.s > ../code2.s;cl65 -o ../obj2/page"+(i+1)+".bin -Ln ../obj2/page"+(i+1)+".lbl -T -t c64 -C ../page-template2.cfg "+names+";rm *.o;popd");
+  }
+
+
 
   //hash1, hash2, hash3 and hash4 functions need to be split somehow.
 
