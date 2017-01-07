@@ -21,21 +21,21 @@
   #define __fastcall__ /* do nothing */
 
   /* duplicates of the macros in cc65-floatlib that just use the native floating point support */
-  #define fadd(_f,_a) (_f+_a)
-  #define fsub(_f,_a) (_f-_a)
-  #define fmul(_f,_a) (_f*_a)
-  #define fdiv(_f,_a) (_f/_a)
-  #define fcmp(_d,_s) (_d!=_s)
-  #define ctof(_s) ((double)_s)
-  #define ftostr(_f,_a) d_sprintf(_f, "%g", _a) /* d_sprintf knows how to convert doubles to strings */
-  #define fneg(_f) (_f*-1)
+  #define fadd(_f,_a) ((_f)+(_a))
+  #define fsub(_f,_a) ((_f)-(_a))
+  #define fmul(_f,_a) ((_f)*(_a))
+  #define fdiv(_f,_a) ((_f)/(_a))
+  #define fcmp(_d,_s) ((_d)!=(_s))
+  #define ctof(_s) ((double)(_s))
+  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to convert doubles to strings */
+  #define fneg(_f) ((_f)*(-1))
 #else
   #define MAC_YIELD
   #define HAS_VSNPRINTF
   #define TEMP_VAR "TMPDIR"
 
   #include "floatlib/float.h" /* fudges kinda support for floating point into cc65 by utilising functionality in the c64 basic rom */
-  #define ftostr(_d,_a) {reallocMsg("test", (void**)_d, 33);_ftostr(*(_d),_a);reallocMsg("test", (void**)_d, strlen(*(_d))+1);} /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
+  #define ftostr(_d,_a) {reallocMsg((void**)_d, 33);_ftostr(*(_d),_a);reallocMsg((void**)_d, strlen(*(_d))+1);} /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
   #define fneg(_d) _fneg(_d) 
   double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
 #endif

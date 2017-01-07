@@ -1,64 +1,210 @@
-/*! http://mths.be/fromcodepoint v0.1.0 by @mathias */
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(callback, thisArg) {
+
+    var T, k;
+
+    if (this == null) {
+      throw new TypeError(' this is null or not defined');
+    }
+
+    /*  1. Let O be the result of calling ToObject passing the |this| value as the argument. */
+    var O = Object(this);
+
+    /*  2. Let lenValue be the result of calling the Get internal method of O with the argument "length". */
+    /*  3. Let len be ToUint32(lenValue). */
+    var len = O.length >>> 0;
+
+    /*  4. If IsCallable(callback) is false, throw a TypeError exception. */
+    /*  See: http://es5.github.com/#x9.11 */
+    if (typeof callback !== "function") {
+      throw new TypeError(callback + ' is not a function');
+    }
+
+    /*  5. If thisArg was supplied, let T be thisArg; else let T be undefined. */
+    if (arguments.length > 1) {
+      T = thisArg;
+    }
+
+    /*  6. Let k be 0 */
+    k = 0;
+
+    /*  7. Repeat, while k < len */
+    while (k < len) {
+
+      var kValue;
+
+      /*  a. Let Pk be ToString(k). */
+      /*    This is implicit for LHS operands of the in operator */
+      /*  b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk. */
+      /*    This step can be combined with c */
+      /*  c. If kPresent is true, then */
+      if (k in O) {
+
+        /*  i. Let kValue be the result of calling the Get internal method of O with argument Pk. */
+        kValue = O[k];
+
+        /*  ii. Call the Call internal method of callback with T as the this value and */
+        /*  argument list containing kValue, k, and O. */
+        callback.call(T, kValue, k, O);
+      }
+      /*  d. Increase k by 1. */
+      k++;
+    }
+    /*  8. return undefined */
+  };
+}
+
+if (!String.prototype.ucLength) {
+    String.prototype.ucLength = function() {
+        /*  this solution was taken from  */
+        /*  http://stackoverflow.com/questions/3744721/javascript-strings-outside-of-the-bmp */
+        return this.length - this.split(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g).length + 1;
+    };
+}
+
+if (!String.prototype.codePointAt) {
+    String.prototype.codePointAt = function (ucPos) {
+        if (isNaN(ucPos)){
+            ucPos = 0;
+        }
+        var str = String(this);
+        var codePoint = null;
+        var pairFound = false;
+        var ucIndex = -1;
+        var i = 0;  
+        while (i < str.length){
+            ucIndex += 1;
+            var code = str.charCodeAt(i);
+            var next = str.charCodeAt(i + 1);
+            pairFound = (0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF);
+            if (ucIndex == ucPos){
+                codePoint = pairFound ? ((code - 0xD800) * 0x400) + (next - 0xDC00) + 0x10000 : code;
+                break;
+            } else{
+                i += pairFound ? 2 : 1;
+            }
+        }
+        return codePoint;
+    };
+}
+
 if (!String.fromCodePoint) {
-	(function() {
-		var defineProperty = (function() {
-			/*  IE 8 only supports `Object.defineProperty` on DOM elements */
-			try {
-				var object = {};
-				var $defineProperty = Object.defineProperty;
-				var result = $defineProperty(object, object, object) && $defineProperty;
-			} catch(error) {}
-			return result;
-		}());
-		var stringFromCharCode = String.fromCharCode;
-		var floor = Math.floor;
-		var fromCodePoint = function(codePoints) {
-			var MAX_SIZE = 0x4000;
-			var codeUnits = [];
-			var highSurrogate;
-			var lowSurrogate;
-			var index = -1;
-			var length = arguments.length;
-			if (!length) {
-				return '';
-			}
-			var result = '';
-			while (++index < length) {
-				var codePoint = Number(arguments[index]);
-				if (
-					!isFinite(codePoint) || /*  `NaN`, `+Infinity`, or `-Infinity` */
-					codePoint < 0 || /*  not a valid Unicode code point */
-					codePoint > 0x10FFFF || /*  not a valid Unicode code point */
-					floor(codePoint) != codePoint /*  not an integer */
-				) {
-					throw RangeError('Invalid code point: ' + codePoint);
-				}
-				if (codePoint <= 0xFFFF) { /*  BMP code point */
-					codeUnits.push(codePoint);
-				} else { /*  Astral code point; split in surrogate halves */
-					/*  http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae */
-					codePoint -= 0x10000;
-					highSurrogate = (codePoint >> 10) + 0xD800;
-					lowSurrogate = (codePoint % 0x400) + 0xDC00;
-					codeUnits.push(highSurrogate, lowSurrogate);
-				}
-				if (index + 1 == length || codeUnits.length > MAX_SIZE) {
-					result += stringFromCharCode.apply(null, codeUnits);
-					codeUnits.length = 0;
-				}
-			}
-			return result;
-		};
-		if (defineProperty) {
-			defineProperty(String, 'fromCodePoint', {
-				'value': fromCodePoint,
-				'configurable': true,
-				'writable': true
-			});
-		} else {
-			String.fromCodePoint = fromCodePoint;
-		}
-	}());
+    String.fromCodePoint = function () {
+        var strChars = [], codePoint, offset, codeValues, i;
+        for (i = 0; i < arguments.length; ++i) {
+            codePoint = arguments[i];
+            offset = codePoint - 0x10000;
+            if (codePoint > 0xFFFF){
+                codeValues = [0xD800 + (offset >> 10), 0xDC00 + (offset & 0x3FF)];
+            } else{
+                codeValues = [codePoint];
+            }
+            strChars.push(String.fromCharCode.apply(null, codeValues));
+        }
+        return strChars.join("");
+    };
+}
+
+if (!String.prototype.ucCharAt) {
+    String.prototype.ucCharAt = function (ucIndex) {
+        var str = String(this);
+        var codePoint = str.codePointAt(ucIndex);
+        var ucChar = String.fromCodePoint(codePoint);
+        return ucChar;
+    };
+}
+
+if (!String.prototype.ucIndexOf) {
+    String.prototype.ucIndexOf = function (searchStr, ucStart) {
+        if (isNaN(ucStart)){
+            ucStart = 0;
+        }
+        if (ucStart < 0){
+            ucStart = 0;
+        }
+        var str = String(this);
+        var strUCLength = str.ucLength();
+        searchStr = String(searchStr);
+        var ucSearchLength = searchStr.ucLength();
+        var i = ucStart;
+        while (i < strUCLength){
+            var ucSlice = str.ucSlice(i,i+ucSearchLength);
+            if (ucSlice == searchStr){
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    };
+}
+
+if (!String.prototype.ucLastIndexOf) {
+    String.prototype.ucLastIndexOf = function (searchStr, ucStart) {
+        var str = String(this);
+        var strUCLength = str.ucLength();
+        if (isNaN(ucStart)){
+            ucStart = strUCLength - 1;
+        }
+        if (ucStart >= strUCLength){
+            ucStart = strUCLength - 1;
+        }
+        searchStr = String(searchStr);
+        var ucSearchLength = searchStr.ucLength();
+        var i = ucStart;
+        while (i >= 0){
+            var ucSlice = str.ucSlice(i,i+ucSearchLength);
+            if (ucSlice == searchStr){
+                return i;
+            }
+            i--;
+        }
+        return -1;
+    };
+}
+
+if (!String.prototype.ucSlice) {
+    String.prototype.ucSlice = function (ucStart, ucStop) {
+        var str = String(this);
+        var strUCLength = str.ucLength();
+        if (isNaN(ucStart)){
+            ucStart = 0;
+        }
+        if (ucStart < 0){
+            ucStart = strUCLength + ucStart;
+            if (ucStart < 0){ ucStart = 0;}
+        }
+        if (typeof(ucStop) == 'undefined'){
+            ucStop = strUCLength - 1;
+        }
+        if (ucStop < 0){
+            ucStop = strUCLength + ucStop;
+            if (ucStop < 0){ ucStop = 0;}
+        }
+        var ucChars = [];
+        var i = ucStart;
+        while (i < ucStop){
+            ucChars.push(str.ucCharAt(i));
+            i++;
+        }
+        return ucChars.join("");
+    };
+}
+
+if (!String.prototype.ucSplit) {
+    String.prototype.ucSplit = function (delimeter, limit) {
+        var str = String(this);
+        var strUCLength = str.ucLength();
+        var ucChars = [];
+        if (delimeter == ''){
+            for (var i = 0; i < strUCLength; i++){
+                ucChars.push(str.ucCharAt(i));
+            }
+            ucChars = ucChars.slice(0, 0 + limit);
+        } else{
+            ucChars = str.split(delimeter, limit);
+        }
+        return ucChars;
+    };
 }
 
 if (!Array.prototype.filter) {
@@ -96,39 +242,141 @@ if (!Array.prototype.filter) {
   };
 }
 
-/* read file as JSON, parse it */
-var fs = require('fs');
+var execSync = require('child_process').execSync;
+var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
+var fs = require('graceful-fs');
+var readline = require('readline');
 
-var data = JSON.parse(fs.readFileSync("./filtered4.json", 'utf8'));
 
-var i, len;
+var array1 = [];
+var array3 = [];
 
-var string = "/*unicode normalization mapping table*/\n\
+/* parse UnicodeData.txt to find characters that have a decomposition string */
+var lineReader = readline.createInterface({
+  input: fs.createReadStream('UnicodeData.txt')
+});
+
+lineReader.on('line', function(line){
+  var item = line.split(";");
+  if(item[5] !== "") {
+    array3.push([item[0], item[5].replace(/<[^>]+> /g, ""), item[1]])
+  }
+});
+
+lineReader.on('close', function(){
+  fs.readFile("./weired.json", 'utf8', weiredRead);
+});
+
+function weiredRead(err, data) {
+  var array4;
+  var array5;
+  if(err) {
+    console.log(err);
+    return;
+  }
+
+  array4 = JSON.parse(data);
+  var e = 0;
+  do {
+    array5 = JSON.stringify(array3);
+    array3 = expand(array3, array4);
+    array4 = JSON.stringify(array3);
+  } while(array5!==array4 && (array4 = JSON.parse(array4)));
+
+  //fs.createWriteStream('decomposed.json', 'utf8').end(array5);
+  fileRead(null, null);
+}
+
+// combine this array with our own extra list of replacements and repeat replacing until the source and destination files are the same
+
+// read both files
+function expand(hash2, weired) {
+  var i, len1;
+  var j, len2;
+
+  // find occurances of an entry in weired in the replacements column of hash2 and replace it with the corresponding weired replacement
+
+  for(i = 0, len1 = weired.length; i< len1;i++) {
+    for(j = 0, len2 = hash2.length; j< len2;j++) {
+      if(hash2[j][1].indexOf(weired[i][0]) !== -1) {
+        hash2[j][1] = hash2[j][1].replace(new RegExp("\\b" + weired[i][0] + "\\b", 'g'), weired[i][1]);
+      }
+    }
+  }
+
+  var hash = {};
+
+  // append the weired to hash 2, sort by the first column and output
+  return hash2.
+    concat(weired).
+    sort(function(a, b) {
+      var len1 = a[1].split(" ").length,len2 = b[1].split(" ").length;
+
+      if(len1 !== len2) {
+        return len1 > len2?-1:1;
+      }
+
+      return parseInt(a[0],16) - parseInt(b[0],16)
+    }).
+    filter(function(elem) {
+      if(!hash.hasOwnProperty(elem[0])) {
+        hash[elem[0]] = elem[1].split(" ").length;
+        return true;
+      }
+
+      return false;
+    }).
+    sort(function(a, b) {
+      return parseInt(a[0],16) - parseInt(b[0],16)
+    });
+}
+
+
+// split the array into groups of [n] codepoints, and generate a set of functions that call bsearch for that subset, orchestated by a parent function (part of which is hand written)
+
+
+//fs.readFile("./decomposed.json", 'utf8', fileRead);
+//*/
+function fileRead(err, contents) {
+  if(err) {
+    console.log(err);
+    return;
+  }
+
+  var string = "/*unicode normalization mapping table*/\n\
 static const long\n";
 
-/*
-data = data.filter(function(elem){
-return (elem[2].indexOf("ARABIC") === -1 && elem[2].indexOf("MATHEMATICAL") === -1 && elem[2].indexOf("CJK COMPATIBILITY") === -1);
-});
-*/
+  var i, len;
 
-/* use fromcodepoint to write to the file in utf-8 */
-for(i = 0, len = data.length; i < len; i++) {
-  string+= 'hash2_' + (i+1) + "[] = {0x" + data[i][1].replace(/ /g, ", 0x") + '},  /* '+ data[i][2] + "\n"; */
+  //var data = JSON.parse(contents);
+  var data = array3;
+  
+  // use fromcodepoint to write to the file in utf-8
+  for(i = 0, len = data.length; i < len; i++) {
+    string += 'hash2_' +
+              (i+1) +
+              '[] = {0x' +
+              data[i][1].replace(/ /g, ", 0x") +
+              '}' +
+              (i==len-1?';':',') +
+              '  /* ' +
+              data[i][2] +
+              " */ \n"; 
+  }
+
+  string += "\nstatic const struct hash2Entry hash2["+data.length+"] = {\n";
+
+  for(i = 0, len = data.length; i < len; i++) {
+    string += '{0x' +
+      // String.fromCodePoint(parseInt(
+      data[i][0]+/* , 16)) + */
+      ', ' +
+      data[i][1].split(" ").length +
+      ', hash2_'+(i+1)+ '},  /*'+ data[i][2] + "*/\n";
+  }
+
+  string += '};';
+
+  fs.writeFile('./hash2.h', string, 'utf8');
 }
-
-string += "\nstatic const struct hash2Entry hash2["+data.length+"] = {\n";
-for(i = 0, len = data.length; i < len; i++) {
-  string += '{0x' +
-    /* String.fromCodePoint(parseInt( */
-    data[i][0]+/* , 16)) + */
-    ', ' +
-    data[i][1].split(" ").length +
-    ', hash2_'+(i+1)+ '},  /*'+ data[i][2] + "*/\n";
-}
-string += '};';
-
-fs.writeFileSync('./hash2.h', string, 'utf8');
-
-
-
