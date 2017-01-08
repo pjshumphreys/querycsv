@@ -344,13 +344,14 @@ function fileRead(err, contents) {
     return;
   }
 
-  var string = "/*unicode normalization mapping table*/\n\
-static const long\n";
-
   var i, len;
 
   //var data = JSON.parse(contents);
   var data = array3;
+
+  var string = "/*unicode normalization mapping table*/\n\
+#define HASH2SIZE "+data.length+"\n\n\
+static const long\n";
   
   // use fromcodepoint to write to the file in utf-8
   for(i = 0, len = data.length; i < len; i++) {
@@ -365,7 +366,7 @@ static const long\n";
               " */ \n"; 
   }
 
-  string += "\nstatic const struct hash2Entry hash2["+data.length+"] = {\n";
+  string += "\nstatic const struct hash2Entry hash2[HASH2SIZE] = {\n";
 
   for(i = 0, len = data.length; i < len; i++) {
     string += '{0x' +
