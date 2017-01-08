@@ -284,9 +284,22 @@ function weiredRead(err, data) {
     array4 = JSON.stringify(array3);
   } while(array5!==array4 && (array4 = JSON.parse(array4)));
 
-  //fs.createWriteStream('decomposed.json', 'utf8').end(array5);
-  fileRead(null, null);
+  fs.readFile("./hash2T.c", 'utf8', outerRead);
 }
+
+var outer = "";
+var inner = "";
+
+function outerRead(err, contents) {
+  if(err) {
+    console.log(err);
+    return;
+  }
+
+  outer = contents;
+
+  fs.readFile("./hash2innerT.c", 'utf8', fileRead);
+}  
 
 // combine this array with our own extra list of replacements and repeat replacing until the source and destination files are the same
 
@@ -344,40 +357,64 @@ function fileRead(err, contents) {
     return;
   }
 
+  inner = contents;
+
   var i, len;
+  var j, len2;
 
   //var data = JSON.parse(contents);
   var data = array3;
 
-  var string = "/*unicode normalization mapping table*/\n\
-#define HASH2SIZE "+data.length+"\n\n\
-static const long\n";
-  
-  // use fromcodepoint to write to the file in utf-8
-  for(i = 0, len = data.length; i < len; i++) {
-    string += 'hash2_' +
-              (i+1) +
-              '[] = {0x' +
-              data[i][1].replace(/ /g, ", 0x") +
-              '}' +
-              (i==len-1?';':',') +
-              '  /* ' +
-              data[i][2] +
-              " */ \n"; 
+  var arrays = [], size = 300;
+
+  while (data.length > 0) {
+    arrays.push(data.splice(0, size));
   }
 
-  string += "\nstatic const struct hash2Entry hash2[HASH2SIZE] = {\n";
+  for(j = 0, len2 = arrays.length; j < len2; j++) {
 
-  for(i = 0, len = data.length; i < len; i++) {
-    string += '{0x' +
-      // String.fromCodePoint(parseInt(
-      data[i][0]+/* , 16)) + */
-      ', ' +
-      data[i][1].split(" ").length +
-      ', hash2_'+(i+1)+ '},  /*'+ data[i][2] + "*/\n";
+    var string = "/*unicode normalization mapping table*/\n\
+  #define HASH2SIZE "+arrays[j].length+"\n\n\
+  static const long\n";
+    
+    // use fromcodepoint to write to the file in utf-8
+    for(i = 0, len = arrays[j].length; i < len; i++) {
+      string += 'hash2_' +
+                (i+1) +
+                '[] = {0x' +
+                arrays[j][i][1].replace(/ /g, ", 0x") +
+                '}' +
+                (i==len-1?';':',') +
+                '  /* ' +
+                arrays[j][i][2] +
+                " */ \n"; 
+    }
+
+    string += "\nstatic const struct hash2Entry hash2[HASH2SIZE] = {\n";
+
+    for(i = 0, len = arrays[j].length; i < len; i++) {
+      string += '{0x' +
+        // String.fromCodePoint(parseInt(
+        arrays[j][i][0]+/* , 16)) + */
+        ', ' +
+        arrays[j][i][1].split(" ").length +
+        ', hash2_'+(i+1)+ '},  /*'+ arrays[j][i][2] + "*/\n";
+    }
+
+    string += '};';
+    
+    fs.writeFile('./hash2inner'+j+'.c', inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
   }
 
-  string += '};';
+var string ="";
+var string2 = "";
+  for(j = 0, len2 = arrays.length; j < len2; j++) {
+    string += "  else if(codepoint < 0x10FFFF) {\n\
+    isInHash2_"+j+"();\n\
+  }\n\n";
 
-  fs.writeFile('./hash2.h', string, 'utf8');
+    string2 += "void isInHash2_"+j+"(void);\n"
+  }
+
+  fs.writeFile('./hash2.c', outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
 }
