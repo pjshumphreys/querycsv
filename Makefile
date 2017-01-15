@@ -27,7 +27,7 @@ querycsv.c: $(SOURCES)
 hash4.c: hash4.gperf
 	gperf hash4.gperf > hash4.c
 
-hash2.c: UnicodeData.txt weired.json hash2innerT.c hash2outerT.c hash2T.c
+hash2.c: UnicodeData.txt weired.json hash2inT.c hash2outerT.c hash2T.c
 	node ./generate\ hash2.js
 	cp hash2T.c hash2.c
 
