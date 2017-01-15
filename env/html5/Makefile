@@ -8,9 +8,7 @@
 #~/emsdk_portable/emsdk activate latest
 
 querycsv.tar.gz: build/index.html build/index.html.gz build/worker.min.js build/worker.min.js.gz build/apple-touch-icon-114x114-precomposed.png build/apple-touch-icon-120x120-precomposed.png build/apple-touch-icon-144x144-precomposed.png build/apple-touch-icon-152x152-precomposed.png build/apple-touch-icon-180x180-precomposed.png build/apple-touch-icon-72x72-precomposed.png build/apple-touch-icon-76x76-precomposed.png build/apple-touch-icon-precomposed.png build/touch-icon-192x192.png  build/fonts/icomoon.woff build/fonts/icomoon.ttf build/fonts/icomoon.eot build/fonts/icomoon.svg
-#	find * -type f \( -name "*.png" -o -name "index.*" -o -name "worker.min.*" -o -name "icomoon.*" \) -print0|sort -z|tar --null --owner=0 --group=0 -ncvf querycsv.tar.gz -T -
 	cd build;find * -type f -print0|sort -z| tar --null --owner=0 --group=0 -ncvf ../querycsv.tar.gz -T -
-
 
 build/fonts/icomoon.woff: fonts/icomoon.woff
 	mkdir -p build/fonts
