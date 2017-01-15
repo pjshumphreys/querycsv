@@ -248,9 +248,10 @@ var spawn = require('child_process').spawn;
 var fs = require('graceful-fs');
 var readline = require('readline');
 
-
 var array1 = [];
 var array3 = [];
+var outer = "";
+var inner = "";
 
 /* parse UnicodeData.txt to find characters that have a decomposition string */
 var lineReader = readline.createInterface({
@@ -284,26 +285,9 @@ function weiredRead(err, data) {
     array4 = JSON.stringify(array3);
   } while(array5!==array4 && (array4 = JSON.parse(array4)));
 
-  fs.readFile("./hash2T.c", 'utf8', outerRead);
+  fs.readFile("./hash2outerT.c", 'utf8', outerRead);
 }
 
-var outer = "";
-var inner = "";
-
-function outerRead(err, contents) {
-  if(err) {
-    console.log(err);
-    return;
-  }
-
-  outer = contents;
-
-  fs.readFile("./hash2innerT.c", 'utf8', fileRead);
-}  
-
-// combine this array with our own extra list of replacements and repeat replacing until the source and destination files are the same
-
-// read both files
 function expand(hash2, weired) {
   var i, len1;
   var j, len2;
@@ -345,13 +329,23 @@ function expand(hash2, weired) {
     });
 }
 
+function outerRead(err, contents) {
+  if(err) {
+    console.log(err);
+    return;
+  }
+
+  outer = contents;
+
+  fs.readFile("./hash2inT.c", 'utf8', innerRead);
+}  
+
+// combine this array with our own extra list of replacements and repeat replacing until the source and destination files are the same
+
 
 // split the array into groups of [n] codepoints, and generate a set of functions that call bsearch for that subset, orchestated by a parent function (part of which is hand written)
 
-
-//fs.readFile("./decomposed.json", 'utf8', fileRead);
-//*/
-function fileRead(err, contents) {
+function innerRead(err, contents) {
   if(err) {
     console.log(err);
     return;
@@ -362,18 +356,19 @@ function fileRead(err, contents) {
   var i, len;
   var j, len2;
 
-  //var data = JSON.parse(contents);
   var data = array3;
 
-  var arrays = [], size = 300;
+  var arrays = []
+  var size = process.argc > 2 && parseInt(process.argv[2])?parseInt(process.argv[2]):1114112;
+  var string;
+  var string2;
 
   while (data.length > 0) {
     arrays.push(data.splice(0, size));
   }
 
   for(j = 0, len2 = arrays.length; j < len2; j++) {
-
-    var string = "/*unicode normalization mapping table*/\n\
+    string = "/*unicode normalization mapping table*/\n\
   #define HASH2SIZE "+arrays[j].length+"\n\n\
   static const long\n";
     
@@ -406,15 +401,16 @@ function fileRead(err, contents) {
     fs.writeFile('./hash2inner'+j+'.c', inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
   }
 
-var string ="";
-var string2 = "";
+  string = "";
+  string2 = ""
+
   for(j = 0, len2 = arrays.length; j < len2; j++) {
-    string += "  else if(codepoint < 0x10FFFF) {\n\
+    string += "  else if(codepoint < 0x"+(j==(len2-1)?"110000":arrays[j+1][0][0]) +") {\n\
     isInHash2_"+j+"();\n\
   }\n\n";
 
     string2 += "void isInHash2_"+j+"(void);\n"
   }
 
-  fs.writeFile('./hash2.c', outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
+  fs.writeFile('./hash2outer.c', outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
 }

@@ -27,6 +27,10 @@ querycsv.c: $(SOURCES)
 hash4.c: hash4.gperf
 	gperf hash4.gperf > hash4.c
 
+hash2.c: UnicodeData.txt weired.json hash2innerT.c hash2outerT.c hash2T.c
+	node ./generate\ hash2.js
+	cp hash2T.c hash2.c
+
 sql.c: sql.y lexer.c querycsv.h
 	bison sql.y
 
@@ -37,7 +41,7 @@ lexer.c: sql.l querycsv.h
 	rm -rf lexer2.c
 	
 hash1.o: hash1.h gen.h en_gb.h querycsv.h
-hash2.o: hash2.h gen.h en_gb.h querycsv.h
+hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h
 querycsv.o: gen.h en_gb.h querycsv.h
 sql.o: lexer.c gen.h en_gb.h querycsv.h
@@ -64,7 +68,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f makeheaders querycsv gen.h querycsv.c hash4.c sql.c lexer.c sql.h lexer.h
+	rm -f makeheaders querycsv gen.h querycsv.c hash4.c hash2.c hash2inner*.c hash2outer.c sql.c lexer.c sql.h lexer.h
 	cd env/posix; rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
 	cd env/dos; find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32; find . -maxdepth 1 ! -path './win32.c' ! -path './win32.h' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;

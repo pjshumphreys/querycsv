@@ -14,7 +14,7 @@ int longCompare_NUMBER(const void *a, const void *b) {
 void isInHash2_NUMBER(void) {
   if((retval = (struct hash2Entry*)bsearch(
       (const void*)&(entry.codepoint),
-      (const void*)&hash2innerNUMBER,
+      (const void*)&hash2,
       HASH2SIZE,
       sizeof(struct hash2Entry),
       &longCompare_NUMBER

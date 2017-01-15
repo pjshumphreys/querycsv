@@ -25,8 +25,8 @@ style.min.css: style.css animations.css
 worker.min.js: worker.js
 	java -jar compiler.jar worker.js > worker.min.js
 
-output.min.js: extern/jquery-1.11.3.js extern/b64.js extern/jquery.history.js extern/iscroll-5.1.3.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js helper.js main.js
-	cat extern/jquery-1.11.3.js extern/b64.js extern/jquery.history.js extern/iscroll-5.1.3.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js helper.js main.js | java -jar compiler.jar > output.min.js
+output.min.js: extern/jquery-1.11.3.js extern/b64.js extern/jquery.history.js extern/iscroll-5.2.0-2017-01-03.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js helper.js main.js
+	cat extern/jquery-1.11.3.js extern/b64.js extern/jquery.history.js extern/iscroll-5.2.0-2017-01-03.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js helper.js main.js | java -jar compiler.jar > output.min.js
 
 worker.js: emcc.js workermain.js
 	rm -f worker.js

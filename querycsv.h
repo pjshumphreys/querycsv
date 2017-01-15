@@ -107,6 +107,8 @@
   #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=:"
+  #undef putenv
+  int putenv(char* string);
 #endif
 
 #ifdef __CC_NORCROFT
