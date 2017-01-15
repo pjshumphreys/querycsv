@@ -44,7 +44,7 @@ function cssRead(err, data) {
 
   style = data.toString();
   
-  fs.writeFile('index.html', normalizeWhitespace($.html()).replace('@@@style@@@', style).replace('@@@script@@@', script).replace('<!DOCTYPE html> <', '<!DOCTYPE html>\n<'), fileWritten);
+  fs.writeFile('build/index.html', normalizeWhitespace($.html()).replace('@@@style@@@', style).replace('@@@script@@@', script).replace('<!DOCTYPE html> <', '<!DOCTYPE html>\n<'), fileWritten);
 }
 
 function fileWritten(err) {
