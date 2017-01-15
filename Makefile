@@ -27,7 +27,7 @@ querycsv.c: $(SOURCES)
 hash4.c: hash4.gperf
 	gperf hash4.gperf > hash4.c
 
-hash2.c: UnicodeData.txt weired.json hash2inT.c hash2outerT.c hash2T.c
+hash2.c: UnicodeData.txt weired.json hash2iT.c hash2outT.c hash2T.c
 	node ./generate\ hash2.js
 	cp hash2T.c hash2.c
 
@@ -69,7 +69,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f makeheaders querycsv gen.h querycsv.c hash4.c hash2.c hash2inner*.c hash2outer.c sql.c lexer.c sql.h lexer.h
+	rm -f makeheaders querycsv gen.h querycsv.c hash4.c hash2.c hash2in*.c hash2out.c sql.c lexer.c sql.h lexer.h
 	cd env/html5; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix; rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
 	cd env/dos; find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;

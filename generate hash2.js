@@ -285,7 +285,7 @@ function weiredRead(err, data) {
     array4 = JSON.stringify(array3);
   } while(array5!==array4 && (array4 = JSON.parse(array4)));
 
-  fs.readFile("./hash2outerT.c", 'utf8', outerRead);
+  fs.readFile("./hash2outT.c", 'utf8', outerRead);
 }
 
 function expand(hash2, weired) {
@@ -337,7 +337,7 @@ function outerRead(err, contents) {
 
   outer = contents;
 
-  fs.readFile("./hash2inT.c", 'utf8', innerRead);
+  fs.readFile("./hash2iT.c", 'utf8', innerRead);
 }  
 
 // combine this array with our own extra list of replacements and repeat replacing until the source and destination files are the same
@@ -398,7 +398,7 @@ function innerRead(err, contents) {
 
     string += '};';
     
-    fs.writeFile('./hash2inner'+j+'.c', inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
+    fs.writeFile('./hash2in'+j+'.c', inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
   }
 
   string = "";
@@ -412,5 +412,5 @@ function innerRead(err, contents) {
     string2 += "void isInHash2_"+j+"(void);\n"
   }
 
-  fs.writeFile('./hash2outer.c', outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
+  fs.writeFile('./hash2out.c', outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
 }

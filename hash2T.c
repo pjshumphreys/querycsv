@@ -1,2 +1,2 @@
-#include "hash2outer.c"
-#include "hash2inner0.c"
+#include "hash2out.c"
+#include "hash2in0.c"
