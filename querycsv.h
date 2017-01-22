@@ -29,6 +29,10 @@
   #define ctof(_s) ((double)(_s))
   #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to convert doubles to strings */
   #define fneg(_f) ((_f)*(-1))
+
+  #define in_word_set_a in_word_set_ai
+  #define in_word_set_b in_word_set_bi
+  #define in_word_set_c in_word_set_ci
 #else
   #define MAC_YIELD
   #define HAS_VSNPRINTF
@@ -362,7 +366,9 @@ struct hash4Entry {
 };
 
 /* function prototypes */
-struct hash4Entry *in_word_set(register const char *str,register unsigned int len);
+struct hash4Entry *in_word_set_a(register const char *str,register unsigned int len);
+struct hash4Entry *in_word_set_b(register const char *str,register unsigned int len);
+struct hash4Entry *in_word_set_c(register const char *str,register unsigned int len);
 
 int normaliseAndGet(
     unsigned char **offset,

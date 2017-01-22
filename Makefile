@@ -24,12 +24,18 @@ gen.h: makeheaders $(SOURCES)
 querycsv.c: $(SOURCES)
 	cat $(SOURCES) > querycsv.c
 
-hash4.c: hash4.gperf
-	gperf hash4.gperf > hash4.c
+hash4a.c: hash4a.gperf
+	gperf hash4a.gperf > hash4a.c
 
-hash2.c: UnicodeData.txt weired.json hash2iT.c hash2outT.c hash2T.c
+hash4b.c: hash4b.gperf
+	gperf hash4b.gperf > hash4b.c
+
+hash4c.c: hash4c.gperf
+	gperf hash4c.gperf > hash4c.c
+
+hash2.c: UnicodeData.txt weired.json hash2iT.h hash2outT.h hash2T.h
 	node ./generate\ hash2.js
-	cp hash2T.c hash2.c
+	cp hash2T.h hash2.c
 
 sql.c: sql.y lexer.c querycsv.h
 	bison sql.y
@@ -47,11 +53,11 @@ querycsv.o: gen.h en_gb.h querycsv.h
 sql.o: lexer.c gen.h en_gb.h querycsv.h
 lexer.o: gen.h en_gb.h querycsv.h
 
-querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4.o querycsv.o
+querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/posix/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/html5/ \;
 	find . -maxdepth 1 -type f -iname \*.o ! -exec mv {} env/posix/ \;
-	cd env/posix; $(CC) -o querycsv sql.o lexer.o hash1.o hash2.o hash3.o hash4.o querycsv.o $(LDFLAGS) $(LIBS)
+	cd env/posix; $(CC) -o querycsv sql.o lexer.o hash1.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o $(LDFLAGS) $(LIBS)
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
 	cd env/dos; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/win32/ \;
@@ -69,7 +75,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f makeheaders querycsv gen.h querycsv.c hash4.c hash2.c hash2in*.c hash2out.c sql.c lexer.c sql.h lexer.h
+	rm -f makeheaders querycsv gen.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h
 	cd env/html5; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix; rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
 	cd env/dos; find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;

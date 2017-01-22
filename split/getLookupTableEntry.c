@@ -11,14 +11,21 @@ struct hash4Entry *getLookupTableEntry(
   ) {
   struct hash4Entry *temp = NULL, *temp2 = NULL;
   int totalBytes = 0;
+  int totalBytes2 = 0;
 
   MAC_YIELD
 
   if(isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
     return &numberEntry;
   }
-  
-  while((temp = in_word_set((char const *)(*offset), totalBytes+(*lastMatchedBytes)))) {
+
+  totalBytes2 = totalBytes+(*lastMatchedBytes);
+
+  while(
+      (temp = in_word_set_a((char const *)(*offset), totalBytes2)) ||
+      (temp = in_word_set_b((char const *)(*offset), totalBytes2)) ||
+      (temp = in_word_set_c((char const *)(*offset), totalBytes2))
+    ) {
     /* the match is so far holding up.  */
 
     /* keep this match for later as it may be the last one we find */
@@ -30,6 +37,8 @@ struct hash4Entry *getLookupTableEntry(
     /* get a code point */
     (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get))
     (offset, str, totalBytes, lastMatchedBytes, get);
+
+    totalBytes2 = totalBytes+(*lastMatchedBytes);
   } 
 
   /* don't update the value passed to us if we didn't find any match at all */
