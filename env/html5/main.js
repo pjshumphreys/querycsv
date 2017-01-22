@@ -1135,7 +1135,7 @@
     myScroll3.on('scrollStart', stopTap);
   
     $('#folder1, #folder2').
-      on('mousedown touchstart', 'button', startTap).
+      on('mousedown pointerdown touchstart', 'button', startTap).
       on('animationend', 'button', longTap).
       on('tap', 'button', gotoActions).
       on('keyup', 'button', kbGotoActions);
