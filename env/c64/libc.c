@@ -6,10 +6,10 @@
 #include <string.h>
 #include <locale.h>
 
-#pragma rodataseg ("FAKERODATA")
-#pragma dataseg ("FAKEDATA")
-#pragma bssseg ("FAKEDATA")
-#pragma codeseg ("FOO")
+#pragma rodata-name ("FAKERODATA")
+#pragma data-name ("FAKEDATA")
+#pragma bss-name ("FAKEDATA")
+#pragma code-name ("FOO")
   char* c = "C";
   char* pe = "C=C";
   char* fmt = "%d";

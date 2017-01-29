@@ -4,13 +4,13 @@
 
 void _strtod(void);
 
-#pragma codeseg ("FLOATLIB")
+#pragma code-name ("FLOATLIB")
 double strtod(const char* str, char** endptr) {
-  unsigned char *y = str; 
+  unsigned char *y = (unsigned char *)str; 
   unsigned char y2;
    
   for(;;) {
-    y2 = str[y];
+    y2 = *y;
     if(y2 <= '9' && y2 >= '0') {
 test:
       ++y;
@@ -45,10 +45,10 @@ test:
   return ctof(0);
 }
 
-#pragma rodataseg ("FAKERODATA")
-#pragma dataseg ("FAKEDATA")
-#pragma bssseg ("FAKEDATA")
-#pragma codeseg ("FOO")
+#pragma rodata-name ("FAKERODATA")
+#pragma data-name ("FAKEDATA")
+#pragma bss-name ("FAKEDATA")
+#pragma code-name ("FOO")
 
 int main(int argc, char **argv) {
   return 0;

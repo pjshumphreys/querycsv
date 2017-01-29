@@ -1,8 +1,9 @@
 var i = 0;
 
-var execSync = require('child_process').execSync;
-var exec = require('child_process').exec;
-var spawn = require('child_process').spawn;
+var child_process = require('child_process');
+var execSync = child_process.execSync;
+var exec = child_process.exec;
+var spawn = child_process.spawn;
 var fs = require('graceful-fs');
 var readline = require('readline');
 
@@ -131,11 +132,12 @@ var functionsList3 = [
   ["_vsprintf",           2, 0x0001, "farcall2"],
   ["_write",              2, 0x0001, "farcall2"],
   
-  ["_normaliseAndGet",    0, 0x0001, "farcall"],
+  ["_getHash1",           0, 0x0001, "farcall"],
   ["_isInHash2",          0, 0x0001, "farcall"],
   ["_isCombiningChar",    0, 0x0001, "farcall"],
-  ["_hash",               0, 0x0001, "farcall"],
-  ["_in_word_set",        0, 0x0001, "farcall"],
+  ["_in_word_set_a",      0, 0x0001, "farcall2"],
+  ["_in_word_set_b",      0, 0x0001, "farcall2"],
+  ["_in_word_set_c",      0, 0x0001, "farcall2"],
   ["_yylex_destroy",      0, 0x0001, "farcall"],
   ["_yylex_init",         0, 0x0001, "farcall"],
   ["_yyparse",            0, 0x0001, "farcall"],
@@ -151,49 +153,59 @@ var defines = {
   "___float_float_to_fac": 0,
   "___float_float_to_fac_arg": 0,
   "aRegBackup": 0,
-  "xRegBackup": 0,
-  "_numberEntry": 0
+  "xRegBackup": 0
 };
+
+//cut up hash 2 and put an entry in functions list for each file. as the code in each of them doesn't need to call any other page we can probably use farret2
+
+
+
+
+//create the bison parser pages
+
+
+//create the flex lexers
+
+
+createFloatLibInclude();
+//compileHash2();
 
 //create the cc65-floatlib include 
 //////////////////////////////////
+function createFloatLibInclude() {
+  var tables = fs.createWriteStream('floatlib/tables.inc');
 
-//*
-var tables = fs.createWriteStream('floatlib/tables.inc');
+  for(i = 0; i < functionsList.length; i++) {
+    hashMap[functionsList[i][0]] = i;
+    
+    tables.write(functionsList[i][0]+":\n  stx xRegBackup\n  ldx #$" + ("00"+(i.toString(16).toUpperCase())).substr(-2) + "\n  jmp "+ functionsList[i][3]+"\n");
+  }
 
-for(i = 0; i < functionsList.length; i++) {
-  hashMap[functionsList[i][0]] = i;
-  
-  tables.write(functionsList[i][0]+":\n  stx xRegBackup\n  ldx #$" + ("00"+(i.toString(16).toUpperCase())).substr(-2) + "\n  jmp "+ functionsList[i][3]+"\n");
+  tables.write("\nhighAddressTable:\n");
+
+  for(i = 0; i < functionsList.length; i++) {
+    tables.write(".byte $"+("0000"+((functionsList[i][2]-1).toString(16).toUpperCase())).substr(-4).substring(0,2)+"\n");
+  }
+
+  tables.write("\nlowAddressTable:\n");
+
+  for(i = 0; i < functionsList.length; i++) {
+    tables.write(".byte $"+("00"+((functionsList[i][2]-1).toString(16).toUpperCase())).substr(-2)+"\n");
+  }
+
+  for(i = 0; i < functionsList2.length; i++) {
+    tables.write(".export "+functionsList2[i][0]+"\n");
+  }
+
+  tables.end(compileFloatLib);
 }
-
-tables.write("\nhighAddressTable:\n");
-
-for(i = 0; i < functionsList.length; i++) {
-  tables.write(".byte $"+("0000"+((functionsList[i][2]-1).toString(16).toUpperCase())).substr(-4).substring(0,2)+"\n");
-}
-
-tables.write("\nlowAddressTable:\n");
-
-for(i = 0; i < functionsList.length; i++) {
-  tables.write(".byte $"+("00"+((functionsList[i][2]-1).toString(16).toUpperCase())).substr(-2)+"\n");
-}
-
-for(i = 0; i < functionsList2.length; i++) {
-  tables.write(".export "+functionsList2[i][0]+"\n");
-}
-
-tables.end(part1);
-//*/
-//part7();
 
 //compile cc65-floatlib. 
 ////////////////////////
-
-function part1(){
+function compileFloatLib(){
   console.log(1);
 
-  execSync("./cc65 -I ./floatlib -T -t c64 floatlib.c");
+  execSync("cc65 -I ./floatlib -T -t c64 floatlib.c");
 
   execSync("cl65 -I ./floatlib -T -t c64 -Ln floatlib.lbl --config floatlib.cfg floatlib/float.s floatlib.s");
 
@@ -212,13 +224,12 @@ function part1(){
   }, functionsList);
 
   //read the label file and update each function address
-  //////////////////////////////////////////////////////
   var lineReader = readline.createInterface({
     input: fs.createReadStream('floatlib.lbl')
   });
 
   lineReader.on('line', updateLine);
-  lineReader.on('close', part2);
+  lineReader.on('close', compileLibC);
 }
 
 function updateLine(line) {
@@ -237,7 +248,9 @@ function updateLine(line) {
   }
 }
 
-function part2() {
+//compile cc65 standard library
+///////////////////////////////
+function compileLibC() {
   console.log(2);
 
   //compile fake program that uses c library
@@ -252,16 +265,21 @@ function part2() {
   });
 
   lineReader.on('line', updateLine);
-  lineReader.on('close', part3);
+  lineReader.on('close', getFunctionSizes);
 }
 
 var code;
 var code2;
-function part3() {
+
+//compile all the functions that easily fit in a memory page (which is most of them).
+//split the output assembly file into one for each function's code and another one for data.
+//pause if node.js can't keep up
+////////////////////////////////////////////////////////////////////////////////////
+function getFunctionSizes() {
   console.log(3);
 
   //compile functions to assembly language. use our own patched cc65 executable that does "jmp farret" instead of "rts"
-  execSync("./cc65 -T -t c64 -O -Os querycsv.c");
+  execSync("./cc65_2 -T -t c64 -O -Os querycsv.c");
 
   //grep using the .proc directive to find the names of all the functions.
   var lineReader = readline.createInterface({
@@ -331,6 +349,14 @@ function part3() {
         writePause(active, line.replace(name, name.toLowerCase())+"\n");
       }
     }
+    else if (active === data && /^_[a-z0-9A-Z]+\s*:/.test(line)) {
+      if(active) {
+        name = line.match(/^_[a-z0-9A-Z]+/)[0];
+
+        writePause(active, ".export "+name+"\n");
+        writePause(active, line+"\n");
+      }
+    }
     else if (active === data && /^[a-z0-9A-Z]+\s+:=/.test(line)) {
       if(active) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
@@ -383,23 +409,25 @@ inx");
   }
   
   function part3b() {
-    j--;
-    if(j == 0) {
-      part4();
+    if(--j == 0) {
+      compileData();
     }
   }
 }
 
-function part4() {
+//compile the data segment to a memory page. (this will be copied to ram on startup)
+////////////////////////////////////////////////////////////////////////////////////
+function compileData() {
   console.log(4);
 
   //compile data, rodata and bss segments. generate an assembly language include of all the labels
-  execSync("cl65 -Ln data.lbl -C data.cfg data.s");
+  execSync("cl65 -Ln data.lbl -C data.cfg data.s -vm -m data.map");
 
   var lineReader2 = readline.createInterface({
     input: fs.createReadStream('data.lbl')
   });
 
+  //read the resultant memory locations an make an assembly include containing just their addresses
   lineReader2.on('line', function(line) {
     var name = line.replace(/^al [0-9A-F]+ \./, "");
 
@@ -410,14 +438,20 @@ function part4() {
       code2.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
       execSync("sed -i 's/"+name.toUpperCase()+"/"+name+"/g' s/*");
     }
+    else if(name.match(/\b_[0-9a-zA-Z]/) && name !== '_main') {
+      var address = parseInt(line.match(/[0-9A-F]+/), 16);
+
+      code2.write(".export "+name+"\n");
+      code2.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
+    }
   });
 
   lineReader2.on('close', function() {
-    code.end(part5);
+    code.end(generateAddressInclude);
   });
 }
 
-function part5() {
+function generateAddressInclude() {
   console.log(5);
   var tables = fs.createWriteStream('tables.inc');
   for(i in defines) {
@@ -443,13 +477,13 @@ function part5() {
     tables.write(".byte $"+("00"+(functionsList[i][1].toString(16).toUpperCase())).substr(-2)+"\n");
   }
 
-  tables.end(part6);
+  tables.end(compileMain);
 }
 
-function part6() {
+function compileMain() {
   console.log(6);
 
-  execSync("cl65 -Ln main.lbl -T -t c64 --config linker.cfg crt0.s s/_main.s");
+  execSync("cl65 -Ln main.lbl -T -t c64 --config main.cfg crt0.s s/_main.s");
 
   //read the label file and update each function address
   //////////////////////////////////////////////////////
@@ -478,21 +512,22 @@ function part6() {
   });
   
   lineReader.on('close', function() {
-    code2.end(part7);
+    code2.end(packPages);
   });
 
 }
 
 var files;
 
-function part7() {
+//pack most function code into a set of 8k memory pages
+///////////////////////////////////////////////////////
+function packPages() {
   console.log(7);
 
   //compile each function separately to identify all their sizes
   //create an include file that defines all functions except the one being compiled
 
-  execSync("pushd s; find * -name \"*.s\" -print0 | sed -z \"s/\\.s$//g\" | xargs -0 -I {} sh -c 'rm ../code2.s; egrep -v \"\\b'{}'\\b\" ../labels.s > ../code2.s;cl65 -o ../obj/'{}'.bin -T -t c64 -C ../page-template.cfg '{}'.s;rm '{}'.o;';popd");
-
+  execSync("pushd s; find * -name \"*.s\" -print0 | sed -z \"s/\\.s$//g\" | xargs -0 -I {} sh -c 'rm ../code2.s; egrep -v \"\\b'{}'\\b\" ../labels.s > ../code2.s;cl65 -o ../obj/'{}'.bin -T -t c64 -C ../function.cfg '{}'.s;rm '{}'.o;';popd");
 
   //use a bin packing algorithm to group the functions and produce a binary of each 8k page
   var list = exec("sh -c 'pushd obj > /dev/null;find * -type f -print0 | xargs -0 stat --printf=\"%s %n\\n\" | sort -rh;popd > /dev/null'");
@@ -501,7 +536,7 @@ function part7() {
     input: list.stdout
   });
 
-  var maxSize = 9205;
+  var maxSize = 9205;//9205;
 
   files = [];
   var totalSizes = [];
@@ -531,39 +566,66 @@ function part7() {
     }
   });
 
-  lineReader.on('close', part8);
+  lineReader.on('close', compilePages);
 }
 
-function part8() {
+function compilePages() {
   console.log(8);
   var i = 0;
   var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
 
   //compile each page and then update the addresses and page numbers of each function in the table
   for(i = 0; i< files.length;i++) {
-    var regexes = files[i].map(function(x) {
-      return x.replace(/\.bin$/g, "");
-    }).reduce(function(a,b) {
-      return a+(a==="("?"":"|")+"(\\b"+b.replace(matchOperatorsRe, '\\$&')+"\\b)";
-    }, "(")+")";
+    var regexes = files[i].
+      map(function(x) {
+        return x.replace(/\.bin$/g, "");
+      }).
+      reduce(function(a,b) {
+        return a+(a==="("?"":"|")+"(\\b"+b.replace(matchOperatorsRe, '\\$&')+"\\b)";
+      }, "(")+")";
 
     var names = files[i].map(function(x) {
       return JSON.stringify(x.replace(/\.bin$/g, ".s"));
     }).join(" ");
 
-    execSync("pushd s;rm ../code2.s; egrep -Ev \""+regexes+"\" ../labels.s > ../code2.s;cl65 -o ../obj2/page"+(i+1)+".bin -Ln ../obj2/page"+(i+1)+".lbl -T -t c64 -C ../page-template2.cfg "+names+";rm *.o;popd");
+    execSync("pushd s;rm ../code2.s; egrep -Ev \""+regexes+"\" ../labels.s > ../code2.s;cl65 -o ../obj2/page"+(i+1)+".bin -Ln ../obj2/page"+(i+1)+".lbl -T -t c64 -C ../normal-page.cfg "+names+";rm *.o;popd");
   }
 
-
+  compileHash1();
 
   //hash1, hash2, hash3 and hash4 functions need to be split somehow.
 
-  //the lexer and sql files need to be split somehow and the references to RODATA replaced with paging code (ie. the code is in A000-BFFF and the RODATA is in 8000-BFFF)
 
-  //glue all the memory bank dumps together
 }
 
+//compile hash1 and hash3 (they will fit in a memory page but their data is quite large so we don't want to store their RODATA in main RAM)
+function compileHash1() {
+  execSync("cl65 -o obj2/hash1.bin -Ln obj2/hash1.lbl -T -t c64 -C rodata-page.cfg hash1.c hash3.c;rm *.o");
 
+  compileHash2();
+}
+
+function compileHash2() {
+  var i;
+  
+  execSync("node ./generate_hash2.js 385");
+
+  for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
+    execSync("cl65 -o obj2/hash2in"+i+".bin -Ln obj2/hash2in"+i+".lbl -T -t c64 -C rodata-page.cfg hash2in"+i+".c labels.s;rm *.o");
+  }
+}
+
+  //the lexer and sql files need to be split somehow and the references to RODATA replaced with paging code (ie. the code is in A000-BFFF and the RODATA is in 8000-BFFF)
+
+
+
+
+  //compile the main page again, using our updated table
+
+
+
+
+  //glue all the memory bank dumps together
 
 /*
 _printf:
