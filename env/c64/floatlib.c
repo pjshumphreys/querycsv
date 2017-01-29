@@ -5,13 +5,12 @@
 void _strtod(void);
 
 #pragma codeseg ("FLOATLIB")
-
-double strtod(unsigned char* text, unsigned char** bytesMatched) {
-  unsigned char y = 0; 
+double strtod(const char* str, char** endptr) {
+  unsigned char *y = str; 
   unsigned char y2;
    
   for(;;) {
-    y2 = text[y];
+    y2 = str[y];
     if(y2 <= '9' && y2 >= '0') {
 test:
       ++y;
@@ -39,8 +38,8 @@ test:
   }
 
   /* otherwise, return that no characters were matched and return 0 as a double */
-  if(bytesMatched != NULL) {
-    *bytesMatched = text;
+  if(endptr != NULL) {
+    *endptr = y;
   }
 
   return ctof(0);

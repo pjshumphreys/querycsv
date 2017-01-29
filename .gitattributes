@@ -1,3 +1,5 @@
 *.c linguist-language=C
 *.h linguist-language=C
 *.js linguist-language=JavaScript
+*.l linguist-language=Flex
+*.y linguist-language=Bison

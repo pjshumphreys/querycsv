@@ -1,93 +1,3 @@
-if (!Array.prototype.forEach) {
-  Array.prototype.forEach = function(callback, thisArg) {
-
-    var T, k;
-
-    if (this == null) {
-      throw new TypeError(' this is null or not defined');
-    }
-
-    /*  1. Let O be the result of calling ToObject passing the |this| value as the argument. */
-    var O = Object(this);
-
-    /*  2. Let lenValue be the result of calling the Get internal method of O with the argument "length". */
-    /*  3. Let len be ToUint32(lenValue). */
-    var len = O.length >>> 0;
-
-    /*  4. If IsCallable(callback) is false, throw a TypeError exception. */
-    /*  See: http://es5.github.com/#x9.11 */
-    if (typeof callback !== "function") {
-      throw new TypeError(callback + ' is not a function');
-    }
-
-    /*  5. If thisArg was supplied, let T be thisArg; else let T be undefined. */
-    if (arguments.length > 1) {
-      T = thisArg;
-    }
-
-    /*  6. Let k be 0 */
-    k = 0;
-
-    /*  7. Repeat, while k < len */
-    while (k < len) {
-
-      var kValue;
-
-      /*  a. Let Pk be ToString(k). */
-      /*    This is implicit for LHS operands of the in operator */
-      /*  b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk. */
-      /*    This step can be combined with c */
-      /*  c. If kPresent is true, then */
-      if (k in O) {
-
-        /*  i. Let kValue be the result of calling the Get internal method of O with argument Pk. */
-        kValue = O[k];
-
-        /*  ii. Call the Call internal method of callback with T as the this value and */
-        /*  argument list containing kValue, k, and O. */
-        callback.call(T, kValue, k, O);
-      }
-      /*  d. Increase k by 1. */
-      k++;
-    }
-    /*  8. return undefined */
-  };
-}
-
-if (!String.prototype.ucLength) {
-    String.prototype.ucLength = function() {
-        /*  this solution was taken from  */
-        /*  http://stackoverflow.com/questions/3744721/javascript-strings-outside-of-the-bmp */
-        return this.length - this.split(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g).length + 1;
-    };
-}
-
-if (!String.prototype.codePointAt) {
-    String.prototype.codePointAt = function (ucPos) {
-        if (isNaN(ucPos)){
-            ucPos = 0;
-        }
-        var str = String(this);
-        var codePoint = null;
-        var pairFound = false;
-        var ucIndex = -1;
-        var i = 0;  
-        while (i < str.length){
-            ucIndex += 1;
-            var code = str.charCodeAt(i);
-            var next = str.charCodeAt(i + 1);
-            pairFound = (0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF);
-            if (ucIndex == ucPos){
-                codePoint = pairFound ? ((code - 0xD800) * 0x400) + (next - 0xDC00) + 0x10000 : code;
-                break;
-            } else{
-                i += pairFound ? 2 : 1;
-            }
-        }
-        return codePoint;
-    };
-}
-
 if (!String.fromCodePoint) {
     String.fromCodePoint = function () {
         var strChars = [], codePoint, offset, codeValues, i;
@@ -102,108 +12,6 @@ if (!String.fromCodePoint) {
             strChars.push(String.fromCharCode.apply(null, codeValues));
         }
         return strChars.join("");
-    };
-}
-
-if (!String.prototype.ucCharAt) {
-    String.prototype.ucCharAt = function (ucIndex) {
-        var str = String(this);
-        var codePoint = str.codePointAt(ucIndex);
-        var ucChar = String.fromCodePoint(codePoint);
-        return ucChar;
-    };
-}
-
-if (!String.prototype.ucIndexOf) {
-    String.prototype.ucIndexOf = function (searchStr, ucStart) {
-        if (isNaN(ucStart)){
-            ucStart = 0;
-        }
-        if (ucStart < 0){
-            ucStart = 0;
-        }
-        var str = String(this);
-        var strUCLength = str.ucLength();
-        searchStr = String(searchStr);
-        var ucSearchLength = searchStr.ucLength();
-        var i = ucStart;
-        while (i < strUCLength){
-            var ucSlice = str.ucSlice(i,i+ucSearchLength);
-            if (ucSlice == searchStr){
-                return i;
-            }
-            i++;
-        }
-        return -1;
-    };
-}
-
-if (!String.prototype.ucLastIndexOf) {
-    String.prototype.ucLastIndexOf = function (searchStr, ucStart) {
-        var str = String(this);
-        var strUCLength = str.ucLength();
-        if (isNaN(ucStart)){
-            ucStart = strUCLength - 1;
-        }
-        if (ucStart >= strUCLength){
-            ucStart = strUCLength - 1;
-        }
-        searchStr = String(searchStr);
-        var ucSearchLength = searchStr.ucLength();
-        var i = ucStart;
-        while (i >= 0){
-            var ucSlice = str.ucSlice(i,i+ucSearchLength);
-            if (ucSlice == searchStr){
-                return i;
-            }
-            i--;
-        }
-        return -1;
-    };
-}
-
-if (!String.prototype.ucSlice) {
-    String.prototype.ucSlice = function (ucStart, ucStop) {
-        var str = String(this);
-        var strUCLength = str.ucLength();
-        if (isNaN(ucStart)){
-            ucStart = 0;
-        }
-        if (ucStart < 0){
-            ucStart = strUCLength + ucStart;
-            if (ucStart < 0){ ucStart = 0;}
-        }
-        if (typeof(ucStop) == 'undefined'){
-            ucStop = strUCLength - 1;
-        }
-        if (ucStop < 0){
-            ucStop = strUCLength + ucStop;
-            if (ucStop < 0){ ucStop = 0;}
-        }
-        var ucChars = [];
-        var i = ucStart;
-        while (i < ucStop){
-            ucChars.push(str.ucCharAt(i));
-            i++;
-        }
-        return ucChars.join("");
-    };
-}
-
-if (!String.prototype.ucSplit) {
-    String.prototype.ucSplit = function (delimeter, limit) {
-        var str = String(this);
-        var strUCLength = str.ucLength();
-        var ucChars = [];
-        if (delimeter == ''){
-            for (var i = 0; i < strUCLength; i++){
-                ucChars.push(str.ucCharAt(i));
-            }
-            ucChars = ucChars.slice(0, 0 + limit);
-        } else{
-            ucChars = str.split(delimeter, limit);
-        }
-        return ucChars;
     };
 }
 
@@ -242,9 +50,10 @@ if (!Array.prototype.filter) {
   };
 }
 
-var execSync = require('child_process').execSync;
-var exec = require('child_process').exec;
-var spawn = require('child_process').spawn;
+var child_process = require('child_process');
+var execSync = child_process.execSync;
+var exec = child_process.exec;
+var spawn = child_process.spawn;
 var fs = require('graceful-fs');
 var readline = require('readline');
 

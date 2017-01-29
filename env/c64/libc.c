@@ -6,18 +6,19 @@
 #include <string.h>
 #include <locale.h>
 
-
 #pragma rodataseg ("FAKERODATA")
 #pragma dataseg ("FAKEDATA")
 #pragma bssseg ("FAKEDATA")
+#pragma codeseg ("FOO")
   char* c = "C";
   char* pe = "C=C";
   char* fmt = "%d";
 
-#pragma codeseg ("FOO")
+/*
 int compar(const void * a, const void * b) {
   return 0;
 }
+*/
 
 int foobar(char *string, char* format, ...) {
   va_list args;
