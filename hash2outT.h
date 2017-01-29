@@ -1,10 +1,5 @@
 #include "querycsv.h"
 
-long codepoints[18];
-struct hash2Entry entry = {0x0000, 1, (long *)&codepoints};
-struct hash2Entry* retval;
-int i;
-
 DEFINES
 struct hash2Entry* isInHash2(long codepoint) {
   if(

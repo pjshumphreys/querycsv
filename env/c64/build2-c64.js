@@ -600,7 +600,7 @@ function compilePages() {
 
 //compile hash1 and hash3 (they will fit in a memory page but their data is quite large so we don't want to store their RODATA in main RAM)
 function compileHash1() {
-  execSync("cl65 -o obj2/hash1.bin -Ln obj2/hash1.lbl -T -t c64 -C rodata-page.cfg hash1.c hash3.c;rm *.o");
+  execSync("cl65 -o obj2/hash1.bin -Ln obj2/hash1.lbl -T -t c64 -C rodata-page.cfg hash1.c hash3.c labels.s;rm *.o");
 
   compileHash2();
 }
@@ -608,11 +608,23 @@ function compileHash1() {
 function compileHash2() {
   var i;
   
-  execSync("node ./generate_hash2.js 385");
+  execSync("node ./generate_hash2.js 390");
 
   for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
     execSync("cl65 -o obj2/hash2in"+i+".bin -Ln obj2/hash2in"+i+".lbl -T -t c64 -C rodata-page.cfg hash2in"+i+".c labels.s;rm *.o");
   }
+
+  execSync("cl65 -o obj2/hash2out.bin -Ln obj2/hash2out.lbl -T -t c64 -C rodata-page.cfg hash2out.c labels.s;rm *.o");
+
+  compileHash4();
+}
+
+function compileHash4() {
+  execSync("cl65 -o obj2/hash4a.bin -Ln obj2/hash4a.lbl -T -t c64 -C rodata-page.cfg hash4a.c labels.s;rm *.o");
+
+  execSync("cl65 -o obj2/hash4b.bin -Ln obj2/hash4b.lbl -T -t c64 -C rodata-page.cfg hash4b.c labels.s;rm *.o");
+
+  execSync("cl65 -o obj2/hash4c.bin -Ln obj2/hash4c.lbl -T -t c64 -C rodata-page.cfg hash4c.c labels.s;rm *.o");
 }
 
   //the lexer and sql files need to be split somehow and the references to RODATA replaced with paging code (ie. the code is in A000-BFFF and the RODATA is in 8000-BFFF)

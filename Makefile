@@ -70,8 +70,11 @@ querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o query
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;
 	cd env/riscos/c; find . -name "*.c" | sed -e "p;s/\.c$$//" | xargs -n2 mv
 	cd env/riscos/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv
-	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.c' -exec cp {} env/c64/ \;
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash4*.c' ! -name 'hash2*.c' -exec cp {} env/c64/ \;
 	cp {UnicodeData.txt,generate_hash2.js,weired.json} env/c64/
+	cp hash4a.c env/c64/hash4a.h
+	cp hash4b.c env/c64/hash4b.h
+	cp hash4c.c env/c64/hash4c.h
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
