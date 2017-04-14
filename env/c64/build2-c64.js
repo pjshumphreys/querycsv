@@ -20,7 +20,7 @@ var functionsList = [
   ["BASIC_FAC_to_u16",    0, 0xBC9B, "FUNC0"],   /* in:FAC out: y/a:lo/hi value */
 
 /*--------------------------------------------------------------------------------------------- */
-/* these functions take one arg (in FAC) and return result (in FAC) aswell */
+/* these functions take one arg (in FAC) and return result (in FAC) as well */
 /*--------------------------------------------------------------------------------------------- */
 
   ["__fabs",              0, 0xBC58, "FUNC1"],   /* in/out: FAC */
@@ -168,29 +168,39 @@ var defines = {
 
 
 createFloatLibInclude();
-//compileHash2();
 
 //create the cc65-floatlib include 
 //////////////////////////////////
 function createFloatLibInclude() {
+  console.log('createFloatLibInclude');
+  
   var tables = fs.createWriteStream('floatlib/tables.inc');
 
   for(i = 0; i < functionsList.length; i++) {
     hashMap[functionsList[i][0]] = i;
     
-    tables.write(functionsList[i][0]+":\n  stx xRegBackup\n  ldx #$" + ("00"+(i.toString(16).toUpperCase())).substr(-2) + "\n  jmp "+ functionsList[i][3]+"\n");
+    tables.write(
+      functionsList[i][0] + ':\n' +
+      "  stx xRegBackup\n" +
+      "  ldx #$" + ("00"+(i.toString(16).toUpperCase())).substr(-2) + '\n' +
+      "  jmp " + functionsList[i][3] + "\n"
+    );
   }
 
   tables.write("\nhighAddressTable:\n");
 
   for(i = 0; i < functionsList.length; i++) {
-    tables.write(".byte $"+("0000"+((functionsList[i][2]-1).toString(16).toUpperCase())).substr(-4).substring(0,2)+"\n");
+    tables.write(
+      ".byte $" + ("0000"+(functionsList[i][2]-1).toString(16).toUpperCase()).substr(-4).substring(0,2) + "\n"
+    );
   }
 
   tables.write("\nlowAddressTable:\n");
 
   for(i = 0; i < functionsList.length; i++) {
-    tables.write(".byte $"+("00"+((functionsList[i][2]-1).toString(16).toUpperCase())).substr(-2)+"\n");
+    tables.write(
+      ".byte $" + ("00"+(functionsList[i][2]-1).toString(16).toUpperCase()).substr(-2)+ "\n"
+    );
   }
 
   for(i = 0; i < functionsList2.length; i++) {
@@ -202,8 +212,8 @@ function createFloatLibInclude() {
 
 //compile cc65-floatlib. 
 ////////////////////////
-function compileFloatLib(){
-  console.log(1);
+function compileFloatLib() {
+  console.log('compileFloatLib');
 
   execSync("cc65 -I ./floatlib -T -t c64 floatlib.c");
 
@@ -251,7 +261,7 @@ function updateLine(line) {
 //compile cc65 standard library
 ///////////////////////////////
 function compileLibC() {
-  console.log(2);
+  console.log('compileLibC');
 
   //compile fake program that uses c library
   execSync("cl65 -T -t c64 -Ln libc.lbl -O -Os --static-locals --config libc.cfg libc.c initenv.s");
@@ -269,14 +279,14 @@ function compileLibC() {
 }
 
 var code;
-var code2;
+var labels;
 
 //compile all the functions that easily fit in a memory page (which is most of them).
-//split the output assembly file into one for each function's code and another one for data.
+//split the output assembly file into one file for each function's code and another one for its data.
 //pause if node.js can't keep up
 ////////////////////////////////////////////////////////////////////////////////////
 function getFunctionSizes() {
-  console.log(3);
+  console.log('getFunctionSizes');
 
   //compile functions to assembly language. use our own patched cc65 executable that does "jmp farret" instead of "rts"
   execSync("./cc65_2 -T -t c64 -O -Os querycsv.c");
@@ -288,9 +298,10 @@ function getFunctionSizes() {
 
   var data = fs.createWriteStream('data.s');
   code = fs.createWriteStream('code.s');
-  code2 = fs.createWriteStream('labels.s');
+  labels = fs.createWriteStream('labels.s');
+
   var func = [];
-  var active = code;
+  var activeStream = code;
 
   function writePause(stream, text) {
     if(!stream.write(text)) {
@@ -308,15 +319,15 @@ function getFunctionSizes() {
       
       if(name == "CODE") {
         if(func.length) {
-          active = func[func.length-1];
+          activeStream = func[func.length-1];
         }
         else {
-          active = code;
+          activeStream = code;
         }
       }
       else {
-        active = data;
-        writePause(active, line+"\n");
+        activeStream = data;
+        writePause(activeStream, line+"\n");
       }
     }
     else if(/\.export/.test(line) || /\.endproc/.test(line)) {
@@ -326,13 +337,13 @@ function getFunctionSizes() {
       name = (line.replace(/^\.proc\s+/, "")).match(/[^:]+/)[0];
       func.push(fs.createWriteStream('s/'+name+'.s'));
       
-      active = func[func.length-1];
+      activeStream = func[func.length-1];
 
       if(name == '_main') {
-        writePause(active, ".include \"../code.s\"\n.export "+name+"\n"+line+"\n");
+        writePause(activeStream, ".include \"../code.s\"\n.export "+name+"\n"+line+"\n");
       }
       else {
-        writePause(active, ".include \"../code2.s\"\n.export "+name+"\n"+line+"\n");
+        writePause(activeStream, ".include \"../code2.s\"\n.export "+name+"\n"+line+"\n");
       }
 
       //add an entry for each into the mapping table
@@ -341,49 +352,49 @@ function getFunctionSizes() {
         functionsList.push([name, 0, 0x0001, "farcall"]);
       }
     }
-    else if (active === data && /^[a-z0-9A-Z]+:/.test(line)) {
-      if(active) {
+    else if (activeStream === data && /^[a-z0-9A-Z]+:/.test(line)) {
+      if(activeStream) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
 
-        writePause(active, ".export "+name.toLowerCase()+"\n");
-        writePause(active, line.replace(name, name.toLowerCase())+"\n");
+        writePause(activeStream, ".export "+name.toLowerCase()+"\n");
+        writePause(activeStream, line.replace(name, name.toLowerCase())+"\n");
       }
     }
-    else if (active === data && /^_[a-z0-9A-Z]+\s*:/.test(line)) {
-      if(active) {
+    else if (activeStream === data && /^_[a-z0-9A-Z]+\s*:/.test(line)) {
+      if(activeStream) {
         name = line.match(/^_[a-z0-9A-Z]+/)[0];
 
-        writePause(active, ".export "+name+"\n");
-        writePause(active, line+"\n");
+        writePause(activeStream, ".export "+name+"\n");
+        writePause(activeStream, line+"\n");
       }
     }
-    else if (active === data && /^[a-z0-9A-Z]+\s+:=/.test(line)) {
-      if(active) {
+    else if (activeStream === data && /^[a-z0-9A-Z]+\s+:=/.test(line)) {
+      if(activeStream) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
 
-        writePause(active, ".export "+name.toLowerCase()+"\n");
+        writePause(activeStream, ".export "+name.toLowerCase()+"\n");
 
         line = line.replace(name, name.toLowerCase())
         var name2 = line.match(/L[0-9A-F]+/);
         if(name2) {
-          writePause(active, line.replace(name2[0], name2[0].toLowerCase())+"\n");
+          writePause(activeStream, line.replace(name2[0], name2[0].toLowerCase())+"\n");
         }
         else {
-          writePause(active, line+"\n");
+          writePause(activeStream, line+"\n");
         }
       }
     }
     else {
-      //if(active) {
+      //if(activeStream) {
         name = line.match(/L[0-9A-F]+[^:]/);
-        if(name && active === data) {
-          writePause(active, line.replace(name[0], name[0].toLowerCase())+"\n");
+        if(name && activeStream === data) {
+          writePause(activeStream, line.replace(name[0], name[0].toLowerCase())+"\n");
         }
         else {
-          if(active == code && (!/\.import\b/.test(line))) {
-            writePause(code2, line+"\n");
+          if(activeStream == code && (!/\.import\b/.test(line))) {
+            writePause(labels, line+"\n");
           }
-          writePause(active, line+"\n");
+          writePause(activeStream, line+"\n");
         }
       //}
     }
@@ -391,10 +402,12 @@ function getFunctionSizes() {
 
   var j;
   lineReader.on('close', function() {
-    data.write(".export _main\n\
-.segment	\"CODE\"\n\
-_main:\n\
-inx");
+    data.write(
+      ".export _main\n" +
+      ".segment	\"CODE\"\n"+
+      "_main:\n"+
+      "inx"
+    );
 
     j = func.length;
 
@@ -418,7 +431,7 @@ inx");
 //compile the data segment to a memory page. (this will be copied to ram on startup)
 ////////////////////////////////////////////////////////////////////////////////////
 function compileData() {
-  console.log(4);
+  console.log('compileData');
 
   //compile data, rodata and bss segments. generate an assembly language include of all the labels
   execSync("cl65 -Ln data.lbl -C data.cfg data.s -vm -m data.map");
@@ -435,14 +448,14 @@ function compileData() {
       var address = parseInt(line.match(/[0-9A-F]+/), 16);
      
       code.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
-      code2.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
+      labels.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
       execSync("sed -i 's/"+name.toUpperCase()+"/"+name+"/g' s/*");
     }
     else if(name.match(/\b_[0-9a-zA-Z]/) && name !== '_main') {
       var address = parseInt(line.match(/[0-9A-F]+/), 16);
 
-      code2.write(".export "+name+"\n");
-      code2.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
+      labels.write(".export "+name+"\n");
+      labels.write(name+" = $"+("0000"+address.toString(16).toUpperCase()).substr(-4)+"\n");
     }
   });
 
@@ -492,27 +505,27 @@ function compileMain() {
   });
 
   for(i in defines) {
-    code2.write(i+" = $"+("0000"+((defines[i]).toString(16).toUpperCase())).substr(-4)+"\n");
+    labels.write(i+" = $"+("0000"+((defines[i]).toString(16).toUpperCase())).substr(-4)+"\n");
   }
 
-  code2.write(".export _main\n_main = $0100\n");
-  code2.write(".import pushl0\n");
+  labels.write(".export _main\n_main = $0100\n");
+  labels.write(".import pushl0\n");
   
   lineReader.on('line', function(line) {
     var name = line.replace(/^al [0-9A-F]+ \./, "");
     var address = parseInt(line.match(/[0-9A-F]+/), 16);
      
     if(name == "farret") {  
-      code2.write("farret = $"+("0000"+(address.toString(16).toUpperCase())).substr(-4)+"\n");
+      labels.write("farret = $"+("0000"+(address.toString(16).toUpperCase())).substr(-4)+"\n");
     }
     
     if(hashMap.hasOwnProperty(name)) {  
-      code2.write(name+" = $"+("0000"+(address.toString(16).toUpperCase())).substr(-4)+"\n");
+      labels.write(name+" = $"+("0000"+(address.toString(16).toUpperCase())).substr(-4)+"\n");
     }
   });
   
   lineReader.on('close', function() {
-    code2.end(packPages);
+    labels.end(packPages);
   });
 
 }
