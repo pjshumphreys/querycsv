@@ -15,6 +15,7 @@ void readQuery(
   struct columnRefHashEntry *currentHashEntry;
 
   int inputTableIndex = 2, i;
+  int parserReturn = 0;
 
   MAC_YIELD
 
@@ -38,7 +39,9 @@ void readQuery(
   query->recordCount = 0;
   query->groupCount = 0;
   query->params = 0;
-  query->intoFileName = NULL;
+  query->inputEncoding = ENC_UNKNOWN;
+  
+  query->outputFileName = NULL;
   query->columnReferenceHashTable = hash_createTable(32);
   query->firstInputTable = NULL;
   query->secondaryInputTable = NULL;
@@ -57,7 +60,38 @@ void readQuery(
   /* parse the script file into the query data structure. */
   /* the parser will set up the contents of qryData as necessary */
   /* check that the parsing completed sucessfully, otherwise show a message and quit */
-  switch(yyparse(query, scanner)) {
+  parserReturn = yyparse(query, scanner);
+
+  if(parserReturn == 0) {
+    if(query->inputEncoding == ENC_UNKNOWN) {
+      query->inputEncoding = ENC_UTF8;
+    }
+    else {
+      /* the input file specified its own encoding. rewind and parse again */
+
+      /* clean up the re-entrant flex scanner */
+      yylex_destroy(scanner);
+
+      /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
+      fclose(queryFile);
+      queryFile = fopen(queryFileName, "r");
+      if(queryFile == NULL) {
+        fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+        exit(EXIT_FAILURE);
+      }
+      
+      /* setup reentrant flex scanner data structure */
+      yylex_init(&scanner);
+
+      /* feed our script file into the scanner structure */
+      yyset_in(queryFile, scanner);
+
+      /* do the first parser pass again using the proper encoding */
+      parserReturn = yyparse(query, scanner);
+    }
+  }
+
+  switch(parserReturn) {
     case 0:
       /* parsing finished sucessfully. continue processing */
     break;
@@ -82,7 +116,7 @@ void readQuery(
     break;
   }
 
-  query->newLine = query->intoFileName?"\r\n":"\n";
+  query->newLine = query->outputFileName?"\r\n":"\n";
 
   /* set query->firstInputTable to actually be the first input table. */
   query->firstInputTable = currentInputTable =

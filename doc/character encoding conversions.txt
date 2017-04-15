@@ -2,7 +2,7 @@ initially only 2 character encodings are supported:
 
 * 8bit (It is always available but is specific to each build environment.)
 
-* utf8 (default encoding. Invalid or overlong bytes are interpreted as the codepoint according to the 8bit equivalent when reading files)
+* utf8 (default encoding. Invalid or overlong bytes are interpreted as windows1252)
 
 
 8bit codepage for each build:

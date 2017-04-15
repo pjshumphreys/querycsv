@@ -9,5 +9,5 @@ void cleanup_query(struct qryData *query) {
   cleanup_orderByClause(query->orderByClause);
   cleanup_expression(query->joinsAndWhereClause);
   cleanup_inputTables(query->firstInputTable);
-  free(query->intoFileName);
+  free(query->outputFileName);
 }

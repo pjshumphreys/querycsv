@@ -18,7 +18,7 @@ int runQuery(char *queryFileName) {
   /* specify an output file then output the results to the screen as soon as they become available */
   if(
       query.orderByClause == NULL &&
-      query.intoFileName == NULL &&
+      query.outputFileName == NULL &&
       query.groupByClause == NULL
     ) {
 
@@ -78,7 +78,7 @@ int runQuery(char *queryFileName) {
     );
 
     /* close the output file */
-    if(query.intoFileName) {
+    if(query.outputFileName) {
       fclose(query.outputFile);
 
       /* output the number of records returned iff there was an into clause specified */

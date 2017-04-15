@@ -8,7 +8,7 @@ void outputResult(
   ) {
   struct resultColumn *currentResultColumn;
   struct resultColumnValue *field;
-  int firstColumn = TRUE, j;
+  int firstColumn = TRUE, j = 0;
   FILE *outputFile = query->outputFile;
   char *separator = (((query->params) & PRM_SPACE) != 0)?",":", ";
 
@@ -18,7 +18,6 @@ void outputResult(
   MAC_YIELD
 
   /* for output columns */
-  j=0;
   for(
       currentResultColumn = query->firstResultColumn;
       currentResultColumn != NULL;
@@ -35,7 +34,7 @@ void outputResult(
 
       field = &(columns[j]);
 
-      switch(field->leftNull) {
+      switch(field->leftNull) { /* a null resulting from a left join */
         case TRUE: {
           if(((query->params) & PRM_EXPORT) != 0) {
             fputs("\\N", outputFile);

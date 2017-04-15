@@ -106,18 +106,15 @@
   /* macYield(); */
 /* #endif */
   #define YY_NO_UNISTD_H 1
-  //#undef putenv   /* on MPW putenv has the wrong signature */
-  //int putenv(char *string);
   /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__
     #undef stricmp   /* this function is available on windows but doesn't work properly there */
     #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
   #endif
-  //int stricmp(const char *str1, const char *str2);
   #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=:"
-  #undef putenv
+  #undef putenv /* on MPW putenv has the wrong signature */
   int putenv(char* string);
 #endif
 
@@ -194,6 +191,20 @@
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
 
+/* short codes for the character encodings we want to support */
+#define ENC_UNKNOWN 0
+#define ENC_UNSUPPORTED 1
+#define ENC_CP437 2
+#define ENC_CP850 3
+#define ENC_WIN1252 4
+#define ENC_UTF8 5
+#define ENC_UTF16LE 6
+#define ENC_UTF16BE 7
+#define ENC_UTF32LE 8
+#define ENC_UTF32BE 9
+#define ENC_PETSCII 10
+#define ENC_MAC 11
+
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_TRIM 1    /* left trim and right trim whitespace from each column value */
 #define PRM_SPACE 2   /* put a space before each column value tat's not the first */
@@ -238,6 +249,7 @@ struct inputTable {
   FILE *fileStream;
   struct inputTable *nextInputTable;
   struct inputColumn *firstInputColumn;
+  int fileEncoding;
 };
 
 struct atomEntry {
@@ -325,7 +337,9 @@ struct qryData {
   int groupCount;
   int useGroupBy;
   int params;
-  char *intoFileName;
+  int inputEncoding;
+  int outputEncoding;
+  char *outputFileName;
   char *newLine;
   FILE *outputFile;
   struct columnReferenceHash *columnReferenceHashTable; /* used to get a reference to an input column given a column name */

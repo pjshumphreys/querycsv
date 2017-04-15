@@ -12,9 +12,9 @@ void outputHeader(
   MAC_YIELD
 
   /* set up the output context */
-  if(query->intoFileName) {
+  if(query->outputFileName) {
     query->newLine = "\r\n";
-    query->outputFile = fopen(query->intoFileName, "wb");
+    query->outputFile = fopen(query->outputFileName, "wb");
 
     if (query->outputFile == NULL) {
       fputs("opening output file failed", stderr);
