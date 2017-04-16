@@ -2,12 +2,11 @@
 
 #define MYEOF -1
 
-
 /* returns a number of codepoints, each as a long */
 /* invalid bytes or bytes that form an overlong codepoint are treated as
-a windows-1252 character that's then converted to the coresponding value in unicode */
+a set of windows-1252 characters that are then each converted to their coresponding value in unicode */
 /* the number of bytes read in the file is also returned, so you can fseek back to offset after the match later */
-/* due to the nature of utf-8, commas, new lines and doule quotes always appear at the end of the array */
+/* due to the nature of utf-8, commas, new lines and double quotes always appear at the end of the array */
 void getCodepointsUTF8(
     FILE *stream,
     long *codepoints,
@@ -15,9 +14,118 @@ void getCodepointsUTF8(
     int *byteLength
   ) {
 
+  int byteIndex = -1;
+  int c;
 
+  if(stream == NULL) {
+    *arrlength = 0;
+    *bytelength = 0;
+    return;
+  }
 
+  c = fgetc(stream);
+  codepoints[++byteIndex] = (long)c;
 
+  if(c == EOF) {
+    codepoints[0] = MYEOF;
+    return;
+  }
+
+  /* if the current byte offset is a valid utf-8 character that's not overlong or decomposable then return it */
+  if(c < 0x80) {
+    /* read 1 byte. no overlong checks needed as a 1 byte code can */
+    /* never be overlong */
+    *arrlength = 1;
+    *bytelength = 1;
+
+    codepoints[0] = (long)c;
+
+    return;
+  }
+  /* ensure the current byte is the start of a valid utf-8 sequence */
+  else if(c > 0xC1) {
+    if (c < 0xE0) {
+      /* read 2 bytes */
+      c = fgetc(stream);
+      codepoints[++byteIndex] = c;
+
+      if(c != EOF && (c & 0xC0) == 0x80) {
+        codepoints[0] = (codepoints[0] << 6) + codepoints[1] - 0x3080;
+
+        *arrlength = 1;
+        *bytelength = 2;
+
+        return;
+      }
+    }
+    else if (c < 0xF0) {
+      /* read 3 bytes */
+      c = fgetc(stream);
+      bytes[++byteIndex] = c;
+
+      if(
+          c != EOF &&
+          (c & 0xC0) == 0x80 &&
+          (bytes[0] != 0xE0 || c > 0x9F)
+      ) {
+        c = fgetc(stream);
+        codepoints[++byteIndex] = (long)c;
+
+        if(
+            c != EOF &&
+            (c & 0xC0) == 0x80
+        ) {
+          codepoints[0] = (codepoints[0] << 12) + (codepoints[1] << 6) + codepoints[2] - 0xE2080;
+
+          *arrlength = 1;
+          *bytelength = 3;
+          return;
+        }
+      }
+    }
+    else if (c < 0xF5) {
+      /* read 4 bytes */
+      c = fgetc(stream);
+      codepoints[++byteIndex] = (long)c;
+
+      if(
+          c != EOF &&
+          (c & 0xC0) == 0x80 &&
+          (codepoints[0] != 0xF0 || c > 0x8F) &&
+          (codepoints[0] != 0xF4 || c < 0x90) &&
+      ) {
+        c = fgetc(stream);
+        codepoints[++byteIndex] = (long)c;
+
+        if(c != EOF && (c & 0xC0) == 0x80) {
+          c = fgetc(stream);
+          codepoints[++byteIndex] = (long)c;
+
+          if(c != EOF && (c & 0xC0) == 0x80) {
+            codepoints[0] = (codepoints[0] << 18) + (codepoints[1] << 12) + (codepoints[2] << 6) + codepoints[3] - 0x3C82080;
+
+            *arrlength = 1;
+            *bytelength = 4;
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  //dump out the bytes matched, converting each to a separate codepoint
+  if(c == EOF) {
+    codepoints[byteIndex] = MYEOF;
+  }
+
+  *arrlength = *bytelength = byteIndex + 1;
+
+  for( ; byteIndex > -1; byteIndex--) {
+    //use codepage 1252 conversions where appropriate
+    if(codepoints[byteIndex] > 0x7F) {
+      codepoints[byteIndex] = cp1252[codepoints[byteIndex] - 0x80];
+    }
+  }
 }
 
 static const long cp437[128] = {
@@ -58,7 +166,6 @@ static const long cp850[128] = {
   0x00B0, 0x00A8, 0x00B7, 0x00B9, 0x00B3, 0x00B2, 0x25A0, 0x00A0
 };
 
-
 static const long cp1252[128] = {
   0x20AC, 0xFFFD, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
   0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0xFFFD, 0x017D, 0xFFFD,
@@ -78,30 +185,7 @@ static const long cp1252[128] = {
   0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x00FE, 0x00FF
 };
 
-static const long petscii[160] = {
-  0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,
-  0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,
-  0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
-  0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
-  0x0040, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
-  0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
-  0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
-  0x0078, 0x0079, 0x007A, 0x005B, 0x00A3, 0x005D, 0x2191, 0x2190,
-  0x2500, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
-  0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,
-  0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
-  0x0058, 0x0059, 0x005A, 0x253C, 0x007C, 0x2502, 0x2592, 0x007F,
-  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD,
-  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x000A, 0xFFFD, 0xFFFD,
-  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD,
-  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD,
-  0x00A0, 0x258C, 0x2584, 0x2594, 0x2581, 0x258F, 0x00A6, 0x2595,
-  0x00A8, 0x00A9, 0x00AA, 0x251C, 0x2597, 0x2514, 0x2510, 0x2582,
-  0x250C, 0x2534, 0x252C, 0x2524, 0x258E, 0x258D, 0x00B6, 0x00B7,
-  0x00B8, 0x2583, 0x2713, 0x2596, 0x259D, 0x2518, 0x2598, 0x259A
-};
-
-static const long cp1252[128] = {
+static const long macRoman[128] = {
   0x00C4, 0x00C5, 0x00C7, 0x00C9, 0x00D1, 0x00D6, 0x00DC, 0x00E1,
   0x00E0, 0x00E2, 0x00E4, 0x00E3, 0x00E5, 0x00E7, 0x00E9, 0x00E8,
   0x00EA, 0x00EB, 0x00ED, 0x00EC, 0x00EE, 0x00EF, 0x00F1, 0x00F3,
@@ -120,11 +204,12 @@ static const long cp1252[128] = {
   0x00AF, 0x02D8, 0x02D9, 0x02DA, 0x00B8, 0x02DD, 0x02DB, 0x02C7
 };
 
-void getCodepointsCP437(
+void getCodepoints8Bit(
     FILE *stream,
     long *codepoints,
     int *arrlength,
-    int *bytelength
+    int *bytelength,
+    long *map
   ) {
 
   if(stream == NULL) {
@@ -145,12 +230,132 @@ void getCodepointsCP437(
 
   if(c < 128) {
     codepoints[0] = (long)c;
+    return;
   }
 
-  c-=128;
+  c -= 128;
 
-  codepoints[0] = cp437[c];
+  codepoints[0] = map[c];
 }
+
+void getCodepointsCP437(
+    FILE *stream,
+    long *codepoints,
+    int *arrlength,
+    int *bytelength
+  ) {
+  getCodepoints8Bit(
+    stream,
+    codepoints,
+    arrlength,
+    bytelength,
+    cp437
+  );
+}
+
+void getCodepointsCP850(
+    FILE *stream,
+    long *codepoints,
+    int *arrlength,
+    int *bytelength
+  ) {
+  getCodepoints8Bit(
+    stream,
+    codepoints,
+    arrlength,
+    bytelength,
+    cp850
+  );
+}
+
+void getCodepointsCP1252(
+    FILE *stream,
+    long *codepoints,
+    int *arrlength,
+    int *bytelength
+  ) {
+  getCodepoints8Bit(
+    stream,
+    codepoints,
+    arrlength,
+    bytelength,
+    cp1252
+  );
+}
+
+void getCodepointsMac(
+    FILE *stream,
+    long *codepoints,
+    int *arrlength,
+    int *bytelength
+  ) {
+  getCodepoints8Bit(
+    stream,
+    codepoints,
+    arrlength,
+    bytelength,
+    macRoman
+  );
+}
+
+static const long petscii[128] = {
+  0x0040, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
+  0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
+  0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
+  0x0078, 0x0079, 0x007A, 0x005B, 0x00A3, 0x005D, 0x2191, 0x2190,
+  0x2500, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,
+  0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,
+  0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,
+  0x0058, 0x0059, 0x005A, 0x253C, 0x007C, 0x2502, 0x2592, 0x007F,
+  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD,
+  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0x000A, 0xFFFD, 0xFFFD,
+  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD,
+  0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD, 0xFFFD,
+  0x00A0, 0x258C, 0x2584, 0x2594, 0x2581, 0x258F, 0x00A6, 0x2595,
+  0x00A8, 0x00A9, 0x00AA, 0x251C, 0x2597, 0x2514, 0x2510, 0x2582,
+  0x250C, 0x2534, 0x252C, 0x2524, 0x258E, 0x258D, 0x00B6, 0x00B7,
+  0x00B8, 0x2583, 0x2713, 0x2596, 0x259D, 0x2518, 0x2598, 0x259A
+};
+
+void getCodepointsPetscii(
+    FILE *stream,
+    long *codepoints,
+    int *arrlength,
+    int *bytelength,
+    long *map
+  ) {
+
+  if(stream == NULL) {
+    *arrlength = 0;
+    *bytelength = 0;
+    return;
+  }
+
+  int c = fgetc(stream);
+
+  *arrlength = 1;
+  *bytelength = 1;
+
+  if(c == EOF) {
+    codepoints[0] = MYEOF;
+    return;
+  }
+
+  if(c < 65) {
+    codepoints[0] = (long)c;
+    return;
+  }
+
+  if(c > 191) {
+    codepoints[0] = 0xFFFD;
+    return;
+  }
+
+  c-=64;
+
+  codepoints[0] = map[c];
+}
+
 
 
 int getCsvColumn(
@@ -164,15 +369,13 @@ int getCsvColumn(
   ) {
 
   long codepoints[4];
-  void (*getCodepoints)(FILE*, long *, int*, int*);
+  void (*getCodepoints)(FILE *, long *, int *, int *);
+  int arrLength;
+  int byteLength;
+  long bytesMatched = 0;
+  int i;
+  long c;
 
-/* switch on the character encoding to choose which function to use */
-switch(inputEncoding)
-
-/* get some codepoints from the file, usually only 1 but maybe up to 4*/
-
-/* for each codepoint returned treat it as we previously treated bytes
-  int c;
   char *tempString = NULL;
   int canEnd = TRUE;
   int quotePossible = TRUE;
@@ -202,115 +405,73 @@ switch(inputEncoding)
     return FALSE;
   }
 
-  /* read a character */
-  do {
-    offset++;
-    c = fgetc(*inputFile);
+  /* switch on the character encoding to choose which function to use */
+  switch(inputEncoding) {
+    case ENC_UTF8: {
+      getCodepoints = &getCodepointsUTF8;
+    } break;
 
-    switch(c) {
-      case ' ':
-        if(!canEnd) {
-          minSize = &((*value)[*strSize]);
-        }
-        strAppend(' ', value, strSize);
-      break;
+    case ENC_CP437: {
+      getCodepoints = &getCodepointsCP437;
+    } break;
 
-      case '\r':
-        offset++;
-        if((c = fgetc(*inputFile)) != '\n' && c != EOF) {
-          offset--;
-          ungetc(c, *inputFile);
-        }
-        else if (c == EOF) {
-          exitCode = 2;
-          break;
-        }
+    case ENC_CP850: {
+      getCodepoints = &getCodepointsCP850;
+    } break;
 
-      case '\n':
-        if(canEnd) {
-          exitCode = 2;
-          break;
-        }
-        else {
-          if (quotedValue != NULL) {
-            *quotedValue = TRUE;
-          }
-          strAppend('\r', value, strSize);
-          strAppend('\n', value, strSize);
-        }
-      break;
+    case ENC_WIN1252: {
+      getCodepoints = &getCodepointsCP1252;
+    } break;
 
-      case '\0':
-        if (quotedValue != NULL) {
-          *quotedValue = TRUE;
-        }
-      break;
+    case ENC_UTF16LE: {
+      getCodepoints = &getCodepointsUTF16LE;
+    } break;
 
-      case EOF:
-        exitCode = 2;
-        break;
-      break;
+    case ENC_UTF16BE: {
+      getCodepoints = &getCodepointsUTF16BE;
+    } break;
 
-      case '"':
-        canEnd = FALSE;
+    case ENC_UTF32LE: {
+      getCodepoints = &getCodepointsUTF32LE;
+    } break;
 
-        if (quotedValue != NULL) {
-          *quotedValue = TRUE;
-        }
+    case ENC_UTF32BE: {
+      getCodepoints = &getCodepointsUTF32BE;
+    } break;
 
-        if(quotePossible) {
-          if(strSize != NULL) {
-            *strSize = 0;
-          }
+    case ENC_PETSCII: {
+      getCodepoints = &getCodepointsPetscii;
+    } break;
 
-          quotePossible = FALSE;
-        }
-        else {
-          offset++;
-          c = fgetc(*inputFile);
+    case ENC_MAC: {
+      getCodepoints = &getCodepointsMac;
+    } break;
 
-          switch(c) {
-            case ' ':
-            case '\r':
-            case '\n':
-            case EOF:
-            case ',':
-              canEnd = TRUE;
-              offset--;
-              ungetc(c, *inputFile);
-            break;
+    default: {
+      getCodepoints = &getCodepointsUTF8;
+    }
+  }
 
-            case '"':
-              strAppend('"', value, strSize);
-            break;
+  for ( ; ; ) {
+    /* get some codepoints from the file, usually only 1 but maybe up to 4 */
+    getCodepoints(*inputFile,
+      &codepoints,
+      &arrLength,
+      &byteLength
+    );
 
-            default:
-              strAppend('"', value, strSize);
-              offset--;
-              ungetc(c, *inputFile);
-            break;
-          }
-        }
-      break;
+    /* for each codepoint returned treat it as we previously treated bytes */
+    /* read a character */
+    for (i = 0; i < arrLength && exitCode == 0; i++) {
+      offset++;
+      c = codepoints[i];
 
-      case ',':
-        if(canEnd) {
-          exitCode = 1;
-          break;
-        }
+    }
 
-      default:
-        if(doTrim && quotePossible) {
-          if(strSize != NULL) {
-            *strSize = 0;
-          }
-        }
-
-        quotePossible = FALSE;
-        strAppend(c, value, strSize);
+    if (exitCode != 0) {
       break;
     }
-  } while (exitCode == 0);
+  }
 
   if(doTrim) {
     strRTrim(value, strSize, minSize);
@@ -328,6 +489,78 @@ switch(inputEncoding)
 
   free(tempString);
   return exitCode == 1;
+}
+
+/* this version doesn't check for invalid bytes or overlong codepoints, as getCodepoints will have already converted them to valid utf-8 bytes in main memory */
+long getUnicodeChar(
+    unsigned char **offset,
+    unsigned char **str,
+    int plusBytes,
+    int *bytesMatched,
+    void (*get)()
+  ) {
+
+  struct hash2Entry* entry = NULL;
+  int bytesread = 0;
+  long codepoint;
+  unsigned char *temp = (unsigned char *)((*offset) + plusBytes);
+
+  MAC_YIELD
+
+  /* if the current byte offset is a utf-8 character
+    that's not decomposable then return it */
+  if(*temp < 0x80) {
+    /* read 1 byte. no checks needed as a 1 byte code
+      is never a combining character */
+    *bytesMatched = 1;
+
+    return (long)(*temp);
+  }
+  else if(*temp < 0xE0) {
+    /* read 2 bytes */
+    codepoint = (long)((*(temp) << 6) + *(temp+1)) - 0x3080;
+    if((entry = isInHash2(codepoint))) {
+      bytesread = 2;
+    }
+    else {
+      /* otherwise return it */
+      *bytesMatched = 2;
+
+      return codepoint;
+    }
+  }
+  else if (*temp < 0xF0) {
+    /* read 3 bytes */
+    codepoint = ((long)(*(temp)) << 12) + ((long)(*(temp+1)) << 6) + (*(temp+2)) - 0xE2080;
+
+    /* the codepoint is valid. but is it decomposable? */
+    if((entry = isInHash2(codepoint))) {
+      bytesread = 3;
+    }
+    else {
+      /* otherwise return it */
+      *bytesMatched = 3;
+
+      return codepoint;
+    }
+  }
+
+  /* read 4 bytes */
+  codepoint = (((long)(*temp)) << 18) + ((long)(*(temp+1)) << 12) + ((long)(*(temp+2)) << 6) + (*(temp+3)) - 0x3C82080;
+
+  /* the codepoint is valid. but is it decomposable? */
+  if((entry = isInHash2(codepoint))) {
+    bytesread = 4;
+  }
+  else {
+    /* otherwise return it */
+    *bytesMatched = 4;
+
+    return codepoint;
+  }
+
+  /* decomposable codepoints mean the string needs to be NFD normalized. */
+  return normaliseAndGet(offset, str, plusBytes, bytesMatched, bytesread, entry);
 }
 
 
