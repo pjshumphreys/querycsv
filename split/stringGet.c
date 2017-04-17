@@ -20,7 +20,7 @@ void stringGet(
 
   if (field->isQuoted) {
     //can't use a shortcut to get the string value, so get it the same way we did the last time
-    getCsvColumn(field->source,str,&(field->length),NULL,NULL, (params & PRM_TRIM) == 0);
+    getCsvColumn(field->source,ENC_UTF8,str,&(field->length),NULL,NULL, (params & PRM_TRIM) == 0);
   }
   else {
     //can use a shortcut to get the string value

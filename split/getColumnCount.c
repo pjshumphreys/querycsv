@@ -14,7 +14,7 @@ int getColumnCount(char *inputFileName) {
   }
 
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE)) {
+  while(getCsvColumn(&inputFile, ENC_UTF8, NULL, NULL, NULL, NULL, TRUE)) {
     columnCount++;
   }
 

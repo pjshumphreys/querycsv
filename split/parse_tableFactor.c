@@ -61,6 +61,7 @@ void parse_tableFactor(
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
   newTable->fileStream = csvFile;
+  newTable->fileEncoding = ENC_UTF8;
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;
   newTable->noLeftRecord = TRUE;   /* set just for initialsation purposes */
@@ -102,6 +103,7 @@ void parse_tableFactor(
 
     recordContinues = getCsvColumn(
         &(newTable->fileStream),
+        newTable->fileEncoding,
         &columnText,
         &columnLength,
         NULL,

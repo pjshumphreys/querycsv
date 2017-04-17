@@ -20,7 +20,7 @@ int getNextRecordOffset(char *inputFileName, long offset) {
   }
 
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, NULL, NULL, NULL, &offset, TRUE)) {
+  while(getCsvColumn(&inputFile, ENC_UTF8, NULL, NULL, NULL, &offset, TRUE)) {
     /* do nothing */
   }
 

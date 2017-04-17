@@ -55,6 +55,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
           templong = columnOffsetData.startOffset;
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
+              currentInputTable->fileEncoding,
               &(columnOffsetData.value),
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
@@ -98,6 +99,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
       if(recordHasColumn == TRUE && !doLeftRecord) {
         while(getCsvColumn(
             &(currentInputTable->fileStream),
+            currentInputTable->fileEncoding,
             NULL,
             NULL,
             NULL,

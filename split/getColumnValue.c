@@ -33,8 +33,8 @@ int getColumnValue(
   /* if it's not available we'll return an empty string */
   while(
         ++currentColumn != columnIndex ?
-        getCsvColumn(&inputFile, NULL, NULL, NULL, NULL, TRUE):
-        (getCsvColumn(&inputFile, &output, &strSize, NULL, NULL, TRUE) && FALSE)
+        getCsvColumn(&inputFile, ENC_UTF8, NULL, NULL, NULL, NULL, TRUE):
+        (getCsvColumn(&inputFile, ENC_UTF8, &output, &strSize, NULL, NULL, TRUE) && FALSE)
       ) {
     /* get next column */
   }

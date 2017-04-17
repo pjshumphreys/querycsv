@@ -1,3 +1,4 @@
+/*
 #include "querycsv.h"
 
 #include "hash1.h"
@@ -13,3 +14,4 @@ void getHash1(char byte) {
     hash1Codepoints[i] = hash1[byte].codepoints[i];
   }
 }
+*/
