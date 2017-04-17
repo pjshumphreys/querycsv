@@ -5,7 +5,7 @@ void getCodepoints8Bit(
     long *codepoints,
     int *arrLength,
     int *byteLength,
-    long *map
+    long const *map
   ) {
   int c;
 

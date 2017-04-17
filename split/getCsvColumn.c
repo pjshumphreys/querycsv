@@ -62,7 +62,7 @@ int getCsvColumn(
       getCodepoints = &getCodepointsCP850;
     } break;
 
-    case ENC_WIN1252: {
+    case ENC_CP1252: {
       getCodepoints = &getCodepointsCP1252;
     } break;
 
@@ -229,7 +229,7 @@ int getCsvColumn(
               }
 
               quotePossible = FALSE;
-              strSize = strAppendUTF8(c, value, strSize);
+              strSize = strAppendUTF8(c, value, *strSize);
             } break;
           }
         } break;

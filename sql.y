@@ -59,11 +59,11 @@ typedef void* yyscan_t;
 
 %token <intval> AMMSC
 %token <strval> NAME STRING
-%token <intval> INTNUM optional_encoding
+%token <intval> INTNUM
 %token <intval> APPROXNUM /* floatval*/
 %type <strval> optional_as_name literal
 %type <referencePtr> column_ref
-%type <intval> opt_asc_desc
+%type <intval> opt_asc_desc optional_encoding
 %type <expressionPtr> scalar_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
 %type <atomPtr> atom_commalist
@@ -73,10 +73,10 @@ main_file:
   ENCODING STRING ';' {
     if(queryData->inputEncoding == ENC_UNKNOWN) {
       if((queryData->inputEncoding = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
-        YYABORT
+        YYABORT;
       }
 
-      YYACCEPT
+      YYACCEPT;
     }
   } command_or_select
   | command_or_select;
@@ -178,7 +178,7 @@ optional_encoding:
                 /* empty */ { $$ = 0; }
   | ENCODING STRING {
     if(($$ = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
-      YYABORT
+      YYABORT;
     }
   }
   ;

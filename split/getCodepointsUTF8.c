@@ -80,7 +80,7 @@ void getCodepointsUTF8(
 
         if(
             (c & 0xC0) == 0x80 &&
-            (bytes[0] != 0xE0 || c > 0x9F)
+            (codepoints[0] != 0xE0 || c > 0x9F)
         ) {
           if((c = fgetc(stream)) != EOF) {
             codepoints[++byteIndex] = c;
@@ -115,7 +115,7 @@ void getCodepointsUTF8(
         if(
             (c & 0xC0) == 0x80 &&
             (codepoints[0] != 0xF0 || c > 0x8F) &&
-            (codepoints[0] != 0xF4 || c < 0x90) &&
+            (codepoints[0] != 0xF4 || c < 0x90)
         ) {
           if((c = fgetc(stream)) != EOF) {
             codepoints[++byteIndex] = c;

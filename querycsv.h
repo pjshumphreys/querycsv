@@ -197,7 +197,7 @@
 #define ENC_UNSUPPORTED 1
 #define ENC_CP437 2
 #define ENC_CP850 3
-#define ENC_WIN1252 4
+#define ENC_CP1252 4
 #define ENC_UTF8 5
 #define ENC_UTF16LE 6
 #define ENC_UTF16BE 7

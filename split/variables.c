@@ -2,8 +2,9 @@
 
 /* hash1 helper variables */
 int i;
-long hash1Codepoints[2];
+/*long hash1Codepoints[2];
 struct hash1Entry lookupresult = {0, (long *)(&hash1Codepoints)};
+*/
 
 /* hash2 helper variables */
 long codepoints[18];
