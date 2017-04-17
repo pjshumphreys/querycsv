@@ -55,19 +55,20 @@ long getUnicodeChar(
       return codepoint;
     }
   }
-
-  /* read 4 bytes */
-  codepoint = (((long)(*temp)) << 18) + ((long)(*(temp+1)) << 12) + ((long)(*(temp+2)) << 6) + (*(temp+3)) - 0x3C82080;
-
-  /* the codepoint is valid. but is it decomposable? */
-  if((entry = isInHash2(codepoint))) {
-    bytesread = 4;
-  }
   else {
-    /* otherwise return it */
-    *bytesMatched = 4;
+    /* read 4 bytes */
+    codepoint = (((long)(*temp)) << 18) + ((long)(*(temp+1)) << 12) + ((long)(*(temp+2)) << 6) + (*(temp+3)) - 0x3C82080;
 
-    return codepoint;
+    /* the codepoint is valid. but is it decomposable? */
+    if((entry = isInHash2(codepoint))) {
+      bytesread = 4;
+    }
+    else {
+      /* otherwise return it */
+      *bytesMatched = 4;
+
+      return codepoint;
+    }
   }
 
   /* decomposable codepoints mean the string needs to be NFD normalized. */

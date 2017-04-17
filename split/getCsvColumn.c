@@ -9,7 +9,6 @@ int getCsvColumn(
     long *startPosition,
     int doTrim
   ) {
-
   long codepoints[4];
   void (*getCodepoints)(FILE *, long *, int *, int *);
   int arrLength;
@@ -34,12 +33,11 @@ int getCsvColumn(
     *quotedValue = FALSE;
   }
 
-  if(strSize != NULL) {
-    *strSize = 0;
-  }
-  else {
+  if(strSize == NULL) {
     strSize = &tempSize;
   }
+
+  *strSize = 0;
 
   if(value == NULL) {
     value = &tempString;
@@ -109,11 +107,11 @@ int getCsvColumn(
 
         c2 = fgetc(*inputFile);
 
-        if(c2 != '\n') {
-          ungetc(c2, *inputFile);
+        if(c2 == '\n') {
+          offset++;
         }
         else {
-          offset++;
+          ungetc(c2, *inputFile);
         }
 
         if(canEnd) {
@@ -250,10 +248,7 @@ int getCsvColumn(
 
   strAppend('\0', value, strSize);
 
-  if(strSize != NULL) {
-    (*strSize)--;
-  }
-
+  (*strSize)--;
   offset--;
 
   if(startPosition != NULL) {
