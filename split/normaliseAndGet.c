@@ -8,10 +8,10 @@ int normaliseAndGet(
     int bytesRead,
     struct hash2Entry* entry
   ) {
-  
+
   int offsetInt = *offset - *str;
   unsigned char * nfdString = NULL;
-  int nfdLength = offsetInt, i = 0, j; 
+  int nfdLength = offsetInt, i = 0, j;
 
   long * codepointBuffer = NULL;
   int bufferLength;
@@ -44,7 +44,7 @@ int normaliseAndGet(
         /* if i=0 then there were no combining characters at the head of the buffer */
         /* if i=1 then there is only 1 combining character at the head of the */
         /* buffer. therefore it doesn't need sorting */
-        if(i > 1) { 
+        if(i > 1) {
           /* TODO: qsort the combining characters that preceed this codepoint */
         }
 
@@ -52,7 +52,7 @@ int normaliseAndGet(
         for(j = 0; j <= i; j++) {
           nfdLength = strAppendUTF8(codepointBuffer[j], &nfdString, nfdLength);
         }
-        
+
         bufferLength-=++i;
         memmove((void*)codepointBuffer, (void*)&codepointBuffer[i], bufferLength*sizeof(long)); /* downward in memory i number of codepoints */
         i = 0;
@@ -75,9 +75,9 @@ int normaliseAndGet(
       if(**offset == 0) {
         break;
       }
-      
+
       bytesRead = 1;
-              
+
       /* read 1 byte. no overlong checks needed as a 1 byte code can */
       /* never be overlong, and is never a combining character */
       reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
@@ -85,52 +85,31 @@ int normaliseAndGet(
 
       continue;
     }
-    
+
     /* ensure the current byte is the start of a valid utf-8 sequence */
     if(**offset > 0xC1) {
-      if (**offset < 0xE0) { 
+      if (**offset < 0xE0) {
         /* read 2 bytes */
-        if(
-            (*((*offset)+1) & 0xC0) == 0x80
-        ) {
-          bytesRead = 2;
-          codepoint = ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3080;            
-        }
+        bytesRead = 2;
+        codepoint = ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3080;
       }
       else if (**offset < 0xF0) {
         /* read 3 bytes */
-        if(
-            (*((*offset)+1) & 0xC0) == 0x80 &&
-            (*(*offset) != 0xE0 || *((*offset)+1) > 0x9F) &&
-            (*((*offset)+2) & 0xC0) == 0x80
-        ) {
-          bytesRead = 3;
-          codepoint = ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0xE2080;
-        }
+        bytesRead = 3;
+        codepoint = ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0xE2080;
       }
       else if (**offset < 0xF5) {
         /* read 4 bytes */
-        if(
-            (*((*offset)+1) & 0xC0) == 0x80 &&
-            (*(*offset) != 0xF0 || *((*offset)+1) > 0x8F) &&
-            (*(*offset) != 0xF4 || *((*offset)+1) < 0x90) &&
-            (*((*offset)+2) & 0xC0) == 0x80 &&
-            (*((*offset)+3) & 0xC0) == 0x80
-        ) {
-          bytesRead = 4;
-          codepoint = ((long)(*((*offset)++)) << 18) + ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3C82080;
-        }
+        bytesRead = 4;
+        codepoint = ((long)(*((*offset)++)) << 18) + ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3C82080;
       }
     }
 
-    /* consume any other bytes using the CP-437 character set */
     if(bytesRead == 0) {
-      /* do a lookup using hash1 */
-      getHash1((*((*offset)++))-128);
-
-      reallocMsg((void**)&codepointBuffer, (bufferLength+(lookupresult->length))*sizeof(long));
-      memcpy(&(codepointBuffer[bufferLength]), (void*)(lookupresult->codepoints), (lookupresult->length)*sizeof(long));
-      bufferLength += lookupresult->length;
+      /* as getCodepoints now pre converts invalid bytes, this should
+        never hapen now. If it does, should a message an quit */
+      fputs("invalid utf-8 bytes stored in memory", stderr);
+      exit(EXIT_FAILURE);
     }
     else if((entry = isInHash2(codepoint)) == NULL) {
       /* the codepoint we found was not decomposable. just put it in the buffer */
@@ -149,7 +128,7 @@ int normaliseAndGet(
     }
   }
 
-  if(i > 1) { 
+  if(i > 1) {
     /* TODO: qsort the combining characters that preceed this codepoint */
   }
 
@@ -163,7 +142,7 @@ int normaliseAndGet(
 
   /* free the codepoint buffer */
   free(codepointBuffer);
-  
+
   /* swap out the string that will be searched from now on. free the old version */
   free(*str);
   *str = nfdString;
@@ -171,5 +150,5 @@ int normaliseAndGet(
 
   /* the whole string has been normalized to nfd form. */
   /* now use the fast version to get the next codepoint */
-  return getUnicodeCharFast(offset, str, plusBytes, bytesMatched, (void (*)())getUnicodeCharFast);
+  return getUnicodeChar(offset, str, plusBytes, bytesMatched, (void (*)())getUnicodeChar);
 }
