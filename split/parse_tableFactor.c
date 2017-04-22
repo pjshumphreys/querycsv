@@ -42,7 +42,7 @@ void parse_tableFactor(
   fclose(csvFile);
   
   /* try opening the file specified in the query */
-  csvFile = skipBom(columnText2, &headerByteLength);
+  csvFile = skipBom(columnText2, &headerByteLength, NULL);
   tableName = strdup(columnText);
   fileName = strdup(columnText2);
   free(columnText);

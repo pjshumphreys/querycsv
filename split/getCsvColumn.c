@@ -65,6 +65,10 @@ int getCsvColumn(
       getCodepoints = &getCodepointsCP850;
     } break;
 
+    case ENC_CP1047: {
+      getCodepoints = &getCodepointsCP1047;
+    } break;
+
     case ENC_CP1252: {
       getCodepoints = &getCodepointsCP1252;
     } break;

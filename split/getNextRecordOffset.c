@@ -6,7 +6,7 @@ int getNextRecordOffset(char *inputFileName, long offset) {
   MAC_YIELD
 
   /* attempt to open the input file */
-  inputFile = skipBom(inputFileName, NULL);
+  inputFile = skipBom(inputFileName, NULL, NULL);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return -1;

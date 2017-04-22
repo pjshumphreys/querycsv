@@ -195,16 +195,19 @@
 /* short codes for the character encodings we want to support */
 #define ENC_UNKNOWN 0
 #define ENC_UNSUPPORTED 1
-#define ENC_CP437 2
-#define ENC_CP850 3
-#define ENC_CP1252 4
-#define ENC_UTF8 5
-#define ENC_UTF16LE 6
-#define ENC_UTF16BE 7
-#define ENC_UTF32LE 8
-#define ENC_UTF32BE 9
-#define ENC_PETSCII 10
-#define ENC_MAC 11
+#define ENC_UTF8 2
+#define ENC_UTF16LE 3
+#define ENC_UTF16BE 4
+#define ENC_UTF32LE 5
+#define ENC_UTF32BE 6
+#define ENC_CP437 7
+#define ENC_CP850 8
+#define ENC_CP1047 9
+#define ENC_CP1252 10
+#define ENC_PETSCII 11
+#define ENC_MAC 12
+#define ENC_DEFAULT 2   /* ENC_UTF8 */
+
 
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_TRIM 1    /* left trim and right trim whitespace from each column value */

@@ -23,7 +23,8 @@ void readQuery(
   /* ///////////////////////////////////////////////////////////// */
 
   /* attempt to open the input file */
-  queryFile = fopen(queryFileName, "r");
+
+  queryFile = skipBom(queryFileName, NULL, &(query->inputEncoding));
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     exit(EXIT_FAILURE);
@@ -40,7 +41,7 @@ void readQuery(
   query->groupCount = 0;
   query->params = 0;
   query->inputEncoding = ENC_UNKNOWN;
-  
+
   query->outputFileName = NULL;
   query->columnReferenceHashTable = hash_createTable(32);
   query->firstInputTable = NULL;
@@ -79,7 +80,7 @@ void readQuery(
         fputs(TDB_COULDNT_OPEN_INPUT, stderr);
         exit(EXIT_FAILURE);
       }
-      
+
       /* setup reentrant flex scanner data structure */
       yylex_init(&scanner);
 
@@ -168,7 +169,7 @@ void readQuery(
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     exit(EXIT_FAILURE);
   }
-  
+
   /* setup reentrant flex scanner data structure */
   yylex_init(&scanner);
 
