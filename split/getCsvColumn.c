@@ -52,57 +52,7 @@ int getCsvColumn(
   }
 
   /* choose which function to use based upon the character encoding */
-  switch(inputEncoding) {
-    case ENC_UTF8: {
-      getCodepoints = &getCodepointsUTF8;
-    } break;
-
-    case ENC_CP437: {
-      getCodepoints = &getCodepointsCP437;
-    } break;
-
-    case ENC_CP850: {
-      getCodepoints = &getCodepointsCP850;
-    } break;
-
-    case ENC_CP1047: {
-      getCodepoints = &getCodepointsCP1047;
-    } break;
-
-    case ENC_CP1252: {
-      getCodepoints = &getCodepointsCP1252;
-    } break;
-
-    /*
-    case ENC_UTF16LE: {
-      getCodepoints = &getCodepointsUTF16LE;
-    } break;
-
-    case ENC_UTF16BE: {
-      getCodepoints = &getCodepointsUTF16BE;
-    } break;
-
-    case ENC_UTF32LE: {
-      getCodepoints = &getCodepointsUTF32LE;
-    } break;
-
-    case ENC_UTF32BE: {
-      getCodepoints = &getCodepointsUTF32BE;
-    } break;
-    */
-
-    case ENC_PETSCII: {
-      getCodepoints = &getCodepointsPetscii;
-    } break;
-
-    case ENC_MAC: {
-      getCodepoints = &getCodepointsMac;
-    } break;
-
-    default: {
-      getCodepoints = &getCodepointsUTF8;
-    }
-  }
+  getCodepoints = chooseGetter(inputEncoding);
 
   do {
     if(state != 0) {

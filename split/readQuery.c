@@ -31,7 +31,8 @@ void readQuery(
   }
 
   /* setup the initial values in the queryData structure */
-
+  query->getCodepoints = chooseGetter(query->inputEncoding);
+  query->inputEncoding = ENC_UNKNOWN;
   query->parseMode = 0;   /* specify we want to just read the file data for now */
   query->hasGrouping = FALSE;
   query->useGroupBy = FALSE;
@@ -40,8 +41,6 @@ void readQuery(
   query->recordCount = 0;
   query->groupCount = 0;
   query->params = 0;
-  query->inputEncoding = ENC_UNKNOWN;
-
   query->outputFileName = NULL;
   query->columnReferenceHashTable = hash_createTable(32);
   query->firstInputTable = NULL;
@@ -53,7 +52,7 @@ void readQuery(
   query->resultSet = NULL;
 
   /* setup reentrant flex scanner data structure */
-  yylex_init(&scanner);
+  yylex_init_extra(query, &scanner);
 
   /* feed our script file into the scanner structure */
   yyset_in(queryFile, scanner);
@@ -63,33 +62,31 @@ void readQuery(
   /* check that the parsing completed sucessfully, otherwise show a message and quit */
   parserReturn = yyparse(query, scanner);
 
-  if(parserReturn == 0) {
-    if(query->inputEncoding == ENC_UNKNOWN) {
-      query->inputEncoding = ENC_UTF8;
+  if(parserReturn == 0 && query->inputEncoding != ENC_UNKNOWN) {
+    /* the input file specified its own encoding. rewind and parse again */
+
+    /* clean up the re-entrant flex scanner */
+    yylex_destroy(scanner);
+
+    /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
+    fclose(queryFile);
+    queryFile = fopen(queryFileName, "r");
+    if(queryFile == NULL) {
+      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      exit(EXIT_FAILURE);
     }
-    else {
-      /* the input file specified its own encoding. rewind and parse again */
 
-      /* clean up the re-entrant flex scanner */
-      yylex_destroy(scanner);
+    /*specify the getter to use*/
+    query->getCodepoints = chooseGetter(query->inputEncoding);
 
-      /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
-      fclose(queryFile);
-      queryFile = fopen(queryFileName, "r");
-      if(queryFile == NULL) {
-        fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-        exit(EXIT_FAILURE);
-      }
+    /* setup reentrant flex scanner data structure */
+    yylex_init_extra(query, &scanner);
 
-      /* setup reentrant flex scanner data structure */
-      yylex_init(&scanner);
+    /* feed our script file into the scanner structure */
+    yyset_in(queryFile, scanner);
 
-      /* feed our script file into the scanner structure */
-      yyset_in(queryFile, scanner);
-
-      /* do the first parser pass again using the proper encoding */
-      parserReturn = yyparse(query, scanner);
-    }
+    /* do the first parser pass again using the proper encoding */
+    parserReturn = yyparse(query, scanner);
   }
 
   switch(parserReturn) {
@@ -171,7 +168,7 @@ void readQuery(
   }
 
   /* setup reentrant flex scanner data structure */
-  yylex_init(&scanner);
+  yylex_init_extra(query, &scanner);
 
   /* feed our script file into the scanner structure */
   yyset_in(queryFile, scanner);

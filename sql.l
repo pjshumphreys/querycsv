@@ -1,7 +1,7 @@
 %{
 #include "querycsv.h"
 #include "sql.h"
-
+#include "yyinput.h"
 	/* macro to save the text and return a token */
 #define TOK(name) { return name; }
 #define LEX_WORKAROUND strReplace("]]", "]", yytext)
@@ -30,7 +30,7 @@
 (?i:AUTHORIZATION)	TOK(AUTHORIZATION)
 (?i:BETWEEN)		TOK(BETWEEN)
 (?i:BY)			TOK(BY)
-(?i:ENCODING)	TOK(ENCODING)
+(?i:ENCODING)		TOK(ENCODING)
 (?i:CHECK)		TOK(CHECK)
 (?i:CLOSE)		TOK(CLOSE)
 (?i:COLLATE)		TOK(COLLATE)
@@ -66,10 +66,10 @@
 (?i:INT(EGER)?)		TOK(INTEGER)
 (?i:INTO)		TOK(INTO)
 (?i:IS)			TOK(IS)
-(?i:JOIN)    TOK(JOIN)
+(?i:JOIN)		TOK(JOIN)
 (?i:KEY)		TOK(KEY)
 (?i:LANGUAGE)		TOK(LANGUAGE)
-(?i:LEFT)    TOK(LEFT)
+(?i:LEFT)		TOK(LEFT)
 (?i:LIKE)		TOK(LIKE)
 (?i:NOT)		TOK(NOT)
 (?i:NULL)		TOK(NULLX)
@@ -128,10 +128,9 @@
 }
 
 \"([^\"]|\"\")+\" {
-    yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
     yylval->strval = strReplace("\"\"", "\"", yytext);
-    return NAME;
+    return STRING;
 }
 
 \"([^\"]|\"\")*$	{	yyerror2(yylineno, yytext); }
@@ -173,7 +172,7 @@
 	/* strings */
 
 '([^']|'')*' {
-		yytext[strlen(yytext)-1] = '\0';
+    yytext[strlen(yytext)-1] = '\0';
     yylval->strval = strReplace("''", "'", yytext+1);
     return STRING;
 }

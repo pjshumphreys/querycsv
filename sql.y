@@ -82,7 +82,7 @@ main_file:
   | command_or_select;
 
 command_or_select:
-    COMMAND STRING ';' {
+    COMMAND STRING {
       if(queryData->parseMode != 1) {
         runCommand($2);
       }

@@ -13,6 +13,7 @@
 /* translatable strings */
 #include "en_gb.h"
 
+#define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
 #define FALSE 0
 #define TRUE  1
@@ -342,6 +343,7 @@ struct qryData {
   int useGroupBy;
   int params;
   int inputEncoding;
+  void (*getCodepoints)(FILE *, long *, int *, int *);
   int outputEncoding;
   char *outputFileName;
   char *newLine;

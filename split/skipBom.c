@@ -5,6 +5,7 @@
   non iso-646 character sets if the encoding parameter is not null */
 FILE *skipBom(const char *filename, long* offset, int* encoding) {
   FILE *file;
+  int c;
 
   MAC_YIELD
 
@@ -95,7 +96,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
         if(
             encoding &&
             ((c = fgetc(file)) == 149 || c == 213) && /* 'N' */
-            ((c = fgetc(file)) == 131 || c == 195) && /* 'C' */
+            ((c = fgetc(file)) == 131 || c == 195) /* 'C' */
         ) {
           *encoding = ENC_CP1047;
         }
@@ -103,21 +104,21 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
       default: {
         if(encoding) {
-          *encoding = ENC_DEFAULT;
+          *encoding = ENC_UNKNOWN;
         }
       }
     }
+
+    if(offset) {
+      *offset = 0;
+    }
+
+    /* the byte order mark was not found, and calling ungetc multiple times is not */
+    /* portable (doesn't work on cc65). Therefore we just close and reopen the file */
+    fclose(file);
+
+    file = fopen(filename, "rb");
   }
-
-  if(offset) {
-    *offset = 0;
-  }
-
-  /* the byte order mark was not found, and calling ungetc multiple times is not */
-  /* portable (doesn't work on cc65). Therefore we just close and reopen the file */
-  fclose(file);
-
-  file = fopen(filename, "rb");
 
   return file;
 }

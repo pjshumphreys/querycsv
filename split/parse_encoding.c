@@ -6,11 +6,6 @@ int parse_encoding(
   ) {
   MAC_YIELD
 
-  /* don't bother checking anything until the second pass */
-  if(queryData->parseMode == 0) {
-    return ENC_UNKNOWN;
-  }
-
   if(stricmp("cp1252", encoding) == 0) { /* always windows 1252 */
     return ENC_CP1252;
   }
@@ -36,6 +31,10 @@ int parse_encoding(
 
   if(stricmp("mac", encoding) == 0) {
     return ENC_MAC;
+  }
+
+  if(stricmp("cp1047", encoding) == 0) {
+    return ENC_CP1047;
   }
 
   fprintf(stderr, "unsupported encoding %s\n", encoding);
