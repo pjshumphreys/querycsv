@@ -2,7 +2,7 @@
 
 COMPONENT  = QueryCSV
 TARGET     = !QueryCSV.querycsv
-OBJS       = lexer sql hash1 hash2 hash3 hash4 querycsv riscos
+OBJS       = lexer sql hash2 hash3 hash4a hash4b hash4c querycsv riscos
 CINCLUDES  = -ITCPIPLibs:,RISCOSLib:,tbox:,C: -j
 LIBS       = ${EVENTLIB} ${TBOXLIB} ${WIMPLIB} ${RLIB} ${UNIXLIB}
 INSTDIR    ?= <Install$Dir>

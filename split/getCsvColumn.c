@@ -190,7 +190,7 @@ int getCsvColumn(
           }
 
           quotePossible = FALSE;
-          *strSize = strAppendUTF8(c, value, *strSize);
+          *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
         } break;
       }
     }
