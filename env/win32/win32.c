@@ -28,7 +28,7 @@ void cleanup_w32() {
 }
 
 int fputs_w32(const char *str, FILE *stream) {
-  int len;
+  int len = 0;
   wchar_t *wide = NULL;
   HANDLE hnd;
   unsigned long i;
@@ -37,19 +37,13 @@ int fputs_w32(const char *str, FILE *stream) {
       (stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
       (stream == stderr && usingError && ((hnd = std_err) || TRUE))
     ) {
-    len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0);
+    wide = (wchar_t *)charsetEncode_d(str, ENC_UTF16LE, &len);
 
-    if((wide = (wchar_t*)malloc(sizeof(wchar_t)*len)) == NULL) {
-      return 0;
-    }
-
-    MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len);
-
-    WriteConsoleW(hnd, wide, len-1, &i, NULL);
+    WriteConsoleW(hnd, wide, len, &i, NULL);
 
     free(wide);
 
-    return len-1;
+    return len;
   }
 
   return fputs(str, stream);
@@ -115,12 +109,13 @@ void setupWin32(int *argc, char ***argv) {
   int maybeNewField = TRUE;
   int argc_w32 = 0;
 
+  std_out = GetStdHandle(STD_OUTPUT_HANDLE);
+  std_err = GetStdHandle(STD_ERROR_HANDLE);
+  usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
+  usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
+
   if(IsValidCodePage(CP_UTF8)) {
     hasUtf8 = TRUE;
-    std_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    std_err = GetStdHandle(STD_ERROR_HANDLE);
-    usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
-    usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
 
     szArglist = GetCommandLineW();
 

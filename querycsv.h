@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <string.h>
 #include <locale.h>
 #include <time.h>
@@ -194,20 +195,20 @@
 #define GRP_DIS_CONCAT 13
 
 /* short codes for the character encodings we want to support */
-#define ENC_UNKNOWN 0
-#define ENC_UNSUPPORTED 1
-#define ENC_UTF8 2
-#define ENC_UTF16LE 3
-#define ENC_UTF16BE 4
-#define ENC_UTF32LE 5
-#define ENC_UTF32BE 6
-#define ENC_CP437 7
-#define ENC_CP850 8
-#define ENC_CP1047 9
-#define ENC_CP1252 10
-#define ENC_PETSCII 11
-#define ENC_MAC 12
-#define ENC_DEFAULT 2   /* ENC_UTF8 */
+#define ENC_CP437 0
+#define ENC_CP850 1
+#define ENC_CP1252 2
+#define ENC_MAC 3
+#define ENC_UNKNOWN 4
+#define ENC_UNSUPPORTED 5
+#define ENC_UTF8 6
+#define ENC_UTF16LE 7
+#define ENC_UTF16BE 8
+#define ENC_UTF32LE 9
+#define ENC_UTF32BE 10
+#define ENC_CP1047 11
+#define ENC_PETSCII 12
+#define ENC_DEFAULT ENC_UTF8
 
 
 /* output parameters. Now specified as part of the input grammar */
@@ -386,6 +387,18 @@ struct hash4Entry {
   int script;
   int index;
   int islower;
+};
+
+struct codepointToByte {
+  short codepoint;
+  char byte;
+};
+struct codepointToBytes {
+  short codepoint;
+  char cp437;
+  char cp850;
+  char cp1047;
+  char mac;
 };
 
 /* function prototypes */

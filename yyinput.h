@@ -1,4 +1,5 @@
-#define YY_INPUT(buf,result,max_size) \
+#define YY_INPUT(buff,result,max_size) { \
+  char* buf = buff; \
   long c = 0x0065; \
   int i; \
   size_t n = 0; \
@@ -39,4 +40,5 @@
   if (c == MYEOF && ferror(yyin)) { \
     YY_FATAL_ERROR("input in flex scanner failed"); \
   } \
-  result = n;
+  result = n; \
+}
