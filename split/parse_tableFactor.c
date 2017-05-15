@@ -18,6 +18,7 @@ void parse_tableFactor(
   size_t columnLength = 0;
   int recordContinues = TRUE;
   long headerByteLength = 0;
+  int encodingFromBom = ENC_UNKNOWN;
 
   MAC_YIELD
 
@@ -43,7 +44,7 @@ void parse_tableFactor(
   fclose(csvFile);
   
   /* try opening the file specified in the query */
-  csvFile = skipBom(columnText2, &headerByteLength, NULL);
+  csvFile = skipBom(columnText2, &headerByteLength, &encodingFromBom);
   tableName = strdup(columnText);
   fileName = strdup(columnText2);
   free(columnText);
@@ -62,7 +63,7 @@ void parse_tableFactor(
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
   newTable->fileStream = csvFile;
-  newTable->fileEncoding = fileEncoding || ENC_UTF8;
+  newTable->fileEncoding = encodingFromBom != ENC_UNKNOWN ? encodingFromBom: (fileEncoding || ENC_DEFAULT);
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;
   newTable->noLeftRecord = TRUE;   /* set just for initialsation purposes */

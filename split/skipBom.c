@@ -56,7 +56,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
           }
 
           if(encoding) {
-            *encoding = ENC_UTF32BE;
+            *encoding = ENC_UTF16BE;
           }
 
           return file;
