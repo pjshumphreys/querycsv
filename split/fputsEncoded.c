@@ -3,7 +3,7 @@
 char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   char * buffer = NULL;
   char c;
-  int codepoint;
+  long codepoint;
   int i;
   int byteLength;
   int bytesMatched;
@@ -107,11 +107,19 @@ FILE *fopenEncoded(const char * filename, const char * mode, int encoding) {
 }
 
 int fputsEncoded(const char * str, FILE * stream, int encoding) {
-  size_t bytesStored = 0;
-  char *encoded = charsetEncode_d(str, encoding, &bytesStored);
-  int retval = fwrite(encoded, sizeof(char), bytesStored, stream);
+  size_t bytesStored;
+  char *encoded;
+  int retval;
 
-  free(encoded);
+  if(encoding != ENC_UTF8) {
+    bytesStored = 0;
+    encoded = charsetEncode_d(str, encoding, &bytesStored);
+    retval = fwrite(encoded, sizeof(char), bytesStored, stream);
 
-  return retval;
+    free(encoded);
+
+    return retval;
+  }
+  
+  return fputs(str, stream);
 }

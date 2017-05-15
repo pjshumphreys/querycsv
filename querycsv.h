@@ -195,11 +195,11 @@
 #define GRP_DIS_CONCAT 13
 
 /* short codes for the character encodings we want to support */
-#define ENC_CP437 0
-#define ENC_CP850 1
-#define ENC_CP1252 2
-#define ENC_MAC 3
-#define ENC_UNKNOWN 4
+#define ENC_UNKNOWN 0
+#define ENC_CP437 1
+#define ENC_CP850 2
+#define ENC_CP1252 3
+#define ENC_MAC 4
 #define ENC_UNSUPPORTED 5
 #define ENC_UTF8 6
 #define ENC_UTF16LE 7

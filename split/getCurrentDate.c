@@ -43,6 +43,7 @@ int getCurrentDate(void) {
   }
 
   /* print the timestamp */
+  /* TODO: use fputsEncoded instead */
   fputs(output, stdout);
 
   /* free the string data */

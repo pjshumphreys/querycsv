@@ -26,7 +26,7 @@ void outputResult(
 
     if(currentResultColumn->isHidden == FALSE) {
       if (!firstColumn) {
-        fputs(separator, outputFile);
+        fputsEncoded(separator, outputFile, query->outputEncoding);
       }
       else {
         firstColumn = FALSE;
@@ -37,7 +37,7 @@ void outputResult(
       switch(field->leftNull) { /* a null resulting from a left join */
         case TRUE: {
           if(((query->params) & PRM_EXPORT) != 0) {
-            fputs("\\N", outputFile);
+            fputsEncoded("\\N", outputFile, query->outputEncoding);
           }
         } break;
 
@@ -46,17 +46,17 @@ void outputResult(
 
           /* need to properly re-escape fields that need it */
           if(*string == '\0') {
-            fputs("\"\"", outputFile);  /* empty string always needs escaping */
+            fputsEncoded("\"\"", outputFile, query->outputEncoding);  /* empty string always needs escaping */
           }
           else if(needsEscaping(string, query->params)) {
             string2 = strReplace("\"","\"\"", string);
-            fputs("\"", outputFile);
-            fputs(string2, outputFile);
-            fputs("\"", outputFile);
+            fputsEncoded("\"", outputFile, query->outputEncoding);
+            fputsEncoded(string2, outputFile, query->outputEncoding);
+            fputsEncoded("\"", outputFile, query->outputEncoding);
             freeAndZero(string2);
           }
           else {
-            fputs(string, outputFile);
+            fputsEncoded(string, outputFile, query->outputEncoding);
           }
         } break;
       }
@@ -68,5 +68,5 @@ void outputResult(
   freeAndZero(string);
   cleanup_matchValues(query, &columns);
 
-  fputs(query->newLine, outputFile);
+  fputsEncoded(query->newLine, outputFile, query->outputEncoding);
 }

@@ -4,7 +4,8 @@ void parse_tableFactor(
     struct qryData *queryData,
     int isLeftJoin,
     char *fileName,
-    char *tableName
+    char *tableName,
+    int fileEncoding
   ) {
 
   FILE *csvFile;
@@ -61,7 +62,7 @@ void parse_tableFactor(
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
   newTable->fileStream = csvFile;
-  newTable->fileEncoding = ENC_UTF8;
+  newTable->fileEncoding = fileEncoding || ENC_UTF8;
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;
   newTable->noLeftRecord = TRUE;   /* set just for initialsation purposes */

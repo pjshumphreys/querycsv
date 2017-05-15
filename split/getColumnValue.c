@@ -40,6 +40,7 @@ int getColumnValue(
   }
 
   /* output the value */
+  /* TODO: use fputsEncoded instead */
   fputs(output, stdout);
 
   /* free the string memory */

@@ -165,17 +165,17 @@ function_ref:
         ;
 
 table_references:
-    STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $1, $3); }
+    STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $1, $3, $4); }
   | join_table
   ;
 
 join_table:
-    table_references JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $3, $5); } optional_join_condition
-  | table_references LEFT JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, TRUE, $4, $6); } join_condition
+    table_references JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $3, $5, %6); } optional_join_condition
+  | table_references LEFT JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, TRUE, $4, $6, $7); } join_condition
   ;
 
 optional_encoding:
-                /* empty */ { $$ = 0; }
+                /* empty */ { $$ = ENC_UNKNOWN; }
   | ENCODING STRING {
     if(($$ = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
       YYABORT;
@@ -261,6 +261,14 @@ opt_asc_desc:
 
 opt_into_clause:
     /* empty */
-  | INTO STRING optional_encoding { if(queryData->parseMode != 1) {free($2);} else {queryData->outputFileName = $2;} }
+  | INTO STRING optional_encoding {
+    if(queryData->parseMode != 1) {
+      free($2);
+    }
+    else {
+      queryData->outputFileName = $2;
+      queryData->outputEncoding = $3;
+    }
+  }
   ;
 %%

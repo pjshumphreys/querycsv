@@ -30,7 +30,16 @@ void outputHeader(
 
   /* write the byte order mark if it was requested */
   if(((query->params) & PRM_BOM) != 0) {
-    fputs("\xEF\xBB\xBF", outputFile);
+
+    switch(query->outputEncoding) {
+      case ENC_UTF8:
+      case ENC_UTF16LE:
+      case ENC_UTF16BE:
+      case ENC_UTF32LE:
+      case ENC_UTF32BE: {
+        fputsEncoded("\xEF\xBB\xBF", outputFile, query->outputEncoding);
+      }
+    }
   }
 
   /* write column headers to the output file */
@@ -42,16 +51,20 @@ void outputHeader(
 
     if(currentResultColumn->isHidden == FALSE) {
       if (!firstColumn) {
-        fputs(separator, outputFile);
+        fputsEncoded(separator, outputFile, query->outputEncoding);
       }
       else {
         firstColumn = FALSE;
       }
 
       /* strip over the leading underscore */
-      fputs((currentResultColumn->resultColumnName)+1, outputFile);
+      fputsEncoded(
+          (currentResultColumn->resultColumnName)+1,
+          outputFile,
+          query->outputEncoding
+        );
     }
   }
 
-  fputs(query->newLine, outputFile);
+  fputsEncoded(query->newLine, outputFile, query->outputEncoding);
 }
