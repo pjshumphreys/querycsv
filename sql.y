@@ -170,7 +170,7 @@ table_references:
   ;
 
 join_table:
-    table_references JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $3, $5, %6); } optional_join_condition
+    table_references JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $3, $5, $6); } optional_join_condition
   | table_references LEFT JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, TRUE, $4, $6, $7); } join_condition
   ;
 

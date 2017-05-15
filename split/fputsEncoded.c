@@ -2,7 +2,6 @@
 
 char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   char * buffer = NULL;
-  char c;
   long codepoint;
   int i;
   int byteLength;
@@ -38,7 +37,7 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
 
     case ENC_UTF16LE: {
       getBytes = getBytesUtf16Le;
-      reallocMsg(&bytes, 4);
+      reallocMsg((void**)&bytes, 4);
       didAllocateBytes = TRUE;
     } break;
 
@@ -49,8 +48,8 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
 
   if(bytesStored != NULL) {
     for( ; ; ) {
-      //call getUnicodeCharFast
-      codepoint = getUnicodeCharFast(s, &bytesMatched);
+      /* call getUnicodeCharFast */
+      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
       if(codepoint == 0) {
         if(didAllocateBytes) {
@@ -60,10 +59,10 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
         return buffer;
       }
 
-      //get the bytes for the codepoint in the specified encoding (may be more than 1 byte)
+      /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
       getBytes(codepoint, &bytes, &byteLength);
 
-      //for each byte returned, call strAppend
+      /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
         strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
       }
@@ -73,13 +72,13 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   }
   else {
     for( ; ; ) {
-      //call getUnicodeCharFast
+      /* call getUnicodeCharFast */
       codepoint = getUnicodeCharFast(s, &bytesMatched);
 
-      //get the bytes for the codepoint in the specified encoding (may be more than 1 byte)
+      /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
       getBytes(codepoint, &bytes, &byteLength);
 
-      //for each byte returned, call strAppend
+      /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
         strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
       }
@@ -97,7 +96,7 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   }
 }
 
-FILE *fopenEncoded(const char * filename, const char * mode, int encoding) {
+FILE *fopenEncoded(char * filename, char * mode, int encoding) {
   char *encoded = charsetEncode_d(filename, encoding, NULL);
   FILE *retval = fopen(encoded, mode);
 
@@ -106,7 +105,7 @@ FILE *fopenEncoded(const char * filename, const char * mode, int encoding) {
   return retval;
 }
 
-int fputsEncoded(const char * str, FILE * stream, int encoding) {
+int fputsEncoded(char * str, FILE * stream, int encoding) {
   size_t bytesStored;
   char *encoded;
   int retval;
