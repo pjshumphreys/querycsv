@@ -10,6 +10,8 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
+int putenv(char *string);
+int vsnprintf (char * s, size_t n, const char * format, va_list arg );
 
 /* translatable strings */
 #include "en_gb.h"

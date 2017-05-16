@@ -17,7 +17,6 @@ int normaliseAndGet(
   int bufferLength;
 
   long codepoint;
-  struct hash1Entry const * lookupresult;
 
   /* if the allocation failed, print an error messge and exit */
   reallocMsg((void**)&nfdString, strlen((const char *)(*str))+1);

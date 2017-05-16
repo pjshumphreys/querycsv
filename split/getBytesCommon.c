@@ -295,7 +295,7 @@ void getBytesCP437(
       212,
       sizeof(struct codepointToBytes),
       compareCodepoints
-    )) == NULL || lookup->cp437 == NULL) {
+    )) == NULL || lookup->cp437 == 0) {
       *bytes = &plAscii;
       return;
     }
@@ -310,7 +310,7 @@ void getBytesCP850(
   int *byteLength
   ) {
   struct codepointToBytes *lookup;
-  const char plAscii = '0x3f';
+  const char plAscii = 0x3F;
 
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
@@ -326,7 +326,7 @@ void getBytesCP850(
       212,
       sizeof(struct codepointToBytes),
       compareCodepoints
-    )) == NULL || lookup->cp850 == NULL) {
+    )) == NULL || lookup->cp850 == 0) {
       *bytes = &plAscii;
       return;
     }
@@ -357,7 +357,7 @@ void getBytesMac(
       212,
       sizeof(struct codepointToBytes),
       compareCodepoints
-    )) == NULL || lookup->mac == NULL) {
+    )) == NULL || lookup->mac == 0) {
       *bytes = &plAscii;
       return;
     }
@@ -494,7 +494,7 @@ void getBytesCP1047(
       212,
       sizeof(struct codepointToBytes),
       compareCodepoints
-    )) == NULL || lookup->cp1047 == NULL) {
+    )) == NULL || lookup->cp1047 == 0) {
       *bytes = &plEbcdic;
       return;
     }

@@ -73,7 +73,7 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   else {
     for( ; ; ) {
       /* call getUnicodeCharFast */
-      codepoint = getUnicodeCharFast(s, &bytesMatched);
+      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
       /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
       getBytes(codepoint, &bytes, &byteLength);
