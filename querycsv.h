@@ -118,6 +118,8 @@
   #define HAS_VSNPRINTF
   #define TEMP_VAR "TMPDIR"
   #define DEFAULT_TEMP "TMPDIR=."
+  #undef ENC_INPUT
+  #undef ENC_OUTPUT
   #define ENC_INPUT ENC_PETSCII
   #define ENC_OUTPUT ENC_PETSCII
 
@@ -152,17 +154,17 @@
   #define TEMP_VAR "TEMP"
   #define DEFAULT_TEMP "TEMP=."
   /*
-    #define MAX_UTF8_PATH 780 /* (_MAX_PATH)*3 * /
+    #define MAX_UTF8_PATH 780 / * (_MAX_PATH)*3 * /
 
     struct dirent {
       unsigned  d_type;
-      time_t    d_ctime; /* -1 for FAT file systems * /
-      time_t    d_atime; /* -1 for FAT file systems * /
+      time_t    d_ctime; / * -1 for FAT file systems * /
+      time_t    d_atime; / * -1 for FAT file systems * /
       time_t    d_mtime;
-      long      d_size; /* 64-bit size info * /
+      long      d_size; / * 64-bit size info * /
       char      d_name[MAX_UTF8_PATH];
-      char      d_first; /* flag for 1st time * /
-      long      d_handle; /* handle to pass to FindNext * /
+      char      d_first; / * flag for 1st time * /
+      long      d_handle; / * handle to pass to FindNext * /
     };
 
     #define DIR struct dirent
@@ -175,6 +177,8 @@
   #ifdef WINDOWS
     #include "win32.h"
   #else
+    #undef ENC_INPUT
+    #undef ENC_OUTPUT
     #define ENC_INPUT ENC_CP437
     #define ENC_OUTPUT ENC_CP437
   #endif
@@ -211,6 +215,7 @@
   #include <unixlib.h>        /* for strdup and strcasecmp */
   #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
   #define DEFAULT_TEMP "TMPDIR=."
+  #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252
   #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
   int putenv(char* string);   /* putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent) */
@@ -225,6 +230,7 @@
   #define HAS_VSNPRINTF
   #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
   #define DEFAULT_TEMP "TMPDIR=."
+  #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252
   void setupAmiga(int* argc, char*** argv);
   #include <clib/utility_protos.h>
@@ -233,7 +239,7 @@
   #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
 #endif
 
-int putenv(char *string);
+int putenv(char const *string);
 int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 
 /* structures */
@@ -404,11 +410,11 @@ struct hash4Entry {
 };
 
 struct codepointToByte {
-  short codepoint;
+  unsigned short codepoint;
   char byte;
 };
 struct codepointToBytes {
-  short codepoint;
+  unsigned short codepoint;
   char cp437;
   char cp850;
   char cp1047;

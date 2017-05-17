@@ -265,11 +265,11 @@ void getBytesCP1252(
       sizeof(struct codepointToByte),
       compareCodepoints
     )) == NULL) {
-      *bytes = &plAscii;
+      *bytes = (char*)(&plAscii);
       return;
     }
 
-    *bytes = &(lookup->byte);
+    *bytes = (char*)(&(lookup->byte));
   }
 }
 
@@ -296,11 +296,11 @@ void getBytesCP437(
       sizeof(struct codepointToBytes),
       compareCodepoints
     )) == NULL || lookup->cp437 == 0) {
-      *bytes = &plAscii;
+      *bytes = (char*)(&plAscii);
       return;
     }
 
-    *bytes = &(lookup->cp437);
+    *bytes = (char*)(&(lookup->cp437));
   }
 }
 
@@ -327,11 +327,11 @@ void getBytesCP850(
       sizeof(struct codepointToBytes),
       compareCodepoints
     )) == NULL || lookup->cp850 == 0) {
-      *bytes = &plAscii;
+      *bytes = (char*)(&plAscii);
       return;
     }
 
-    *bytes = &(lookup->cp850);
+    *bytes = (char*)(&(lookup->cp850));
   }
 }
 
@@ -358,11 +358,11 @@ void getBytesMac(
       sizeof(struct codepointToBytes),
       compareCodepoints
     )) == NULL || lookup->mac == 0) {
-      *bytes = &plAscii;
+      *bytes = (char*)(&plAscii);
       return;
     }
 
-    *bytes = &(lookup->mac);
+    *bytes = (char*)(&(lookup->mac));
   }
 }
 
@@ -441,11 +441,11 @@ void getBytesPetscii(
       sizeof(struct codepointToByte),
       compareCodepoints
     )) == NULL) {
-      *bytes = &plAscii;
+      *bytes = (char*)(&plAscii);
       return;
     }
 
-    *bytes = &(lookup->byte);
+    *bytes = (char*)(&(lookup->byte));
   }
 }
 
@@ -484,7 +484,7 @@ void getBytesCP1047(
     *byteLength = 1;
 
     if(codepoint < 0xA0) {
-      *bytes = &(cp1047LowBytes[codepoint]);
+      *bytes = (char*)(&(cp1047LowBytes[codepoint]));
       return;
     }
 
@@ -495,11 +495,11 @@ void getBytesCP1047(
       sizeof(struct codepointToBytes),
       compareCodepoints
     )) == NULL || lookup->cp1047 == 0) {
-      *bytes = &plEbcdic;
+      *bytes = (char*)(&plEbcdic);
       return;
     }
 
-    *bytes = &(lookup->cp1047);
+    *bytes = (char*)(&(lookup->cp1047));
   }
 }
 
