@@ -63,7 +63,14 @@ void parse_tableFactor(
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
   newTable->fileStream = csvFile;
-  newTable->fileEncoding = encodingFromBom != ENC_UNKNOWN ? encodingFromBom: (fileEncoding || ENC_DEFAULT);
+
+  if(encodingFromBom == ENC_UNKNOWN || encodingFromBom == ENC_CP1047) {
+    newTable->fileEncoding = fileEncoding;
+  }
+  else {
+    newTable->fileEncoding = encodingFromBom;
+  }
+
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;
   newTable->noLeftRecord = TRUE;   /* set just for initialsation purposes */

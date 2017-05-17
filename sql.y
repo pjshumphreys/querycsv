@@ -145,13 +145,13 @@ literal:
 column_ref:
                 NAME {
       if(parse_columnRefUnsuccessful(queryData, &($$), NULL, $1)) {
-        fputs("unknown or ambiguous column name\n", stderr);
+        fprintf(stderr, "unknown or ambiguous column name (%s)\n", $1);
         YYERROR;
       }
     }
         |       NAME '.' NAME {
       if(parse_columnRefUnsuccessful(queryData, &($$), $1, $3)) {
-        fputs("unknown or ambiguous column name\n", stderr);
+        fprintf(stderr, "unknown or ambiguous column name (%s.%s)\n", $1, $3);
         YYERROR;
       }
     }
@@ -175,7 +175,7 @@ join_table:
   ;
 
 optional_encoding:
-                /* empty */ { $$ = ENC_UNKNOWN; }
+                /* empty */ { $$ = ENC_DEFAULT; }
   | ENCODING STRING {
     if(($$ = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
       YYABORT;

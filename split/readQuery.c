@@ -14,6 +14,7 @@ void readQuery(
   struct sortingList *currentSortingList;
   struct columnRefHashEntry *currentHashEntry;
 
+  int initialEncoding = ENC_UNKNOWN;
   int inputTableIndex = 2, i;
   int parserReturn = 0;
 
@@ -24,14 +25,14 @@ void readQuery(
 
   /* attempt to open the input file */
 
-  queryFile = skipBom(queryFileName, NULL, &(query->inputEncoding));
+  queryFile = skipBom(queryFileName, NULL, &(initialEncoding));
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     exit(EXIT_FAILURE);
   }
 
   /* setup the initial values in the queryData structure */
-  query->getCodepoints = chooseGetter(query->inputEncoding);
+  query->getCodepoints = chooseGetter(initialEncoding);
   query->inputEncoding = ENC_UNKNOWN;
   query->parseMode = 0;   /* specify we want to just read the file data for now */
   query->hasGrouping = FALSE;
@@ -88,6 +89,9 @@ void readQuery(
 
     /* do the first parser pass again using the proper encoding */
     parserReturn = yyparse(query, scanner);
+  }
+  else {
+    query->inputEncoding = initialEncoding;
   }
 
   switch(parserReturn) {
