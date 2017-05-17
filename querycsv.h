@@ -89,7 +89,7 @@
 #define ENC_UTF32LE 10
 #define ENC_UTF32BE 11
 #define ENC_CP1047 12
-#define ENC_PETSCII 12
+#define ENC_PETSCII 13
 #define ENC_INPUT ENC_UTF8
 #define ENC_OUTPUT ENC_UTF8
 
