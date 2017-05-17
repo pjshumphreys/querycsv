@@ -65,7 +65,12 @@ void parse_tableFactor(
   newTable->fileStream = csvFile;
 
   if(encodingFromBom == ENC_UNKNOWN || encodingFromBom == ENC_CP1047) {
-    newTable->fileEncoding = fileEncoding;
+    if(fileEncoding == ENC_DEFAULT) {
+      newTable->fileEncoding = ENC_INPUT;
+    }
+    else {
+      newTable->fileEncoding = fileEncoding;
+    }
   }
   else {
     newTable->fileEncoding = encodingFromBom;

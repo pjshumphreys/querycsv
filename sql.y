@@ -267,7 +267,10 @@ opt_into_clause:
     }
     else {
       queryData->outputFileName = $2;
-      queryData->outputEncoding = $3;
+
+      if($3 != ENC_DEFAULT) {
+        queryData->outputEncoding = $3;
+      }
     }
   }
   ;

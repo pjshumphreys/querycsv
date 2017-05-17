@@ -30,7 +30,6 @@ void outputHeader(
 
   /* write the byte order mark if it was requested */
   if(((query->params) & PRM_BOM) != 0) {
-
     switch(query->outputEncoding) {
       case ENC_UTF8:
       case ENC_UTF16LE:

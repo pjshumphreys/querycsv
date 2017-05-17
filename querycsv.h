@@ -10,8 +10,6 @@
 #include <string.h>
 #include <locale.h>
 #include <time.h>
-int putenv(char *string);
-int vsnprintf (char * s, size_t n, const char * format, va_list arg );
 
 /* translatable strings */
 #include "en_gb.h"
@@ -21,136 +19,6 @@ int vsnprintf (char * s, size_t n, const char * format, va_list arg );
 #define FALSE 0
 #define TRUE  1
 #define MYEOF -1
-
-/* macro used to help prevent double freeing of heap data */
-#define freeAndZero(p) { free(p); p = 0; }
-
-/* ugly hacks to raise the game of cc65 */
-#ifndef __CC65__
-  #define __fastcall__ /* do nothing */
-
-  /* duplicates of the macros in cc65-floatlib that just use the native floating point support */
-  #define fadd(_f,_a) ((_f)+(_a))
-  #define fsub(_f,_a) ((_f)-(_a))
-  #define fmul(_f,_a) ((_f)*(_a))
-  #define fdiv(_f,_a) ((_f)/(_a))
-  #define fcmp(_d,_s) ((_d)!=(_s))
-  #define ctof(_s) ((double)(_s))
-  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to convert doubles to strings */
-  #define fneg(_f) ((_f)*(-1))
-
-  #define in_word_set_a in_word_set_ai
-  #define in_word_set_b in_word_set_bi
-  #define in_word_set_c in_word_set_ci
-#else
-
-  #define MAC_YIELD
-  #define HAS_VSNPRINTF
-  #define TEMP_VAR "TMPDIR"
-
-  #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii to ascii. We'll convert our output strings ourselves */
-  #include "floatlib/float.h" /* fudges kinda support for floating point into cc65 by utilising functionality in the c64 basic rom */
-  #define ftostr(_d,_a) {reallocMsg((void**)_d, 33);_ftostr(*(_d),_a);reallocMsg((void**)_d, strlen(*(_d))+1);} /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
-  #define fneg(_d) _fneg(_d) 
-  double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
-#endif
-
-#ifdef EMSCRIPTEN
-  #define main realmain
-#endif
-
-#ifdef __unix__
-  #define MAC_YIELD
-  #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
-  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
-  #define TEMP_VAR "TMPDIR"
-  #define DEFAULT_TEMP "TMPDIR=/tmp"
-  #include <dirent.h>   /* for opendir, readdir & closedir */
-
-  /* used as posix doesn't have stricmp */
-  #include <strings.h>
-  #define stricmp strcasecmp
-#endif
-
-#ifdef MICROSOFT
-  #define MAC_YIELD
-  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
-  #define DEVNULL "NUL"   /* null filename on DOS/Windows */
-  #define TEMP_VAR "TEMP"
-  #define DEFAULT_TEMP "TEMP=."
-  #define MAX_UTF8_PATH 780 /* (_MAX_PATH)*3 */
-
-  struct dirent {
-    unsigned  d_type;
-    time_t    d_ctime; /* -1 for FAT file systems */
-    time_t    d_atime; /* -1 for FAT file systems */
-    time_t    d_mtime;
-    long      d_size; /* 64-bit size info */
-    char      d_name[MAX_UTF8_PATH];
-    char      d_first; /* flag for 1st time */
-    long      d_handle; /* handle to pass to FindNext */
-  };
-
-  #define DIR struct dirent
-
-  DIR *opendir(const char *name);
-  struct dirent *readdir(DIR *inval);
-  int closedir(DIR * inval);
-
-  #ifdef WINDOWS
-    #include "win32.h"
-  #endif
-#endif
-
-#ifdef MPW_C
-/*#ifdef __MACH__
-    #define MAC_YIELD
-#else */
-  void macYield();
-  #define MAC_YIELD
-  /* macYield(); */
-/* #endif */
-  #define YY_NO_UNISTD_H 1
-  /* macs don't have stricmp, so we provide our own implementation */
-  #ifdef __unix__
-    #undef stricmp   /* this function is available on windows but doesn't work properly there */
-    #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
-  #endif
-  #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
-  #define TEMP_VAR "TMPDIR"
-  #define DEFAULT_TEMP "TMPDIR=:"
-  #undef putenv /* on MPW putenv has the wrong signature */
-  int putenv(char* string);
-#endif
-
-#ifdef __CC_NORCROFT
-  #define MAC_YIELD
-  #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF       /* Norcroft is not a brain dead compiler */
-  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
-  #include <errno.h>      /* <errno.h> only has definitions for a small number of error types */
-  #include <unixlib.h>        /* for strdup and strcasecmp */
-  #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
-  #define DEFAULT_TEMP "TMPDIR=."
-  #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
-  int putenv(char* string);   /* putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent) */
-  void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
-  FILE *fopen_ros(const char *filename, const char *mode);
-  #define fopen fopen_ros
-#endif
-
-#ifdef __VBCC__
-  #define MAC_YIELD
-  #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF
-  #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
-  #define DEFAULT_TEMP "TMPDIR=."
-  void setupAmiga(int* argc, char*** argv);
-  #include <clib/utility_protos.h>
-  #define stricmp Stricmp
-  int putenv(char *string);
-  #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
-#endif
 
 /* sub expression types */
 #define EXP_COLUMN 1
@@ -196,23 +64,6 @@ int vsnprintf (char * s, size_t n, const char * format, va_list arg );
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
 
-/* short codes for the character encodings we want to support */
-#define ENC_UNKNOWN 0
-#define ENC_CP437 1
-#define ENC_CP850 2
-#define ENC_CP1252 3
-#define ENC_MAC 4
-#define ENC_UNSUPPORTED 5
-#define ENC_UTF8 6
-#define ENC_UTF16LE 7
-#define ENC_UTF16BE 8
-#define ENC_UTF32LE 9
-#define ENC_UTF32BE 10
-#define ENC_CP1047 11
-#define ENC_PETSCII 12
-#define ENC_DEFAULT ENC_UTF8
-
-
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_TRIM 1    /* left trim and right trim whitespace from each column value */
 #define PRM_SPACE 2   /* put a space before each column value tat's not the first */
@@ -223,6 +74,167 @@ int vsnprintf (char * s, size_t n, const char * format, va_list arg );
 #define TRE_BLACK 1
 #define TRE_RED 2
 #define TRE_FREED 3
+
+/* short codes for the character encodings we want to support */
+#define ENC_UNKNOWN 0
+#define ENC_CP437 1
+#define ENC_CP850 2
+#define ENC_CP1252 3
+#define ENC_MAC 4
+#define ENC_DEFAULT 5
+#define ENC_UNSUPPORTED 6
+#define ENC_UTF8 7
+#define ENC_UTF16LE 8
+#define ENC_UTF16BE 9
+#define ENC_UTF32LE 10
+#define ENC_UTF32BE 11
+#define ENC_CP1047 12
+#define ENC_PETSCII 12
+#define ENC_INPUT ENC_UTF8
+#define ENC_OUTPUT ENC_UTF8
+
+/* macro used to help prevent double freeing of heap data */
+#define freeAndZero(p) { free(p); p = 0; }
+
+/* ugly hacks to raise the game of cc65 */
+#ifndef __CC65__
+  #define __fastcall__ /* do nothing */
+
+  /* duplicates of the macros in cc65-floatlib that just use the native floating point support */
+  #define fadd(_f,_a) ((_f)+(_a))
+  #define fsub(_f,_a) ((_f)-(_a))
+  #define fmul(_f,_a) ((_f)*(_a))
+  #define fdiv(_f,_a) ((_f)/(_a))
+  #define fcmp(_d,_s) ((_d)!=(_s))
+  #define ctof(_s) ((double)(_s))
+  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to convert doubles to strings */
+  #define fneg(_f) ((_f)*(-1))
+
+  #define in_word_set_a in_word_set_ai
+  #define in_word_set_b in_word_set_bi
+  #define in_word_set_c in_word_set_ci
+#else
+  #define MAC_YIELD
+  #define HAS_VSNPRINTF
+  #define TEMP_VAR "TMPDIR"
+  #define DEFAULT_TEMP "TMPDIR=."
+  #define ENC_INPUT ENC_PETSCII
+  #define ENC_OUTPUT ENC_PETSCII
+
+  #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii to ascii. We'll convert our output strings ourselves */
+  #include "floatlib/float.h" /* fudges kinda support for floating point into cc65 by utilising functionality in the c64 basic rom */
+  #define ftostr(_d,_a) {reallocMsg((void**)_d, 33);_ftostr(*(_d),_a);reallocMsg((void**)_d, strlen(*(_d))+1);} /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
+  #define fneg(_d) _fneg(_d) 
+  double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
+#endif
+
+#ifdef EMSCRIPTEN
+  #define main realmain
+#endif
+
+#ifdef __unix__
+  #define MAC_YIELD
+  #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
+  #define TEMP_VAR "TMPDIR"
+  #define DEFAULT_TEMP "TMPDIR=/tmp"
+  #include <dirent.h>   /* for opendir, readdir & closedir */
+
+  /* used as posix doesn't have stricmp */
+  #include <strings.h>
+  #define stricmp strcasecmp
+#endif
+
+#ifdef MICROSOFT
+  #define MAC_YIELD
+  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
+  #define DEVNULL "NUL"   /* null filename on DOS/Windows */
+  #define TEMP_VAR "TEMP"
+  #define DEFAULT_TEMP "TEMP=."
+  /*
+    #define MAX_UTF8_PATH 780 /* (_MAX_PATH)*3 * /
+
+    struct dirent {
+      unsigned  d_type;
+      time_t    d_ctime; /* -1 for FAT file systems * /
+      time_t    d_atime; /* -1 for FAT file systems * /
+      time_t    d_mtime;
+      long      d_size; /* 64-bit size info * /
+      char      d_name[MAX_UTF8_PATH];
+      char      d_first; /* flag for 1st time * /
+      long      d_handle; /* handle to pass to FindNext * /
+    };
+
+    #define DIR struct dirent
+
+    DIR *opendir(const char *name);
+    struct dirent *readdir(DIR *inval);
+    int closedir(DIR * inval);
+  */
+
+  #ifdef WINDOWS
+    #include "win32.h"
+  #else
+    #define ENC_INPUT ENC_CP437
+    #define ENC_OUTPUT ENC_CP437
+  #endif
+#endif
+
+#ifdef MPW_C
+/*#ifdef __MACH__
+    #define MAC_YIELD
+#else */
+  void macYield();
+  #define MAC_YIELD
+  /* macYield(); */
+/* #endif */
+  #define YY_NO_UNISTD_H 1
+  /* macs don't have stricmp, so we provide our own implementation */
+  #ifdef __unix__
+    #undef stricmp   /* this function is available on windows but doesn't work properly there */
+    #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+  #endif
+  #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
+  #define TEMP_VAR "TMPDIR"
+  #define DEFAULT_TEMP "TMPDIR=:"
+  #define ENC_INPUT ENC_MAC
+  #define ENC_OUTPUT ENC_MAC
+  #undef putenv /* on MPW putenv has the wrong signature */
+#endif
+
+#ifdef __CC_NORCROFT
+  #define MAC_YIELD
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF       /* Norcroft is not a brain dead compiler */
+  /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
+  #include <errno.h>      /* <errno.h> only has definitions for a small number of error types */
+  #include <unixlib.h>        /* for strdup and strcasecmp */
+  #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
+  #define DEFAULT_TEMP "TMPDIR=."
+  #define ENC_OUTPUT ENC_CP1252
+  #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+  int putenv(char* string);   /* putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent) */
+  void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
+  FILE *fopen_ros(const char *filename, const char *mode);
+  #define fopen fopen_ros
+#endif
+
+#ifdef __VBCC__
+  #define MAC_YIELD
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF
+  #define TEMP_VAR "TMPDIR"   /* TMPDIR isn't really used on risc os. Wimp$ScrapDir is used instead but that var is already preset and cannot be altered */
+  #define DEFAULT_TEMP "TMPDIR=."
+  #define ENC_OUTPUT ENC_CP1252
+  void setupAmiga(int* argc, char*** argv);
+  #include <clib/utility_protos.h>
+  #define stricmp Stricmp
+  int putenv(char *string);
+  #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
+#endif
+
+int putenv(char *string);
+int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 
 /* structures */
 struct resultColumn {

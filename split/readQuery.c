@@ -43,7 +43,7 @@ void readQuery(
   query->groupCount = 0;
   query->params = 0;
   query->outputFileName = NULL;
-  query->outputEncoding = ENC_DEFAULT;
+  query->outputEncoding = ENC_OUTPUT;
   query->columnReferenceHashTable = hash_createTable(32);
   query->firstInputTable = NULL;
   query->secondaryInputTable = NULL;
