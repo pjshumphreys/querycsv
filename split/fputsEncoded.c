@@ -7,7 +7,7 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   int byteLength;
   int bytesMatched;
   int didAllocateBytes = FALSE;
-  char* bytes;
+  char* bytes = NULL;
   void (*getBytes)(long, char **, int *);
 
   switch(encoding) {

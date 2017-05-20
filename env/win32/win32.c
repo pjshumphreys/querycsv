@@ -42,6 +42,7 @@ int fputs_w32(const char *str, FILE *stream) {
     ) {
     wide = (wchar_t *)charsetEncode_d((char *)str, ENC_UTF16LE, &len);
 
+    len/=2;
     WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
 
     free(wide);
