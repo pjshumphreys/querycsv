@@ -53,7 +53,7 @@ int fputs_w32(const char *str, FILE *stream) {
     return (int)len;
   }
 
-  output = charsetEncode_d((char *)str, ENC_CP437, &len);
+  output = charsetEncode_d((char *)str, ENC_CP437, NULL);
 
   retval = fputs(output, stream);
 

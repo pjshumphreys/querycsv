@@ -9,6 +9,7 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
   int didAllocateBytes = FALSE;
   char* bytes = NULL;
   void (*getBytes)(long, char **, int *);
+  size_t temp;
 
   switch(encoding) {
     case ENC_CP1252: {
@@ -71,6 +72,8 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
     }
   }
   else {
+    temp = 0;
+
     for( ; ; ) {
       /* call getUnicodeCharFast */
       codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
@@ -80,7 +83,7 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
 
       /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
-        strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
+        strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, &temp);
       }
 
       if(codepoint == 0) {
@@ -107,18 +110,26 @@ FILE *fopenEncoded(char * filename, char * mode, int encoding) {
 
 int fputsEncoded(char * str, FILE * stream, int encoding) {
   size_t bytesStored;
-  char *encoded;
+  char *encoded = NULL;
   int retval;
 
-  if(encoding != ENC_UTF8) {
-    bytesStored = 0;
-    encoded = charsetEncode_d(str, encoding, &bytesStored);
-    retval = fwrite(encoded, sizeof(char), bytesStored, stream);
-
-    free(encoded);
-
-    return retval;
+  switch(encoding) {
+    case ENC_UTF16LE:
+    case ENC_UTF16BE:
+    case ENC_UTF32LE:
+    case ENC_UTF32BE:
+      if(stream != stdout && stream != stderr) {
+        break;
+      }
+    case ENC_UTF8:
+      return fputs(str, stream);
   }
-  
-  return fputs(str, stream);
+
+  bytesStored = 0;
+  encoded = charsetEncode_d(str, encoding, &bytesStored);
+  retval = fwrite(encoded, sizeof(char), bytesStored, stream);
+
+  free(encoded);
+
+  return retval;
 }
