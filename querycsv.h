@@ -145,6 +145,8 @@
   /* used as posix doesn't have stricmp */
   #include <strings.h>
   #define stricmp strcasecmp
+  int putenv(char const *string);
+  int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 #endif
 
 #ifdef MICROSOFT
@@ -238,9 +240,6 @@
   int putenv(char *string);
   #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
 #endif
-
-int putenv(char const *string);
-int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 
 /* structures */
 struct resultColumn {
