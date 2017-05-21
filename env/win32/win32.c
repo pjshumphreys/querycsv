@@ -114,6 +114,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
 }
 
 void setupWin32(int *argc, char ***argv) {
+  OSVERSIONINFO osvi;
   DWORD mode;
   LPWSTR szArglist;
   int i, j;
@@ -121,6 +122,20 @@ void setupWin32(int *argc, char ***argv) {
   int notInQuotes = TRUE;
   int maybeNewField = TRUE;
   int argc_w32 = 0;
+
+
+  ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+  osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+  GetVersionEx(&osvi);
+
+  /*
+    test if the program is being run using the HXRT DPMI server.
+    If it is, don't use WriteConsoleW
+  */
+  if((osvi.dwBuildNumber & 0xFFFF) == 2222 && osvi.szCSDVersion[0] == 0) {
+    return;
+  }
 
   if(IsValidCodePage(CP_UTF8)) {
     hasUtf8 = TRUE;
