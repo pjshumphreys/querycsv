@@ -130,11 +130,16 @@
   double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
 #endif
 
-#ifdef EMSCRIPTEN
-  #define main realmain
-#endif
+
 
 #ifdef __unix__
+  #ifdef EMSCRIPTEN
+    #define main realmain
+  #else
+    int putenv(char const *string);
+    int vsnprintf(char *s, size_t n, const char *format, va_list arg);
+  #endif
+
   #define MAC_YIELD
   #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
   /* #define HAS_STRDUP */ /* none of the builds should use the built in strdup function any more as we may want to override malloc with a compiler define */
@@ -145,8 +150,6 @@
   /* used as posix doesn't have stricmp */
   #include <strings.h>
   #define stricmp strcasecmp
-  int putenv(char const *string);
-  int vsnprintf(char *s, size_t n, const char *format, va_list arg);
 #endif
 
 #ifdef MICROSOFT
