@@ -50,6 +50,8 @@
 #include <Scrap.h>
 #endif
 
+#include <MacTextEditor.h>
+
 #include <SIO.h>
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
@@ -152,25 +154,25 @@ Boolean gInBackground;
 
 /* kMinDocDim is used to limit the minimum dimension of a window when GrowWindow
   is called. */
-#define kMinDocDim        64
+//#define kMinDocDim        64
 
 /*  kCrChar is used to match with a carriage return when calculating the
   number of lines in the TextEdit record. kDelChar is used to check for
   delete in keyDowns. */
-#define kCrChar         13
-#define kDelChar        8
+//#define kCrChar         13
+//#define kDelChar        8
 
 /*  kControlInvisible is used to 'turn off' controls (i.e., cause the control not
   to be redrawn as a result of some Control Manager call such as SetCtlValue)
   by being put into the contrlVis field of the record. kControlVisible is used
   the same way to 'turn on' the control. */
-#define kControlInvisible   0
-#define kControlVisible     0xFF
+//#define kControlInvisible   0
+//#define kControlVisible     0xFF
 
 /*  kScrollbarAdjust and kScrollbarWidth are used in calculating
   values for control positioning and sizing. */
-#define kScrollbarWidth     16
-#define kScrollbarAdjust    (kScrollbarWidth - 1)
+//#define kScrollbarWidth     16
+//#define kScrollbarAdjust    (kScrollbarWidth - 1)
 
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
@@ -771,7 +773,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
 
     //calculate iBeamRgn
     if (isApplicationWindow(window)) {
-      iBeamRect = (*((DocumentPeek) window)->docTE)->viewRect;
+      /*iBeamRect = (*((DocumentPeek) window)->docTE)->viewRect;
 
       SetPort(window);        //make a global version of the viewRect
       LocalToGlobal(&TopLeft(iBeamRect));
@@ -782,6 +784,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
       SetOrigin(-window->portBits.bounds.left, -window->portBits.bounds.top);
       SectRgn(iBeamRgn, window->visRgn, iBeamRgn);
       SetOrigin(0, 0);
+      */
     }
 
     //subtract other regions from arrowRgn
@@ -818,7 +821,7 @@ void adjustMenus() {
 
     te = ((DocumentPeek) mainWindowPtr)->docTE;
 
-    if ((*te)->selStart < (*te)->selEnd) {
+    if (!TXNIsSelectionEmpty( fMLTEObject )){//(*te)->selStart < (*te)->selEnd) {
       EnableItem(menu, mEditCopy);
     }
     else {
@@ -1038,10 +1041,15 @@ void closeWindow(WindowPtr window) {
   else if (isApplicationWindow(window)) {
     te = ((DocumentPeek) window)->docTE;
 
-    if (te != nil) {
-      // dispose the TEHandle if we got far enough to make one
-      TEDispose(te);
-    }
+    //if (te != nil) {
+    //  // dispose the TEHandle if we got far enough to make one
+    //  TEDispose(te);
+    //}
+
+    		// change for this do a TXNDeleteObject
+			if ( fMLTEObject != nil )
+				TXNDeleteObject(fMLTEObject);									// dispose the TEHandle if we got far enough to make one 
+
 
     //calling disposeWindow here would be technically incorrect,
     //even though we allocated storage for the window on the heap.
@@ -1070,6 +1078,9 @@ void resizedWindow(WindowPtr window) {
 }
 
 void growWindow(WindowPtr window, EventRecord *event) {
+  //change replace the guts of this function with a call to TXNGrowWindow
+  TXNGrowWindow(fMLTEObject, event);
+  /*
   long         growResult;
   Rect         tempRect;
   RgnHandle    tempRgn;
@@ -1106,13 +1117,13 @@ void growWindow(WindowPtr window, EventRecord *event) {
     InvalRgn(tempRgn);
 
     DisposeRgn(tempRgn);
-  }
+  }*/
 }
 
 void zoomWindow(WindowPtr window, short part) {
-  EraseRect(&window->portRect);
-  ZoomWindow(window, part, window == FrontWindow());
-  resizedWindow(window);
+	//change replace the guts of this whole function with a call to TXNZoomWindow
+  TXNZoomWindow( fMLTEObject,partCode);
+
   windowZoomed = (part == inZoomOut);
 }
 
@@ -1157,20 +1168,37 @@ void openWindow() {
 
   /* TEXTEDIT STUFF begins here
   ******************************/
+  proceed = false;
+
+  //change 9 replace call to TENew with a call to TXNNewObject
+  status = TXNNewObject(	
+          NULL, /* can be NULL */
+          GetWindowPort(window),
+          NULL, /* can be NULL */
+          kTXNShowWindowMask|kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
+          kTXNTextEditStyleFrameType, /* the only valid option */
+          kTXNTextFile,
+          kTXNUnicodeEncoding,
+          &fMLTEObject,
+          &fMLTEFrameID,
+          NULL
+         );
+
+
 
   // set up the textedit content size (not the viewport) rectangle
-  getTERect(window, &viewRect);
-  destRect = viewRect;
-  destRect.right = destRect.left + kMaxDocWidth;
+  //getTERect(window, &viewRect);
+  //destRect = viewRect;
+  //destRect.right = destRect.left + kMaxDocWidth;
 
   //attempt to create a TextEdit control and bind
   //it to our window/document structure
-  doc->docTE = TEStyleNew(&destRect, &viewRect);
+  //doc->docTE = TEStyleNew(&destRect, &viewRect);
 
   //only proceed if the TextEdit control was successfully created
-  proceed = doc->docTE != nil;
+  //proceed = doc->docTE != nil;
 
-  if(proceed) {
+  /* if(proceed) {
     // fix up the TextEdit view?
     adjustViewRect(doc->docTE);
     TEAutoView(true, doc->docTE);   //TEAutoView controls automatic scrolling
@@ -1206,7 +1234,11 @@ void openWindow() {
 
     mainWindowPtr = window;
   }
-  else {
+  else {*/
+  		//change use of fDocTE to fMLTEObject and test the function result
+		//also remove all the control calls and the call to TEAutoView
+		if ( fMLTEObject == NULL || status != noErr )	{ // if TENew succeeded, we have a good document 
+
     //Something failed in the window creation process.
     //Clean up then tell the user what happened
     closeWindow(window);
@@ -1221,12 +1253,18 @@ void idleWindow() {
   WindowPtr window = FrontWindow();
 
   if(isApplicationWindow(window)) {
-    TEIdle(((DocumentPeek) window)->docTE);
+    //change: replace TEIdle with a call to TXNIdle
+		TXNIdle(fMLTEObject);
   }
 }
 
 void repaintWindow(WindowPtr window) {
   if (isApplicationWindow(window)) {
+    //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
+		//and handles drawing the scroll bars.
+		TXNUpdate ( fMLTEObject );
+
+    /*
     BeginUpdate(window);
 
     // draw if updating needs to be done
@@ -1239,6 +1277,7 @@ void repaintWindow(WindowPtr window) {
     }
 
     EndUpdate(window);
+    */
   }
 }
 
@@ -1250,7 +1289,11 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
   if (isApplicationWindow(window)) {
     doc = (DocumentPeek)window;
 
-    if (becomingActive) {
+		//change replace all this with a call to TXNFocus followed by a call to TXNActivate
+		TXNFocus( fMLTEObject, becomingActive );
+		TXNActivate( fMLTEObject, fMLTEFrameID, becomingActive);
+
+    /*if (becomingActive) {
       //since we don't want TEActivate to draw a selection in an area where
       //we're going to erase and redraw, we'll clip out the update region
       //before calling it.
@@ -1292,7 +1335,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
       HideControl(doc->docHScroll);
       // the growbox should be changed immediately on deactivation:
       DrawGrowIcon(window);
-    }
+    }*/
   }
 }
 
@@ -1424,7 +1467,11 @@ void menuSelect(long mResult) {
     case mEdit: {
       switch(theItem) {
         case mEditCopy: {
-          if (ZeroScrap() == noErr) {
+          //change: replace the guts of this with a call to TXNCopy
+          //again TXNCopy returns an OSStatus which we are ignoring
+          (void)TXNCopy( fMLTEObject );
+
+          /*if (ZeroScrap() == noErr) {
             if(mainWindowPtr){
               TECopy(((DocumentPeek)mainWindowPtr)->docTE);
             }
@@ -1434,7 +1481,7 @@ void menuSelect(long mResult) {
               //AlertUser(eNoCopy);
               ZeroScrap();
             }
-          }
+          }*/
 
         } break;
 
@@ -1561,20 +1608,22 @@ void contentClick(WindowPtr window, EventRecord *event) {
   Rect            teRect;
 
   if (isApplicationWindow(window)) {
-    SetPort(window);
+    //change replace the guts with a call to TXNClick
+		TXNClick(fMLTEObject, event);
+    /* SetPort(window);
 
-    /* get the click position */
+    /* get the click position * /
     mouse = event->where;
     GlobalToLocal(&mouse);
 
     doc = (DocumentPeek) window;
 
-    /* see if we are in the viewRect. if so, we wonÕt check the controls */
+    /* see if we are in the viewRect. if so, we wonÕt check the controls * /
     getTERect(window, &teRect);
 
     if (PtInRect(mouse, &teRect)) {
-      /* see if we need to extend the selection */
-      shiftDown = (event->modifiers & shiftKey) != 0;        /* extend if Shift is down */
+      /* see if we need to extend the selection * /
+      shiftDown = (event->modifiers & shiftKey) != 0;        /* extend if Shift is down * /
       TEClick(mouse, shiftDown, doc->docTE);
     }
     else {
@@ -1582,7 +1631,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
 
       switch (part) {
         case 0: {
-          /* do nothing for viewRect case */
+          /* do nothing for viewRect case * /
         } break;
 
         case kControlIndicatorPart: {
@@ -1592,7 +1641,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
           if (part != 0) {
             value -= GetControlValue(control);
 
-            /* value now has CHANGE in value; if value changed, scroll */
+            /* value now has CHANGE in value; if value changed, scroll * /
             if (value != 0) {
               if (control == doc->docVScroll) {
                 TEScroll(0, value * lineHeight2, doc->docTE);
@@ -1604,7 +1653,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
           }
         } break;
 
-        default: {    /* they clicked in an arrow, so track & scroll */
+        default: {    /* they clicked in an arrow, so track & scroll * /
           if (control == doc->docVScroll) {
             value = TrackControl(control, mouse, (ControlActionUPP) VActionProc);
           }
@@ -1613,7 +1662,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
           }
         } break;
       }
-    }
+    } */
   }
 }
 
