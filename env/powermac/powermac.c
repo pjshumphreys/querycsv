@@ -48,13 +48,13 @@
 #include <Menus.h>
 #include <ControlDefinitions.h>
 #include <Scrap.h>
-#endif
-
 #include <MacTextEditor.h>
+#endif
 
 #include <SIO.h>
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
+
 #if TARGET_API_MAC_TOOLBOX
 #define GetWindowPort(w) w
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
@@ -91,10 +91,12 @@ enum {
 */
 typedef struct {
   WindowRecord  docWindow;
-  TEHandle      docTE;
-  ControlHandle docVScroll;
-  ControlHandle docHScroll;
-  ProcPtr       docClik;
+  TXNObject			fMLTEObject;	// our text
+	TXNFrameID		fMLTEFrameID;
+  //TEHandle      docTE;
+  //ControlHandle docVScroll;
+  //ControlHandle docHScroll;
+  //ProcPtr       docClik;
 } DocumentRecord, *DocumentPeek;
 
 struct lineOffsets {
@@ -301,9 +303,15 @@ Rect getScreenBounds() {
 }
 
 void alertUser(short error) {
-  Str255  message;
+  Str255 message;
 
+#if TARGET_API_MAC_CARBON
+  Cursor theArrow;
+  GetQDGlobalsArrow(&theArrow);
+  SetCursor(&theArrow);
+#else
   SetCursor(&qd.arrow);
+#endif
 
   //type Str255 is an array in MPW 3
   GetIndString(message, kErrStrings, error);
@@ -314,7 +322,13 @@ void alertUser(short error) {
 void alertUserNum(int value) {
   Str255 message;
 
+#if TARGET_API_MAC_CARBON
+  Cursor theArrow;
+  GetQDGlobalsArrow(&theArrow);
+  SetCursor(&theArrow);
+#else
   SetCursor(&qd.arrow);
+#endif
 
   //type Str255 is an array in MPW 3
   sprintf((char*)&message, "test %d", value);
@@ -341,13 +355,12 @@ static pascal OSErr appleEventPrintDoc(
 }
 
 CFURLRef baseFolder;
-	SInt32			response;
-  CFStringEncoding enc;
+SInt32 macOSVersion;
+CFStringEncoding enc;
 
 FILE *fopen_mac(const char *filename, const char *mode) {
   char* absolutePath = NULL;
   int retval;
-  CFStringEncoding enc;
   CFIndex neededLen;
   CFIndex usedLen;
   CFRange range;
@@ -374,14 +387,14 @@ FILE *fopen_mac(const char *filename, const char *mode) {
   CFURLRef cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
     kCFAllocatorDefault,
     text1,
-    response < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
+    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
     FALSE,
     baseFolder
   );
 
   CFStringRef text2 = CFURLCopyFileSystemPath(
     cfabsolute,
-    response < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
+    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
   );
 
   if(absolutePath = CFStringGetCStringPtr(text2, enc)) {
@@ -741,10 +754,15 @@ void initialize() {
   FlushEvents(everyEvent, 0);
 
 	/* get operating system version, used to tell whether os x is being used */
-  Gestalt(gestaltSystemVersion, &response);
+  Gestalt(gestaltSystemVersion, &macOSVersion);
 
   /* get the system default encoding. used by the fopen wrapper */
   enc = CFStringGetSystemEncoding();
+
+  /* initialize MLTE */
+  if (TXNInitTextension(NULL, 0, kNilOptions) != NULL) {
+    BigBadError(kErrStrings, eWrongMachine);
+  }
 
   setupAppleEvents();
 
@@ -764,6 +782,11 @@ void adjustCursor(Point mouse, RgnHandle region) {
   window = FrontWindow();   //we only adjust the cursor when we are in front
 
   if (!gInBackground && !isDeskAccessory(window)) {
+    //change remove everything in   here and replace it with
+    // TXNAdjustCursor we pass NULL for the cursor region
+    // because we are letting MLTE handle all of that.
+    TXNAdjustCursor(fTECurDoc->GetMLTEObject(), fMouseRgn);
+/*
     //calculate regions for different cursor shapes
     arrowRgn = NewRgn();
     iBeamRgn = NewRgn();
