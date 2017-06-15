@@ -109,6 +109,8 @@ struct lineOffsets *lastLine = NULL;
 SInt32 textUsed = 0;
 int lineHeight2 = 10;
 
+kTXNMonostyledTextMaske = 1 << 17;
+
 #define APP_NAME_STRING "\pQueryCSV"
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 320
@@ -262,7 +264,6 @@ int putenv(char* string) {
   return 0;
 }
 
-
 //Check to see if a window belongs to a desk accessory.
 Boolean isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
@@ -357,6 +358,7 @@ static pascal OSErr appleEventPrintDoc(
 CFURLRef baseFolder;
 SInt32 macOSVersion;
 CFStringEncoding enc;
+int mallocedFileName;
 
 FILE *fopen_mac(const char *filename, const char *mode) {
   char* absolutePath = NULL;
@@ -495,7 +497,7 @@ static pascal OSErr appleEventOpenDoc(
 
         CFStringRef cfFilename = CFURLCopyLastPathComponent(cfUrl);
 
-        if((absolutePath = CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) == 0) {
+        if((absolutePath = CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) == NULL) {
           neededLen = 0;
           usedLen = 0;
           range = CFRangeMake(0, CFStringGetLength(cfFilename));
@@ -738,6 +740,8 @@ void saveSettings() {
   }
 }
 
+RgnHandle   fMouseRgn;
+
 void initialize() {
 #if TARGET_API_MAC_TOOLBOX
   MaxApplZone();
@@ -761,12 +765,14 @@ void initialize() {
 
   /* initialize MLTE */
   if (TXNInitTextension(NULL, 0, kNilOptions) != NULL) {
-    BigBadError(kErrStrings, eWrongMachine);
+    alertUser(eWrongMachine);
   }
 
   setupAppleEvents();
 
   setupMenus();
+
+  fMouseRgn = NewRgn();
 
   restoreSettings();
 
@@ -785,7 +791,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
     //change remove everything in   here and replace it with
     // TXNAdjustCursor we pass NULL for the cursor region
     // because we are letting MLTE handle all of that.
-    TXNAdjustCursor(fTECurDoc->GetMLTEObject(), fMouseRgn);
+    TXNAdjustCursor((*((DocumentPeek) window)->fMLTEObject, region);
 /*
     //calculate regions for different cursor shapes
     arrowRgn = NewRgn();
@@ -807,7 +813,6 @@ void adjustCursor(Point mouse, RgnHandle region) {
       SetOrigin(-window->portBits.bounds.left, -window->portBits.bounds.top);
       SectRgn(iBeamRgn, window->visRgn, iBeamRgn);
       SetOrigin(0, 0);
-      */
     }
 
     //subtract other regions from arrowRgn
@@ -824,7 +829,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
     }
 
     DisposeRgn(arrowRgn);
-    DisposeRgn(iBeamRgn);
+    DisposeRgn(iBeamRgn);*/
   }
 }
 
@@ -833,7 +838,7 @@ void adjustMenus() {
   int i, len;
   Boolean found = false;
   Str255 currentFontName;
-  TEHandle te;
+  //TEHandle te;
 
   menu = GetMenuHandle(mFile);
   if(!windowNotOpen) {
@@ -842,9 +847,10 @@ void adjustMenus() {
     menu = GetMenuHandle(mEdit);
     EnableItem(menu, mEditSelectAll);
 
-    te = ((DocumentPeek) mainWindowPtr)->docTE;
+    //te = ((DocumentPeek) mainWindowPtr)->docTE;
 
-    if (!TXNIsSelectionEmpty( fMLTEObject )){//(*te)->selStart < (*te)->selEnd) {
+    if(!TXNIsSelectionEmpty(((DocumentPeek)mainWindowPtr)->fMLTEObject)) {
+      //(*te)->selStart < (*te)->selEnd) {
       EnableItem(menu, mEditCopy);
     }
     else {
@@ -888,6 +894,7 @@ void adjustMenus() {
   }
 }
 
+/*
 void adjustTE(WindowPtr window) {
   TEPtr te;
 
@@ -1026,7 +1033,7 @@ void adjustScrollBars(WindowPtr window, Boolean needsResize) {
   (*doc->docVScroll)->contrlVis = kControlVisible;
   (*doc->docHScroll)->contrlVis = kControlVisible;
 }
-
+*/
 
 void saveWindow(WindowPtr window) {
   Rect *rptr;
@@ -1056,23 +1063,24 @@ void saveWindow(WindowPtr window) {
 }
 
 void closeWindow(WindowPtr window) {
-  TEHandle te;
+  //TEHandle te;
 
   if (isDeskAccessory(window)) {
     CloseDeskAcc(((WindowPeek) window)->windowKind);
   }
   else if (isApplicationWindow(window)) {
-    te = ((DocumentPeek) window)->docTE;
+    //te = ((DocumentPeek) window)->docTE;
 
     //if (te != nil) {
     //  // dispose the TEHandle if we got far enough to make one
     //  TEDispose(te);
     //}
 
-    		// change for this do a TXNDeleteObject
-			if ( fMLTEObject != nil )
-				TXNDeleteObject(fMLTEObject);									// dispose the TEHandle if we got far enough to make one 
-
+    // change for this do a TXNDeleteObject
+    if(((DocumentPeek) window)->fMLTEObject != nil) {
+      // dispose the TEHandle if we got far enough to make one 
+      TXNDeleteObject(((DocumentPeek)window)->fMLTEObject);
+    }
 
     //calling disposeWindow here would be technically incorrect,
     //even though we allocated storage for the window on the heap.
@@ -1087,6 +1095,7 @@ void closeWindow(WindowPtr window) {
   }
 }
 
+/*
 void getLocalUpdateRgn(WindowPtr window, RgnHandle localRgn) {
   // save old update region
   CopyRgn(((WindowPeek) window)->updateRgn, localRgn);
@@ -1099,10 +1108,11 @@ void resizedWindow(WindowPtr window) {
   adjustTE(window);
   InvalRect(&window->portRect);
 }
+*/
 
 void growWindow(WindowPtr window, EventRecord *event) {
   //change replace the guts of this function with a call to TXNGrowWindow
-  TXNGrowWindow(fMLTEObject, event);
+  TXNGrowWindow(((DocumentPeek)window)->fMLTEObject, event);
   /*
   long         growResult;
   Rect         tempRect;
@@ -1145,7 +1155,7 @@ void growWindow(WindowPtr window, EventRecord *event) {
 
 void zoomWindow(WindowPtr window, short part) {
 	//change replace the guts of this whole function with a call to TXNZoomWindow
-  TXNZoomWindow( fMLTEObject,partCode);
+  TXNZoomWindow(((DocumentPeek)window)->fMLTEObject, part);
 
   windowZoomed = (part == inZoomOut);
 }
@@ -1198,16 +1208,18 @@ void openWindow() {
           NULL, /* can be NULL */
           GetWindowPort(window),
           NULL, /* can be NULL */
-          kTXNShowWindowMask|kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
+          kTXNShowWindowMask|kTXNReadOnlyMask|
+          kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
+          kOutputTextInUnicodeEncodingMask|
+          kTXNMonostyledTextMaske|
+          kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
           kTXNTextEditStyleFrameType, /* the only valid option */
-          kTXNTextFile,
+          kTXNUnicodeTextFile,
           kTXNUnicodeEncoding,
-          &fMLTEObject,
-          &fMLTEFrameID,
+          &(doc->fMLTEObject),
+          &(doc->fMLTEFrameID),
           NULL
          );
-
-
 
   // set up the textedit content size (not the viewport) rectangle
   //getTERect(window, &viewRect);
@@ -1258,9 +1270,9 @@ void openWindow() {
     mainWindowPtr = window;
   }
   else {*/
-  		//change use of fDocTE to fMLTEObject and test the function result
-		//also remove all the control calls and the call to TEAutoView
-		if ( fMLTEObject == NULL || status != noErr )	{ // if TENew succeeded, we have a good document 
+  //change use of fDocTE to fMLTEObject and test the function result
+  //also remove all the control calls and the call to TEAutoView
+  if(doc->fMLTEObject == NULL || status != noErr)	{ // if TENew succeeded, we have a good document 
 
     //Something failed in the window creation process.
     //Clean up then tell the user what happened
@@ -1277,7 +1289,7 @@ void idleWindow() {
 
   if(isApplicationWindow(window)) {
     //change: replace TEIdle with a call to TXNIdle
-		TXNIdle(fMLTEObject);
+		TXNIdle(((DocumentPeek)window)->fMLTEObject);
   }
 }
 
@@ -1285,7 +1297,7 @@ void repaintWindow(WindowPtr window) {
   if (isApplicationWindow(window)) {
     //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
 		//and handles drawing the scroll bars.
-		TXNUpdate ( fMLTEObject );
+		TXNUpdate (((DocumentPeek)window)->fMLTEObject);
 
     /*
     BeginUpdate(window);
@@ -1313,8 +1325,8 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
     doc = (DocumentPeek)window;
 
 		//change replace all this with a call to TXNFocus followed by a call to TXNActivate
-		TXNFocus( fMLTEObject, becomingActive );
-		TXNActivate( fMLTEObject, fMLTEFrameID, becomingActive);
+		TXNFocus(doc->fMLTEObject, becomingActive);
+		TXNActivate(doc->fMLTEObject, doc->fMLTEFrameID, becomingActive);
 
     /*if (becomingActive) {
       //since we don't want TEActivate to draw a selection in an area where
@@ -1366,7 +1378,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
 //  turn called by the TEClick toolbox routine. Saves the windows clip region,
 //  sets it to the portRect, adjusts the scrollbar values to match the TE scroll
 //  amount, then restores the clip region.
-pascal void PascalClikLoop(void) {
+/*pascal void PascalClikLoop(void) {
   WindowPtr window;
   RgnHandle region;
 
@@ -1378,10 +1390,13 @@ pascal void PascalClikLoop(void) {
   adjustScrollbarValues(window, true);
   SetClip(region);
   DisposeRgn(region);
-}
+}*/
 
 void setFont(SInt16 menuItem) {
-  TextStyle styleRec;
+  //TextStyle styleRec;
+  OSStatus status = noErr;
+
+  TXNTypeAttributes typeAttr[1];
 
   GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
 
@@ -1389,16 +1404,34 @@ void setFont(SInt16 menuItem) {
     return;
   }
 
-  GetFNum(fontName, &(styleRec.tsFont));
+  typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
+	typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
 
-  TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
-  TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  GetFNum(fontName, &(typeAttr[0].data.dataValue));
 
-  adjustScrollBars(mainWindowPtr, false);
+  //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  //TXNSelectAll((DocumentPeek)window)->fMLTEObject);
+
+  //TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
+  TXNSetTypeAttributes(
+    (DocumentPeek)window)->fMLTEObject,
+    1,
+    typeAttr,
+    kTXNStartOffset,
+    kTXNEndOffset
+  );
+
+  //TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  TXNSetSelection(
+    (DocumentPeek)window)->fMLTEObject,
+    kTXNEndOffset,
+    kTXNEndOffset
+  );
+
+  //adjustScrollBars(mainWindowPtr, false);
 }
 
-short doGetSize(SInt16 menuItem) {
+UInt32 doGetSize(SInt16 menuItem) {
   switch(menuItem) {
     case 1:
       return 9;
@@ -1420,6 +1453,35 @@ short doGetSize(SInt16 menuItem) {
 }
 
 void setFontSize(SInt16 menuItem) {
+  OSStatus status = noErr;
+
+  TXNTypeAttributes typeAttr[1];
+
+  if(!mainWindowPtr) {
+    return;
+  }
+
+  fontSizeIndex = menuItem;
+
+  typeAttr[0].tag = kTXNQDFontSizeAttribute;
+	typeAttr[0].size = kTXNQDFontSizeAttributeSize;
+  typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
+
+  TXNSetTypeAttributes(
+    (DocumentPeek)window)->fMLTEObject,
+    1,
+    typeAttr,
+    kTXNStartOffset,
+    kTXNEndOffset
+  );
+
+  TXNSetSelection(
+    (DocumentPeek)window)->fMLTEObject,
+    kTXNEndOffset,
+    kTXNEndOffset
+  );
+
+  /*
   TextStyle styleRec;
 
   fontSizeIndex = menuItem;
@@ -1428,13 +1490,14 @@ void setFontSize(SInt16 menuItem) {
     return;
   }
 
-  styleRec.tsSize = doGetSize(fontSizeIndex);
+  fontSize = (UInt32)(doGetSize(fontSizeIndex)) << 16;
 
   TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
   TESetStyle(doSize, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
   TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
 
   adjustScrollBars(mainWindowPtr, false);
+  */
 }
 
 /*
@@ -1443,9 +1506,11 @@ void setFontSize(SInt16 menuItem) {
   default clikLoop routine that was put into the TERec by TEAutoView to
   AsmClikLoop so that it can call it.
 */
+/*
 pascal ProcPtr GetOldClikLoop(void) {
   return ((DocumentPeek)FrontWindow())->docClik;
 }
+*/
 
 /* Handles clicking on menus or keyboard shortcuts */
 void menuSelect(long mResult) {
@@ -1492,7 +1557,7 @@ void menuSelect(long mResult) {
         case mEditCopy: {
           //change: replace the guts of this with a call to TXNCopy
           //again TXNCopy returns an OSStatus which we are ignoring
-          (void)TXNCopy( fMLTEObject );
+          TXNCopy((DocumentPeek)mainWindowPtr)->fMLTEObject);
 
           /*if (ZeroScrap() == noErr) {
             if(mainWindowPtr){
@@ -1509,7 +1574,8 @@ void menuSelect(long mResult) {
         } break;
 
         case mEditSelectAll: {
-          TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+          TXNSelectAll((DocumentPeek)mainWindowPtr)->fMLTEObject);
+          //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
         } break;
       }
     } break;
@@ -1526,11 +1592,12 @@ void menuSelect(long mResult) {
   HiliteMenu(0);
 }
 
+/*
 void commonAction(ControlHandle control, short *amount) {
   short value, max;
 
-  value = GetControlValue(control);        /* get current value */
-  max = GetControlMaximum(control);        /* and maximum value */
+  value = GetControlValue(control);        /* get current value * /
+  max = GetControlMaximum(control);        /* and maximum value * /
   *amount = value - *amount;
 
   if (*amount < 0) {
@@ -1541,7 +1608,7 @@ void commonAction(ControlHandle control, short *amount) {
   }
 
   SetControlValue(control, *amount);
-  *amount = value - *amount;    /* calculate the real change */
+  *amount = value - *amount;    /* calculate the real change * /
 }
 
 pascal void VActionProc(ControlHandle control, short part) {
@@ -1549,18 +1616,18 @@ pascal void VActionProc(ControlHandle control, short part) {
   WindowPtr   window;
   TEPtr       te;
 
-  /* if it was actually in the control */
+  /* if it was actually in the control * /
   if (part != 0) {
     window = (*control)->contrlOwner;
     te = *((DocumentPeek) window)->docTE;
 
     switch (part) {
-      case kControlUpButtonPart:        /* one line */
+      case kControlUpButtonPart:        /* one line * /
       case kControlDownButtonPart: {
         amount = 1;
       } break;
 
-      case kControlPageUpPart:          /* one page */
+      case kControlPageUpPart:          /* one page * /
       case kControlPageDownPart: {
         amount = (te->viewRect.bottom - te->viewRect.top) / lineHeight2;
       } break;
@@ -1570,7 +1637,7 @@ pascal void VActionProc(ControlHandle control, short part) {
         part == kControlDownButtonPart ||
         part == kControlPageDownPart
     ) {
-      amount = -amount;                /* reverse direction for a downer */
+      amount = -amount;                /* reverse direction for a downer * /
     }
 
     commonAction(control, &amount);
@@ -1585,7 +1652,7 @@ pascal void VActionProc(ControlHandle control, short part) {
   Determines how much to change the value of the horizontal scrollbar by and how
   much to scroll the TE record.
 */
-#pragma segment Main
+/*#pragma segment Main
 pascal void HActionProc(ControlHandle control, short part) {
   short       amount;
   WindowPtr   window;
@@ -1596,12 +1663,12 @@ pascal void HActionProc(ControlHandle control, short part) {
     te = *((DocumentPeek) window)->docTE;
 
     switch (part) {
-      case kControlUpButtonPart:                /* a few pixels */
+      case kControlUpButtonPart:                /* a few pixels * /
       case kControlDownButtonPart: {
         amount = kButtonScroll;
       } break;
 
-      case kControlPageUpPart:                        /* a page */
+      case kControlPageUpPart:                        /* a page * /
       case kControlPageDownPart: {
         amount = te->viewRect.right - te->viewRect.left;
       } break;
@@ -1611,7 +1678,7 @@ pascal void HActionProc(ControlHandle control, short part) {
         part == kControlDownButtonPart ||
         part == kControlPageDownPart
     ) {
-      amount = -amount;   /* reverse direction */
+      amount = -amount;   /* reverse direction * /
     }
 
     commonAction(control, &amount);
@@ -1621,7 +1688,7 @@ pascal void HActionProc(ControlHandle control, short part) {
     }
   }
 }
-
+*/
 void contentClick(WindowPtr window, EventRecord *event) {
   Point           mouse;
   ControlHandle   control;
@@ -1632,7 +1699,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
 
   if (isApplicationWindow(window)) {
     //change replace the guts with a call to TXNClick
-		TXNClick(fMLTEObject, event);
+		TXNClick(((DocumentPeek)window)->fMLTEObject, event);
     /* SetPort(window);
 
     /* get the click position * /
@@ -2102,19 +2169,24 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   SInt32 charsLeft = nChars;
   long temp;
   struct lineOffsets *temp2;
-  TextStyle theStyle;
-  TEHandle docTE;
-  Boolean skipByte;
+  //TextStyle theStyle;
+  TXNTypeAttributes iAttributes[1];
+  TXNObject			fMLTEObject;	// our text
+	Boolean skipByte;
 
   if(!mainWindowPtr) {
     return;
   }
 
-  docTE = ((DocumentPeek)mainWindowPtr)->docTE;
+  fMLTEObject = ((DocumentPeek)mainWindowPtr)->fMLTEObject;
 
   //GetFNum(fontName, &(theStyle.tsFont));
   //theStyle.tsSize = doGetSize(fontSizeIndex);
-  theStyle.tsFace = isBold?bold:normal;
+  //theStyle.tsFace = isBold?bold:normal;
+
+  iAttributes[0].tag=kTXNQDFontStyleAttribute;
+  iAttributes[0].size=kTXNQDFontStyleAttributeSize;
+  iAttributes[0].data.dataValue=isBold?bold:normal;
 
   //first run initialization
   if(firstLine == NULL) {
@@ -2162,7 +2234,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     //While the line length plus the total length used is greater than 32767 and
     //there are lines to be removed (not the last line) then remove the first line
     while((temp = textUsed+lineChars) > 32767 && firstLine != lastLine) {
-      TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
+      //TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
       TESetSelect(0, firstLine->lineLength, docTE);
       TEDelete(docTE);
 
@@ -2172,18 +2244,18 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
       firstLine = firstLine->nextLine;
       free(temp2);
       temp2 = NULL;
-      TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
+      //TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
     }
 
     //If the line length greater than 32767 then remove the last line of text.
     //Otherwise insert the text gathered.
     if((temp = lineChars+(lastLine->lineLength)) > 32767) {
-      TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
+      //TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
       TESetSelect(0, lastLine->lineLength, docTE);
       TEDelete(docTE);
       lastLine->lineLength = 0;
       textUsed = 0;
-      TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
+      //TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
     }
     else {
       TESetSelect(32767, 32767, docTE);
@@ -2216,7 +2288,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     }
   } while (charsLeft > 0);   //any more characters to be output?
 
-  adjustScrollBars(mainWindowPtr, false);
+  //adjustScrollBars(mainWindowPtr, false);
 }
 
 
