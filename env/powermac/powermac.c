@@ -24,7 +24,6 @@
 #if TARGET_API_MAC_CARBON
 
 #if __MACH__
-
 #include <Carbon/Carbon.h>
 #else
 #include <Carbon.h>
@@ -32,7 +31,6 @@
 
 #else
 
-#include <stdio.h>
 #include <Quickdraw.h>
 #include <MacWindows.h>
 #include <Dialogs.h>
@@ -54,7 +52,6 @@
 #include <SIO.h>
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
-
 #if TARGET_API_MAC_TOOLBOX
 #define GetWindowPort(w) w
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
@@ -248,21 +245,22 @@ int stricmp(const char *str1, const char *str2) {
 int putenv(char* string) {
   char* key = strdup(string);
   char* value = (char *)strchr(key, (int)('='));
-  
+
   if(value == NULL) {
     errno = ENOMEM;
   free(key);
   return -1;
   }
-  
+
   value[0] = '\0';
   value++;
-  
+
   setenv(key, value);
-  
+
   free(key);
   return 0;
 }
+
 
 //Check to see if a window belongs to a desk accessory.
 Boolean isDeskAccessory(WindowPtr window) {
@@ -491,7 +489,7 @@ static pascal OSErr appleEventOpenDoc(
         &actualSize
     )) == 0) {
       CFURLRef cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef);
-      
+
       if(cfUrl != NULL) {
         baseFolder = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, cfUrl);
 
@@ -802,7 +800,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
 
     //calculate iBeamRgn
     if (isApplicationWindow(window)) {
-      /*iBeamRect = (*((DocumentPeek) window)->docTE)->viewRect;
+      iBeamRect = (*((DocumentPeek) window)->docTE)->viewRect;
 
       SetPort(window);        //make a global version of the viewRect
       LocalToGlobal(&TopLeft(iBeamRect));
@@ -1078,7 +1076,7 @@ void closeWindow(WindowPtr window) {
 
     // change for this do a TXNDeleteObject
     if(((DocumentPeek) window)->fMLTEObject != nil) {
-      // dispose the TEHandle if we got far enough to make one 
+      // dispose the TEHandle if we got far enough to make one
       TXNDeleteObject(((DocumentPeek)window)->fMLTEObject);
     }
 
@@ -1204,7 +1202,7 @@ void openWindow() {
   proceed = false;
 
   //change 9 replace call to TENew with a call to TXNNewObject
-  status = TXNNewObject(	
+  status = TXNNewObject(
           NULL, /* can be NULL */
           GetWindowPort(window),
           NULL, /* can be NULL */
@@ -1272,7 +1270,7 @@ void openWindow() {
   else {*/
   //change use of fDocTE to fMLTEObject and test the function result
   //also remove all the control calls and the call to TEAutoView
-  if(doc->fMLTEObject == NULL || status != noErr)	{ // if TENew succeeded, we have a good document 
+  if(doc->fMLTEObject == NULL || status != noErr)	{ // if TENew succeeded, we have a good document
 
     //Something failed in the window creation process.
     //Clean up then tell the user what happened
@@ -1422,11 +1420,11 @@ void setFont(SInt16 menuItem) {
   );
 
   //TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  TXNSetSelection(
-    (DocumentPeek)window)->fMLTEObject,
-    kTXNEndOffset,
-    kTXNEndOffset
-  );
+  //TXNSetSelection(
+  //  (DocumentPeek)window)->fMLTEObject,
+  //  kTXNEndOffset,
+  //  kTXNEndOffset
+  //);
 
   //adjustScrollBars(mainWindowPtr, false);
 }
@@ -1475,11 +1473,11 @@ void setFontSize(SInt16 menuItem) {
     kTXNEndOffset
   );
 
-  TXNSetSelection(
-    (DocumentPeek)window)->fMLTEObject,
-    kTXNEndOffset,
-    kTXNEndOffset
-  );
+  //TXNSetSelection(
+  //  (DocumentPeek)window)->fMLTEObject,
+  //  kTXNEndOffset,
+  //  kTXNEndOffset
+  //);
 
   /*
   TextStyle styleRec;
@@ -1574,8 +1572,8 @@ void menuSelect(long mResult) {
         } break;
 
         case mEditSelectAll: {
-          TXNSelectAll((DocumentPeek)mainWindowPtr)->fMLTEObject);
           //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+          TXNSelectAll((DocumentPeek)mainWindowPtr)->fMLTEObject);
         } break;
       }
     } break;
@@ -1651,8 +1649,8 @@ pascal void VActionProc(ControlHandle control, short part) {
 /*
   Determines how much to change the value of the horizontal scrollbar by and how
   much to scroll the TE record.
-*/
-/*#pragma segment Main
+* /
+#pragma segment Main
 pascal void HActionProc(ControlHandle control, short part) {
   short       amount;
   WindowPtr   window;
@@ -1947,7 +1945,7 @@ static OSStatus SendOpenAE(AEDescList list) {
   AEAddressDesc theAddress;
   AppleEvent dummyReply;
   AppleEvent theEvent;
-  
+
   theAddress.descriptorType = typeNull;
   theAddress.dataHandle = NULL;
 
@@ -1964,7 +1962,7 @@ static OSStatus SendOpenAE(AEDescList list) {
     if(err != noErr) {
       break;
     }
-    
+
     err = AECreateDesc(
       typeProcessSerialNumber,
       &psn,
@@ -1974,7 +1972,7 @@ static OSStatus SendOpenAE(AEDescList list) {
     if(err != noErr) {
       break;
     }
-      
+
     err = AECreateAppleEvent(
       kCoreEventClass,
       kAEOpenDocuments,
@@ -1986,12 +1984,12 @@ static OSStatus SendOpenAE(AEDescList list) {
     if(err != noErr) {
       break;
     }
-    
+
     err = AEPutParamDesc(&theEvent, keyDirectObject, &list);
     if(err != noErr) {
       break;
     }
-    
+
     err = AESend(
       &theEvent,
       &dummyReply,
@@ -2005,7 +2003,7 @@ static OSStatus SendOpenAE(AEDescList list) {
       break;
     }
   }
-  
+
   if(theAddress.dataHandle != NULL) {
     AEDisposeDesc(&theAddress);
   }
@@ -2042,7 +2040,7 @@ static pascal void MyPrivateEventProc(
         } break;
       }
     } break;
-    
+
     case kNavCBUserAction: {
       if(callbackParms->userAction == kNavUserActionOpen) {
         // This is an open files action, send an AppleEvent
@@ -2072,7 +2070,7 @@ void openFileDialog() {
   OSStatus theErr = noErr;
   NavDialogCreationOptions dialogOptions;
   NavTypeListHandle openList = NULL;
-  
+
   if(gOpenFileDialog == NULL) {
     NavGetDefaultDialogCreationOptions(&dialogOptions);
 
@@ -2103,7 +2101,7 @@ void openFileDialog() {
 
     if (theErr == noErr) {
       theErr = NavDialogRun(gOpenFileDialog);
-      
+
       if(theErr != noErr) {
         NavDialogDispose(gOpenFileDialog);
         gOpenFileDialog = NULL;
@@ -2171,6 +2169,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   struct lineOffsets *temp2;
   //TextStyle theStyle;
   TXNTypeAttributes iAttributes[1];
+  //TEHandle docTE;
   TXNObject			fMLTEObject;	// our text
 	Boolean skipByte;
 
@@ -2203,7 +2202,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
 
   do {
     skipByte = false;
-    
+
     //use funky for/switch construct to output/append until a newline or end of string
     for(;;) {
       if(charsLeft < 1) {
@@ -2235,8 +2234,10 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     //there are lines to be removed (not the last line) then remove the first line
     while((temp = textUsed+lineChars) > 32767 && firstLine != lastLine) {
       //TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
-      TESetSelect(0, firstLine->lineLength, docTE);
-      TEDelete(docTE);
+      //TESetSelect(0, firstLine->lineLength, docTE);
+      TXNSetSelection(fMLTEObject, 0, firstLine->lineLength);
+      //TEDelete(docTE);
+      TXNClear(fMLTEObject);
 
       textUsed -= firstLine->lineLength;
 
@@ -2251,16 +2252,37 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     //Otherwise insert the text gathered.
     if((temp = lineChars+(lastLine->lineLength)) > 32767) {
       //TEAutoView(false, docTE);   //TEAutoView controls automatic scrolling
-      TESetSelect(0, lastLine->lineLength, docTE);
-      TEDelete(docTE);
+      //TESetSelect(0, lastLine->lineLength, docTE);
+      TXNSetSelection(fMLTEObject, 0, lastLine->lineLength);
+      //TEDelete(docTE);
+      TXNClear(fMLTEObject);
       lastLine->lineLength = 0;
       textUsed = 0;
       //TEAutoView(true, docTE);   //TEAutoView controls automatic scrolling
     }
     else {
-      TESetSelect(32767, 32767, docTE);
-      TESetStyle(doFace, &theStyle, false, docTE);
-      TEInsert(startPoint, lineChars, docTE);
+      //TESetSelect(32767, 32767, docTE);
+      TXNSetSelection(fMLTEObject, kTXNEndOffset, kTXNEndOffset);
+
+      //TESetStyle(doFace, &theStyle, false, docTE);
+      TXNSetTypeAttributes(
+        fMLTEObject,
+        1,
+        iAttributes,
+        kTXNUseCurrentSelection,
+        kTXNUseCurrentSelection
+      );
+
+      //TEInsert(startPoint, lineChars, docTE);
+      TXNSetData(
+        fMLTEObject,
+        kTXNUnicodeTextData,
+        (void *)unicodeString,
+        ByteCount,
+        kTXNUseCurrentSelection,
+        kTXNUseCurrentSelection
+      );
+
       lastLine->lineLength = temp;
       textUsed += lineChars;
     }
@@ -2349,8 +2371,8 @@ pascal void (*__sioExit)(void) = sioDemoExit;
       buffer[pos] = 0;
       // line is now in buffer
       printf("%s", buffer);
-    } while(c != EOF); 
-    fclose(f);           
+    } while(c != EOF);
+    fclose(f);
   }
   free(buffer);
   int i = 0;

@@ -299,7 +299,13 @@ Rect getScreenBounds() {
 void alertUser(short error) {
   Str255  message;
 
+#if TARGET_API_MAC_CARBON
+  Cursor theArrow;
+  GetQDGlobalsArrow(&theArrow);
+  SetCursor(&theArrow);
+#else
   SetCursor(&qd.arrow);
+#endif
 
   //type Str255 is an array in MPW 3
   GetIndString(message, kErrStrings, error);
@@ -310,7 +316,13 @@ void alertUser(short error) {
 void alertUserNum(int value) {
   Str255 message;
 
+#if TARGET_API_MAC_CARBON
+  Cursor theArrow;
+  GetQDGlobalsArrow(&theArrow);
+  SetCursor(&theArrow);
+#else
   SetCursor(&qd.arrow);
+#endif
 
   //type Str255 is an array in MPW 3
   sprintf((char*)&message, "test %d", value);
@@ -384,8 +396,7 @@ static pascal OSErr appleEventOpenDoc(
 
     result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID);
 
-    //Spin up a thread. set the volume and folder for that thread also
-    text = malloc(256); //SFReply.fName is a STR63, plus 1 for the null character
+    text = malloc(64); //SFReply.fName is a STR63, plus 1 for the null character
 
     if(text != NULL) {
       p2cstrcpy(text, theFSSpec.name);
@@ -567,10 +578,6 @@ void saveSettings() {
     WriteResource((Handle)strh2);
     ReleaseResource((Handle)strh2);
   }
-
-
-
-
 }
 
 void initialize() {
@@ -1403,7 +1410,6 @@ pascal void VActionProc(ControlHandle control, short part) {
   }
 }
 
-
 /*
   Determines how much to change the value of the horizontal scrollbar by and how
   much to scroll the TE record.
@@ -1571,58 +1577,50 @@ void badMount(EventRecord *event) {
   }
 }
 
-void loopTick() {
-  EventRecord event;
-
-#if TARGET_API_MAC_TOOLBOX
-  SystemTask();
-#endif
-
-  GetNextEvent(everyEvent, &event);
-
-  switch(event.what) {
+void HandleEvent(EventRecord *pEvent) {
+  switch(event->what) {
     case nullEvent: {
       idleWindow();
     } break;
 
     case kOSEvent: {
-      switch ((event.message >> 24) & 0x0FF) {
+      switch ((event->message >> 24) & 0x0FF) {
         case kMouseMovedMessage: {
           idleWindow();
         } break;
 
         case kSuspendResumeMessage: {
-          gInBackground = (event.message & kResumeMask) == 0;
+          gInBackground = (event->message & kResumeMask) == 0;
           activateWindow(FrontWindow(), !gInBackground);
         } break;
       }
     } break;
 
     case updateEvt: {
-      repaintWindow((WindowPtr)(event.message));
+      repaintWindow((WindowPtr)(event->message));
     } break;
 
     case mouseDown: {
-      mouseClick(&event);
+      mouseClick(event);
     } break;
 
     case keyDown: {
-      if(event.modifiers & cmdKey) {
+      if(event->modifiers & cmdKey) {
         adjustMenus();
-        menuSelect(MenuKey(event.message & charCodeMask));
+        menuSelect(MenuKey(event->message & charCodeMask));
       }
     } break;
 
     case activateEvt: {
-      activateWindow((WindowPtr)(event.message), (event.modifiers & activeFlag) != 0);
+      activateWindow((WindowPtr)(event->message), (event->modifiers & activeFlag) != 0);
     } break;
 
     case kHighLevelEvent: {
-      AEProcessAppleEvent(&event);
+      AEProcessAppleEvent(event);
     } break;
 
     case diskEvt: {
-      badMount(&event);
+      badMount(event);
     } break;
   }
 
@@ -1634,6 +1632,18 @@ void loopTick() {
 
     saveSettings();
   }
+}
+
+void loopTick() {
+  EventRecord event;
+
+#if TARGET_API_MAC_TOOLBOX
+  SystemTask();
+#endif
+
+  GetNextEvent(everyEvent, &event);
+
+  HandleEvent(&event);
 }
 
 void macYield() {
