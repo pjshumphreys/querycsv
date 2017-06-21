@@ -50,12 +50,11 @@ ObjFiles-PPC    =  ¶
 LibFiles-PPC    =  ¶
 				  "{PPCLibraries}PPCSIO.o" ¶
 				  "{SharedLibraries}CarbonLib" ¶
-#					"{PPCLibraries}StdCRuntime.o" ¶
-#					"{PPCLibraries}PPCCRuntime.o" ¶
-#					"{PPCLibraries}MrCPlusLib.o" ¶
-#					"{PPCLibraries}MrCIOStreams.o" ¶
-#					"{SharedLibraries}InterfaceLib" ¶
-#					"{SharedLibraries}StdCLib"
+					"{SharedLibraries}StdCLib" ¶
+					"{SharedLibraries}MathLib" ¶
+					"{PPCLibraries}StdCRuntime.o" ¶
+					"{PPCLibraries}PPCCRuntime.o" ¶
+					"{SharedLibraries}InterfaceLib"
 
 
 ### Default Rules ###

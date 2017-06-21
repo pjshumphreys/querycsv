@@ -88,7 +88,6 @@ enum {
   Window Manager and Dialog Manager add fields after the GrafPort.
 */
 typedef struct {
-  WindowRecord  docWindow;
   TXNObject			fMLTEObject;	// our text
 	TXNFrameID		fMLTEFrameID;
   //TEHandle      docTE;
@@ -203,6 +202,7 @@ Boolean gInBackground;
 #define kButtonScroll     4
 
 WindowPtr mainWindowPtr = nil;
+DocumentRecord mainWindowDoc;
 
 //  A reference to our assembly language routine that gets attached to the clikLoop
 //  field of our TE record.
@@ -248,21 +248,7 @@ int stricmp(const char *str1, const char *str2) {
 
 #undef putenv
 int putenv(char* string) {
-  char* key = strdup(string);
-  char* value = (char *)strchr(key, (int)('='));
-
-  if(value == NULL) {
-    errno = ENOMEM;
-  free(key);
-  return -1;
-  }
-
-  value[0] = '\0';
-  value++;
-
-  setenv(key, value);
-
-  free(key);
+  //just a fake one
   return 0;
 }
 
@@ -270,13 +256,13 @@ int putenv(char* string) {
 //Check to see if a window belongs to a desk accessory.
 Boolean isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
-  return window == nil?false:(((WindowPeek)window)->windowKind < 0);
+  return window == nil?false:(GetWindowKind(window) < 0);
 }
 
 //Check to see if a window is an application one (???).
 Boolean isApplicationWindow(WindowPtr window) {
   //application windows have windowKinds = userKind (8)
-  return window == nil?false:(((WindowPeek)window)->windowKind == userKind);
+  return window == nil?false:(GetWindowKind(window) == userKind);
 }
 
 Rect getWindowBounds(WindowPtr window) {
@@ -798,7 +784,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
     //change remove everything in   here and replace it with
     // TXNAdjustCursor we pass NULL for the cursor region
     // because we are letting MLTE handle all of that.
-    TXNAdjustCursor(((DocumentPeek) window)->fMLTEObject, region);
+    TXNAdjustCursor(((DocumentPeek)GetWRefCon(window))->fMLTEObject, region);
 /*
     //calculate regions for different cursor shapes
     arrowRgn = NewRgn();
@@ -856,7 +842,7 @@ void adjustMenus() {
 
     //te = ((DocumentPeek) mainWindowPtr)->docTE;
 
-    if(!TXNIsSelectionEmpty(((DocumentPeek)mainWindowPtr)->fMLTEObject)) {
+    if(!TXNIsSelectionEmpty(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject)) {
       //(*te)->selStart < (*te)->selEnd) {
       EnableItem(menu, mEditCopy);
     }
@@ -1081,9 +1067,9 @@ void closeWindow(WindowPtr window) {
     //}
 
     // change for this do a TXNDeleteObject
-    if(((DocumentPeek) window)->fMLTEObject != nil) {
+    if(((DocumentPeek)GetWRefCon(window))->fMLTEObject != nil) {
       // dispose the TEHandle if we got far enough to make one
-      TXNDeleteObject(((DocumentPeek)window)->fMLTEObject);
+      TXNDeleteObject(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
     }
 
     //calling disposeWindow here would be technically incorrect,
@@ -1116,7 +1102,7 @@ void resizedWindow(WindowPtr window) {
 
 void growWindow(WindowPtr window, EventRecord *event) {
   //change replace the guts of this function with a call to TXNGrowWindow
-  TXNGrowWindow(((DocumentPeek)window)->fMLTEObject, event);
+  TXNGrowWindow(((DocumentPeek)GetWRefCon(window))->fMLTEObject, event);
   /*
   long         growResult;
   Rect         tempRect;
@@ -1159,7 +1145,7 @@ void growWindow(WindowPtr window, EventRecord *event) {
 
 void zoomWindow(WindowPtr window, short part) {
 	//change replace the guts of this whole function with a call to TXNZoomWindow
-  TXNZoomWindow(((DocumentPeek)window)->fMLTEObject, part);
+  TXNZoomWindow(((DocumentPeek)GetWRefCon(window))->fMLTEObject, part);
 
   windowZoomed = (part == inZoomOut);
 }
@@ -1202,7 +1188,7 @@ void openWindow() {
 
   //  cast the window instance into a DocumentPeek structure,
   //  so we can set up the TextEdit related fields
-  doc = (DocumentPeek)window;
+  doc = &mainWindowDoc;
 
   /* TEXTEDIT STUFF begins here
   ******************************/
@@ -1225,6 +1211,8 @@ void openWindow() {
           &(doc->fMLTEFrameID),
           NULL
          );
+
+  SetWRefCon(window, (long) doc);
 
   // set up the textedit content size (not the viewport) rectangle
   //getTERect(window, &viewRect);
@@ -1296,7 +1284,7 @@ void idleWindow() {
 
   if(isApplicationWindow(window)) {
     //change: replace TEIdle with a call to TXNIdle
-		TXNIdle(((DocumentPeek)window)->fMLTEObject);
+		TXNIdle(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
   }
 }
 
@@ -1304,7 +1292,7 @@ void repaintWindow(WindowPtr window) {
   if (isApplicationWindow(window)) {
     //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
 		//and handles drawing the scroll bars.
-		TXNUpdate(((DocumentPeek)window)->fMLTEObject);
+		TXNUpdate(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
 
     /*
     BeginUpdate(window);
@@ -1329,7 +1317,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
   DocumentPeek  doc;
 
   if (isApplicationWindow(window)) {
-    doc = (DocumentPeek)window;
+    doc = (DocumentPeek)GetWRefCon(window);
 
 		//change replace all this with a call to TXNFocus followed by a call to TXNActivate
 		TXNFocus(doc->fMLTEObject, becomingActive);
@@ -1422,7 +1410,7 @@ void setFont(SInt16 menuItem) {
 
   //TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
   TXNSetTypeAttributes(
-    ((DocumentPeek)mainWindowPtr)->fMLTEObject,
+    ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject,
     1,
     typeAttr,
     kTXNStartOffset,
@@ -1476,7 +1464,7 @@ void setFontSize(SInt16 menuItem) {
   typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
   TXNSetTypeAttributes(
-    ((DocumentPeek)mainWindowPtr)->fMLTEObject,
+    ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject,
     1,
     typeAttr,
     kTXNStartOffset,
@@ -1565,7 +1553,7 @@ void menuSelect(long mResult) {
         case mEditCopy: {
           //change: replace the guts of this with a call to TXNCopy
           //again TXNCopy returns an OSStatus which we are ignoring
-          TXNCopy(((DocumentPeek)mainWindowPtr)->fMLTEObject);
+          TXNCopy(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject);
 
           /*if (ZeroScrap() == noErr) {
             if(mainWindowPtr){
@@ -1583,7 +1571,7 @@ void menuSelect(long mResult) {
 
         case mEditSelectAll: {
           //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-          TXNSelectAll(((DocumentPeek)mainWindowPtr)->fMLTEObject);
+          TXNSelectAll(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject);
         } break;
       }
     } break;
@@ -1707,7 +1695,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
 
   if (isApplicationWindow(window)) {
     //change replace the guts with a call to TXNClick
-		TXNClick(((DocumentPeek)window)->fMLTEObject, event);
+		TXNClick(((DocumentPeek)GetWRefCon(window))->fMLTEObject, event);
     /* SetPort(window);
 
     /* get the click position * /
@@ -2145,7 +2133,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     return;
   }
 
-  fMLTEObject = ((DocumentPeek)mainWindowPtr)->fMLTEObject;
+  fMLTEObject = ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject;
 
   //GetFNum(fontName, &(theStyle.tsFont));
   //theStyle.tsSize = doGetSize(fontSizeIndex);
