@@ -21,6 +21,8 @@
 #include <signal.h>
 #include <ctype.h>
 
+#include <MacWindows.h>
+
 #if TARGET_API_MAC_CARBON
 
 #if __MACH__
@@ -32,7 +34,6 @@
 #else
 
 #include <Quickdraw.h>
-#include <MacWindows.h>
 #include <Dialogs.h>
 #include <Menus.h>
 #include <ToolUtils.h>
@@ -179,7 +180,7 @@ Boolean gInBackground;
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
    high byte of the message sent to determine which kind it is. To differentiate
    suspend and resume events we check the resumeMask bit. */
-#define kOSEvent        app4Evt /* event used by MultiFinder */
+//#define kOSEvent        app4Evt /* event used by MultiFinder */
 #define kSuspendResumeMessage 1   /* high byte of suspend/resume event message */
 #define kResumeMask       1   /* bit of message field for resume vs. suspend */
 #define kMouseMovedMessage    0xFA  /* high byte of mouse-moved event message */
@@ -208,6 +209,10 @@ WindowPtr mainWindowPtr = nil;
 extern pascal void AsmClikLoop(void);
 
 char *strdup(const char *s);
+
+#define ENC_UTF16BE 9
+char *charsetEncode_d(char* s, int encoding, size_t *bytesStored);
+OSStatus openFileDialog();
 
 // ---------------------------------------------------------------------------
 //      € stricmp
@@ -360,12 +365,15 @@ int mallocedFileName;
 
 FILE *fopen_mac(const char *filename, const char *mode) {
   char* absolutePath = NULL;
-  int retval;
+  FILE * retval;
   CFIndex neededLen;
   CFIndex usedLen;
   CFRange range;
+  CFStringRef text1;
+  CFURLRef cfabsolute;
+  CFStringRef text2;
 
-  CFStringRef text1 = CFStringCreateWithCStringNoCopy(
+  text1 = CFStringCreateWithCStringNoCopy(
     NULL,
     filename,
     kCFStringEncodingUTF8,
@@ -384,7 +392,7 @@ FILE *fopen_mac(const char *filename, const char *mode) {
     }
   }
 
-  CFURLRef cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
+  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
     kCFAllocatorDefault,
     text1,
     macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
@@ -392,12 +400,12 @@ FILE *fopen_mac(const char *filename, const char *mode) {
     baseFolder
   );
 
-  CFStringRef text2 = CFURLCopyFileSystemPath(
+  text2 = CFURLCopyFileSystemPath(
     cfabsolute,
     macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
   );
 
-  if(absolutePath = CFStringGetCStringPtr(text2, enc)) {
+  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
     retval = fopen(absolutePath, mode);
   }
   else {
@@ -419,7 +427,7 @@ FILE *fopen_mac(const char *filename, const char *mode) {
     reallocMsg(&absolutePath, neededLen + 1);
 
     CFStringGetBytes(
-      text,
+      text2,
       range,
       enc,
       '?',
@@ -461,6 +469,11 @@ static pascal OSErr appleEventOpenDoc(
   char *text = NULL;
   char *text2 = NULL;
   char* fileName = NULL;
+  CFURLRef cfUrl;
+  CFStringRef cfFilename;
+  CFIndex neededLen;
+  CFIndex usedLen;
+  CFRange range;
 
   if(!windowNotOpen) {
     alertUser(eFileOpen);
@@ -488,14 +501,14 @@ static pascal OSErr appleEventOpenDoc(
         sizeof(FSRef),
         &actualSize
     )) == 0) {
-      CFURLRef cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef);
+      cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef);
 
       if(cfUrl != NULL) {
         baseFolder = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, cfUrl);
 
-        CFStringRef cfFilename = CFURLCopyLastPathComponent(cfUrl);
+        cfFilename = CFURLCopyLastPathComponent(cfUrl);
 
-        if((absolutePath = CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) == NULL) {
+        if((fileName = (char *)CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) == NULL) {
           neededLen = 0;
           usedLen = 0;
           range = CFRangeMake(0, CFStringGetLength(cfFilename));
@@ -512,7 +525,7 @@ static pascal OSErr appleEventOpenDoc(
             &neededLen
           );
 
-          reallocMsg(&absolutePath, neededLen + 1);
+          reallocMsg(&fileName, neededLen + 1);
 
           CFStringGetBytes(
             cfFilename,
@@ -520,18 +533,18 @@ static pascal OSErr appleEventOpenDoc(
             kCFStringEncodingUTF8,
             '?',
             FALSE,
-            (UInt8 *)absolutePath,
+            (UInt8 *)fileName,
             neededLen,
             &usedLen
           );
 
-          absolutePath[usedLen] = 0;
+          fileName[usedLen] = 0;
         }
 
         CFRelease(cfFilename);
         CFRelease(cfUrl);
 
-        progArg = absolutePath;
+        progArg = fileName;
 
         windowNotOpen = false;
       }
@@ -635,6 +648,7 @@ void setupAppleEvents() {
 void setupMenus() {
   MenuRef menu;
   MenuHandle myMenus[5];
+  long result;
   int i;
 
   myMenus[appleM] = GetMenu(mApple);
@@ -643,7 +657,6 @@ void setupMenus() {
   AddResMenu(myMenus[appleM],'DRVR'); // System-provided Desk Accessories menu
 #endif
 
-  myMenus[appleM] = GetMenu(mApple);
   myMenus[fileM]  = GetMenu(mFile);
   myMenus[editM]  = GetMenu(mEdit);
   myMenus[fontM]  = GetMenu(mFont);
@@ -738,8 +751,6 @@ void saveSettings() {
   }
 }
 
-RgnHandle   fMouseRgn;
-
 void initialize() {
 #if TARGET_API_MAC_TOOLBOX
   MaxApplZone();
@@ -770,8 +781,6 @@ void initialize() {
 
   setupMenus();
 
-  fMouseRgn = NewRgn();
-
   restoreSettings();
 
   gInBackground = false;
@@ -789,7 +798,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
     //change remove everything in   here and replace it with
     // TXNAdjustCursor we pass NULL for the cursor region
     // because we are letting MLTE handle all of that.
-    TXNAdjustCursor((*((DocumentPeek) window)->fMLTEObject, region);
+    TXNAdjustCursor(((DocumentPeek) window)->fMLTEObject, region);
 /*
     //calculate regions for different cursor shapes
     arrowRgn = NewRgn();
@@ -1063,10 +1072,7 @@ void saveWindow(WindowPtr window) {
 void closeWindow(WindowPtr window) {
   //TEHandle te;
 
-  if (isDeskAccessory(window)) {
-    CloseDeskAcc(((WindowPeek) window)->windowKind);
-  }
-  else if (isApplicationWindow(window)) {
+  if (isApplicationWindow(window)) {
     //te = ((DocumentPeek) window)->docTE;
 
     //if (te != nil) {
@@ -1164,6 +1170,7 @@ void openWindow() {
   DocumentPeek doc;
   Rect viewRect, destRect;
   Boolean proceed;
+  OSStatus	status;		//change add an OSStatus
 
   //Attempt to allocate some memory to bind the generic window to TextEdit functionality
   storage = NewPtr(sizeof(DocumentRecord));
@@ -1204,7 +1211,7 @@ void openWindow() {
   //change 9 replace call to TENew with a call to TXNNewObject
   status = TXNNewObject(
           NULL, /* can be NULL */
-          GetWindowPort(window),
+          window,
           NULL, /* can be NULL */
           kTXNShowWindowMask|kTXNReadOnlyMask|
           kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
@@ -1280,6 +1287,8 @@ void openWindow() {
     // abort the program
     raise(SIGABRT);
   }
+
+  mainWindowPtr = window;
 }
 
 void idleWindow() {
@@ -1295,7 +1304,7 @@ void repaintWindow(WindowPtr window) {
   if (isApplicationWindow(window)) {
     //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
 		//and handles drawing the scroll bars.
-		TXNUpdate (((DocumentPeek)window)->fMLTEObject);
+		TXNUpdate(((DocumentPeek)window)->fMLTEObject);
 
     /*
     BeginUpdate(window);
@@ -1393,6 +1402,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
 void setFont(SInt16 menuItem) {
   //TextStyle styleRec;
   OSStatus status = noErr;
+  short res;
 
   TXNTypeAttributes typeAttr[1];
 
@@ -1401,18 +1411,18 @@ void setFont(SInt16 menuItem) {
   if(!mainWindowPtr) {
     return;
   }
+  GetFNum(fontName, &res);
 
   typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
 	typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
-
-  GetFNum(fontName, &(typeAttr[0].data.dataValue));
+  typeAttr[0].data.dataValue = res;
 
   //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
   //TXNSelectAll((DocumentPeek)window)->fMLTEObject);
 
   //TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
   TXNSetTypeAttributes(
-    (DocumentPeek)window)->fMLTEObject,
+    ((DocumentPeek)mainWindowPtr)->fMLTEObject,
     1,
     typeAttr,
     kTXNStartOffset,
@@ -1466,7 +1476,7 @@ void setFontSize(SInt16 menuItem) {
   typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
   TXNSetTypeAttributes(
-    (DocumentPeek)window)->fMLTEObject,
+    ((DocumentPeek)mainWindowPtr)->fMLTEObject,
     1,
     typeAttr,
     kTXNStartOffset,
@@ -1555,7 +1565,7 @@ void menuSelect(long mResult) {
         case mEditCopy: {
           //change: replace the guts of this with a call to TXNCopy
           //again TXNCopy returns an OSStatus which we are ignoring
-          TXNCopy((DocumentPeek)mainWindowPtr)->fMLTEObject);
+          TXNCopy(((DocumentPeek)mainWindowPtr)->fMLTEObject);
 
           /*if (ZeroScrap() == noErr) {
             if(mainWindowPtr){
@@ -1573,7 +1583,7 @@ void menuSelect(long mResult) {
 
         case mEditSelectAll: {
           //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-          TXNSelectAll((DocumentPeek)mainWindowPtr)->fMLTEObject);
+          TXNSelectAll(((DocumentPeek)mainWindowPtr)->fMLTEObject);
         } break;
       }
     } break;
@@ -1815,13 +1825,13 @@ void badMount(EventRecord *event) {
   }
 }
 
-void HandleEvent(EventRecord *pEvent) {
+void handleEvent(EventRecord *event) {
   switch(event->what) {
     case nullEvent: {
       idleWindow();
     } break;
 
-    case kOSEvent: {
+    case app4Evt: {
       switch ((event->message >> 24) & 0x0FF) {
         case kMouseMovedMessage: {
           idleWindow();
@@ -1881,7 +1891,7 @@ void loopTick() {
 
   GetNextEvent(everyEvent, &event);
 
-  HandleEvent(&event);
+  handleEvent(&event);
 }
 
 void macYield() {
@@ -1892,50 +1902,6 @@ void macYield() {
   }
 }
 
-#if TARGET_API_MAC_TOOLBOX
-#include <StandardFile.h>
-
-OSStatus openFileDialog() {
-  Point where;
-  unsigned const char prompt = '\0';
-  OSType typeList = 'TEXT';
-  SFReply reply;
-  OSErr result;
-  char *text = NULL;
-  char *text2 = NULL;
-
-  where.h = where.v = 70;
-
-  SFGetFile(where, &prompt, nil, 1, &typeList, nil, &reply);
-
-  if(reply.good) {
-    result = SetVol(NULL, reply.vRefNum);
-
-    /* error check */
-    if(result != 0) {
-
-    }
-
-    text = malloc(64); //SFReply.fName is a STR63, plus 1 for the null character
-
-    if(text != NULL) {
-      p2cstrcpy(text, reply.fName);
-      text2 = realloc(text, strlen(text)+1);
-
-      if(text2 != NULL) {
-        progArg = text2;
-
-        windowNotOpen = false;
-      }
-      else {
-        free(text);
-      }
-    }
-  }
-
-  return noErr;
-}
-#endif
 
 #if TARGET_API_MAC_CARBON
 #include <Navigation.h>
@@ -2036,7 +2002,7 @@ static pascal void MyPrivateEventProc(
       switch(callbackParms->eventData.eventDataParms.event->what) {
         case updateEvt:
         case activateEvt: {
-          HandleEvent(callbackParms->eventData.eventDataParms.event);
+          handleEvent(callbackParms->eventData.eventDataParms.event);
         } break;
       }
     } break;
@@ -2066,7 +2032,7 @@ static pascal void MyPrivateEventProc(
   }
 }
 
-void openFileDialog() {
+OSStatus openFileDialog() {
   OSStatus theErr = noErr;
   NavDialogCreationOptions dialogOptions;
   NavTypeListHandle openList = NULL;
@@ -2172,6 +2138,8 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   //TEHandle docTE;
   TXNObject			fMLTEObject;	// our text
 	Boolean skipByte;
+  size_t len = 0;
+  wchar_t *wide = NULL;
 
   if(!mainWindowPtr) {
     return;
@@ -2273,15 +2241,21 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
+      wide = (wchar_t *)charsetEncode_d((char *)startPoint, ENC_UTF16BE, &len);
+
       //TEInsert(startPoint, lineChars, docTE);
       TXNSetData(
         fMLTEObject,
         kTXNUnicodeTextData,
-        (void *)unicodeString,
-        ByteCount,
+        (void *)wide,
+        len,
         kTXNUseCurrentSelection,
         kTXNUseCurrentSelection
       );
+
+      free(wide);
+      wide = NULL;
+      len = 0;
 
       lastLine->lineLength = temp;
       textUsed += lineChars;

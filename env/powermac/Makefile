@@ -28,6 +28,7 @@ SrcFiles        =  ¶
 
 RezFiles        =  ¶
 				  powermac.r ¶
+				  carbon.r ¶
 				  size.r
 
 ### Object Files ###

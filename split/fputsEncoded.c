@@ -42,6 +42,12 @@ char *charsetEncode_d(char* s, int encoding, size_t *bytesStored) {
       didAllocateBytes = TRUE;
     } break;
 
+    case ENC_UTF16BE: {
+      getBytes = getBytesUtf16Be;
+      reallocMsg((void**)&bytes, 4);
+      didAllocateBytes = TRUE;
+    } break;
+
     default: {
       getBytes = getBytesCP1252;
     } break;
