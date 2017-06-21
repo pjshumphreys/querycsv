@@ -53,8 +53,7 @@ LibFiles-PPC    =  ¶
 					"{SharedLibraries}StdCLib" ¶
 					"{SharedLibraries}MathLib" ¶
 					"{PPCLibraries}StdCRuntime.o" ¶
-					"{PPCLibraries}PPCCRuntime.o" ¶
-					"{SharedLibraries}InterfaceLib"
+					"{PPCLibraries}PPCCRuntime.o"
 
 
 ### Default Rules ###

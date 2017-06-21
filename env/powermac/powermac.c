@@ -14,6 +14,7 @@
  */
 
 #define OLDROUTINENAMES 1
+#define OLDP2C 1
 
 #include <errno.h>
 #include <stdio.h>
@@ -252,6 +253,21 @@ int putenv(char* string) {
   return 0;
 }
 
+/*
+  SIO needs this, so create a quick and dirty implementation
+  (it probably won't call it anyway)
+*/
+Boolean equalstring(
+  const char *  str1,
+  const char *  str2,
+  Boolean       caseSensitive,
+  Boolean       diacSensitive) {
+  if(caseSensitive) {
+    return strcmp(str1, str2) == 0;
+  }
+
+  return stricmp(str1, str2) == 0;
+}
 
 //Check to see if a window belongs to a desk accessory.
 Boolean isDeskAccessory(WindowPtr window) {
@@ -827,32 +843,32 @@ void adjustCursor(Point mouse, RgnHandle region) {
 }
 
 void adjustMenus() {
-  MenuHandle menu;
+  MenuRef menu;
   int i, len;
   Boolean found = false;
   Str255 currentFontName;
   //TEHandle te;
 
-  menu = GetMenuHandle(mFile);
+  menu = GetMenuRef(mFile);
   if(!windowNotOpen) {
-    DisableItem(menu, mFileOpen);
+    DisableMenuItem(menu, mFileOpen);
 
-    menu = GetMenuHandle(mEdit);
-    EnableItem(menu, mEditSelectAll);
+    menu = GetMenuRef(mEdit);
+    EnableMenuItem(menu, mEditSelectAll);
 
     //te = ((DocumentPeek) mainWindowPtr)->docTE;
 
     if(!TXNIsSelectionEmpty(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject)) {
       //(*te)->selStart < (*te)->selEnd) {
-      EnableItem(menu, mEditCopy);
+      EnableMenuItem(menu, mEditCopy);
     }
     else {
-      DisableItem(menu, mEditCopy);
+      DisableMenuItem(menu, mEditCopy);
     }
   }
 
-  menu = GetMenuHandle(mFont);
-  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+  menu = GetMenuRef(mFont);
+  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     GetMenuItemText(menu, i, currentFontName);
 
     if(!found && EqualString(fontName, currentFontName, true, true)) {
@@ -870,8 +886,8 @@ void adjustMenus() {
   }
 
   found = false;
-  menu = GetMenuHandle(mSize);
-  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+  menu = GetMenuRef(mSize);
+  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
       SetItemMark(menu, i, checkMark);
       found = true;
@@ -1072,12 +1088,7 @@ void closeWindow(WindowPtr window) {
       TXNDeleteObject(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
     }
 
-    //calling disposeWindow here would be technically incorrect,
-    //even though we allocated storage for the window on the heap.
-    //We instead call CloseWindow to have the structures taken
-    //care of and then dispose of the storage ourselves.
-    CloseWindow(window);
-    DisposePtr((Ptr)window);
+    DisposeWindow(window);
 
     //As we only only ever have 1 application window, if it's
     //closed then we quit the application
@@ -1151,31 +1162,16 @@ void zoomWindow(WindowPtr window, short part) {
 }
 
 void openWindow() {
-  Ptr storage;
   WindowPtr window;
   DocumentPeek doc;
   Rect viewRect, destRect;
   Boolean proceed;
   OSStatus	status;		//change add an OSStatus
 
-  //Attempt to allocate some memory to bind the generic window to TextEdit functionality
-  storage = NewPtr(sizeof(DocumentRecord));
-
-  if (storage == nil) {
-    //abort the program
-    raise(SIGABRT);
-
-    //The raising of the abort signal should mean we never get here, but just in case
-    return;
-  }
-
   //attempt to create the window that will contain program output
-  window = GetNewWindow(rDocWindow, storage, (WindowPtr)-1);
+  window = GetNewWindow(rDocWindow, nil, (WindowPtr)-1);
 
   if (window == nil) {
-    // get rid of the storage if it is never used
-    DisposePtr(storage);
-
     // abort the program
     raise(SIGABRT);
 
@@ -1803,6 +1799,7 @@ void mouseClick(EventRecord *event) {
   }
 }
 
+/*
 void badMount(EventRecord *event) {
   Point pt = {70, 70};
 
@@ -1812,6 +1809,7 @@ void badMount(EventRecord *event) {
     DIUnload();
   }
 }
+*/
 
 void handleEvent(EventRecord *event) {
   switch(event->what) {
@@ -1855,9 +1853,9 @@ void handleEvent(EventRecord *event) {
       AEProcessAppleEvent(event);
     } break;
 
-    case diskEvt: {
-      badMount(event);
-    } break;
+    //case diskEvt: {
+    //  badMount(event);
+    //} break;
   }
 
   if(quit) {

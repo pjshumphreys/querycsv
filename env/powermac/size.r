@@ -17,6 +17,6 @@ resource 'SIZE' (-1) {
 	notDisplayManagerAware,
 	reserved,
 	reserved,
-	1048576,
-	524288
+	3072000,
+	3072000
 };
