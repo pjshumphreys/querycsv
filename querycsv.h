@@ -136,7 +136,6 @@
   #ifdef EMSCRIPTEN
     #define main realmain
   #else
-    int putenv(char const *string);
     int vsnprintf(char *s, size_t n, const char *format, va_list arg);
   #endif
 
@@ -208,7 +207,6 @@
   #define DEFAULT_TEMP "TMPDIR=:"
   #define ENC_INPUT ENC_MAC
   #define ENC_OUTPUT ENC_MAC
-  #undef putenv /* on MPW putenv has the wrong signature */
 #endif
 
 #ifdef __CC_NORCROFT
@@ -223,7 +221,6 @@
   #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252
   #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
-  int putenv(char* string);   /* putenv has to be supplied for risc os (_kernel_setenv in kernel.h is the native equivalent) */
   void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
   FILE *fopen_ros(const char *filename, const char *mode);
   #define fopen fopen_ros
@@ -240,7 +237,6 @@
   void setupAmiga(int* argc, char*** argv);
   #include <clib/utility_protos.h>
   #define stricmp Stricmp
-  int putenv(char *string);
   #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
 #endif
 

@@ -69,24 +69,3 @@ void setupRiscOS(int *argc, char ***argv) {
     argv = (char ***)(&argv2);
   }
 }
-
-int putenv(char* string) {
-  char* key = strdup(string);
-  char* value = (char *)strchr(key, (int)('='));
-  
-  if(value == NULL) {
-  	errno = ENOMEM;
-	  free(key);
-	  return -1;
-  }
-  
-  value[0] = '\0';
-  value++;
-  
-  _kernel_setenv(key, value);
-  
-  free(key);
-  return 0;
-}
-
-

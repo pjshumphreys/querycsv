@@ -236,27 +236,6 @@ int stricmp(const char *str1, const char *str2) {
   return(c1 - c2);
 }
 
-#undef putenv
-int putenv(char* string) {
-  char* key = strdup(string);
-  char* value = (char *)strchr(key, (int)('='));
-  
-  if(value == NULL) {
-  	errno = ENOMEM;
-	free(key);
-	return -1;
-  }
-  
-  value[0] = '\0';
-  value++;
-  
-  setenv(key, value);
-  
-  free(key);
-  return 0;
-}
-
-
 //Check to see if a window belongs to a desk accessory.
 Boolean isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
@@ -1577,7 +1556,7 @@ void badMount(EventRecord *event) {
   }
 }
 
-void HandleEvent(EventRecord *pEvent) {
+void HandleEvent(EventRecord *event) {
   switch(event->what) {
     case nullEvent: {
       idleWindow();

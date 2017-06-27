@@ -247,12 +247,6 @@ int stricmp(const char *str1, const char *str2) {
   return(c1 - c2);
 }
 
-#undef putenv
-int putenv(char* string) {
-  //just a fake one
-  return 0;
-}
-
 /*
   SIO needs this, so create a quick and dirty implementation
   (it probably won't call it anyway)
@@ -342,6 +336,11 @@ void alertUserNum(int value) {
 
   ParamText(message, (unsigned char *)"", (unsigned char *)"", (unsigned char *)"");
   Alert(rUserAlert, nil);
+}
+
+void BigBadError(short error) {
+  alertUser(error);
+  ExitToShell();
 }
 
 static pascal OSErr appleEventOpenApp(

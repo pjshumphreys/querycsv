@@ -132,36 +132,3 @@ int main(int argc, char** argv) {
     return realmain(argc, argv);
   }
 }
-
-int putenv(char* string) {
-  char* key = NULL;
-  char* value = NULL;
-  FILE *envFile;
-  
-  if(
-      string == NULL ||
-      string[0] == '=' ||
-      !d_sprintf(&key, "ENV:%s", string) ||
-      (value = (char *)strchr(key, (int)('='))) == NULL
-  ) {
-    free(key);
-    errno = ENOMEM;
-    return -1;
-  }
-  
-  value[0] = '\0';
-  value++;
-
-  if((envFile = fopen(key, "w")) == NULL) {
-    free(key);
-    errno = ENOMEM;
-    return -1;
-  }
-
-  fputs(value, envFile);
-  fclose(envFile);
-
-  free(key);
-
-  return 0;
-}

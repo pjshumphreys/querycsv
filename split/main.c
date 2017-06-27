@@ -7,27 +7,27 @@ int main(int argc, char *argv[]) {
   argc2 = argc;
   argv2 = argv;
 
-  #ifdef WINDOWS
-    setupWin32(&argc2, &argv2);
+  #ifdef MICROSOFT
+    #ifdef WINDOWS
+      setupWin32(&argc2, &argv2);
+    #else
+      /* Watcom StdClib on MSDOS needs the TZ environment varable set
+      then setlocale to be called to properly calculate gmtime */
+
+      /* supply some default timezone data if none is present */
+      if(getenv("TZ") == NULL) {
+        putenv(TDB_DEFAULT_TZ);
+      }
+
+      /* set the locale (among other things, this applies the */
+      /* timezone data to the date functions) */
+      setlocale(LC_ALL, TDB_LOCALE);
+    #endif
   #endif
 
   #ifdef __CC_NORCROFT
     setupRiscOS(&argc2, &argv2);
   #endif
-
-  /* supply a default temporary folder if none is present */
-  if(getenv(TEMP_VAR) == NULL) {
-    putenv(DEFAULT_TEMP);
-  }
-
-  /* supply some default timezone data if none is present */
-  if(getenv("TZ") == NULL) {
-    putenv(TDB_DEFAULT_TZ);
-  }
-
-  /* set the locale (among other things, this applies the */
-  /* timezone data to the date functions) */
-  setlocale(LC_ALL, TDB_LOCALE);
 
   /* identify whether to run a script or display the usage message */
   if(argc2 == 2) {
