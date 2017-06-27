@@ -1,13 +1,5 @@
 #include "querycsv.h"
 
-int compareCodepoints(const void* a, const void* b) {
-  if((short)(*(long*)a) < ((struct codepointToByte*)b)->codepoint) {
-    return -1;
-  }
-
-  return (short)(*(long*)a) > ((struct codepointToBytes*)b)->codepoint;
-}
-
 const struct codepointToBytes codepointBytes[212] = {
   {0x00A0, 0xFF, 0xFF, 0x41, 0xCA},
   {0x00A1, 0xAD, 0xAD, 0xAA, 0xC1},
@@ -223,56 +215,6 @@ const struct codepointToBytes codepointBytes[212] = {
   {0xFB02, 0x00, 0x00, 0x00, 0xDF}
 };
 
-void getBytesCP1252(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
-  struct codepointToByte *lookup;
-  const char plAscii = 0x3f;
-
-  const struct codepointToByte cp1252Bytes[32] = {
-    {0x0081, 0x81}, {0x008D, 0x8D},
-    {0x008F, 0x8F}, {0x0090, 0x90},
-    {0x009D, 0x9D}, {0x0152, 0x8C},
-    {0x0153, 0x9C}, {0x0160, 0x8A},
-    {0x0161, 0x9A}, {0x0178, 0x9F},
-    {0x017D, 0x8E}, {0x017E, 0x9E},
-    {0x0192, 0x83}, {0x02C6, 0x88},
-    {0x02DC, 0x98}, {0x2013, 0x96},
-    {0x2014, 0x97}, {0x2018, 0x91},
-    {0x2019, 0x92}, {0x201A, 0x82},
-    {0x201C, 0x93}, {0x201D, 0x94},
-    {0x201E, 0x84}, {0x2020, 0x86},
-    {0x2021, 0x87}, {0x2022, 0x95},
-    {0x2026, 0x85}, {0x2030, 0x89},
-    {0x2039, 0x8B}, {0x203A, 0x9B},
-    {0x20AC, 0x80}, {0x2122, 0x99}
-  };
-
-  if(byteLength != NULL && bytes != NULL) {
-    *byteLength = 1;
-
-    if(codepoint < 0x80 || (codepoint > 0x9F && codepoint < 0x100)) {
-      *bytes = NULL;
-      return;
-    }
-
-    if((lookup = (struct codepointToByte*)bsearch(
-      (void *)&codepoint,
-      (void *)cp1252Bytes,
-      32,
-      sizeof(struct codepointToByte),
-      compareCodepoints
-    )) == NULL) {
-      *bytes = (char*)(&plAscii);
-      return;
-    }
-
-    *bytes = (char*)(&(lookup->byte));
-  }
-}
-
 void getBytesCP437(
   long codepoint,
   char **bytes,
@@ -366,89 +308,6 @@ void getBytesMac(
   }
 }
 
-void getBytesPetscii(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
-  struct codepointToByte *lookup;
-  const char plAscii = 0x3f;
-
-  const struct codepointToByte petsciiBytes[95] = {
-    {0x0041, 0x61}, {0x0042, 0x62},
-    {0x0043, 0x63}, {0x0044, 0x64},
-    {0x0045, 0x65}, {0x0046, 0x66},
-    {0x0047, 0x67}, {0x0048, 0x68},
-    {0x0049, 0x69}, {0x004A, 0x6A},
-    {0x004B, 0x6B}, {0x004C, 0x6C},
-    {0x004D, 0x6D}, {0x004E, 0x6E},
-    {0x004F, 0x6F}, {0x0050, 0x70},
-    {0x0051, 0x71}, {0x0052, 0x72},
-    {0x0053, 0x73}, {0x0054, 0x74},
-    {0x0055, 0x75}, {0x0056, 0x76},
-    {0x0057, 0x77}, {0x0058, 0x78},
-    {0x0059, 0x79}, {0x005A, 0x7A},
-    {0x005B, 0x5B}, {0x005D, 0x5D},
-    {0x0061, 0x41}, {0x0062, 0x42},
-    {0x0063, 0x43}, {0x0064, 0x44},
-    {0x0065, 0x45}, {0x0066, 0x46},
-    {0x0067, 0x47}, {0x0068, 0x48},
-    {0x0069, 0x49}, {0x006A, 0x4A},
-    {0x006B, 0x4B}, {0x006C, 0x4C},
-    {0x006D, 0x4D}, {0x006E, 0x4E},
-    {0x006F, 0x4F}, {0x0070, 0x50},
-    {0x0071, 0x51}, {0x0072, 0x52},
-    {0x0073, 0x53}, {0x0074, 0x54},
-    {0x0075, 0x55}, {0x0076, 0x56},
-    {0x0077, 0x57}, {0x0078, 0x58},
-    {0x0079, 0x59}, {0x007A, 0x5A},
-    {0x007C, 0x7C}, {0x007F, 0x7F},
-    {0x00A0, 0xA0}, {0x00A3, 0x5C},
-    {0x00A6, 0xA6}, {0x00A8, 0xA8},
-    {0x00A9, 0xA9}, {0x00AA, 0xAA},
-    {0x00B6, 0xB6}, {0x00B7, 0xB7},
-    {0x00B8, 0xB8}, {0x2190, 0x5F},
-    {0x2191, 0x5E}, {0x2500, 0x60},
-    {0x2502, 0x7D}, {0x250C, 0xB0},
-    {0x2510, 0xAE}, {0x2514, 0xAD},
-    {0x2518, 0xBD}, {0x251C, 0xAB},
-    {0x2524, 0xB3}, {0x252C, 0xB2},
-    {0x2534, 0xB1}, {0x253C, 0x7B},
-    {0x2581, 0xA4}, {0x2582, 0xAF},
-    {0x2583, 0xB9}, {0x2584, 0xA2},
-    {0x258C, 0xA1}, {0x258D, 0xB5},
-    {0x258E, 0xB4}, {0x258F, 0xA5},
-    {0x2592, 0x7E}, {0x2594, 0xA3},
-    {0x2595, 0xA7}, {0x2596, 0xBB},
-    {0x2597, 0xAC}, {0x2598, 0xBE},
-    {0x259A, 0xBF}, {0x259D, 0xBC},
-    {0x2713, 0xBA}
-  };
-
-  if(byteLength != NULL && bytes != NULL) {
-    *byteLength = 1;
-
-    /* just cast the codepoint to a byte for ascii control codes and symbols */
-    if(codepoint < 0x41) {
-      *bytes = NULL;
-      return;
-    }
-
-    if((lookup = (struct codepointToByte*)bsearch(
-      (void *)&codepoint,
-      (void *)petsciiBytes,
-      95,
-      sizeof(struct codepointToByte),
-      compareCodepoints
-    )) == NULL) {
-      *bytes = (char*)(&plAscii);
-      return;
-    }
-
-    *bytes = (char*)(&(lookup->byte));
-  }
-}
-
 void getBytesCP1047(
   long codepoint,
   char **bytes,
@@ -500,66 +359,6 @@ void getBytesCP1047(
     }
 
     *bytes = (char*)(&(lookup->cp1047));
-  }
-}
-
-void getBytesUtf16Le(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-) {
-  short highSurrogate;
-  short lowSurrogate;
-
-  if(byteLength != NULL && bytes != NULL) {
-    if (codepoint < 0x10000) {
-      *byteLength = 2;
-
-      (*bytes)[0] = codepoint & 0xFF;
-      (*bytes)[1] = (codepoint & 0xFF00) >> 8;
-    }
-    else {
-      *byteLength = 4;
-      codepoint -= 0x10000;
-
-      lowSurrogate = (codepoint & 0x3FF) + 0xDC00;
-      highSurrogate = ((codepoint & 0xFFC00) >> 10) + 0xD800;
-
-      (*bytes)[0] = highSurrogate & 0xFF;
-      (*bytes)[1] = (highSurrogate & 0xFF00) >> 8;
-      (*bytes)[2] = lowSurrogate & 0xFF;
-      (*bytes)[3] = (lowSurrogate & 0xFF00) >> 8;
-    }
-  }
-}
-
-void getBytesUtf16Be(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-) {
-  short highSurrogate;
-  short lowSurrogate;
-
-  if(byteLength != NULL && bytes != NULL) {
-    if (codepoint < 0x10000) {
-      *byteLength = 2;
-
-      (*bytes)[1] = codepoint & 0xFF;
-      (*bytes)[0] = (codepoint & 0xFF00) >> 8;
-    }
-    else {
-      *byteLength = 4;
-      codepoint -= 0x10000;
-
-      lowSurrogate = (codepoint & 0x3FF) + 0xDC00;
-      highSurrogate = ((codepoint & 0xFFC00) >> 10) + 0xD800;
-
-      (*bytes)[1] = highSurrogate & 0xFF;
-      (*bytes)[0] = (highSurrogate & 0xFF00) >> 8;
-      (*bytes)[3] = lowSurrogate & 0xFF;
-      (*bytes)[2] = (lowSurrogate & 0xFF00) >> 8;
-    }
   }
 }
 
