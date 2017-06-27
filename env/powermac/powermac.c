@@ -212,7 +212,7 @@ extern pascal void AsmClikLoop(void);
 char *strdup(const char *s);
 
 #define ENC_UTF16BE 9
-char *charsetEncode_d(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 OSStatus openFileDialog(void);
 
 // ---------------------------------------------------------------------------
@@ -2226,7 +2226,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
-      wide = (wchar_t *)charsetEncode_d((char *)startPoint, ENC_UTF16BE, &len);
+      wide = (wchar_t *)d_charsetEncode((char *)startPoint, ENC_UTF16BE, &len);
 
       //TEInsert(startPoint, lineChars, docTE);
       TXNSetData(

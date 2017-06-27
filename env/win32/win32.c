@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <wchar.h>
 
-char *charsetEncode_d(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 #define ENC_UTF16LE 8
 #define ENC_CP437 1
 
@@ -43,7 +43,7 @@ int fputs_w32(const char *str, FILE *stream) {
       (stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
       (stream == stderr && usingError && ((hnd = std_err) || TRUE))
     ) {
-    wide = (wchar_t *)charsetEncode_d((char *)str, ENC_UTF16LE, &len);
+    wide = (wchar_t *)d_charsetEncode((char *)str, ENC_UTF16LE, &len);
 
     len/=2;
     WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
@@ -53,7 +53,7 @@ int fputs_w32(const char *str, FILE *stream) {
     return (int)len;
   }
 
-  output = charsetEncode_d((char *)str, ENC_CP437, NULL);
+  output = d_charsetEncode((char *)str, ENC_CP437, NULL);
 
   retval = fputs(output, stream);
 

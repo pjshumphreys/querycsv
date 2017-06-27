@@ -18,7 +18,7 @@ int fputsEncoded(char * str, FILE * stream, int encoding) {
   }
 
   bytesStored = 0;
-  encoded = charsetEncode_d(str, encoding, &bytesStored);
+  encoded = d_charsetEncode(str, encoding, &bytesStored);
   retval = fwrite(encoded, sizeof(char), bytesStored, stream);
 
   free(encoded);
