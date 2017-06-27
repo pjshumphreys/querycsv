@@ -8,7 +8,7 @@ long getUnicodeChar(
     unsigned char **str,
     int plusBytes,
     int *bytesMatched,
-    void (*get)()
+    void (*get)(void)
   ) {
 
   struct hash2Entry* entry = NULL;

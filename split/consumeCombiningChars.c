@@ -5,8 +5,8 @@ int consumeCombiningChars(
     unsigned char **str2,
     unsigned char **offset1,
     unsigned char **offset2,
-    void (*get1)(),
-    void (*get2)(),
+    void (*get1)(void),
+    void (*get2)(void),
     int *bytesMatched1,
     int *bytesMatched2,
     int *accentcheck
@@ -21,14 +21,14 @@ int consumeCombiningChars(
   do {
     if(skip1 == FALSE) {
      combiner1 = isCombiningChar(
-          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get1))
+          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get1))
           (offset1, str1, 0, bytesMatched1, get1)
       );
     }
     
     if(skip2 == FALSE) {
       combiner2 = isCombiningChar(
-          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)()))get2))
+          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))
           (offset2, str2, 0, bytesMatched2, get2)
       );
     }

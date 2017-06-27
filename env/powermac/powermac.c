@@ -213,7 +213,7 @@ char *strdup(const char *s);
 
 #define ENC_UTF16BE 9
 char *charsetEncode_d(char* s, int encoding, size_t *bytesStored);
-OSStatus openFileDialog();
+OSStatus openFileDialog(void);
 
 // ---------------------------------------------------------------------------
 //      € stricmp
@@ -287,7 +287,7 @@ Rect getWindowBounds(WindowPtr window) {
   return r;
 }
 
-Rect getScreenBounds() {
+Rect getScreenBounds(void) {
   Rect r;
 
 #if TARGET_API_MAC_CARBON
@@ -602,7 +602,7 @@ static pascal OSErr appleEventQuit(
   return noErr;
 }
 
-void setupAppleEvents() {
+void setupAppleEvents(void) {
   long result;
 
   if(
@@ -646,7 +646,7 @@ void setupAppleEvents() {
   }
 }
 
-void setupMenus() {
+void setupMenus(void) {
   MenuRef menu;
   MenuHandle myMenus[5];
   long result;
@@ -684,7 +684,7 @@ void setupMenus() {
   DrawMenuBar();
 }
 
-void restoreSettings() {
+void restoreSettings(void) {
   StringHandle strh;
 
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
@@ -714,7 +714,7 @@ void restoreSettings() {
   }
 }
 
-void saveSettings() {
+void saveSettings(void) {
   Str255 str;
   StringHandle strh;
   StringHandle strh2;
@@ -752,7 +752,7 @@ void saveSettings() {
   }
 }
 
-void initialize() {
+void initialize(void) {
 #if TARGET_API_MAC_TOOLBOX
   MaxApplZone();
   InitGraf((Ptr)&qd.thePort);
@@ -841,7 +841,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
   }
 }
 
-void adjustMenus() {
+void adjustMenus(void) {
   MenuRef menu;
   int i, len;
   Boolean found = false;
@@ -1160,7 +1160,7 @@ void zoomWindow(WindowPtr window, short part) {
   windowZoomed = (part == inZoomOut);
 }
 
-void openWindow() {
+void openWindow(void) {
   WindowPtr window;
   DocumentPeek doc;
   Rect viewRect, destRect;
@@ -1274,7 +1274,7 @@ void openWindow() {
   mainWindowPtr = window;
 }
 
-void idleWindow() {
+void idleWindow(void) {
   WindowPtr window = FrontWindow();
 
   if(isApplicationWindow(window)) {
@@ -1867,7 +1867,7 @@ void handleEvent(EventRecord *event) {
   }
 }
 
-void loopTick() {
+void loopTick(void) {
   EventRecord event;
 
 #if TARGET_API_MAC_TOOLBOX
@@ -1879,7 +1879,7 @@ void loopTick() {
   handleEvent(&event);
 }
 
-void macYield() {
+void macYield(void) {
   loopTick(); // get one event
 
   if(quit)  {
@@ -2017,7 +2017,7 @@ static pascal void MyPrivateEventProc(
   }
 }
 
-OSStatus openFileDialog() {
+OSStatus openFileDialog(void) {
   OSStatus theErr = noErr;
   NavDialogCreationOptions dialogOptions;
   NavTypeListHandle openList = NULL;

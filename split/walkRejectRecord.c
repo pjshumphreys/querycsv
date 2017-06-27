@@ -35,8 +35,8 @@ int walkRejectRecord(
         (unsigned char **)(&(expressionPtr->unionPtrs.leaves.leftPtr->value)),
         (unsigned char **)(&(expressionPtr->unionPtrs.leaves.rightPtr->value)),
         expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive,
-        (void (*)())&getUnicodeChar,
-        (void (*)())&getUnicodeChar
+        (void (*)(void))&getUnicodeChar,
+        (void (*)(void))&getUnicodeChar
       );
 
     freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
@@ -88,8 +88,8 @@ int walkRejectRecord(
         (unsigned char **)(&(expressionPtr->unionPtrs.leaves.leftPtr->value)),
         (unsigned char **)(&(currentAtom->content)),
         expressionPtr->unionPtrs.leaves.leftPtr->caseSensitive,
-        (void (*)())&getUnicodeChar,
-        (void (*)())&getUnicodeChar
+        (void (*)(void))&getUnicodeChar,
+        (void (*)(void))&getUnicodeChar
       ) == 0) {
         freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
         return expressionPtr->type == EXP_NOTIN;  /* FALSE */

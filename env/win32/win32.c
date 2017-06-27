@@ -26,7 +26,7 @@ HANDLE std_err;
 char **argv_w32 = NULL;
 char *test = NULL;
 
-void cleanup_w32() {
+void cleanup_w32(void) {
   free(test);
   free(argv_w32);
 }

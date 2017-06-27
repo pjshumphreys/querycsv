@@ -44,8 +44,8 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&tempString2),
                     TRUE,
-                    (void (*)())getUnicodeChar,
-                    (void (*)())getUnicodeChar
+                    (void (*)(void))getUnicodeChar,
+                    (void (*)(void))getUnicodeChar
                   ) == 0) {
                     freeAndZero(tempString2);
                     break;
@@ -112,8 +112,8 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
                     2,    /* TRUE, */
-                    (void (*)())getUnicodeChar,
-                    (void (*)())getUnicodeChar
+                    (void (*)(void))getUnicodeChar,
+                    (void (*)(void))getUnicodeChar
                   ) == -1) {
 
                   free(currentResultColumn->groupText);
@@ -130,8 +130,8 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
                     2,    /* TRUE, */
-                    (void (*)())getUnicodeChar,
-                    (void (*)())getUnicodeChar
+                    (void (*)(void))getUnicodeChar,
+                    (void (*)(void))getUnicodeChar
                   ) == 1) {
 
                   free(currentResultColumn->groupText);

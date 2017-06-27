@@ -158,7 +158,7 @@
 #endif
 
 #ifdef MPW_C
-  void macYield();
+  void macYield(void);
   #define MAC_YIELD
   /* macYield(); */
   #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */

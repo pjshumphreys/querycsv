@@ -260,7 +260,7 @@ Rect getWindowBounds(WindowPtr window) {
   return r;
 }
 
-Rect getScreenBounds() {
+Rect getScreenBounds(void) {
 	Rect r;
 
 #if TARGET_API_MAC_CARBON
@@ -409,7 +409,7 @@ static pascal OSErr appleEventQuit(
   return noErr;
 }
 
-void setupAppleEvents() {
+void setupAppleEvents(void) {
   long result;
 
   if(
@@ -453,7 +453,7 @@ void setupAppleEvents() {
   }
 }
 
-void setupMenus() {
+void setupMenus(void) {
   MenuRef menu;
   MenuHandle myMenus[5];
   int i;
@@ -491,7 +491,7 @@ void setupMenus() {
   DrawMenuBar();
 }
 
-void restoreSettings() {
+void restoreSettings(void) {
   StringHandle strh;
 
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
@@ -521,7 +521,7 @@ void restoreSettings() {
   }
 }
 
-void saveSettings() {
+void saveSettings(void) {
   Str255 str;
   StringHandle strh;
   StringHandle strh2;
@@ -559,7 +559,7 @@ void saveSettings() {
   }
 }
 
-void initialize() {
+void initialize(void) {
 #if TARGET_API_MAC_TOOLBOX
   MaxApplZone();
   InitGraf((Ptr)&qd.thePort);
@@ -632,7 +632,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
   }
 }
 
-void adjustMenus() {
+void adjustMenus(void) {
 	MenuHandle menu;
   int i, len;
   Boolean found = false;
@@ -834,7 +834,7 @@ void adjustScrollBars(WindowPtr window, Boolean needsResize) {
 #if TARGET_API_MAC_TOOLBOX
 #include <StandardFile.h>
 
-OSStatus openFileDialog() {
+OSStatus openFileDialog(void) {
   Point where;
   unsigned const char prompt = '\0';
   OSType typeList = 'TEXT';
@@ -994,7 +994,7 @@ void zoomWindow(WindowPtr window, short part) {
   windowZoomed = (part == inZoomOut);
 }
 
-void openWindow() {
+void openWindow(void) {
   Ptr storage;
   WindowPtr window;
   DocumentPeek doc;
@@ -1095,7 +1095,7 @@ void openWindow() {
   }
 }
 
-void idleWindow() {
+void idleWindow(void) {
   WindowPtr window = FrontWindow();
 
   if(isApplicationWindow(window)) {
@@ -1613,7 +1613,7 @@ void HandleEvent(EventRecord *event) {
   }
 }
 
-void loopTick() {
+void loopTick(void) {
   EventRecord event;
 
 #if TARGET_API_MAC_TOOLBOX
@@ -1625,7 +1625,7 @@ void loopTick() {
   HandleEvent(&event);
 }
 
-void macYield() {
+void macYield(void) {
   loopTick(); // get one event
 
 	if(quit)	{

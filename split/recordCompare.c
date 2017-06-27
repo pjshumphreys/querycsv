@@ -48,8 +48,8 @@ int recordCompare(
         (unsigned char **)(&output1),
         (unsigned char **)(&output2),
         2,    /* orderByClause->expressionPtr->caseSensitive, */
-        (void (*)())getUnicodeChar,
-        (void (*)())getUnicodeChar
+        (void (*)(void))getUnicodeChar,
+        (void (*)(void))getUnicodeChar
       );
 
     /* clean up used memory. The string1 & string2 pointers might be made */

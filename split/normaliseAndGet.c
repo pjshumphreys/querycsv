@@ -149,5 +149,5 @@ int normaliseAndGet(
 
   /* the whole string has been normalized to nfd form. */
   /* now use the fast version to get the next codepoint */
-  return getUnicodeChar(offset, str, plusBytes, bytesMatched, (void (*)())getUnicodeChar);
+  return getUnicodeChar(offset, str, plusBytes, bytesMatched, (void (*)(void))getUnicodeChar);
 }
