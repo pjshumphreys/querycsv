@@ -37,7 +37,7 @@ RezFiles        =  ¶
 ObjFiles-68K    =  ¶
 				  "{ObjDir}lexer.c.o" ¶
 				  "{ObjDir}sql.c.o" ¶
-				  "{ObjDir}hash1.c.x" ¶
+				  "{ObjDir}hash1.c.o" ¶
 				  "{ObjDir}hash2.c.o" ¶
 				  "{ObjDir}hash3.c.o" ¶
 				  "{ObjDir}hash4a.c.o" ¶
@@ -52,7 +52,7 @@ ObjFiles-68K    =  ¶
 
 LibFiles-68K    =  ¶
 				  "{Libraries}SIO.o" ¶
-					"{Libraries}MathLib.o" ¶
+				  "{Libraries}MathLib.o" ¶
 				  "{CLibraries}StdCLib.o" ¶
 				  "{Libraries}MacRuntime.o" ¶
 				  "{Libraries}IntEnv.o" ¶
@@ -101,7 +101,9 @@ QueryCSV  ÄÄ  {¥MondoBuild¥}
 "{ObjDir}hash1.c.o"  Ä  hash1.c
 "{ObjDir}hash2.c.o"  Ä  hash2.c
 "{ObjDir}hash3.c.o"  Ä  hash3.c
-"{ObjDir}hash4.c.o"  Ä  hash4.c
+"{ObjDir}hash4a.c.o"  Ä  hash4a.c
+"{ObjDir}hash4b.c.o"  Ä  hash4b.c
+"{ObjDir}hash4c.c.o"  Ä  hash4c.c
 "{ObjDir}querycsv.c.o"  Ä  querycsv.c
 
 
