@@ -64,6 +64,8 @@ querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o query
 	cd env/win32; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/m68kmac/ \;
 	cd env/m68kmac; unix2mac *
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/powermac/ \;
+	cd env/powermac; unix2mac *
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/amiga/ \;
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/amiga/ \;
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/riscos/c/ \;
@@ -84,7 +86,8 @@ clean:
 	cd env/posix; rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
 	cd env/dos; find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32; find . -maxdepth 1 ! -path './win32.c' ! -path './win32.h' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/m68kmac; mac2unix *; find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;
+	cd env/m68kmac; find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;; mac2unix *
+	cd env/powermac; find . -type f ! -path './.finf/Makefile' ! -path './Makefile' ! -path './powermac.h' ! -path './powermac.c' ! -path './powermac.r' ! -path './size.r' ! -path './carbon.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;; mac2unix *
 	cd env/riscos; rm -rf o od \!QueryCSV/querycsv,ff8
 	cd env/riscos/c; find . -maxdepth 1 ! -path './riscos' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/riscos/h; find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
