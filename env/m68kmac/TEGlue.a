@@ -10,7 +10,7 @@
 ;    Copyright © 1989 Apple Computer, Inc.
 ;    All rights reserved.
 ;
-;    Versions:    
+;    Versions:
 ;                1.00                08/88
 ;                1.01                11/88
 ;                1.02                04/89
@@ -23,28 +23,28 @@
 ;                TESample.h            Feb.  1, 1990
 ;                TESample.make        Feb.  1, 1990
 ;
-;    TESample is an example application that demonstrates how 
-;    to initialize the commonly used toolbox managers, operate 
-;    successfully under MultiFinder, handle desk accessories and 
-;    create, grow, and zoom windows. The fundamental TextEdit 
-;    toolbox calls and TextEdit autoscroll are demonstrated. It 
+;    TESample is an example application that demonstrates how
+;    to initialize the commonly used toolbox managers, operate
+;    successfully under MultiFinder, handle desk accessories and
+;    create, grow, and zoom windows. The fundamental TextEdit
+;    toolbox calls and TextEdit autoscroll are demonstrated. It
 ;    also shows how to create and maintain scrollbar controls.
 ;
-;    It does not by any means demonstrate all the techniques you 
-;    need for a large application. In particular, Sample does not 
-;    cover exception handling, multiple windows/documents, 
-;    sophisticated memory management, printing, or undo. All of 
+;    It does not by any means demonstrate all the techniques you
+;    need for a large application. In particular, Sample does not
+;    cover exception handling, multiple windows/documents,
+;    sophisticated memory management, printing, or undo. All of
 ;    these are vital parts of a normal full-sized application.
 ;
-;    This application is an example of the form of a Macintosh 
-;    application; it is NOT a template. It is NOT intended to be 
-;    used as a foundation for the next world-class, best-selling, 
-;    600K application. A stick figure drawing of the human body may 
-;    be a good example of the form for a painting, but that does not 
+;    This application is an example of the form of a Macintosh
+;    application; it is NOT a template. It is NOT intended to be
+;    used as a foundation for the next world-class, best-selling,
+;    600K application. A stick figure drawing of the human body may
+;    be a good example of the form for a painting, but that does not
 ;    mean it should be used as the basis for the next Mona Lisa.
 ;
-;    We recommend that you review this program or Sample before 
-;    beginning a new application. Sample is a simple app. which doesn’t 
+;    We recommend that you review this program or Sample before
+;    beginning a new application. Sample is a simple app. which doesn’t
 ;    use TextEdit or the Control Manager.
 ;
 ;
@@ -77,5 +77,5 @@ AsmClikLoop    PROC        EXPORT
 	    MOVEQ         #1,D0                 ; clear the zero flag so TextEdit keeps going
 	    RTS
 
-	    END 
+	    END
 

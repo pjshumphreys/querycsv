@@ -14,7 +14,7 @@ function ___syscall220(which, varargs) {
       var type;
       var name = stream.getdents.pop();
       var utf8Name = new Int8Array(256);
-      
+
       assert(name.length < 256); // limit of dirent struct
       stringToUTF8Array(name, utf8Name, 0, 256);
 
@@ -43,7 +43,7 @@ function ___syscall220(which, varargs) {
 
       pos += 268;
     }
-    
+
     return pos;
   }
   catch (e) {
@@ -88,7 +88,7 @@ FS.filesystems.IDBWFS = (function() {
 
       IDBFS.workerIO[mount.mountpoint] = mountIO;
       mountIO.toEmscripten(true);
-        
+
       // reuse all of the core MEMFS functionality
       retvar = MEMFS.mount.apply(null, arguments);
 
@@ -108,7 +108,7 @@ FS.filesystems.IDBWFS = (function() {
             }
 
             var worker = IDBFS.workerFiles[mount.mountpoint];
-            
+
             var src = populate===4 ? worker : local;
             var dst = populate===4 ? local : worker;
 
@@ -386,7 +386,7 @@ FS.filesystems.IDBWFS = (function() {
     removeWorkerEntry: function(store, path, callback) {
       delete store.entries[path];
       callback(null);
-    },      
+    },
     reconcile: function(src, dst, callback, worker) {
       var store;
       var total = 0;
@@ -411,11 +411,11 @@ FS.filesystems.IDBWFS = (function() {
           total++;
         }
       });
-      
+
       if (!total) {
         if(dst.type === 'worker' && IDBFS.workerIO[dst.mountpoint].fromEmscripten instanceof Function) {  IDBFS.workerIO[dst.mountpoint].fromEmscripten([], []);
         }
-        
+
         return callback(null);
       }
 
@@ -435,7 +435,7 @@ FS.filesystems.IDBWFS = (function() {
       else {
         store = src.type === 'worker' ? src : dst;
       }
-      
+
       function done(err) {
         if (err) {
           if (!done.errored) {
@@ -444,7 +444,7 @@ FS.filesystems.IDBWFS = (function() {
           }
           return;
         }
-        if (++completed >= total) {          
+        if (++completed >= total) {
           if(dst.type === 'worker' && IDBFS.workerIO[dst.mountpoint].fromEmscripten instanceof Function) {
             IDBFS.workerIO[dst.mountpoint].fromEmscripten(
               create2,
@@ -454,7 +454,7 @@ FS.filesystems.IDBWFS = (function() {
               delete entry.path
             });
           }
-          
+
           return callback(null);
         }
       }
@@ -468,7 +468,7 @@ FS.filesystems.IDBWFS = (function() {
               if (err) {
                 return done(err);
               }
-              
+
               IDBFS.storeLocalEntry(path, entry, done);
             });
           }
@@ -477,7 +477,7 @@ FS.filesystems.IDBWFS = (function() {
               if (err) {
                 return done(err);
               }
-              
+
               IDBFS.storeLocalEntry(path, entry, done);
             });
           }
@@ -487,11 +487,11 @@ FS.filesystems.IDBWFS = (function() {
             if (err) {
               return done(err);
             }
-            
+
             IDBFS.storeWorkerEntry(dst, path, entry, done);
 
             entry.path = path;
-            
+
             create2.push(entry);
           });
         }
@@ -500,7 +500,7 @@ FS.filesystems.IDBWFS = (function() {
             if (err) {
               return done(err);
             }
-            
+
             IDBFS.storeRemoteEntry(store, path, entry, done);
           });
         }
@@ -538,7 +538,7 @@ FS.filesystems.IDBWFS = (function() {
     var mountIO = {
       toEmscripten: function(reset, create, remove) {
         var a, i, len;
-        
+
         if(reset === true) {  //clear out the cache of files used to figure out what to send to the worker
           IDBFS.workerFiles[mountpoint] = {
             mountpoint: mountpoint,
@@ -571,7 +571,7 @@ FS.filesystems.IDBWFS = (function() {
 
     return mountIO;
   }
-  
+
   return IDBFS;
 })();
 
@@ -581,7 +581,7 @@ return Module;
 
 })();
 
-var stringifyAndPostFactory = function(object, JSON) { 
+var stringifyAndPostFactory = function(object, JSON) {
   return function(messageType, data) {
     object.postMessage(JSON.stringify({
       messageType:  messageType,

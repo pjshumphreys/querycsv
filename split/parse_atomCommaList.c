@@ -9,7 +9,7 @@ struct atomEntry *parse_atomCommaList(
   struct atomEntry *newEntryPtr;
 
   MAC_YIELD
-  
+
   if(queryData->parseMode != 1) {
     return NULL;
   }

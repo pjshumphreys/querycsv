@@ -13,7 +13,7 @@ void cleanup_matchValues(
   for(i = 0, len = query->columnCount; i < len; i++) {
     free((*match)[i].value);
   }
-  
+
   free(*match);
   *match = NULL;
 }

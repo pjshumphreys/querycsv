@@ -1710,7 +1710,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
 
   do {
     skipByte = false;
-    
+
     //use funky for/switch construct to output/append until a newline or end of string
     for(;;) {
       if(charsLeft < 1) {
@@ -1856,8 +1856,8 @@ pascal void (*__sioExit)(void) = sioDemoExit;
       buffer[pos] = 0;
       // line is now in buffer
       printf("%s", buffer);
-    } while(c != EOF); 
-    fclose(f);           
+    } while(c != EOF);
+    fclose(f);
   }
   free(buffer);
   int i = 0;

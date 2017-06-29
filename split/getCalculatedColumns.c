@@ -57,7 +57,7 @@ void getCalculatedColumns(
             match[j].leftNull = FALSE;
             match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
             match[j].value = currentReference->reference.calculatedPtr.expressionPtr->value;
-            
+
             /* write the value to the scratchpad file */
             /* fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad); */
           }

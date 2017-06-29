@@ -25,7 +25,7 @@ int consumeCombiningChars(
           (offset1, str1, 0, bytesMatched1, get1)
       );
     }
-    
+
     if(skip2 == FALSE) {
       combiner2 = isCombiningChar(
           (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))
@@ -47,14 +47,14 @@ int consumeCombiningChars(
     }
 
     if(combiner1 == 0) {
-      skip1 = TRUE; 
+      skip1 = TRUE;
     }
     else {
       (*offset1)+=(*bytesMatched1);
     }
 
     if(combiner2 == 0) {
-      skip2 = TRUE; 
+      skip2 = TRUE;
     }
     else {
       (*offset2)+=(*bytesMatched2);

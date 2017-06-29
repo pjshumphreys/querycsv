@@ -23,7 +23,7 @@ int runQuery(char *queryFileName) {
     ) {
 
     /* output the header */
-    outputHeader(&query); 
+    outputHeader(&query);
 
     while(getMatchingRecord(&query, match)) {
       /* print record to stdout */

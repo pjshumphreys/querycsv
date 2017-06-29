@@ -42,7 +42,7 @@ void parse_tableFactor(
   free(fileName);
   free(tableName);
   fclose(csvFile);
-  
+
   /* try opening the file specified in the query */
   csvFile = skipBom(columnText2, &headerByteLength, &encodingFromBom);
   tableName = strdup(columnText);
@@ -140,9 +140,9 @@ void parse_tableFactor(
 
       /* no other columns with the same name yet */
       newReference->nextReferenceWithName = NULL;
-     
+
       /* insert the column into the hashtable */
-      hash_addString(queryData->columnReferenceHashTable, columnText, newReference);  
+      hash_addString(queryData->columnReferenceHashTable, columnText, newReference);
     }
     /* otherwise, add it to the linked list */
     else {
@@ -154,7 +154,7 @@ void parse_tableFactor(
 
       /* store the column name */
       newReference->referenceName = currentReference->referenceName;
-      
+
       /* if there's only been 1 column with this name up until now */
       if(currentReference->nextReferenceWithName == NULL) {
         newReference->nextReferenceWithName = newReference;

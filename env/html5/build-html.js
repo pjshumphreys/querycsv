@@ -12,7 +12,7 @@ function htmlRead(err,data) {
     console.log(err);
     process.exit(1);
   }
-  
+
   $ = cheerio.load(data);
 
   $('link[rel=stylesheet]').remove();
@@ -21,7 +21,7 @@ function htmlRead(err,data) {
   $('style').text("@@@style@@@");
   $('script').removeAttr('src').text("@@@script@@@");
 
-  
+
   fs.readFile('output.min.js', 'utf8', jsRead);
 };
 
@@ -43,7 +43,7 @@ function cssRead(err, data) {
   }
 
   style = data.toString();
-  
+
   fs.writeFile('build/index.html', normalizeWhitespace($.html()).replace('@@@style@@@', style).replace('@@@script@@@', script).replace('<!DOCTYPE html> <', '<!DOCTYPE html>\n<'), fileWritten);
 }
 
@@ -55,5 +55,5 @@ function fileWritten(err) {
 
   console.log("index.html generated!");
 }
- 
+
 fs.readFile('index-debug.html', 'utf8', htmlRead);

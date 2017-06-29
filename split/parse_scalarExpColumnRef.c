@@ -10,7 +10,7 @@ struct expression *parse_scalarExpColumnRef(
   struct inputColumn *columnPtr = NULL;
 
   MAC_YIELD
-  
+
   if(queryData->parseMode != 1) {
     return NULL;
   }
@@ -24,7 +24,7 @@ struct expression *parse_scalarExpColumnRef(
 
     /* unbox csv column reference */
     columnPtr = referencePtr->reference.columnPtr;
-    
+
     expressionPtr->unionPtrs.voidPtr = (void *)(columnPtr);
     expressionPtr->minColumn = columnPtr->columnIndex;
     expressionPtr->minTable = ((struct inputTable*)columnPtr->inputTablePtr)->fileIndex;
@@ -46,6 +46,6 @@ struct expression *parse_scalarExpColumnRef(
     /* this line might need to be changed */
     expressionPtr->containsAggregates = expressionColumnPtr->containsAggregates;
   }
-  
+
   return expressionPtr;
 }

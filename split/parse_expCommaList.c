@@ -22,7 +22,7 @@ struct resultColumn *parse_expCommaList(
   /* increment the column count for display purposes */
   if(aggregationType == GRP_NONE) {
     queryData->columnCount++;
-  
+
     /* if the expression wasn't given a name then provide it with a default one */
     if(resultColumnName == NULL) {
       if(expressionPtr->type == EXP_COLUMN) {
@@ -143,7 +143,7 @@ struct resultColumn *parse_expCommaList(
 
           return newResultColumn->nextColumnInstance;
         }
-        
+
         /* otherwise get the next instance then continue looping */
         else {
           newResultColumn = newResultColumn->nextColumnInstance;

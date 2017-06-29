@@ -39,10 +39,10 @@ int strCompare(
           continue;
         }
       }
-      
+
       return 1;
     }
-    
+
     /* check if we've reached the end of string 1 */
     else if(*offset1 == 0) {
       /* if they both are null then the strings are equal. otherwise string 1 is lesser */
@@ -64,7 +64,7 @@ int strCompare(
           if(char2 != 0x34F) {
             if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar))) {
               /* compare the lookup table entries */
-          
+
               if(entry1->script == entry2->script) {
                 if(entry1->index == 0 && entry2->index == 0) {
                   /* both entries are numbers, so compare them */
@@ -80,7 +80,7 @@ int strCompare(
                     accentcheck = 1;
                   }
                 }
-              
+
                 if(comparison != 0) {
                   return comparison > 0 ? 1 : -1;
                 }
@@ -103,7 +103,7 @@ int strCompare(
                 &accentcheck)) != 0) {
               return combinerResult;
             }
-        
+
             if(firstChar) {
               firstChar = FALSE;
             }
@@ -123,7 +123,7 @@ int strCompare(
           }
           /* compare codepoints */
           else if(char1 != char2) {
-            return (char1 > char2) ? 1: -1; 
+            return (char1 > char2) ? 1: -1;
           }
 
           if((combinerResult = consumeCombiningChars(
@@ -134,7 +134,7 @@ int strCompare(
               &accentcheck)) != 0) {
             return combinerResult;
           }
-      
+
           if(firstChar) {
             firstChar = FALSE;
           }
@@ -145,7 +145,7 @@ int strCompare(
           char1found = 2;   /* in lookup */
           offset2 += bytesMatched2;
         }
-      }  
+      }
       else {
         /* we've not yet found the first codepoint to compare. move to the next one */
         offset1 += bytesMatched1;
@@ -160,7 +160,7 @@ int strCompare(
       if(char2 != 0x34F) {
         if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar))) {
           /* both characters have been found and are in the lookup table. compare the lookup table entries           */
-      
+
           if(entry1->script == entry2->script) {
             if(entry1->index == 0 && entry2->index == 0) {
               /* both entries are numbers, so compare them */
@@ -176,7 +176,7 @@ int strCompare(
                 accentcheck = 1;
               }
             }
-          
+
             if(comparison != 0) {
               return comparison > 0 ? 1 : -1;
             }
@@ -188,7 +188,7 @@ int strCompare(
         }
         /* compare the codepoints */
         else if(entry1->script != char2) {
-          return (entry1->script > char2) ? 1: -1; 
+          return (entry1->script > char2) ? 1: -1;
         }
 
         if((combinerResult = consumeCombiningChars(
@@ -210,20 +210,20 @@ int strCompare(
         offset2 += bytesMatched2;
       }
     }
-    
+
     /* character 1 has been found but was not in the lookup table */
-    else {  
+    else {
       char2 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset2, str2, 0, &bytesMatched2, get2);
 
       if(char2 != 0x34F) {
         /* the first or both characters were not in the lookup table. */
         /* compare the code point then successive combining characters */
         if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar)) && char1 != entry2->script) {
-          return (char1 > entry2->script) ? 1: -1; 
+          return (char1 > entry2->script) ? 1: -1;
         }
         /* compare codepoints */
         else if(char1 != char2) {
-          return (char1 > char2) ? 1: -1; 
+          return (char1 > char2) ? 1: -1;
         }
 
         if((combinerResult = consumeCombiningChars(
@@ -236,14 +236,14 @@ int strCompare(
         }
 
         char1found = 0;
-    
+
         if(firstChar) {
           firstChar = FALSE;
-        } 
+        }
       }
       else {
         offset2 += bytesMatched2;
       }
     }
-  } 
+  }
 }

@@ -13,7 +13,7 @@ void tree_walkAndCleanup(
   int i = 0;
 
   MAC_YIELD
-  
+
   if(root == NULL || *root == NULL) {
     return;
   }
@@ -43,7 +43,7 @@ void tree_walkAndCleanup(
     }
 
     parentResult = currentResult->parent;
-    
+
     if(parentResult != NULL) {
       if(parentResult->left == currentResult) {
         currentResult = parentResult;

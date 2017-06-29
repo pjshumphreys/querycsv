@@ -11,7 +11,7 @@ int strNumberCompare(char *input1, char *input2) {
   int do2 = TRUE;
 
   MAC_YIELD
-  
+
   /* if the first character of only one of the numbers is negative, */
   /* then the positive one is greater. We still need to skip the digits though */
   if(*string1 == '-') {
@@ -21,7 +21,7 @@ int strNumberCompare(char *input1, char *input2) {
       if(*string2 == '+') {
         string2++;
       }
-      
+
       compare = -1;
     }
     else {

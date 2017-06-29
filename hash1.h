@@ -128,7 +128,7 @@ static const long
   hash1_125[] = {0xb2},         /* #SUPERSCRIPT TWO */
   hash1_126[] = {0x25a0},       /* #BLACK SQUARE */
   hash1_127[] = {0xa0};          /* #NO-BREAK SPACE */
-  
+
 static const struct hash1Entry hash1[128] = {
   {2, hash1_0},  /* #LATIN CAPITAL LETTER C WITH CEDILLA */
   {2, hash1_1},  /* #LATIN SMALL LETTER U WITH DIAERESIS */

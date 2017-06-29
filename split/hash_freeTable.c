@@ -10,7 +10,7 @@ void hash_freeTable(struct columnReferenceHash *hashtable) {
     return;
   }
 
-  /* Free the memory for every item in the table, including the 
+  /* Free the memory for every item in the table, including the
    * strings themselves.
    */
   for(i=0; i<hashtable->size; i++) {

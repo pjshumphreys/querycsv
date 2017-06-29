@@ -4,7 +4,7 @@ void parse_groupingSpec(
     struct qryData *queryData,
     struct expression *expressionPtr
   ) {
-      
+
   struct sortingList *sortingListPtr = NULL;
 
   MAC_YIELD
@@ -12,7 +12,7 @@ void parse_groupingSpec(
   if(queryData->parseMode != 1) {
     return;
   }
-  
+
   reallocMsg(
       (void**)&(sortingListPtr),
       sizeof(struct sortingList)

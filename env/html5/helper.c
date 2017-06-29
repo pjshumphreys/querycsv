@@ -53,7 +53,7 @@ int statdir(
     *name = NULL;
     return -1;
   }
-  
+
   sprintf(temp, "%s", direp->d_name);
 
   temp2 = (char*)malloc(strlen(dir)+nameLen+2);
@@ -63,7 +63,7 @@ int statdir(
     *name = NULL;
     return -1;
   }
-  
+
   sprintf(temp2, "%s/%s", dir, temp);
 
   retval = stat(temp2, buf);
@@ -74,7 +74,7 @@ int statdir(
     *name = NULL;
     return -1;
   }
-  
+
   *name = temp;
 
   return retval;
@@ -159,7 +159,7 @@ void insert(
             }
           break;
 
-          
+
         }
 
         if(comparison == 0) {
@@ -205,7 +205,7 @@ void walkAndCleanup(
 
   struct fileEntry *currentNode;
   struct fileEntry *parentNode;
-  
+
   void (*addListEntryPtr)(char *, int, time_t, off_t) = (void (*)(char *, int, time_t, off_t))callback;
 
   if(root == NULL || *root == NULL) {
@@ -231,7 +231,7 @@ void walkAndCleanup(
     }
 
     parentNode = currentNode->parent;
-    
+
     if(parentNode != NULL) {
       if(parentNode->left == currentNode) {
         currentNode = parentNode;
@@ -254,7 +254,7 @@ void walkAndCleanup(
 
 //calls the specified callback for every file or sub folder in the specified folder.
 //the folder entries are returned in a sorted order that can be specified by parameters
-//the function returns true if the folder could sucessfully be read from, otherwise it returns false 
+//the function returns true if the folder could sucessfully be read from, otherwise it returns false
 int getEntries(char* path, int sortBy, int sortDescending, int callback) {
   DIR *dirp;
   struct dirent *direntp;
@@ -310,7 +310,7 @@ int addFile(char *path) {
   else {
     close(fd);
   }
-  
+
   return 0;
 }
 

@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
       if(wbarg->wa_Lock != (BPTR)0) {
         olddir = CurrentDir(wbarg->wa_Lock);
       }
-      
+
       myargv[idx] = wbarg->wa_Name;
     }
 

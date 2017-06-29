@@ -17,7 +17,7 @@ struct expression *parse_functionRefStar(
     fputs("only count(*) is valid",stderr);
     exit(EXIT_FAILURE);
   }
-  
+
   return parse_functionRef(
     queryData,
     GRP_STAR,

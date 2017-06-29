@@ -22,13 +22,13 @@ int hash_addString(
     if ((new_list2 = malloc(sizeof(struct columnRefHashEntry))) == NULL) {
       return 1;
     }
-    
+
     /* Insert into list */
     new_list2->referenceName = str;
     new_list2->content = new_list;
     new_list2->nextReferenceInHash = hashtable->table[hashval];
 
-    
+
     hashtable->table[hashval] = new_list2;
 
     return 0;

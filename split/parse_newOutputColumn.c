@@ -26,7 +26,7 @@ struct resultColumn *parse_newOutputColumn(
     queryData->firstResultColumn->nextColumnInResults = newResultColumn;
     queryData->firstResultColumn = newResultColumn;
   }
-  
+
   /* fill out the rest of the necessary fields */
   newResultColumn->isHidden = isHidden2;
   newResultColumn->isCalculated = isCalculated2;

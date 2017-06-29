@@ -33,19 +33,19 @@ struct hash4Entry *getLookupTableEntry(
 
     /* add the byte length to the total */
     totalBytes += *lastMatchedBytes;
-    
+
     /* get a code point */
     (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get))
     (offset, str, totalBytes, lastMatchedBytes, get);
 
     totalBytes2 = totalBytes+(*lastMatchedBytes);
-  } 
+  }
 
   /* don't update the value passed to us if we didn't find any match at all */
   if(temp2 != NULL) {
     /* copy the match data into the output */
     *lastMatchedBytes = totalBytes;
   }
-  
+
   return temp2;
 }

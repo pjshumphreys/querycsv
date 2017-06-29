@@ -103,7 +103,7 @@ resource 'MENU' (mFont, preload)
 	enabled,
 	"Font",
 	{
-		
+
 	}
 };
 
@@ -116,19 +116,19 @@ resource 'MENU' (mSize, preload)
 	"Size",
 	{
 	"9 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	"10 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	"12 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	"14 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	"18 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	"24 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	"36 Point",
-		noicon, nokey, nomark, plain;	
+		noicon, nokey, nomark, plain;
 	}
 };
 
@@ -273,8 +273,8 @@ resource 'FREF' (129) {
 
 resource 'open' (128) {   /* for the Translation Manager aka Easy Open */
 	CREATOR,
-	{	
-		'****'	
+	{
+		'****'
 	}
 };
 

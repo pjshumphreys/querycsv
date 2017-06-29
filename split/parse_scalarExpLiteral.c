@@ -8,7 +8,7 @@ struct expression *parse_scalarExpLiteral(
   struct expression *expressionPtr = NULL;
 
   MAC_YIELD
-  
+
   if(queryData->parseMode != 1) {
     return NULL;
   }

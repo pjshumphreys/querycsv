@@ -39,5 +39,5 @@ int parse_encoding(
 
   fprintf(stderr, "unsupported encoding %s\n", encoding);
 
-  return ENC_UNSUPPORTED; 
+  return ENC_UNSUPPORTED;
 }

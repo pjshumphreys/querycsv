@@ -49,8 +49,8 @@
       isDescending:0, //0 = no, 1 = yes
       usePicup:0
     },
-    
-    addListEntry = Module.Runtime.addFunction(function(name, type, modified, size) { 
+
+    addListEntry = Module.Runtime.addFunction(function(name, type, modified, size) {
       var a, b;
       name = Module.Pointer_stringify(name);
 
@@ -106,7 +106,7 @@
     targetElem.removeClass('longTapping').removeClass('pushed');
     doTap = false;
   }
-  
+
   function longTap(e) {
     var a = targetElem;
     if(doTap == true && selectMode == false) {
@@ -129,7 +129,7 @@
 
   function updateSelection() {
     var b = $('.selected').length;
-    
+
     if(b === 0) {
       selectMode = false;
       if(currentState === 'selection') {
@@ -150,7 +150,7 @@
           $('#renameButton').show();
         }
       }
-      
+
       if(oldSelectedCount === 0) {
         $('#alt').fadeIn(100);
       }
@@ -159,14 +159,14 @@
     oldSelectedCount = b;
   }
 
-  
+
 
   function toggleButtonSelection(e) {
     var a = $(e.target).closest('button').toggleClass('selected');
 
     e.stopPropagation();
     updateSelection();
-    
+
     $('.pushed').removeClass('pushed');
     a.removeClass('longTapping');
   }
@@ -231,7 +231,7 @@
       }
     }
   }
-  
+
   function gotoEditor() {
     if(inactive) {
       History.pushState({
@@ -242,7 +242,7 @@
       );
     }
   }
-  
+
   function gotoConsole() {
     if(inactive) {
       History.pushState({
@@ -259,7 +259,7 @@
       History.back();
     }
   }
-  
+
   function goForward() {
     if(inactive) {
       History.forward();
@@ -274,7 +274,7 @@
 
     if(stateQueue.length === 0) {
       stateQueue.push(state);
-      
+
       currentState = state.newState.data.type;
 
       serviceStateQueue();
@@ -285,7 +285,7 @@
       currentState = state.newState.data.type;
     }
   }
-  
+
   function serviceStateQueue() {
     if(inactive) {
       inactive = false;
@@ -376,7 +376,7 @@
             pageFromLeft('folder', false);
           }
         } break;
-        
+
         case "selection": {
           if(a.currentState !== 'folder') {
             pageFromLeft('folder', false);
@@ -414,7 +414,7 @@
           editorTextarea.val(Module.FS.readFile(currentPath, {encoding:'utf8'}));
           pageFromRight('editor', true);
         } break;
-        
+
         case "console": {
           $('#console .pre').text("");
           pageFromRight('console', true);
@@ -441,12 +441,12 @@
       obj['min-width'] = moo;
       doo = true;
     }
-    
+
     if(maa>consoleScroller.height()) {
       obj['min-height'] = maa;
       doo = true;
     }
-    
+
     if(doo) {
       consoleScroller.css(obj);
       doo = false;
@@ -465,7 +465,7 @@
     if(!scrollToBottom && doo) {
       myScroll5.scrollTo(x, y, 0);
     }
-    
+
     myScroll5.refresh();
 
     if(scrollToBottom) {
@@ -554,7 +554,7 @@
         case "editor":
           editorRefresh();
         break;
-        
+
         case "console":
           consoleRefresh();
           runCommand(currentPath);
@@ -641,7 +641,7 @@
   }
 
   function editorWrapperScroll() {
-    var scrollTop = editorWrapper.scrollTop(); 
+    var scrollTop = editorWrapper.scrollTop();
     var scrollLeft = editorWrapper.scrollLeft();
 
     if(scrollTop != 0) {
@@ -654,11 +654,11 @@
       editorScroll.scrollBy(-scrollLeft, 0, 0);
     }
   }
-  
+
   function editorFocus() {
     editorTextarea.focus();
   }
-  
+
   function editorKeyUp(e) {
     if ((e.keyCode ? e.keyCode : e.which) == 13) {
       editorScroll.scrollTo(0, editorScroll.y, 0);
@@ -686,18 +686,18 @@
       closeSaveDialog2();
     }
   }
-  
+
   function closeSaveDialog2() {
     updateDownloadLink();
     $(".pt-page-open").removeClass('changed');
     saveDialog.fadeOut(200);
     cancelButton.fadeOut(200);
   }
-      
+
   function toggleCheckbox() {
     var a = $(this).nextAll('span').first();
 
-    a.html(a.attr(this.checked?'data-on':'data-off'));      
+    a.html(a.attr(this.checked?'data-on':'data-off'));
   }
 
   function addFile() {
@@ -712,7 +712,7 @@
             ['string'],
             [currentPath+fileName]
           );
-          
+
           if (e) {
             throw new Module.FS.ErrnoError(e);
           }
@@ -720,7 +720,7 @@
         catch(e) {
           alert(e.message);
         }
-        Module.FS.syncfs(false, refreshFolder);        
+        Module.FS.syncfs(false, refreshFolder);
       }
       else {
         alert("failed");
@@ -765,14 +765,14 @@
 
     wrapper.html('<span><input type="file" title="Upload file"/></span>');
 
-    Module.FS.syncfs(false, refreshFolder);   
+    Module.FS.syncfs(false, refreshFolder);
   }
-  
+
   function selectAllClick() {
     $('.currentFolder button').addClass('selected');
     updateSelection();
   }
-  
+
   function deleteEntry() {
     var a = $(this);
 
@@ -794,10 +794,10 @@
 
     $('.selected').removeClass('selected');
     updateSelection();
-    
-    Module.FS.syncfs(false, refreshFolder); //webfs to indexeddb 
+
+    Module.FS.syncfs(false, refreshFolder); //webfs to indexeddb
   }
-  
+
   function renameEntry() {
     var
       a = $('.selected:first'),
@@ -826,7 +826,7 @@
               ['string'],
               [currentPath+newName]
             );
-            
+
             if (e) {
               throw new Module.FS.ErrnoError(e);
             }
@@ -853,7 +853,7 @@
 
     $('.selected').removeClass('selected');
     updateSelection();
-    
+
     Module.FS.syncfs(false, refreshFolder);
   }
 
@@ -922,12 +922,12 @@
 
     $('#scroller2').css("width","auto").width(width);
   }
-  
+
   function refreshFolder() {
     populateFolder();
     refreshIScroll();
   }
-  
+
   function refreshIScroll() {
     myScroll.refresh();
     myScroll2.refresh();
@@ -957,17 +957,17 @@
   function formatFileSize(bytes) {
     var size = ['bytes','kB','MB','GB','TB','PB','EB','ZB','YB'];
     var factor = Math.floor(((""+bytes).length - 1) / 3);
-    
+
     return ""+round(bytes / Math.pow(1000, factor), 1) + " " + size[factor];
   }
 
   function doNothing() {
 
   }
-  
+
   function messageHandler(e) {
     e = JSON.parse(e.data);
-    
+
     switch(e.messageType) {
       case MSGS.IDB_STATUS: { //returns whether IndexedDB is available in the worker
         workerIDBStatusRecieved(e.data);
@@ -976,11 +976,11 @@
       case MSGS.FAKE_IDB_UPDATED: { //the copy of the indexedDB in the worker is now synchronized
         workerIDBUpdated();
       } break;
-      
+
       case MSGS.OUTPUT_TEXT: {   //output to console
         output_text(e.data.text, e.data.isStderr);
       } break;
-      
+
       case MSGS.COMMAND_FINISHED: {   //the command we asked the worker to run has completed. store any file contents returned  into IndexedDB
         commandFinished(e.data);
       } break;
@@ -992,43 +992,43 @@
 
     consoleRefresh(true);
   }
-  
+
   function fromEmscripten(create, remove) {
     stringifyAndPost(MSGS.UPDATE_FAKE_IDB, {
       create: create,
       remove: remove
     });
   }
-  
+
   function toEmscriptenReciever(a) {
     toEmscripten = a;
   }
-  
+
   function newWorker() {
     worker = new Worker(WORKERFILENAME);
-    
+
     stringifyAndPost = stringifyAndPostFactory(worker, JSON);
     worker.addEventListener('message', messageHandler, false);
   }
 
   function runCommand(commandLine) {
     commandsToRun.push(commandLine);
-    
+
     if(!!usingFakeIDB !== usingFakeIDB) {   //only do this on page load. The worker might be terminated and replaced later though
       stringifyAndPost(MSGS.TEST_FOR_IDB, null);
       return;
     }
-    
+
     continueRunCommand();
   }
-  
+
   function workerIDBStatusRecieved(IDBAvailable) {
     //serialise the indexedDB data then send it to the worker in a message
     usingFakeIDB = IDBAvailable;
-    
+
     continueRunCommand();
   }
-  
+
   function continueRunCommand() {
     if (usingFakeIDB) {
       Module.FS.syncfs(3, doNothing); //memfs to worker
@@ -1037,11 +1037,11 @@
       Module.FS.syncfs(false, workerIDBUpdated); //memfs to indexedDB
     }
   }
-  
+
   function workerIDBUpdated() {
     stringifyAndPost(MSGS.RUN_COMMAND, commandsToRun.shift());
   }
-  
+
   function commandFinished(data) {
     if(usingFakeIDB) {
       toEmscripten(false, data.created, data.removed);
@@ -1055,12 +1055,12 @@
   function persistLocal() {
     Module.FS.syncfs(false, populateFolder); //memfs to indexeddb
   }
-  
+
   function terminateWorker() {
     worker.terminate();
-    
+
     newWorker();
-    
+
     if(usingFakeIDB) {
       toEmscripten(true); //reset the cache of web worker files
     }
@@ -1080,7 +1080,7 @@
       mouseWheel : true,
       tap: true
     }),
-    
+
     myScroll3 = new IScroll('#folder2', {
       bounce : false,
       deceleration : 0.0001,
@@ -1133,7 +1133,7 @@
     myScroll.on('scrollStart', stopTap);
     myScroll3.on('scrollCancel', stopTap);
     myScroll3.on('scrollStart', stopTap);
-  
+
     $('#folder1, #folder2').
       on('mousedown pointerdown touchstart', 'button', startTap).
       on('animationend', 'button', longTap).
@@ -1182,7 +1182,7 @@
 
     // sync from persisted state into memory and then
     // refresh the folder view
-    Module.FS.syncfs(true, loadSettings); //indexeddb to local 
+    Module.FS.syncfs(true, loadSettings); //indexeddb to local
   }
 
   function loadSettings() {
@@ -1237,7 +1237,7 @@
     $('#sortBy').on('change', changeSortBy).val(settings.sortBy);
     $('#ascending').on('change', changeAscending).prop('checked', settings.isDescending).each(toggleCheckbox);
     $('#usePicup').on('change', changePicup).prop('checked', settings.usePicup).each(toggleCheckbox);
-    
+
     //if the url is "/", or doesn't begin with "/Documents" doesn't refer to a folder or doesn't exist then set it to "/Documents"
     var url = decodeURIComponent(History.getState().hash.replace(/\?.*/, "")).replace(/\/(\/)*/g, "/").replace(/\/$/, "");
 

@@ -7,8 +7,8 @@ b, u, i, center,
 dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed, 
-figure, figcaption, footer, header, hgroup, 
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
 	margin: 0;
@@ -21,7 +21,7 @@ time, mark, audio, video {
   max-height:999999px;
 }
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
+article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
 	display: block;
 }
@@ -255,7 +255,7 @@ body {
   font-size: 37px;
   font-weight:normal;
   vertical-align:bottom;
-  
+
 }
 
 .header .icon.upload:before {
@@ -481,13 +481,13 @@ body {
   transform: translate(0,-40%);
   width:100%;
 }
- 
+
 .fileAction {
   display: inline-block;
   position:relative;
   font-size: 16px;
   background:none!important;
-  border:none; 
+  border:none;
   padding:0!important;
   height: 90px;
   width: 100px;
@@ -609,7 +609,7 @@ input[type=radio] + label,
 input[type=checkbox] + label {
   cursor: pointer;
 }
- 
+
 @media (min-width: 1px) {
   input[type=radio],
   input[type=checkbox] {
@@ -645,7 +645,7 @@ input[type=checkbox] + label {
     content: "";
     position: absolute;
     right: 4%;
-    top: 50%;    
+    top: 50%;
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     display: block;

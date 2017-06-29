@@ -16,14 +16,14 @@ int parse_columnRefUnsuccessful(
   if(queryData->parseMode != 1) {
     free(tableName);
     free(columnName);
-    
+
     *result = NULL;
     return FALSE; /* successful, but only because we don't really care about getting column references when in parse mode 0 */
   }
 
   /* look up the specified column name in the hash table */
   currentReference = hash_lookupString(queryData->columnReferenceHashTable, columnName);
-  
+
   /* if a table name was specified, try to find the first column reference */
   /* in the list thats of type 1 with a matching table name and return that */
   if(tableName != NULL) {
@@ -39,7 +39,7 @@ int parse_columnRefUnsuccessful(
       currentReference = currentReference->nextReferenceWithName;
     }
   }
-  
+
   /* does the match contain a subsequent match of the same type? */
   /* if the match contains a subsequent match of the same type, then the name is ambiguous so trigger an error */
   else if(
@@ -47,7 +47,7 @@ int parse_columnRefUnsuccessful(
       currentReference->nextReferenceWithName != NULL &&
       currentReference->nextReferenceWithName->referenceType == currentReference->referenceType
     ) {
-      
+
     /* the column name was ambiguous */
     currentReference = NULL;
   }
@@ -72,7 +72,7 @@ int parse_columnRefUnsuccessful(
         /*aggregationType = */GRP_NONE
       );
   }
-  
+
   *result = currentReference;
   return currentReference == NULL;
 }

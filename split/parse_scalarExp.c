@@ -29,12 +29,12 @@ struct expression *parse_scalarExp(
 
     expressionPtr->containsAggregates = leftPtr->containsAggregates;
   }
-  
+
   else if(rightPtr->minTable < leftPtr->minTable ||
     (rightPtr->minTable == leftPtr->minTable &&
     rightPtr->minColumn < leftPtr->minColumn)
   ) {
-      
+
     /* if the operator is commutable, then re-order so that the minimum table reference is on the left */
     if(
         operator == EXP_PLUS ||

@@ -19,7 +19,7 @@ int realmain(int argc, char **argv) {
   //I believe this type coercion is valid in emscripten.
   //It should always print 0
   printf("%d\n", (int)argv[argc]);
-  
+
   return 0;
 }
 //*/
@@ -29,7 +29,7 @@ int wrapmain(char *path, char* filename) {
   static char *argv2[3];
 
   chdir(path);
-  
+
   argv2[0] = "querycsv";
   argv2[1] = filename;
   argv2[2] = NULL;

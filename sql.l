@@ -9,7 +9,7 @@
 %option outfile="lexer.c" header-file="lexer.h"
 
 %option warn nodefault
- 
+
 %option reentrant noyywrap never-interactive nounistd yylineno
 %option bison-bridge
 %%
@@ -143,7 +143,7 @@
 }
 
 \[([^\]]|\]\])*$	{	yyerror2(yylineno, yytext); }
-  
+
 
 	/* numbers */
 
@@ -176,7 +176,7 @@
     yylval->strval = strReplace("''", "'", yytext+1);
     return STRING;
 }
-		
+
 '([^']|'')*$	{	yyerror2(yylineno, yytext); }
 
 [ \t\r\n]+	/* white space */

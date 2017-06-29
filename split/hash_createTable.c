@@ -15,7 +15,7 @@ struct columnReferenceHash *hash_createTable(int size) {
   if ((new_table = malloc(sizeof(struct columnReferenceHash))) == NULL) {
       return NULL;
   }
-    
+
   /* Attempt to allocate memory for the table itself */
   if ((new_table->table = malloc(sizeof(struct columnReference *) * size)) == NULL) {
       return NULL;

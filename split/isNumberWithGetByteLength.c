@@ -21,7 +21,7 @@ int isNumberWithGetByteLength(
     if(*string == '-' || *string == '+') {
       string++;
     }
-    
+
     while(
       (*string >= '0' && *string <= '9') ||
       (decimalNotFound && (*string == '.' || *string == ',') &&

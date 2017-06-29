@@ -21,7 +21,7 @@ var WORKERFILENAME = 'worker.js';
       c = function() {
         a('main.js');
       };
-      
+
     a([
         'extern/jquery-1.11.3.js'
       ], b);

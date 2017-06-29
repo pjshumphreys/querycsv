@@ -13,7 +13,7 @@ void parse_orderingSpec(
   if(queryData->parseMode != 1) {
     return;
   }
-  
+
   reallocMsg(
       (void**)&(sortingListPtr),
       sizeof(struct sortingList)
