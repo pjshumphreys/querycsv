@@ -159,8 +159,9 @@
 
 #ifdef MPW_C
   void macYield(void);
-  #define MAC_YIELD
-  /* macYield(); */
+  #define MAC_YIELD /*
+  macYield();
+  */
   #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
   #define DEVNULL2 "/dev/null"  /* needed as the carbon build can run on OS X */
   #define YY_NO_UNISTD_H 1
@@ -169,6 +170,8 @@
     #undef stricmp   /* this function is available on windows but doesn't work properly there */
     #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
   #endif
+
+  #define main realmain /*macs need to do pre and post handling, but SIO (which I previously used) doesn't seem to work with Carbon */
   #define ENC_INPUT ENC_MAC
   #define ENC_OUTPUT ENC_MAC
 #endif

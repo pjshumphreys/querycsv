@@ -27,7 +27,7 @@ character set specifiers required in the grammar:
 * the output (utf8)
 
 
-if the platform is not one of win32, linux, html5 or powermac and the query file doesn't specify an output file or encoding then the 8bit one is used for output to stdout (because the environment doesn't have native unicode support). 
+if the platform is not one of win32, linux, html5 or powermac and the query file doesn't specify an output file or encoding then the 8bit one is used for output to stdout (because the environment doesn't have native unicode support).
 
 iconv may also be compiled in, in which case every encoding the implementation supports becomes available (I'd like to do this for everything other than the c64 and dos builds)
 

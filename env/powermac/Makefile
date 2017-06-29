@@ -11,7 +11,7 @@ Includes        =
 
 Sym-PPC         = -sym on
 
-PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON 
+PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON
 
 
 ### Source Files ###
@@ -22,7 +22,9 @@ SrcFiles        =  ¶
 				  hash1.c ¶
 				  hash2.c ¶
 				  hash3.c ¶
-				  hash4.c ¶
+				  hash4a.c ¶
+				  hash4b.c ¶
+				  hash4c.c ¶
 				  querycsv.c ¶
 				  powermac.c
 
@@ -36,6 +38,7 @@ RezFiles        =  ¶
 ObjFiles-PPC    =  ¶
 				  "{ObjDir}lexer.c.x" ¶
 				  "{ObjDir}sql.c.x" ¶
+				  "{ObjDir}hash1.c.x" ¶
 				  "{ObjDir}hash2.c.x" ¶
 				  "{ObjDir}hash3.c.x" ¶
 				  "{ObjDir}hash4a.c.x" ¶
@@ -48,12 +51,13 @@ ObjFiles-PPC    =  ¶
 ### Libraries ###
 
 LibFiles-PPC    =  ¶
-				  "{PPCLibraries}PPCSIO.o" ¶
+				  "{PPCLibraries}CarbonStdCLib.o" ¶
+				  "{PPCLibraries}StdCRuntime.o" ¶
+				  "{PPCLibraries}PPCCRuntime.o" ¶
+				  "{PPCLibraries}PPCToolLibs.o" ¶
 				  "{SharedLibraries}CarbonLib" ¶
-					"{SharedLibraries}StdCLib" ¶
-					"{SharedLibraries}MathLib" ¶
-					"{PPCLibraries}StdCRuntime.o" ¶
-					"{PPCLibraries}PPCCRuntime.o"
+				  "{SharedLibraries}StdCLib" ¶
+				  "{SharedLibraries}MathLib"
 
 
 ### Default Rules ###
@@ -61,8 +65,8 @@ LibFiles-PPC    =  ¶
 .c.x  Ä  .c  {¥MondoBuild¥}
 	{PPCC} {depDir}{default}.c -o {targDir}{default}.c.x {PPCCOptions}
 
-### Build Rules ###
 
+### Build Rules ###
 all Ä QueryCSV
 
 QueryCSV  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
@@ -72,8 +76,8 @@ QueryCSV  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
 		{LibFiles-PPC} ¶
 		{Sym-PPC} ¶
 		-mf -d ¶
-		-t 'APPL' ¶
-		-c 'qcsv'
+		-t APPL ¶
+		-c qcsv
 
 QueryCSV  ÄÄ  {¥MondoBuild¥}
 	Rez -rd {RezFiles} -o {Targ} -append
@@ -81,14 +85,16 @@ QueryCSV  ÄÄ  {¥MondoBuild¥}
 
 ### Required Dependencies ###
 
-"{ObjDir}mac.c.x"  Ä  mac.c
 "{ObjDir}lexer.c.x"  Ä  lexer.c
 "{ObjDir}sql.c.x"  Ä  sql.c
 "{ObjDir}hash1.c.x"  Ä  hash1.c
 "{ObjDir}hash2.c.x"  Ä  hash2.c
 "{ObjDir}hash3.c.x"  Ä  hash3.c
-"{ObjDir}hash4.c.x"  Ä  hash4.c
+"{ObjDir}hash4a.c.x"  Ä  hash4a.c
+"{ObjDir}hash4b.c.x"  Ä  hash4b.c
+"{ObjDir}hash4c.c.x"  Ä  hash4c.c
 "{ObjDir}querycsv.c.x"  Ä  querycsv.c
+"{ObjDir}powermac.c.x"  Ä  powermac.c
 
 
 ### Optional Dependencies ###
@@ -99,6 +105,12 @@ Dependencies  Ä  $OutOfDate
 		-append {MAKEFILE} ¶
 		-ignore "{CIncludes}" ¶
 		-objdir "{ObjDir}" ¶
-		-objext .o ¶
+		-objext .x ¶
 		{Includes} ¶
 		{SrcFiles}
+
+Clean		Ä	$OutOfDate
+	Delete -i -y ¶
+		{ObjFiles-PPC} ¶
+		QueryCSV
+

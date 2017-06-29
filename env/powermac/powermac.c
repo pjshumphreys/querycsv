@@ -18,15 +18,14 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <ctype.h>
 
-#include <MacWindows.h>
-
 #if TARGET_API_MAC_CARBON
 
-#if __MACH__
+#ifdef __MACH__
 #include <Carbon/Carbon.h>
 #else
 #include <Carbon.h>
@@ -48,10 +47,49 @@
 #include <Menus.h>
 #include <ControlDefinitions.h>
 #include <Scrap.h>
-#include <MacTextEditor.h>
 #endif
 
-#include <SIO.h>
+int main(void);
+void initialize(void);
+void setupMLTE(void);
+void alertUser(short error);
+void loopTick(void);
+void handleEvent(EventRecord *event);
+void adjustCursor(RgnHandle region);
+void growWindow(WindowPtr window, EventRecord *event);
+void zoomWindow(WindowPtr window, short part);
+void repaintWindow(WindowPtr window);
+void activateWindow(WindowPtr window, Boolean becomingActive);
+void contentClick( WindowPtr window, EventRecord *event);
+static UInt32 GetSleep(void);
+void idleWindow(void);
+void setupMenus(void);
+void adjustMenus(void);
+void menuSelect(long menuResult);
+void DoJustification(WindowPtr window, short menuItem);
+OSStatus openWindow();
+Boolean closeWindow( WindowPtr window);
+void Terminate(void);
+void BigBadError(short error);
+Boolean isApplicationWindow(WindowPtr window);
+Boolean isDeskAccessory(WindowPtr window);
+void setupAppleEvents(void);
+pascal OSErr appleEventOpenApp(
+    const AppleEvent *theAppleEvent,
+    AEDescList *reply,
+    long handlerRefCon);
+pascal OSErr appleEventOpenDoc(
+    const AppleEvent *theAppleEvent,
+    AEDescList *reply,
+    long handlerRefCon);
+pascal OSErr appleEventPrintDoc(
+    const AppleEvent *theAppleEvent,
+    AEDescList *reply,
+    long handlerRefCon);
+pascal OSErr appleEventQuit(
+    const AppleEvent *theAppleEvent,
+    AEDescList *reply,
+    long handlerRefCon);
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
 #if TARGET_API_MAC_TOOLBOX
@@ -59,28 +97,18 @@
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
 
-#include "mac.h"
+#include "powermac.h"
 
-enum {
-  sApplicationName = 1,
-  sTranslationLockedErr,
-  sTranslationErr,
-  sOpeningErr,
-  sReadErr,       // 5
-  sWriteToBusyFileErr,
-  sBusyOpen,
-  sChooseFile,
-  sChooseFolder,
-  sChooseVolume,      // 10
-  sCreateFolder,
-  sChooseObject,
-  sSaveCopyMessage,
-  slSavePromptIndex,
-  slClosingIndex,     // 15
-  slQuittingIndex,
-  sAddRemoveTitle,
-  sLowMemoryErr
-};
+#undef main
+int realmain(int argc, char **argv);
+
+#define iDefaultJustify     1
+#define iLeftJustify      2
+#define iRightJustify     3
+#define iCenterJustify      4
+#define iFullJustify      5
+#define iForceJustify     6
+#define iAutoWrap       8
 
 /*
   A DocumentRecord contains the WindowRecord for one of our document windows,
@@ -89,8 +117,8 @@ enum {
   Window Manager and Dialog Manager add fields after the GrafPort.
 */
 typedef struct {
-  TXNObject			fMLTEObject;	// our text
-	TXNFrameID		fMLTEFrameID;
+  TXNObject     fMLTEObject;  // our text
+  TXNFrameID    fMLTEFrameID;
   //TEHandle      docTE;
   //ControlHandle docVScroll;
   //ControlHandle docHScroll;
@@ -117,18 +145,14 @@ kTXNMonostyledTextMaske = 1 << 17;
 #define kOpenPrefKey      1
 #define kMaxDocumentCount   100   // maximum number of documents allowed
 
+TXNFontMenuObject gTXNFontMenuObject;
+
+const short kStartHierMenuID = 160;
+
 #define TRUE 1
 #define FALSE 0
 
-/*
-  Define TopLeft and BotRight macros for convenience. Notice the implicit
-  dependency on the ordering of fields within a Rect
-*/
-#define TopLeft(aRect) (* (Point *) &(aRect).top)
-#define BotRight(aRect) (* (Point *) &(aRect).bottom)
-
 /* TODO: do something about these ugly global variables. What are they even for anyway? */
-WindowPtr mainWindowPtr;
 const short appleM = 0;
 const short fileM = 1;
 const short editM = 2;
@@ -202,18 +226,25 @@ Boolean gInBackground;
   of the horizontal scrollbar is pressed. */
 #define kButtonScroll     4
 
-WindowPtr mainWindowPtr = nil;
+/*
+  gNumDocuments is used to keep track of how many open documents there are
+  at any time. It is maintained by the routines that open and close documents.
+  It is maintained by Initialize, DoNew, and DoCloseWindow
+*/
+short gNumDocuments;
+
+WindowPtr mainWindowPtr = NULL;
 DocumentRecord mainWindowDoc;
-
-//  A reference to our assembly language routine that gets attached to the clikLoop
-//  field of our TE record.
-extern pascal void AsmClikLoop(void);
-
-char *strdup(const char *s);
 
 #define ENC_UTF16BE 9
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 OSStatus openFileDialog(void);
+
+/* how to treat filenames that are fopened */
+CFURLRef baseFolder;
+SInt32 macOSVersion;
+CFStringEncoding enc;
+int mallocedFileName;
 
 // ---------------------------------------------------------------------------
 //      € stricmp
@@ -247,32 +278,20 @@ int stricmp(const char *str1, const char *str2) {
   return(c1 - c2);
 }
 
-/*
-  SIO needs this, so create a quick and dirty implementation
-  (it probably won't call it anyway)
-*/
-Boolean equalstring(
-  const char *  str1,
-  const char *  str2,
-  Boolean       caseSensitive,
-  Boolean       diacSensitive) {
-  if(caseSensitive) {
-    return strcmp(str1, str2) == 0;
-  }
-
-  return stricmp(str1, str2) == 0;
-}
-
 //Check to see if a window belongs to a desk accessory.
 Boolean isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
-  return window == nil?false:(GetWindowKind(window) < 0);
+  return (window == NULL) && (GetWindowKind(window) < 0);
 }
 
 //Check to see if a window is an application one (???).
 Boolean isApplicationWindow(WindowPtr window) {
   //application windows have windowKinds = userKind (8)
-  return window == nil?false:(GetWindowKind(window) == userKind);
+  return (window != NULL) && (GetWindowKind(window) == userKind);
+}
+
+TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
+  GetWindowProperty(window, 'GRIT', 'tObj', sizeof(TXNObject), NULL, object);
 }
 
 Rect getWindowBounds(WindowPtr window) {
@@ -316,7 +335,7 @@ void alertUser(short error) {
   //type Str255 is an array in MPW 3
   GetIndString(message, kErrStrings, error);
   ParamText(message, (unsigned char *)"", (unsigned char *)"", (unsigned char *)"");
-  Alert(rUserAlert, nil);
+  Alert(rUserAlert, NULL);
 }
 
 void alertUserNum(int value) {
@@ -335,7 +354,7 @@ void alertUserNum(int value) {
   c2pstr((char*)message);
 
   ParamText(message, (unsigned char *)"", (unsigned char *)"", (unsigned char *)"");
-  Alert(rUserAlert, nil);
+  Alert(rUserAlert, NULL);
 }
 
 void BigBadError(short error) {
@@ -343,118 +362,27 @@ void BigBadError(short error) {
   ExitToShell();
 }
 
-static pascal OSErr appleEventOpenApp(
+pascal OSErr appleEventOpenApp(
     const AppleEvent *theAppleEvent,
-    AppleEvent *reply,
+    AEDescList *reply,
     long handlerRefCon
 ) {
+#pragma unused (theAppleEvent, reply, handlerRefCon)
   return noErr;
 }
 
-static pascal OSErr appleEventPrintDoc(
+pascal OSErr appleEventPrintDoc(
     const AppleEvent *theAppleEvent,
-    AppleEvent *reply,
+    AEDescList *reply,
     long handlerRefCon
 ) {
-  return noErr;
+#pragma unused (theAppleEvent, reply, handlerRefCon)
+  return errAEEventNotHandled;
 }
 
-CFURLRef baseFolder;
-SInt32 macOSVersion;
-CFStringEncoding enc;
-int mallocedFileName;
-
-FILE *fopen_mac(const char *filename, const char *mode) {
-  char* absolutePath = NULL;
-  FILE * retval;
-  CFIndex neededLen;
-  CFIndex usedLen;
-  CFRange range;
-  CFStringRef text1;
-  CFURLRef cfabsolute;
-  CFStringRef text2;
-
-  text1 = CFStringCreateWithCStringNoCopy(
-    NULL,
-    filename,
-    kCFStringEncodingUTF8,
-    kCFAllocatorNull
-  );
-
-  if(text1 == NULL) {
-    text1 = CFStringCreateWithCString(
-      NULL,
-      filename,
-      kCFStringEncodingUTF8
-    );
-
-    if(text1 == NULL) {
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
-    kCFAllocatorDefault,
-    text1,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
-    FALSE,
-    baseFolder
-  );
-
-  text2 = CFURLCopyFileSystemPath(
-    cfabsolute,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
-  );
-
-  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
-    retval = fopen(absolutePath, mode);
-  }
-  else {
-    neededLen = 0;
-    usedLen = 0;
-    range = CFRangeMake(0, CFStringGetLength(text2));
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      NULL,
-      0,
-      &neededLen
-    );
-
-    reallocMsg(&absolutePath, neededLen + 1);
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      (UInt8 *)absolutePath,
-      neededLen,
-      &usedLen
-    );
-
-    absolutePath[usedLen] = 0;
-
-    retval = fopen(absolutePath, mode);
-
-    free(absolutePath);
-  }
-
-  CFRelease(text1);
-  CFRelease(cfabsolute);
-  CFRelease(text2);
-
-  return retval;
-}
-
-static pascal OSErr appleEventOpenDoc(
+pascal OSErr appleEventOpenDoc(
     const AppleEvent *theAppleEvent,
-    AppleEvent *reply,
+    AEDescList *reply,
     long handlerRefCon
 ) {
   AEDescList  docList;
@@ -526,7 +454,7 @@ static pascal OSErr appleEventOpenDoc(
             &neededLen
           );
 
-          reallocMsg(&fileName, neededLen + 1);
+          reallocMsg((void**)&fileName, neededLen + 1);
 
           CFStringGetBytes(
             cfFilename,
@@ -592,12 +520,13 @@ static pascal OSErr appleEventOpenDoc(
   return noErr;
 }
 
-static pascal OSErr appleEventQuit(
-    const AppleEvent *appleEvt,
-    AppleEvent* reply,
-    long refcon
-  ) {
-
+pascal OSErr appleEventQuit(
+    const AppleEvent *theAppleEvent,
+    AEDescList *reply,
+    long handlerRefCon
+) {
+#pragma unused (theAppleEvent, reply, handlerRefCon)
+  Terminate();
   quit = true;
   return noErr;
 }
@@ -616,37 +545,67 @@ void setupAppleEvents(void) {
     AEInstallEventHandler(
         kCoreEventClass,
         kAEOpenApplication,
-        NewAEEventHandlerProc(appleEventOpenApp),
+        NewAEEventHandlerUPP(appleEventOpenApp),
         0,
         false
       ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEOpenDocuments,
-        NewAEEventHandlerProc(appleEventOpenDoc),
+        NewAEEventHandlerUPP(appleEventOpenDoc),
         0,
         false
       ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEPrintDocuments,
-        NewAEEventHandlerProc(appleEventPrintDoc),
+        NewAEEventHandlerUPP(appleEventPrintDoc),
         0,
         false
       ) != noErr ||
     AEInstallEventHandler(
-        kCoreEventClass,
-        kAEQuitApplication,
-        NewAEEventHandlerProc(appleEventQuit),
-        0,
-        false
-      ) != noErr
+      kCoreEventClass,
+      kAEQuitApplication,
+      NewAEEventHandlerUPP(appleEventQuit),
+      0,
+      false
+    ) != noErr
   ) {
-    raise(SIGABRT);
+    ExitToShell();
+  }
+}
+
+void setupMLTE(void) {
+  OSStatus status;
+  TXNMacOSPreferredFontDescription defaults;
+  TXNInitOptions options;
+
+  if(TXNVersionInformation == (void*)kUnresolvedCFragSymbolAddress) {
+    BigBadError(eWrongSystem);
+  }
+
+  defaults.fontID = kTXNDefaultFontName;
+  defaults.pointSize = kTXNDefaultFontSize;
+
+  defaults.encoding = CreateTextEncoding(
+    kTextEncodingMacRoman,
+    kTextEncodingDefaultVariant,
+    kTextEncodingDefaultFormat
+  );
+
+  defaults.fontStyle  = kTXNDefaultFontStyle;
+
+  options = kTXNWantMoviesMask | kTXNWantSoundMask | kTXNWantGraphicsMask;
+
+  status = TXNInitTextension(&defaults, 1, options);
+
+  if(status != noErr) {
+    BigBadError(eNoMLTE);
   }
 }
 
 void setupMenus(void) {
+  OSStatus err;
   MenuRef menu;
   MenuHandle myMenus[5];
   long result;
@@ -655,7 +614,7 @@ void setupMenus(void) {
   myMenus[appleM] = GetMenu(mApple);
 
 #if TARGET_API_MAC_TOOLBOX
-  AddResMenu(myMenus[appleM],'DRVR'); // System-provided Desk Accessories menu
+  AddResMenu(myMenus[appleM], 'DRVR'); // System-provided Desk Accessories menu
 #endif
 
   myMenus[fileM]  = GetMenu(mFile);
@@ -667,6 +626,7 @@ void setupMenus(void) {
     InsertMenu(myMenus[i], 0);
   }
 
+  macOSVersion = 0x0800;
 #if TARGET_API_MAC_CARBON
   //In OS X, 'Quit' moves from File to the Application Menu
   if(
@@ -675,11 +635,20 @@ void setupMenus(void) {
     ) {
     menu = GetMenuHandle(mFile);
     DeleteMenuItem(menu, mFileQuit);
+    macOSVersion = 0x1000;
   }
 #endif
 
-  menu = GetMenuHandle(mFont);
-  AppendResMenu(menu, 'FONT');
+  err = TXNNewFontMenuObject(
+    GetMenuHandle(mFont),
+    mFont,
+    kStartHierMenuID,
+    &gTXNFontMenuObject
+  );
+
+  if(err != noErr) {
+    BigBadError(eNoMemory);
+  }
 
   DrawMenuBar();
 }
@@ -691,7 +660,7 @@ void restoreSettings(void) {
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh = GetString(rZoomPrefStr);
   if (strh != (StringHandle) nil) {
-    memcpy(fontName, *strh, 256);
+    memcpy((void *)fontName, (void *)*strh, 256);
     p2cstr(fontName);
     windowZoomed = atoi((char *)fontName);
     ReleaseResource((Handle)strh);
@@ -700,7 +669,7 @@ void restoreSettings(void) {
   //font size (in a bit of a roundabout way but I know this'll work)
   strh = GetString(rFontSizePrefStr);
   if (strh != (StringHandle) nil) {
-    memcpy(fontName, *strh, 256);
+    memcpy((void *)fontName, (void *)*strh, 256);
     p2cstr(fontName);
     fontSizeIndex = atoi((char *)fontName);
     ReleaseResource((Handle)strh);
@@ -709,7 +678,7 @@ void restoreSettings(void) {
   //font name
   strh = GetString(rFontPrefStr);
   if (strh != (StringHandle) nil) {
-    memcpy(fontName, *strh, 256);
+    memcpy((void *)fontName, (void *)*strh, 256);
     ReleaseResource((Handle)strh);
   }
 }
@@ -722,7 +691,7 @@ void saveSettings(void) {
   //font name
   strh = GetString(rFontPrefStr);
   if (strh != (StringHandle) nil) {
-    memcpy(*strh, fontName, 256);
+    memcpy((void *)*strh, (void *)fontName, 256);
     ChangedResource((Handle)strh);
     WriteResource((Handle)strh);
     ReleaseResource((Handle)strh);
@@ -734,7 +703,7 @@ void saveSettings(void) {
   if (strh2 != (StringHandle) nil) {
     sprintf((char *)str, "%d", windowZoomed);
     c2pstr((char *)str);
-    memcpy(*strh2, str, 256);
+    memcpy((void *)*strh2, (void *)str, 256);
     ChangedResource((Handle)strh2);
     WriteResource((Handle)strh2);
     ReleaseResource((Handle)strh2);
@@ -745,7 +714,7 @@ void saveSettings(void) {
   if (strh2 != (StringHandle) nil) {
     sprintf((char *)str, "%d", fontSizeIndex);
     c2pstr((char *)str);
-    memcpy(*strh2, str, 256);
+    memcpy((void *)*strh2, (void *)str, 256);
     ChangedResource((Handle)strh2);
     WriteResource((Handle)strh2);
     ReleaseResource((Handle)strh2);
@@ -765,79 +734,28 @@ void initialize(void) {
 
   InitCursor();
 
-  FlushEvents(everyEvent, 0);
-
-	/* get operating system version, used to tell whether os x is being used */
-  Gestalt(gestaltSystemVersion, &macOSVersion);
+  setupAppleEvents();
 
   /* get the system default encoding. used by the fopen wrapper */
   enc = CFStringGetSystemEncoding();
 
-  /* initialize MLTE */
-  if (TXNInitTextension(NULL, 0, kNilOptions) != NULL) {
-    alertUser(eWrongMachine);
-  }
-
-  setupAppleEvents();
+  setupMLTE();
 
   setupMenus();
 
   restoreSettings();
 
   gInBackground = false;
+  gNumDocuments = 0;
 }
 
-void adjustCursor(Point mouse, RgnHandle region) {
-  WindowPtr   window;
-  RgnHandle   arrowRgn;
-  RgnHandle   iBeamRgn;
-  Rect        iBeamRect;
+void adjustCursor(RgnHandle region) {
+  WindowPtr window = FrontWindow();
+  TXNObject object = NULL;
 
-  window = FrontWindow();   //we only adjust the cursor when we are in front
-
-  if (!gInBackground && !isDeskAccessory(window)) {
-    //change remove everything in   here and replace it with
-    // TXNAdjustCursor we pass NULL for the cursor region
-    // because we are letting MLTE handle all of that.
-    TXNAdjustCursor(((DocumentPeek)GetWRefCon(window))->fMLTEObject, region);
-/*
-    //calculate regions for different cursor shapes
-    arrowRgn = NewRgn();
-    iBeamRgn = NewRgn();
-
-    //start arrowRgn wide open
-    SetRectRgn(arrowRgn, kExtremeNeg, kExtremeNeg, kExtremePos, kExtremePos);
-
-    //calculate iBeamRgn
-    if (isApplicationWindow(window)) {
-      iBeamRect = (*((DocumentPeek) window)->docTE)->viewRect;
-
-      SetPort(window);        //make a global version of the viewRect
-      LocalToGlobal(&TopLeft(iBeamRect));
-      LocalToGlobal(&BotRight(iBeamRect));
-      RectRgn(iBeamRgn, &iBeamRect);
-
-      //we temporarily change the port's origin to 'globalfy' the visRgn
-      SetOrigin(-window->portBits.bounds.left, -window->portBits.bounds.top);
-      SectRgn(iBeamRgn, window->visRgn, iBeamRgn);
-      SetOrigin(0, 0);
-    }
-
-    //subtract other regions from arrowRgn
-    DiffRgn(arrowRgn, iBeamRgn, arrowRgn);
-
-    //change the cursor and the region parameter
-    if (PtInRgn(mouse, iBeamRgn)) {
-      SetCursor(*GetCursor(iBeamCursor));
-      CopyRgn(iBeamRgn, region);
-    }
-    else {
-      SetCursor(&qd.arrow);
-      CopyRgn(arrowRgn, region);
-    }
-
-    DisposeRgn(arrowRgn);
-    DisposeRgn(iBeamRgn);*/
+  if(isApplicationWindow(window)) {
+    getTXNObject(window, &object);
+    TXNAdjustCursor(object, region);
   }
 }
 
@@ -846,7 +764,8 @@ void adjustMenus(void) {
   int i, len;
   Boolean found = false;
   Str255 currentFontName;
-  //TEHandle te;
+  WindowPtr window;
+  TXNObject object = NULL;
 
   menu = GetMenuRef(mFile);
   if(!windowNotOpen) {
@@ -855,14 +774,16 @@ void adjustMenus(void) {
     menu = GetMenuRef(mEdit);
     EnableMenuItem(menu, mEditSelectAll);
 
-    //te = ((DocumentPeek) mainWindowPtr)->docTE;
+    window = FrontWindow();
+    if(isApplicationWindow(window)) {
+      getTXNObject(window, &object);
 
-    if(!TXNIsSelectionEmpty(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject)) {
-      //(*te)->selStart < (*te)->selEnd) {
-      EnableMenuItem(menu, mEditCopy);
-    }
-    else {
-      DisableMenuItem(menu, mEditCopy);
+      if(!TXNIsSelectionEmpty(object)) {
+        EnableMenuItem(menu, mEditCopy);
+      }
+      else {
+        DisableMenuItem(menu, mEditCopy);
+      }
     }
   }
 
@@ -902,147 +823,6 @@ void adjustMenus(void) {
   }
 }
 
-/*
-void adjustTE(WindowPtr window) {
-  TEPtr te;
-
-  te = *((DocumentPeek)window)->docTE;
-
-  TEScroll(
-    te->viewRect.left -
-    te->destRect.left -
-    GetControlValue(((DocumentPeek)window)->docHScroll),
-    te->viewRect.top -
-    te->destRect.top -
-    (GetControlValue(((DocumentPeek)window)->docVScroll) * lineHeight2),
-    ((DocumentPeek)window)->docTE
-  );
-}
-
-void adjustViewRect(TEHandle docTE) {
-  TEPtr te;
-
-  te = *docTE;
-
-  te->viewRect.bottom = (
-    (
-      (
-        te->viewRect.bottom - te->viewRect.top
-      ) / lineHeight2
-    ) * lineHeight2
-  ) +
-  te->viewRect.top;
-}
-
-void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean canRedraw) {
-  short oldValue, oldMax, value, max, lines;
-  TEPtr te = *docTE;
-
-  oldValue = GetControlValue(control);
-  oldMax = GetControlMaximum(control);
-
-  if (isVert) {
-    lines = te->nLines;
-
-    if (*(*te->hText + te->teLength - 1) == kCrChar) {
-      lines += 1;
-    }
-
-    max = lines - ((te->viewRect.bottom - te->viewRect.top) / lineHeight2);
-  }
-  else {
-    max = kMaxDocWidth - (te->viewRect.right - te->viewRect.left);
-  }
-
-  if (max < 0) {
-    max = 0;
-  }
-
-  SetControlMaximum(control, max);
-
-  if (isVert) {
-    value = (te->viewRect.top - te->destRect.top) / lineHeight2;
-  }
-  else {
-    value = te->viewRect.left - te->destRect.left;
-  }
-
-  if (value < 0) {
-    value = 0;
-  }
-  else if (value > max) {
-    value = max;
-  }
-
-  SetControlValue(control, value);
-
-  if (
-      canRedraw ||
-      max != oldMax ||
-      value != oldValue
-  ) {
-    ShowControl(control);
-  }
-}
-
-void adjustScrollbarValues(WindowPtr window, Boolean canRedraw) {
-  DocumentPeek doc = (DocumentPeek)window;
-
-  adjustHV(true,  doc->docVScroll, doc->docTE, canRedraw);
-  adjustHV(false, doc->docHScroll, doc->docTE, canRedraw);
-}
-
-void getTERect(WindowPtr window, Rect *teRect) {
-  *teRect = window->portRect;
-  InsetRect(teRect, kTextMargin, kTextMargin);        // adjust for margin
-  teRect->bottom = teRect->bottom - 15;                // and for the scrollbars
-  teRect->right = teRect->right - 15;
-}
-
-void adjustScrollBars(WindowPtr window, Boolean needsResize) {
-  DocumentPeek doc;
-  Rect teRect;
-
-  doc = (DocumentPeek) window;
-
-  //First, turn visibility of scrollbars off so we won't get unwanted redrawing
-  (*doc->docVScroll)->contrlVis = kControlInvisible;
-  (*doc->docHScroll)->contrlVis = kControlInvisible;
-
-  lineHeight2 = TEGetHeight(1, 1, doc->docTE);
-
-  if (needsResize) {    //move & size as needed
-    //start with TERect
-    getTERect(window, &teRect);
-    (*doc->docTE)->viewRect = teRect;
-
-    //snap to nearest line
-    adjustViewRect(doc->docTE);
-
-    MoveControl(doc->docVScroll, window->portRect.right - kScrollbarAdjust, -1);
-    SizeControl(
-        doc->docVScroll,
-        kScrollbarWidth,
-        window->portRect.bottom - window->portRect.top - kScrollbarAdjust - kScrollTweek
-      );
-
-    MoveControl(doc->docHScroll, -1, window->portRect.bottom - kScrollbarAdjust);
-    SizeControl(
-        doc->docHScroll,
-        window->portRect.right - window->portRect.left - kScrollbarAdjust - kScrollTweek,
-        kScrollbarWidth
-      );
-  }
-
-  //mess with max and current value
-  adjustScrollbarValues(window, needsResize);
-
-  //Now, restore visibility in case we never had to ShowControl during adjustment
-  (*doc->docVScroll)->contrlVis = kControlVisible;
-  (*doc->docHScroll)->contrlVis = kControlVisible;
-}
-*/
-
 void saveWindow(WindowPtr window) {
   Rect *rptr;
   Rect windRect;
@@ -1070,317 +850,171 @@ void saveWindow(WindowPtr window) {
   WriteResource(wind);
 }
 
-void closeWindow(WindowPtr window) {
-  //TEHandle te;
+Boolean closeWindow(WindowPtr window) {
+  TXNObject object = NULL;
 
-  if (isApplicationWindow(window)) {
-    //te = ((DocumentPeek) window)->docTE;
+  if(isApplicationWindow(window)) {
+    getTXNObject(window, &object);
 
-    //if (te != nil) {
-    //  // dispose the TEHandle if we got far enough to make one
-    //  TEDispose(te);
-    //}
-
-    // change for this do a TXNDeleteObject
-    if(((DocumentPeek)GetWRefCon(window))->fMLTEObject != nil) {
-      // dispose the TEHandle if we got far enough to make one
-      TXNDeleteObject(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
-    }
-
+    TXNDeleteObject(object);
     DisposeWindow(window);
+    gNumDocuments -= 1;
 
     //As we only only ever have 1 application window, if it's
     //closed then we quit the application
     quit = true;
   }
-}
 
-/*
-void getLocalUpdateRgn(WindowPtr window, RgnHandle localRgn) {
-  // save old update region
-  CopyRgn(((WindowPeek) window)->updateRgn, localRgn);
-
-  OffsetRgn(localRgn, window->portBits.bounds.left, window->portBits.bounds.top);
+  adjustMenus();
+  return true;
 }
-
-void resizedWindow(WindowPtr window) {
-  adjustScrollBars(window, true);
-  adjustTE(window);
-  InvalRect(&window->portRect);
-}
-*/
 
 void growWindow(WindowPtr window, EventRecord *event) {
-  //change replace the guts of this function with a call to TXNGrowWindow
-  TXNGrowWindow(((DocumentPeek)GetWRefCon(window))->fMLTEObject, event);
-  /*
-  long         growResult;
-  Rect         tempRect;
-  RgnHandle    tempRgn;
-  DocumentPeek doc;
+  TXNObject object = NULL;
 
-  //set up limiting values
-  tempRect = getScreenBounds();
-
-  tempRect.left = kMinDocDim;
-  tempRect.top = kMinDocDim;
-
-  growResult = GrowWindow(window, event->where, &tempRect);
-
-  //see if it really changed size
-  if (growResult != 0) {
-    doc = (DocumentPeek) window;
-
-    //save old text box
-    tempRect = (*doc->docTE)->viewRect;
-    tempRgn = NewRgn();
-
-    //get localized update region
-    getLocalUpdateRgn(window, tempRgn);
-    SizeWindow(window, LoWord(growResult), HiWord(growResult), true);
-    resizedWindow(window);
-
-    //calculate & validate the region that hasn't changed so it won't get redrawn
-    SectRect(&tempRect, &(*doc->docTE)->viewRect, &tempRect);
-
-    //take it out of update
-    ValidRect(&tempRect);
-
-    //put back any prior update
-    InvalRgn(tempRgn);
-
-    DisposeRgn(tempRgn);
-  }*/
+  if(isApplicationWindow(window)) {
+    getTXNObject(window, &object);
+    TXNGrowWindow(object, event);
+  }
 }
 
 void zoomWindow(WindowPtr window, short part) {
-	//change replace the guts of this whole function with a call to TXNZoomWindow
-  TXNZoomWindow(((DocumentPeek)GetWRefCon(window))->fMLTEObject, part);
+  TXNObject object = NULL;
 
-  windowZoomed = (part == inZoomOut);
+  if(isApplicationWindow(window)) {
+    //change replace the guts of this whole function with a call to TXNZoomWindow
+    getTXNObject(window, &object);
+    TXNZoomWindow(object, part);
+
+    windowZoomed = (part == inZoomOut);
+  }
 }
 
-void openWindow(void) {
+OSStatus openWindow(void) {
   WindowPtr window;
   DocumentPeek doc;
-  Rect viewRect, destRect;
-  Boolean proceed;
-  OSStatus	status;		//change add an OSStatus
+  TXNObject object;
+  TXNFrameID frameID;
+  Rect frame;
+  OSStatus status = noErr;    //change add an OSStatus
 
-  //attempt to create the window that will contain program output
-  window = GetNewWindow(rDocWindow, nil, (WindowPtr)-1);
+  window = GetNewCWindow(rDocWindow, NULL, (WindowPtr)-1L);
 
-  if (window == nil) {
-    // abort the program
-    raise(SIGABRT);
+  if(window == NULL) {
+    alertUser(eNoWindow);
 
-    // The raising of the abort signal should mean we never get here, but just in case
-    return;
+    return status;
   }
 
-  //set the port (Mac OS boilerplate?)
-  SetPort(GetWindowPort(window));
+  object = NULL;
+  frameID = 0;
 
-  //  cast the window instance into a DocumentPeek structure,
-  //  so we can set up the TextEdit related fields
-  doc = &mainWindowDoc;
+  GetWindowPortBounds(window, &frame);
 
   /* TEXTEDIT STUFF begins here
   ******************************/
-  proceed = false;
 
   //change 9 replace call to TENew with a call to TXNNewObject
   status = TXNNewObject(
-          NULL, /* can be NULL */
-          window,
-          NULL, /* can be NULL */
-          kTXNShowWindowMask|kTXNReadOnlyMask|
-          kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
-          kOutputTextInUnicodeEncodingMask|
-          kTXNMonostyledTextMaske|
-          kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
-          kTXNTextEditStyleFrameType, /* the only valid option */
-          kTXNUnicodeTextFile,
-          kTXNUnicodeEncoding,
-          &(doc->fMLTEObject),
-          &(doc->fMLTEFrameID),
-          NULL
-         );
+    NULL, /* can be NULL */
+    window,
+    &frame, /* can be NULL */
+    kTXNShowWindowMask|kTXNReadOnlyMask|
+    kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
+    kOutputTextInUnicodeEncodingMask|
+    kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
+    kTXNTextEditStyleFrameType, /* the only valid option */
+    kTXNUnicodeTextFile,
+    kTXNUnicodeEncoding,
+    &object,
+    &frameID,
+    NULL
+  );
 
-  SetWRefCon(window, (long) doc);
+  if(status == noErr) {
+    status = TXNAttachObjectToWindow(object, (GWorldPtr)window, true);
 
-  // set up the textedit content size (not the viewport) rectangle
-  //getTERect(window, &viewRect);
-  //destRect = viewRect;
-  //destRect.right = destRect.left + kMaxDocWidth;
-
-  //attempt to create a TextEdit control and bind
-  //it to our window/document structure
-  //doc->docTE = TEStyleNew(&destRect, &viewRect);
-
-  //only proceed if the TextEdit control was successfully created
-  //proceed = doc->docTE != nil;
-
-  /* if(proceed) {
-    // fix up the TextEdit view?
-    adjustViewRect(doc->docTE);
-    TEAutoView(true, doc->docTE);   //TEAutoView controls automatic scrolling
-
-    //backup the original click loop routine then substitute our own.
-    //It seems our substitute routine has to be written in
-    //assembly language as "registers need to be mucked with" (???)
-    doc->docClik = (ProcPtr) (*doc->docTE)->clickLoop;
-    (*doc->docTE)->clickLoop = (TEClickLoopUPP) AsmClikLoop;
-
-    // Attempt to setup vertical scrollbar control
-    doc->docVScroll = GetNewControl(rVScroll, window);
-    proceed = (doc->docVScroll != nil);
+    if(status != noErr) {
+      alertUser(eNoAttachObjectToWindow);
+    }
   }
 
-  if (proceed) {
-    // Attempt to setup horizontal scrollbar control
-    doc->docHScroll = GetNewControl(rHScroll, window);
-    proceed = (doc->docHScroll != nil);
-  }
+  if(status == noErr) {
+    if(object != NULL) {
+      Boolean isAttached;
 
-  if (proceed) {
-    //Adjust & draw the controls, then show the window.
-    //False to adjustScrollValues means musn't redraw; technically, of course,
-    //the window is hidden so it wouldn't matter whether we called ShowControl or not.
-    adjustScrollBars(window, true);
-    adjustScrollbarValues(window, false);
-    ShowWindow(window);
+      status = TXNActivate(object, frameID, kScrollBarsAlwaysActive);
 
-    if(windowZoomed) {
-      zoomWindow(window, inZoomOut);
+      if(status != noErr) {
+        alertUser(eNoActivate);
+      }
+
+      status = SetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), &frameID);
+      status = SetWindowProperty(window, 'GRIT', 'tObj', sizeof(TXNObject), &object);
+
+      isAttached = TXNIsObjectAttachedToWindow(object);
+
+      if (!isAttached) {
+        alertUser(eObjectNotAttachedToWindow);
+      }
     }
 
-    mainWindowPtr = window;
-  }
-  else {*/
-  //change use of fDocTE to fMLTEObject and test the function result
-  //also remove all the control calls and the call to TEAutoView
-  if(doc->fMLTEObject == NULL || status != noErr)	{ // if TENew succeeded, we have a good document
+    adjustMenus();
+    gNumDocuments++;
 
-    //Something failed in the window creation process.
-    //Clean up then tell the user what happened
-    closeWindow(window);
-    alertUser(eNoWindow);
-
-    // abort the program
-    raise(SIGABRT);
+    DoJustification(window, iDefaultJustify);
   }
 
   mainWindowPtr = window;
+  return status;
 }
 
 void idleWindow(void) {
   WindowPtr window = FrontWindow();
+  TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
     //change: replace TEIdle with a call to TXNIdle
-		TXNIdle(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
+    getTXNObject(window, &object);
+    TXNIdle(object);
   }
 }
 
 void repaintWindow(WindowPtr window) {
-  if (isApplicationWindow(window)) {
+  GrafPtr savePort;
+  TXNObject object = NULL;
+
+  GetPort(&savePort);
+
+  if(isApplicationWindow(window)) {
     //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
-		//and handles drawing the scroll bars.
-		TXNUpdate(((DocumentPeek)GetWRefCon(window))->fMLTEObject);
-
-    /*
-    BeginUpdate(window);
-
-    // draw if updating needs to be done
-    if (!EmptyRgn(window->visRgn)) {
-      SetPort(window);
-      EraseRect(&window->portRect);
-      DrawControls(window);
-      DrawGrowIcon(window);
-      TEUpdate(&window->portRect, ((DocumentPeek) window)->docTE);
-    }
-
-    EndUpdate(window);
-    */
+    //and handles drawing the scroll bars.
+    getTXNObject(window, &object);
+    TXNUpdate(object);
   }
+
+  SetPort(savePort);
 }
 
 void activateWindow(WindowPtr window, Boolean becomingActive) {
-  RgnHandle     tempRgn, clipRgn;
-  Rect          growRect;
-  DocumentPeek  doc;
+  TXNObject object = NULL;
+  TXNFrameID frameID = 0;
 
-  if (isApplicationWindow(window)) {
-    doc = (DocumentPeek)GetWRefCon(window);
+  if(isApplicationWindow(window)) {
+    getTXNObject(window, &object);
+    GetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), NULL, &frameID);
 
-		//change replace all this with a call to TXNFocus followed by a call to TXNActivate
-		TXNFocus(doc->fMLTEObject, becomingActive);
-		TXNActivate(doc->fMLTEObject, doc->fMLTEFrameID, becomingActive);
-
-    /*if (becomingActive) {
-      //since we don't want TEActivate to draw a selection in an area where
-      //we're going to erase and redraw, we'll clip out the update region
-      //before calling it.
-      tempRgn = NewRgn();
-      clipRgn = NewRgn();
-
-      // get localized update region
-      getLocalUpdateRgn(window, tempRgn);
-      GetClip(clipRgn);
-
-      // subtract updateRgn from clipRgn
-      DiffRgn(clipRgn, tempRgn, tempRgn);
-      SetClip(tempRgn);
-      TEActivate(doc->docTE);
-
-      // restore the full-blown clipRgn
-      SetClip(clipRgn);
-      DisposeRgn(tempRgn);
-      DisposeRgn(clipRgn);
-
-      // the controls must be redrawn on activation:
-      (*doc->docVScroll)->contrlVis = kControlVisible;
-      (*doc->docHScroll)->contrlVis = kControlVisible;
-      InvalRect(&(*doc->docVScroll)->contrlRect);
-      InvalRect(&(*doc->docHScroll)->contrlRect);
-
-      // the growbox needs to be redrawn on activation:
-      growRect = window->portRect;
-
-      // adjust for the scrollbars
-      growRect.top = growRect.bottom - kScrollbarAdjust;
-      growRect.left = growRect.right - kScrollbarAdjust;
-      InvalRect(&growRect);
+    if (becomingActive) {
+      TXNActivate(object, frameID, kScrollBarsAlwaysActive);
+      adjustMenus();
     }
     else {
-      TEDeactivate(doc->docTE);
-      // the controls must be hidden on deactivation:
-      HideControl(doc->docVScroll);
-      HideControl(doc->docHScroll);
-      // the growbox should be changed immediately on deactivation:
-      DrawGrowIcon(window);
-    }*/
+      TXNActivate(object, frameID, kScrollBarsSyncWithFocus);
+    }
+
+    TXNFocus(object, becomingActive);
   }
 }
-
-//  Gets called from our assembly language routine, AsmClikLoop, which is in
-//  turn called by the TEClick toolbox routine. Saves the windows clip region,
-//  sets it to the portRect, adjusts the scrollbar values to match the TE scroll
-//  amount, then restores the clip region.
-/*pascal void PascalClikLoop(void) {
-  WindowPtr window;
-  RgnHandle region;
-
-  window = FrontWindow();
-  region = NewRgn();
-
-  GetClip(region);
-  ClipRect(&window->portRect);
-  adjustScrollbarValues(window, true);
-  SetClip(region);
-  DisposeRgn(region);
-}*/
 
 void setFont(SInt16 menuItem) {
   //TextStyle styleRec;
@@ -1397,13 +1031,14 @@ void setFont(SInt16 menuItem) {
   GetFNum(fontName, &res);
 
   typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
-	typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
+  typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
   typeAttr[0].data.dataValue = res;
 
   //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
   //TXNSelectAll((DocumentPeek)window)->fMLTEObject);
 
   //TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
+  /*
   TXNSetTypeAttributes(
     ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject,
     1,
@@ -1411,6 +1046,7 @@ void setFont(SInt16 menuItem) {
     kTXNStartOffset,
     kTXNEndOffset
   );
+  */
 
   //TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
   //TXNSetSelection(
@@ -1455,9 +1091,10 @@ void setFontSize(SInt16 menuItem) {
   fontSizeIndex = menuItem;
 
   typeAttr[0].tag = kTXNQDFontSizeAttribute;
-	typeAttr[0].size = kTXNQDFontSizeAttributeSize;
+  typeAttr[0].size = kTXNQDFontSizeAttributeSize;
   typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
+  /*
   TXNSetTypeAttributes(
     ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject,
     1,
@@ -1465,6 +1102,7 @@ void setFontSize(SInt16 menuItem) {
     kTXNStartOffset,
     kTXNEndOffset
   );
+  */
 
   //TXNSetSelection(
   //  (DocumentPeek)window)->fMLTEObject,
@@ -1491,31 +1129,25 @@ void setFontSize(SInt16 menuItem) {
   */
 }
 
-/*
-  Gets called from our assembly language routine, AsmClikLoop, which is in
-  turn called by the TEClick toolbox routine. It returns the address of the
-  default clikLoop routine that was put into the TERec by TEAutoView to
-  AsmClikLoop so that it can call it.
-*/
-/*
-pascal ProcPtr GetOldClikLoop(void) {
-  return ((DocumentPeek)FrontWindow())->docClik;
-}
-*/
-
 /* Handles clicking on menus or keyboard shortcuts */
 void menuSelect(long mResult) {
   short theItem;
   short theMenu;
   Str255 daName;
+  short itemHit;
+  WindowPtr window;
+  OSStatus status = noErr;
+  TXNObject object = NULL;
+  TXNTypeAttributes typeAttr;
 
+  window = FrontWindow();
   theItem = LoWord(mResult);
   theMenu = HiWord(mResult);
 
   switch(theMenu) {
     case mApple: {
       if(theItem == mAppleAbout) {
-        Alert(rAboutAlert, nil);
+        itemHit = Alert(rAboutAlert, NULL);
       }
 
 #if TARGET_API_MAC_TOOLBOX
@@ -1533,217 +1165,110 @@ void menuSelect(long mResult) {
       switch(theItem) {
         case mFileOpen: {
           if(windowNotOpen) {
-            openFileDialog();
+            openWindow();
           }
         } break;
 
         case mFileQuit: {
-          quit = true;
+          Terminate();
         } break;
       }
     } break;
 
     case mEdit: {
-      switch(theItem) {
-        case mEditCopy: {
-          //change: replace the guts of this with a call to TXNCopy
-          //again TXNCopy returns an OSStatus which we are ignoring
-          TXNCopy(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject);
+      if(isApplicationWindow(window)) {
+        switch(theItem) {
+          case mEditCopy: {
+            //change: replace the guts of this with a call to TXNCopy
+            //again TXNCopy returns an OSStatus which we are ignoring
+            getTXNObject(window, &object);
+            status = TXNCopy(object);
 
-          /*if (ZeroScrap() == noErr) {
-            if(mainWindowPtr){
-              TECopy(((DocumentPeek)mainWindowPtr)->docTE);
+            if(status != noErr) {
+              alertUser(eNoCopy);
             }
+          } break;
 
-            // after copying, export the TE scrap
-            if (TEToScrap() != noErr) {
-              //AlertUser(eNoCopy);
-              ZeroScrap();
-            }
-          }*/
-
-        } break;
-
-        case mEditSelectAll: {
-          //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-          TXNSelectAll(((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject);
-        } break;
+          case mEditSelectAll: {
+            getTXNObject(window, &object);
+            TXNSelectAll(object);
+          } break;
+        }
       }
     } break;
 
     case mFont: {
-      setFont(theItem);
+      if(isApplicationWindow(window)) {
+        getTXNObject(window, &object);
+
+        if(gTXNFontMenuObject != NULL) {
+          status = TXNDoFontMenuSelection(
+            object,
+            gTXNFontMenuObject,
+            theMenu,
+            theItem
+          );
+        }
+
+        if (status != noErr) {
+          alertUser(eNoFontName);
+        }
+      }
     } break;
 
     case mSize: {
-      setFontSize(theItem);
+      if(isApplicationWindow(window)) {
+        static short aFontSizeList[] = {9, 10, 12, 14, 18, 24, 36};
+        short shortValue = aFontSizeList[theItem - 1];
+
+        getTXNObject(window, &object);
+
+        typeAttr.tag = kTXNQDFontSizeAttribute;
+        typeAttr.size = kTXNFontSizeAttributeSize;
+        typeAttr.data.dataValue = shortValue << 16;
+
+        status = TXNSetTypeAttributes(
+          object,
+          1,
+          &typeAttr,
+          kTXNUseCurrentSelection,
+          kTXNUseCurrentSelection
+        );
+
+        if(status != noErr) {
+          alertUser(eNoFontSize);
+        }
+      }
+    } break;
+
+    default: {
+      if(theMenu >= kStartHierMenuID && isApplicationWindow(window)) {
+
+
+        if(gTXNFontMenuObject != NULL) {
+          getTXNObject(window, &object);
+          status = TXNDoFontMenuSelection(object, gTXNFontMenuObject, theMenu, theItem);
+        }
+
+        if(status != noErr) {
+          alertUser(eNoFontName);
+        }
+      }
     } break;
   }
 
   HiliteMenu(0);
+  adjustMenus();
 }
 
 /*
-void commonAction(ControlHandle control, short *amount) {
-  short value, max;
-
-  value = GetControlValue(control);        /* get current value * /
-  max = GetControlMaximum(control);        /* and maximum value * /
-  *amount = value - *amount;
-
-  if (*amount < 0) {
-    *amount = 0;
-  }
-  else if (*amount > max) {
-    *amount = max;
-  }
-
-  SetControlValue(control, *amount);
-  *amount = value - *amount;    /* calculate the real change * /
-}
-
-pascal void VActionProc(ControlHandle control, short part) {
-  short       amount;
-  WindowPtr   window;
-  TEPtr       te;
-
-  /* if it was actually in the control * /
-  if (part != 0) {
-    window = (*control)->contrlOwner;
-    te = *((DocumentPeek) window)->docTE;
-
-    switch (part) {
-      case kControlUpButtonPart:        /* one line * /
-      case kControlDownButtonPart: {
-        amount = 1;
-      } break;
-
-      case kControlPageUpPart:          /* one page * /
-      case kControlPageDownPart: {
-        amount = (te->viewRect.bottom - te->viewRect.top) / lineHeight2;
-      } break;
-    }
-
-    if (
-        part == kControlDownButtonPart ||
-        part == kControlPageDownPart
-    ) {
-      amount = -amount;                /* reverse direction for a downer * /
-    }
-
-    commonAction(control, &amount);
-
-    if (amount != 0) {
-      TEScroll(0, amount * lineHeight2, ((DocumentPeek) window)->docTE);
-    }
-  }
-}
-
-/*
-  Determines how much to change the value of the horizontal scrollbar by and how
-  much to scroll the TE record.
-* /
-#pragma segment Main
-pascal void HActionProc(ControlHandle control, short part) {
-  short       amount;
-  WindowPtr   window;
-  TEPtr       te;
-
-  if (part != 0) {
-    window = (*control)->contrlOwner;
-    te = *((DocumentPeek) window)->docTE;
-
-    switch (part) {
-      case kControlUpButtonPart:                /* a few pixels * /
-      case kControlDownButtonPart: {
-        amount = kButtonScroll;
-      } break;
-
-      case kControlPageUpPart:                        /* a page * /
-      case kControlPageDownPart: {
-        amount = te->viewRect.right - te->viewRect.left;
-      } break;
-    }
-
-    if (
-        part == kControlDownButtonPart ||
-        part == kControlPageDownPart
-    ) {
-      amount = -amount;   /* reverse direction * /
-    }
-
-    commonAction(control, &amount);
-
-    if (amount != 0) {
-      TEScroll(amount, 0, ((DocumentPeek) window)->docTE);
-    }
-  }
-}
 */
 void contentClick(WindowPtr window, EventRecord *event) {
-  Point           mouse;
-  ControlHandle   control;
-  short           part, value;
-  Boolean         shiftDown;
-  DocumentPeek    doc;
-  Rect            teRect;
+  TXNObject object = NULL;
 
-  if (isApplicationWindow(window)) {
-    //change replace the guts with a call to TXNClick
-		TXNClick(((DocumentPeek)GetWRefCon(window))->fMLTEObject, event);
-    /* SetPort(window);
-
-    /* get the click position * /
-    mouse = event->where;
-    GlobalToLocal(&mouse);
-
-    doc = (DocumentPeek) window;
-
-    /* see if we are in the viewRect. if so, we wonÕt check the controls * /
-    getTERect(window, &teRect);
-
-    if (PtInRect(mouse, &teRect)) {
-      /* see if we need to extend the selection * /
-      shiftDown = (event->modifiers & shiftKey) != 0;        /* extend if Shift is down * /
-      TEClick(mouse, shiftDown, doc->docTE);
-    }
-    else {
-      part = FindControl(mouse, window, &control);
-
-      switch (part) {
-        case 0: {
-          /* do nothing for viewRect case * /
-        } break;
-
-        case kControlIndicatorPart: {
-          value = GetControlValue(control);
-          part = TrackControl(control, mouse, nil);
-
-          if (part != 0) {
-            value -= GetControlValue(control);
-
-            /* value now has CHANGE in value; if value changed, scroll * /
-            if (value != 0) {
-              if (control == doc->docVScroll) {
-                TEScroll(0, value * lineHeight2, doc->docTE);
-              }
-              else {
-                TEScroll(value, 0, doc->docTE);
-              }
-            }
-          }
-        } break;
-
-        default: {    /* they clicked in an arrow, so track & scroll * /
-          if (control == doc->docVScroll) {
-            value = TrackControl(control, mouse, (ControlActionUPP) VActionProc);
-          }
-          else {
-            value = TrackControl(control, mouse, (ControlActionUPP) HActionProc);
-          }
-        } break;
-      }
-    } */
+  if(isApplicationWindow(window)) {
+    getTXNObject(window, &object);
+    TXNClick(object, event);
   }
 }
 
@@ -1753,13 +1278,14 @@ void mouseClick(EventRecord *event) {
   WindowPtr window;
   short part = FindWindow(event->where, &window);
 
-  switch(part) {
+  switch (part) {
     case inContent: {
       if(window != FrontWindow()) {
         SelectWindow(window);
       }
       else {
         contentClick(window, event);
+        adjustMenus();
       }
     } break;
 
@@ -1776,6 +1302,7 @@ void mouseClick(EventRecord *event) {
     case inGoAway: {
       if(TrackGoAway(window, event->where)) {
         quit = true;
+        closeWindow(window);
       }
     } break;
 
@@ -1798,32 +1325,27 @@ void mouseClick(EventRecord *event) {
   }
 }
 
-/*
-void badMount(EventRecord *event) {
-  Point pt = {70, 70};
-
-  if((event->message & 0xFFFF0000) != noErr) {
-    DILoad();
-    DIBadMount(pt, event->message);
-    DIUnload();
-  }
-}
-*/
-
 void handleEvent(EventRecord *event) {
-  switch(event->what) {
+  if(IsDialogEvent(event)) {
+    DialogPtr theDialog = NULL;
+    short itemHit;
+
+    DialogSelect(event, &theDialog, &itemHit);
+  }
+
+  switch (event->what) {
     case nullEvent: {
       idleWindow();
     } break;
 
-    case app4Evt: {
-      switch ((event->message >> 24) & 0x0FF) {
-        case kMouseMovedMessage: {
+    case osEvt: {
+      switch((event->message >> 24) & 0x0FF) {
+        case mouseMovedMessage: {
           idleWindow();
         } break;
 
-        case kSuspendResumeMessage: {
-          gInBackground = (event->message & kResumeMask) == 0;
+        case suspendResumeMessage: {
+          gInBackground = (event->message & resumeFlag) == 0;
           activateWindow(FrontWindow(), !gInBackground);
         } break;
       }
@@ -1869,12 +1391,15 @@ void handleEvent(EventRecord *event) {
 
 void loopTick(void) {
   EventRecord event;
+  RgnHandle cursorRgn = NewRgn();
 
 #if TARGET_API_MAC_TOOLBOX
   SystemTask();
 #endif
 
   GetNextEvent(everyEvent, &event);
+
+  adjustCursor(cursorRgn);
 
   handleEvent(&event);
 }
@@ -2069,6 +1594,97 @@ OSStatus openFileDialog(void) {
 }
 #endif
 
+FILE *fopen_mac(const char *filename, const char *mode) {
+  char* absolutePath = NULL;
+  FILE * retval;
+  CFIndex neededLen;
+  CFIndex usedLen;
+  CFRange range;
+  CFStringRef text1;
+  CFURLRef cfabsolute;
+  CFStringRef text2;
+
+  text1 = CFStringCreateWithCStringNoCopy(
+    NULL,
+    filename,
+    kCFStringEncodingUTF8,
+    kCFAllocatorNull
+  );
+
+
+/*
+* the function "fsetfileinfo" can be used to change the creator and type code for a file
+*/
+  if(text1 == NULL) {
+    text1 = CFStringCreateWithCString(
+      NULL,
+      filename,
+      kCFStringEncodingUTF8
+    );
+
+    if(text1 == NULL) {
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
+    kCFAllocatorDefault,
+    text1,
+    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
+    FALSE,
+    baseFolder
+  );
+
+  text2 = CFURLCopyFileSystemPath(
+    cfabsolute,
+    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
+  );
+
+  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
+    retval = fopen(absolutePath, mode);
+  }
+  else {
+    neededLen = 0;
+    usedLen = 0;
+    range = CFRangeMake(0, CFStringGetLength(text2));
+
+    CFStringGetBytes(
+      text2,
+      range,
+      enc,
+      '?',
+      FALSE,
+      NULL,
+      0,
+      &neededLen
+    );
+
+    reallocMsg((void**)&absolutePath, neededLen + 1);
+
+    CFStringGetBytes(
+      text2,
+      range,
+      enc,
+      '?',
+      FALSE,
+      (UInt8 *)absolutePath,
+      neededLen,
+      &usedLen
+    );
+
+    absolutePath[usedLen] = 0;
+
+    retval = fopen(absolutePath, mode);
+
+    free(absolutePath);
+  }
+
+  CFRelease(text1);
+  CFRelease(cfabsolute);
+  CFRelease(text2);
+
+  return retval;
+}
 
 /*
   if you're looking for the main() function, this is it.
@@ -2121,8 +1737,8 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   //TextStyle theStyle;
   TXNTypeAttributes iAttributes[1];
   //TEHandle docTE;
-  TXNObject			fMLTEObject;	// our text
-	Boolean skipByte;
+  TXNObject     fMLTEObject;  // our text
+  Boolean skipByte;
   size_t len = 0;
   wchar_t *wide = NULL;
 
@@ -2130,7 +1746,9 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     return;
   }
 
+  /*
   fMLTEObject = ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject;
+  */
 
   //GetFNum(fontName, &(theStyle.tsFont));
   //theStyle.tsSize = doGetSize(fontSizeIndex);
@@ -2226,8 +1844,9 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
-      wide = (wchar_t *)d_charsetEncode((char *)startPoint, ENC_UTF16BE, &len);
-
+      /*
+      wide = (wchar_t *)charsetEncode_d((char *)startPoint, ENC_UTF16BE, &len);
+      */
       //TEInsert(startPoint, lineChars, docTE);
       TXNSetData(
         fMLTEObject,
@@ -2272,7 +1891,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   //adjustScrollBars(mainWindowPtr, false);
 }
 
-
+/*
 pascal void sioDemoWrite(SInt16 filenum, char *buffer, SInt32 nChars) {
   if(filenum == kSIOStdOutNum) {
     output(buffer, nChars, false);
@@ -2287,7 +1906,7 @@ pascal void sioDemoWrite(SInt16 filenum, char *buffer, SInt32 nChars) {
     ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
   }
 }
-
+*/
 
 pascal void sioDemoExit(void) {
   free(progArg);
@@ -2298,48 +1917,130 @@ pascal void sioDemoExit(void) {
   };
 }
 
-pascal void (*__sioInit)(int *mainArgc, char ***mainArgv) = sioDemoInit;
+void DoJustification(WindowPtr window, short menuItem) {
+  TXNObject object = NULL;
+  MenuHandle layoutMenu;
+  OSStatus status = noErr;
+  SInt32 justification;
+  TXNControlTag controlTag[1];
+  TXNControlData controlData[1];
 
-pascal void (*__sioRead)(
-    char    *buffer,
-    SInt32  nCharsDesired,
-    SInt32  *nCharsUsed,
-    SInt16  *eofFlag
-  ) = sioDemoRead;
+  if(isApplicationWindow(window)) {
+    getTXNObject(window, &object);
 
-pascal void (*__sioWrite)(SInt16 filenum, char *buffer, SInt32 nChars) = sioDemoWrite;
-pascal void (*__sioExit)(void) = sioDemoExit;
+    switch (menuItem) {
+      case iDefaultJustify: {
+        justification = kTXNFlushDefault;
+      } break;
 
-/*int main(int argc, char **argv) {
-  int size = 1024, pos;
-  int c;
-  char *buffer = (char *)malloc(size);
+      case iLeftJustify: {
+        justification = kTXNFlushLeft;
+      } break;
 
-  FILE *f = fopen(argv[1], "rb");
-  if(f) {
-    do { // read all lines in file
-      pos = 0;
-      do{ // read one line
-        c = fgetc(f);
-        if(c != EOF) buffer[pos++] = (char)c;
-        if(pos >= size - 1) { // increase buffer length - leave room for 0
-          size *=2;
-          buffer = (char*)realloc(buffer, size);
-        }
-      }while(c != EOF && c != '\n');
-      buffer[pos] = 0;
-      // line is now in buffer
-      printf("%s", buffer);
-    } while(c != EOF);
-    fclose(f);
+      case iRightJustify: {
+        justification = kTXNFlushRight;
+      } break;
+
+      case iCenterJustify: {
+        justification = kTXNCenter;
+      } break;
+
+      case iFullJustify: {
+        justification = kTXNFullJust;
+      } break;
+
+      case iForceJustify: {
+        justification = kTXNForceFullJust;
+      } break;
+
+      default: {
+      } break;
+    }
+
+
+    controlTag[0] = kTXNJustificationTag;
+    status = TXNGetTXNObjectControls(object, 1, controlTag, controlData);
+
+    if(controlData[0].sValue != justification) {
+      controlData[0].sValue = justification;
+
+      status = TXNSetTXNObjectControls(
+        object,
+        false,
+        1,
+        controlTag,
+        controlData
+      );
+    }
+
+    if (status != noErr) {
+      alertUser(eNoJustification);
+    }
   }
-  free(buffer);
-  int i = 0;
-
-  for(;;) {
-    macYield();
-    printf("%d\n", i++);
-  }
-  return 0;
 }
-*/
+
+void Terminate() {
+  WindowPtr aWindow;
+  Boolean closed;
+  quit = true;
+  closed = true;
+
+  do {
+    aWindow = FrontWindow();
+
+    if(aWindow != NULL) {
+      closed = closeWindow(aWindow);
+    }
+  } while (closed && (aWindow != NULL));
+
+  if(closed) {
+    if(gTXNFontMenuObject != NULL) {
+      OSStatus status;
+
+      status = TXNDisposeFontMenuObject(gTXNFontMenuObject);
+
+      if (status != noErr) {
+        alertUser(eNoDisposeFontMenuObject);
+      }
+
+      gTXNFontMenuObject = NULL;
+    }
+  }
+
+  TXNTerminateTextension();
+  ExitToShell();
+}
+
+int main(void) {
+  char progName[] = "querycsv";
+  char* argv[3];
+
+  initialize();
+
+  argv[0] = progName;
+  argv[1] = NULL;
+  argv[2] = NULL;
+
+  while(!quit && windowNotOpen) {
+    loopTick();
+  }
+
+  if(quit) {
+    ExitToShell(); //raise(SIGABRT);
+  }
+  else if(!windowNotOpen) {
+    openWindow();
+    argv[1] = progArg;
+
+    realmain(2, argv);
+
+    free(progArg);
+
+    while(!quit) {
+      // loop until user quits.
+      loopTick();
+    }
+  }
+
+  return 0; //macs don't do anything with the return value
+}

@@ -1,8 +1,2 @@
-type 'carb' 
-{
-};
-
-
-resource 'carb'(0) 
-{
+data 'carb' (0) {
 };
