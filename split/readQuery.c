@@ -25,7 +25,7 @@ void readQuery(
 
   /* attempt to open the input file */
 
-  queryFile = skipBom(queryFileName, NULL, &(initialEncoding));
+  queryFile = skipBom(queryFileName, NULL, &initialEncoding);
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     exit(EXIT_FAILURE);

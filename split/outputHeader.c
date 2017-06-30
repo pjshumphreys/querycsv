@@ -28,10 +28,16 @@ void outputHeader(
 
   outputFile = query->outputFile;
 
-  /* write the byte order mark if it was requested */
-  if(((query->params) & PRM_BOM) != 0) {
+  /* if we aren't writing to stdout we may need or want to write a byte order mark */
+  if(outputFile != stdout) {
     switch(query->outputEncoding) {
       case ENC_UTF8:
+        /* only write the byte order mark if it was requested for utf-8 */
+        if(((query->params) & PRM_BOM) == 0) {
+          break;
+        }
+
+      /* the 16 and 32 bit encodings always need a bom */
       case ENC_UTF16LE:
       case ENC_UTF16BE:
       case ENC_UTF32LE:

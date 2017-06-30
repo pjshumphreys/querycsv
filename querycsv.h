@@ -147,7 +147,15 @@
   #define MAC_YIELD
 
   #ifdef WINDOWS
-    #include "win32.h"
+    void setupWin32(int * argc, char *** argv);
+    int fputs_w32(const char *str, FILE *stream);
+    int fprintf_w32(FILE *stream, const char *format, ...);
+    FILE *fopen_w32(const char *filename, const char *mode);
+
+    #define fputs fputs_w32
+    #define fopen fopen_w32
+    #define fprintf fprintf_w32
+    #define YYFPRINTF fprintf_w32   //for the bison parser
   #else
     #undef ENC_INPUT
     #undef ENC_OUTPUT
@@ -168,9 +176,25 @@
     #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
   #endif
 
+  int fputs_mac(const char *str, FILE *stream);
+  int fprintf_mac(FILE *stream, const char *format, ...);
+  FILE *fopen_mac(const char *filename, const char *mode);
+  #define fputs fputs_mac
+  #define fopen fopen_mac
+  #define fprintf fprintf_mac
+  #define YYFPRINTF fprintf_mac   //for the bison parser
+
   #define main realmain /*macs need to do pre and post handling, but SIO (which I previously used) doesn't seem to work with Carbon */
-  #define ENC_INPUT ENC_MAC
-  #define ENC_OUTPUT ENC_MAC
+
+  #undef ENC_INPUT
+  #undef ENC_OUTPUT
+  #ifdef TARGET_API_MAC_CARBON
+    #define ENC_INPUT ENC_MAC
+    #define ENC_OUTPUT ENC_UTF16BE
+  #else
+    #define ENC_INPUT ENC_MAC
+    #define ENC_OUTPUT ENC_MAC
+  #endif
 #endif
 
 #ifdef __CC_NORCROFT

@@ -61,12 +61,10 @@ void zoomWindow(WindowPtr window, short part);
 void repaintWindow(WindowPtr window);
 void activateWindow(WindowPtr window, Boolean becomingActive);
 void contentClick( WindowPtr window, EventRecord *event);
-static UInt32 GetSleep(void);
 void idleWindow(void);
 void setupMenus(void);
 void adjustMenus(void);
 void menuSelect(long menuResult);
-void DoJustification(WindowPtr window, short menuItem);
 OSStatus openWindow();
 Boolean closeWindow( WindowPtr window);
 void Terminate(void);
@@ -629,7 +627,7 @@ void setupMenus(void) {
   }
 
   macOSVersion = 0x0860;
-  devNull = "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
+  devNull = "Dev:Null";   /* null filename on MacOS Classic (i.e. pre OS X) */
 
 #if TARGET_API_MAC_CARBON
   //In OS X, 'Quit' moves from File to the Application Menu
@@ -640,7 +638,7 @@ void setupMenus(void) {
     menu = GetMenuHandle(mFile);
     DeleteMenuItem(menu, mFileQuit);
     macOSVersion = 0x1000;
-    devNull = "/dev/null"  /* needed as the carbon build can run on OS X */
+    devNull = "/dev/null";  /* needed as the carbon build can run on OS X */
   }
 #endif
 
@@ -958,8 +956,6 @@ OSStatus openWindow(void) {
 
     adjustMenus();
     gNumDocuments++;
-
-    DoJustification(window, iDefaultJustify);
   }
 
   mainWindowPtr = window;
@@ -1035,7 +1031,7 @@ void setFont(SInt16 menuItem) {
   getTXNObject(mainWindowPtr, &object);
 
   //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  TXNSelectAll(object);
+  //TXNSelectAll(object);
 
   //TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
   TXNSetTypeAttributes(
@@ -1047,11 +1043,13 @@ void setFont(SInt16 menuItem) {
   );
 
   //TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  /*
   TXNSetSelection(
     object,
     kTXNEndOffset,
     kTXNEndOffset
   );
+  */
 
   //adjustScrollBars(mainWindowPtr, false);
 }
@@ -1095,7 +1093,7 @@ void setFontSize(SInt16 menuItem) {
 
   getTXNObject(mainWindowPtr, &object);
 
-  TXNSelectAll(object);
+  //TXNSelectAll(object);
 
   TXNSetTypeAttributes(
     object,
@@ -1105,11 +1103,13 @@ void setFontSize(SInt16 menuItem) {
     kTXNEndOffset
   );
 
+  /*
   TXNSetSelection(
     object,
     kTXNEndOffset,
     kTXNEndOffset
   );
+  */
 
   /*
   TextStyle styleRec;
@@ -1166,7 +1166,7 @@ void menuSelect(long mResult) {
       switch(theItem) {
         case mFileOpen: {
           if(windowNotOpen) {
-            openWindow();
+            openFileDialog();
           }
         } break;
 
@@ -1635,21 +1635,30 @@ int output(char *buffer, SInt32 nChars, Boolean isBold) {
       }
 
       switch(startPoint[lineChars]) {
-        case '\r':
-          startPoint[lineChars] = '\n';
-
+        case '\r': {
           if(startPoint[lineChars+1] == '\n') {
             skipByte = true;
           }
-        case '\n':
-          lineChars++;
-        case '\0':
-          charsLeft--;
-          break;
-        default:
+
           lineChars++;
           charsLeft--;
-          continue;
+        } break;
+
+        case '\n': {
+          startPoint[lineChars] = '\r';
+
+          lineChars++;
+          charsLeft--;
+        } break;
+
+        case '\0': {
+          charsLeft--;
+        } break;
+
+        default: {
+          lineChars++;
+          charsLeft--;
+        } continue;
       }
 
       break;
@@ -1698,14 +1707,14 @@ int output(char *buffer, SInt32 nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
-      wide = (wchar_t *)charsetEncode_d((char *)startPoint, ENC_UTF16BE, &len);
+      wide = (wchar_t *)d_charsetEncode((char *)startPoint, ENC_UTF16BE, &len);
 
       //TEInsert(startPoint, lineChars, docTE);
       TXNSetData(
         fMLTEObject,
         kTXNUnicodeTextData,
         (void *)wide,
-        len/2,
+        len,
         kTXNUseCurrentSelection,
         kTXNUseCurrentSelection
       );
@@ -1750,7 +1759,7 @@ int fputs_mac(const char *str, FILE *stream) {
   if(stream == stdout || stream == stderr) {
     len = strlen(str);
 
-    output(str, len, stream == stderr);
+    output((char *)str, len, stream == stderr);
   }
   else {
     len = fputs(str, stream);
@@ -1821,8 +1830,6 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   if(quit) {
     ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
   }
-
-  return len;
 
   return retval;
 }
@@ -1917,67 +1924,6 @@ FILE *fopen_mac(const char *filename, const char *mode) {
   CFRelease(text1);
 
   return retval;
-}
-
-void DoJustification(WindowPtr window, short menuItem) {
-  TXNObject object = NULL;
-  MenuHandle layoutMenu;
-  OSStatus status = noErr;
-  SInt32 justification;
-  TXNControlTag controlTag[1];
-  TXNControlData controlData[1];
-
-  if(isApplicationWindow(window)) {
-    getTXNObject(window, &object);
-
-    switch (menuItem) {
-      case iDefaultJustify: {
-        justification = kTXNFlushDefault;
-      } break;
-
-      case iLeftJustify: {
-        justification = kTXNFlushLeft;
-      } break;
-
-      case iRightJustify: {
-        justification = kTXNFlushRight;
-      } break;
-
-      case iCenterJustify: {
-        justification = kTXNCenter;
-      } break;
-
-      case iFullJustify: {
-        justification = kTXNFullJust;
-      } break;
-
-      case iForceJustify: {
-        justification = kTXNForceFullJust;
-      } break;
-
-      default: {
-      } break;
-    }
-
-    controlTag[0] = kTXNJustificationTag;
-    status = TXNGetTXNObjectControls(object, 1, controlTag, controlData);
-
-    if(status == noErr && controlData[0].sValue != justification) {
-      controlData[0].sValue = justification;
-
-      status = TXNSetTXNObjectControls(
-        object,
-        false,
-        1,
-        controlTag,
-        controlData
-      );
-    }
-
-    if (status != noErr) {
-      alertUser(eNoJustification);
-    }
-  }
 }
 
 void Terminate() {
