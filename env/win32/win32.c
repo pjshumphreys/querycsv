@@ -12,11 +12,11 @@
 #include <sys/stat.h>
 #include <wchar.h>
 
+extern char * devNull;
+
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 #define ENC_UTF16LE 8
 #define ENC_CP437 1
-
-#define DEVNULL "NUL"
 
 int hasUtf8 = FALSE;
 int usingOutput = FALSE;
@@ -73,7 +73,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
       (stream == stdout && usingOutput) ||
       (stream == stderr && usingError)
     ) {
-    if(format == NULL || (pFile = fopen(DEVNULL, "wb")) == NULL) {
+    if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
       return FALSE;
     }
 

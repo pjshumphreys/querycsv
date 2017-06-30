@@ -8,6 +8,8 @@ int main(int argc, char *argv[]) {
   argv2 = argv;
 
   #ifdef MICROSOFT
+    devNull = "NUL";  /* null filename on DOS/Windows */
+
     #ifdef WINDOWS
       setupWin32(&argc2, &argv2);
     #else

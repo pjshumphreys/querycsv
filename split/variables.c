@@ -14,3 +14,4 @@ struct hash2Entry* retval;
 /* hash4 helper varables */
 char hash4letter[7];
 struct hash4Entry hash4export = {(char *)(&hash4letter), 0, 0, 0};
+char * devNull = NULL;

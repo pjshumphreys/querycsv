@@ -145,7 +145,6 @@
 
 #ifdef MICROSOFT
   #define MAC_YIELD
-  #define DEVNULL "NUL"   /* null filename on DOS/Windows */
 
   #ifdef WINDOWS
     #include "win32.h"
@@ -162,8 +161,6 @@
   #define MAC_YIELD /*
   macYield();
   */
-  #define DEVNULL "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
-  #define DEVNULL2 "/dev/null"  /* needed as the carbon build can run on OS X */
   #define YY_NO_UNISTD_H 1
   /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__

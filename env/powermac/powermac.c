@@ -102,13 +102,13 @@ QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #undef main
 int realmain(int argc, char **argv);
 
-#define iDefaultJustify     1
+#define iDefaultJustify   1
 #define iLeftJustify      2
 #define iRightJustify     3
-#define iCenterJustify      4
+#define iCenterJustify    4
 #define iFullJustify      5
 #define iForceJustify     6
-#define iAutoWrap       8
+#define iAutoWrap         8
 
 /*
   A DocumentRecord contains the WindowRecord for one of our document windows,
@@ -165,6 +165,7 @@ char *progArg = NULL;
 Str255 fontName;
 int fontSizeIndex = 2;
 int windowZoomed = 0;
+extern char * devNull;
 
 /*
   gInBackground is maintained by our OSEvent handling routines. Any part of
@@ -292,6 +293,8 @@ Boolean isApplicationWindow(WindowPtr window) {
 
 TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
   GetWindowProperty(window, 'GRIT', 'tObj', sizeof(TXNObject), NULL, object);
+
+  return object;
 }
 
 Rect getWindowBounds(WindowPtr window) {
@@ -526,7 +529,6 @@ pascal OSErr appleEventQuit(
     long handlerRefCon
 ) {
 #pragma unused (theAppleEvent, reply, handlerRefCon)
-  Terminate();
   quit = true;
   return noErr;
 }
@@ -626,7 +628,9 @@ void setupMenus(void) {
     InsertMenu(myMenus[i], 0);
   }
 
-  macOSVersion = 0x0800;
+  macOSVersion = 0x0860;
+  devNull = "Dev:Null"   /* null filename on MacOS Classic (i.e. pre OS X) */
+
 #if TARGET_API_MAC_CARBON
   //In OS X, 'Quit' moves from File to the Application Menu
   if(
@@ -636,6 +640,7 @@ void setupMenus(void) {
     menu = GetMenuHandle(mFile);
     DeleteMenuItem(menu, mFileQuit);
     macOSVersion = 0x1000;
+    devNull = "/dev/null"  /* needed as the carbon build can run on OS X */
   }
 #endif
 
@@ -754,8 +759,7 @@ void adjustCursor(RgnHandle region) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
-    getTXNObject(window, &object);
-    TXNAdjustCursor(object, region);
+    TXNAdjustCursor(*getTXNObject(window, &object), region);
   }
 }
 
@@ -776,9 +780,7 @@ void adjustMenus(void) {
 
     window = FrontWindow();
     if(isApplicationWindow(window)) {
-      getTXNObject(window, &object);
-
-      if(!TXNIsSelectionEmpty(object)) {
+      if(!TXNIsSelectionEmpty(*getTXNObject(window, &object))) {
         EnableMenuItem(menu, mEditCopy);
       }
       else {
@@ -854,9 +856,7 @@ Boolean closeWindow(WindowPtr window) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
-    getTXNObject(window, &object);
-
-    TXNDeleteObject(object);
+    TXNDeleteObject(*getTXNObject(window, &object));
     DisposeWindow(window);
     gNumDocuments -= 1;
 
@@ -873,8 +873,7 @@ void growWindow(WindowPtr window, EventRecord *event) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
-    getTXNObject(window, &object);
-    TXNGrowWindow(object, event);
+    TXNGrowWindow(*getTXNObject(window, &object), event);
   }
 }
 
@@ -883,9 +882,7 @@ void zoomWindow(WindowPtr window, short part) {
 
   if(isApplicationWindow(window)) {
     //change replace the guts of this whole function with a call to TXNZoomWindow
-    getTXNObject(window, &object);
-    TXNZoomWindow(object, part);
-
+    TXNZoomWindow(*getTXNObject(window, &object), part);
     windowZoomed = (part == inZoomOut);
   }
 }
@@ -975,8 +972,7 @@ void idleWindow(void) {
 
   if(isApplicationWindow(window)) {
     //change: replace TEIdle with a call to TXNIdle
-    getTXNObject(window, &object);
-    TXNIdle(object);
+    TXNIdle(*getTXNObject(window, &object));
   }
 }
 
@@ -989,8 +985,7 @@ void repaintWindow(WindowPtr window) {
   if(isApplicationWindow(window)) {
     //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
     //and handles drawing the scroll bars.
-    getTXNObject(window, &object);
-    TXNUpdate(object);
+    TXNUpdate(*getTXNObject(window, &object));
   }
 
   SetPort(savePort);
@@ -1002,6 +997,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
 
   if(isApplicationWindow(window)) {
     getTXNObject(window, &object);
+
     GetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), NULL, &frameID);
 
     if (becomingActive) {
@@ -1018,6 +1014,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
 
 void setFont(SInt16 menuItem) {
   //TextStyle styleRec;
+  TXNObject object = NULL;
   OSStatus status = noErr;
   short res;
 
@@ -1028,32 +1025,33 @@ void setFont(SInt16 menuItem) {
   if(!mainWindowPtr) {
     return;
   }
+
   GetFNum(fontName, &res);
 
   typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
   typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
   typeAttr[0].data.dataValue = res;
 
+  getTXNObject(mainWindowPtr, &object);
+
   //TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  //TXNSelectAll((DocumentPeek)window)->fMLTEObject);
+  TXNSelectAll(object);
 
   //TESetStyle(doFont, &styleRec, true, ((DocumentPeek)mainWindowPtr)->docTE);
-  /*
   TXNSetTypeAttributes(
-    ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject,
+    object,
     1,
     typeAttr,
     kTXNStartOffset,
     kTXNEndOffset
   );
-  */
 
   //TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  //TXNSetSelection(
-  //  (DocumentPeek)window)->fMLTEObject,
-  //  kTXNEndOffset,
-  //  kTXNEndOffset
-  //);
+  TXNSetSelection(
+    object,
+    kTXNEndOffset,
+    kTXNEndOffset
+  );
 
   //adjustScrollBars(mainWindowPtr, false);
 }
@@ -1081,6 +1079,7 @@ UInt32 doGetSize(SInt16 menuItem) {
 
 void setFontSize(SInt16 menuItem) {
   OSStatus status = noErr;
+  TXNObject object = NULL;
 
   TXNTypeAttributes typeAttr[1];
 
@@ -1094,21 +1093,23 @@ void setFontSize(SInt16 menuItem) {
   typeAttr[0].size = kTXNQDFontSizeAttributeSize;
   typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
-  /*
+  getTXNObject(mainWindowPtr, &object);
+
+  TXNSelectAll(object);
+
   TXNSetTypeAttributes(
-    ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject,
+    object,
     1,
     typeAttr,
     kTXNStartOffset,
     kTXNEndOffset
   );
-  */
 
-  //TXNSetSelection(
-  //  (DocumentPeek)window)->fMLTEObject,
-  //  kTXNEndOffset,
-  //  kTXNEndOffset
-  //);
+  TXNSetSelection(
+    object,
+    kTXNEndOffset,
+    kTXNEndOffset
+  );
 
   /*
   TextStyle styleRec;
@@ -1170,7 +1171,7 @@ void menuSelect(long mResult) {
         } break;
 
         case mFileQuit: {
-          Terminate();
+          quit = true;
         } break;
       }
     } break;
@@ -1181,38 +1182,30 @@ void menuSelect(long mResult) {
           case mEditCopy: {
             //change: replace the guts of this with a call to TXNCopy
             //again TXNCopy returns an OSStatus which we are ignoring
-            getTXNObject(window, &object);
-            status = TXNCopy(object);
-
-            if(status != noErr) {
+            if(TXNCopy(*getTXNObject(window, &object)) != noErr) {
               alertUser(eNoCopy);
             }
           } break;
 
           case mEditSelectAll: {
-            getTXNObject(window, &object);
-            TXNSelectAll(object);
+            TXNSelectAll(*getTXNObject(window, &object));
           } break;
         }
       }
     } break;
 
     case mFont: {
-      if(isApplicationWindow(window)) {
-        getTXNObject(window, &object);
-
-        if(gTXNFontMenuObject != NULL) {
-          status = TXNDoFontMenuSelection(
-            object,
+      if(
+          isApplicationWindow(window) &&
+          gTXNFontMenuObject != NULL &&
+          TXNDoFontMenuSelection(
+            *getTXNObject(window, &object),
             gTXNFontMenuObject,
             theMenu,
             theItem
-          );
-        }
-
-        if (status != noErr) {
-          alertUser(eNoFontName);
-        }
+          ) != noErr
+      ) {
+        alertUser(eNoFontName);
       }
     } break;
 
@@ -1221,14 +1214,12 @@ void menuSelect(long mResult) {
         static short aFontSizeList[] = {9, 10, 12, 14, 18, 24, 36};
         short shortValue = aFontSizeList[theItem - 1];
 
-        getTXNObject(window, &object);
-
         typeAttr.tag = kTXNQDFontSizeAttribute;
         typeAttr.size = kTXNFontSizeAttributeSize;
         typeAttr.data.dataValue = shortValue << 16;
 
         status = TXNSetTypeAttributes(
-          object,
+          *getTXNObject(window, &object),
           1,
           &typeAttr,
           kTXNUseCurrentSelection,
@@ -1242,17 +1233,18 @@ void menuSelect(long mResult) {
     } break;
 
     default: {
-      if(theMenu >= kStartHierMenuID && isApplicationWindow(window)) {
-
-
-        if(gTXNFontMenuObject != NULL) {
-          getTXNObject(window, &object);
-          status = TXNDoFontMenuSelection(object, gTXNFontMenuObject, theMenu, theItem);
-        }
-
-        if(status != noErr) {
-          alertUser(eNoFontName);
-        }
+      if(
+          theMenu >= kStartHierMenuID &&
+          isApplicationWindow(window) &&
+          gTXNFontMenuObject != NULL &&
+          TXNDoFontMenuSelection(
+            *getTXNObject(window, &object),
+            gTXNFontMenuObject,
+            theMenu,
+            theItem
+          ) != noErr
+      ) {
+        alertUser(eNoFontName);
       }
     } break;
   }
@@ -1267,8 +1259,7 @@ void contentClick(WindowPtr window, EventRecord *event) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
-    getTXNObject(window, &object);
-    TXNClick(object, event);
+    TXNClick(*getTXNObject(window, &object), event);
   }
 }
 
@@ -1407,11 +1398,10 @@ void loopTick(void) {
 void macYield(void) {
   loopTick(); // get one event
 
-  if(quit)  {
-    ExitToShell(); // does not return to sioDemoRead...
+  if(quit) {
+    Terminate();
   }
 }
-
 
 #if TARGET_API_MAC_CARBON
 #include <Navigation.h>
@@ -1594,141 +1584,7 @@ OSStatus openFileDialog(void) {
 }
 #endif
 
-FILE *fopen_mac(const char *filename, const char *mode) {
-  char* absolutePath = NULL;
-  FILE * retval;
-  CFIndex neededLen;
-  CFIndex usedLen;
-  CFRange range;
-  CFStringRef text1;
-  CFURLRef cfabsolute;
-  CFStringRef text2;
-
-  text1 = CFStringCreateWithCStringNoCopy(
-    NULL,
-    filename,
-    kCFStringEncodingUTF8,
-    kCFAllocatorNull
-  );
-
-
-/*
-* the function "fsetfileinfo" can be used to change the creator and type code for a file
-*/
-  if(text1 == NULL) {
-    text1 = CFStringCreateWithCString(
-      NULL,
-      filename,
-      kCFStringEncodingUTF8
-    );
-
-    if(text1 == NULL) {
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
-    kCFAllocatorDefault,
-    text1,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
-    FALSE,
-    baseFolder
-  );
-
-  text2 = CFURLCopyFileSystemPath(
-    cfabsolute,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
-  );
-
-  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
-    retval = fopen(absolutePath, mode);
-  }
-  else {
-    neededLen = 0;
-    usedLen = 0;
-    range = CFRangeMake(0, CFStringGetLength(text2));
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      NULL,
-      0,
-      &neededLen
-    );
-
-    reallocMsg((void**)&absolutePath, neededLen + 1);
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      (UInt8 *)absolutePath,
-      neededLen,
-      &usedLen
-    );
-
-    absolutePath[usedLen] = 0;
-
-    retval = fopen(absolutePath, mode);
-
-    free(absolutePath);
-  }
-
-  CFRelease(text1);
-  CFRelease(cfabsolute);
-  CFRelease(text2);
-
-  return retval;
-}
-
-/*
-  if you're looking for the main() function, this is it.
-  the runtime libraries in MPW provide hooks that allow
-  you to setup the mac boilerplate.
-*/
-pascal void sioDemoInit(int *mainArgc, char ***mainArgv) {
-  static char progName[] = "querycsv";
-  static char* argv[3];
-
-  initialize();
-
-  *mainArgc = 1;
-  argv[0] = progName;
-  argv[1] = NULL;
-  argv[2] = NULL;
-  *mainArgv = argv;
-
-  while(!quit && windowNotOpen) {
-    loopTick();
-  }
-
-  if(quit) {
-    ExitToShell(); //raise(SIGABRT);
-  }
-  else if(!windowNotOpen) {
-    openWindow();
-    *mainArgc = 2;
-    argv[1] = progArg;
-  }
-}
-
-/* our program will be getting all its input from the file whose name is passed to main, so just return end of file */
-pascal void sioDemoRead(
-  char *buffer,
-  long nCharsDesired,
-  long *nCharsUsed,
-  short *eofFlag
-) {
-  *eofFlag = true;
-  *nCharsUsed = 0;
-}
-
-void output(char *buffer, SInt32 nChars, Boolean isBold) {
+int output(char *buffer, SInt32 nChars, Boolean isBold) {
   char* startPoint = buffer;
   SInt32 lineChars = 0;
   SInt32 charsLeft = nChars;
@@ -1737,7 +1593,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   //TextStyle theStyle;
   TXNTypeAttributes iAttributes[1];
   //TEHandle docTE;
-  TXNObject     fMLTEObject;  // our text
+  TXNObject fMLTEObject = NULL;  // our text
   Boolean skipByte;
   size_t len = 0;
   wchar_t *wide = NULL;
@@ -1746,9 +1602,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     return;
   }
 
-  /*
-  fMLTEObject = ((DocumentPeek)GetWRefCon(mainWindowPtr))->fMLTEObject;
-  */
+  getTXNObject(mainWindowPtr, &fMLTEObject);
 
   //GetFNum(fontName, &(theStyle.tsFont));
   //theStyle.tsSize = doGetSize(fontSizeIndex);
@@ -1844,15 +1698,14 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
-      /*
       wide = (wchar_t *)charsetEncode_d((char *)startPoint, ENC_UTF16BE, &len);
-      */
+
       //TEInsert(startPoint, lineChars, docTE);
       TXNSetData(
         fMLTEObject,
         kTXNUnicodeTextData,
         (void *)wide,
-        len,
+        len/2,
         kTXNUseCurrentSelection,
         kTXNUseCurrentSelection
       );
@@ -1891,30 +1744,179 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   //adjustScrollBars(mainWindowPtr, false);
 }
 
-/*
-pascal void sioDemoWrite(SInt16 filenum, char *buffer, SInt32 nChars) {
-  if(filenum == kSIOStdOutNum) {
-    output(buffer, nChars, false);
+int fputs_mac(const char *str, FILE *stream) {
+  int len;
+
+  if(stream == stdout || stream == stderr) {
+    len = strlen(str);
+
+    output(str, len, stream == stderr);
   }
-  else if(filenum == kSIOStdErrNum) {
-    output(buffer, nChars, true);
+  else {
+    len = fputs(str, stream);
   }
 
   loopTick(); // get one event
 
-  if(quit)  {
+  if(quit) {
     ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
   }
+
+  return len;
 }
+
+int fprintf_mac(FILE *stream, const char *format, ...) {
+  va_list args;
+  int retval;
+  size_t newSize;
+  char* newStr = NULL;
+  FILE * pFile;
+
+  if(stream == stdout || stream == stderr) {
+    if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
+      return FALSE;
+    }
+
+    //get the space needed for the new string
+    va_start(args, format);
+    newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
+    va_end(args);
+
+    //close the file. We don't need to look at the return code as we were writing to /dev/null
+    fclose(pFile);
+
+    //Create a new block of memory with the correct size rather than using realloc
+    //as any old values could overlap with the format string. quit on failure
+    if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
+      return FALSE;
+    }
+
+    //do the string formatting for real
+    va_start(args, format);
+    vsprintf(newStr, format, args);
+    va_end(args);
+
+    //ensure null termination of the string
+    newStr[newSize] = '\0';
+
+    output(newStr, newSize-1, stream == stderr);
+
+    free(newStr);
+
+    loopTick(); // get one event
+
+    if(quit) {
+      ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+    }
+
+    return newSize-1;
+  }
+
+  va_start(args, format);
+  retval = vfprintf(stream, format, args);
+  va_end(args);
+
+  loopTick(); // get one event
+
+  if(quit) {
+    ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+  }
+
+  return len;
+
+  return retval;
+}
+
+FILE *fopen_mac(const char *filename, const char *mode) {
+  char* absolutePath = NULL;
+  FILE * retval;
+  CFIndex neededLen;
+  CFIndex usedLen;
+  CFRange range;
+  CFStringRef text1;
+  CFURLRef cfabsolute;
+  CFStringRef text2;
+
+  text1 = CFStringCreateWithCStringNoCopy(
+    NULL,
+    filename,
+    kCFStringEncodingUTF8,
+    kCFAllocatorNull
+  );
+
+
+/*
+* the function "fsetfileinfo" can be used to change the creator and type code for a file
 */
+  if(text1 == NULL) {
+    text1 = CFStringCreateWithCString(
+      NULL,
+      filename,
+      kCFStringEncodingUTF8
+    );
 
-pascal void sioDemoExit(void) {
-  free(progArg);
+    if(text1 == NULL) {
+      exit(EXIT_FAILURE);
+    }
+  }
 
-  while(!quit) {
-    // loop until user quits.
-    loopTick();
-  };
+  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
+    kCFAllocatorDefault,
+    text1,
+    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
+    FALSE,
+    baseFolder
+  );
+
+  text2 = CFURLCopyFileSystemPath(
+    cfabsolute,
+    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
+  );
+
+  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
+    retval = fopen(absolutePath, mode);
+  }
+  else {
+    neededLen = 0;
+    usedLen = 0;
+    range = CFRangeMake(0, CFStringGetLength(text2));
+
+    CFStringGetBytes(
+      text2,
+      range,
+      enc,
+      '?',
+      FALSE,
+      NULL,
+      0,
+      &neededLen
+    );
+
+    reallocMsg((void**)&absolutePath, neededLen + 1);
+
+    CFStringGetBytes(
+      text2,
+      range,
+      enc,
+      '?',
+      FALSE,
+      (UInt8 *)absolutePath,
+      neededLen,
+      &usedLen
+    );
+
+    absolutePath[usedLen] = 0;
+
+    retval = fopen(absolutePath, mode);
+
+    free(absolutePath);
+  }
+
+  CFRelease(text2);
+  CFRelease(cfabsolute);
+  CFRelease(text1);
+
+  return retval;
 }
 
 void DoJustification(WindowPtr window, short menuItem) {
@@ -1957,11 +1959,10 @@ void DoJustification(WindowPtr window, short menuItem) {
       } break;
     }
 
-
     controlTag[0] = kTXNJustificationTag;
     status = TXNGetTXNObjectControls(object, 1, controlTag, controlData);
 
-    if(controlData[0].sValue != justification) {
+    if(status == noErr && controlData[0].sValue != justification) {
       controlData[0].sValue = justification;
 
       status = TXNSetTXNObjectControls(
@@ -1982,7 +1983,6 @@ void DoJustification(WindowPtr window, short menuItem) {
 void Terminate() {
   WindowPtr aWindow;
   Boolean closed;
-  quit = true;
   closed = true;
 
   do {
@@ -2040,6 +2040,8 @@ int main(void) {
       // loop until user quits.
       loopTick();
     }
+
+    Terminate();
   }
 
   return 0; //macs don't do anything with the return value
