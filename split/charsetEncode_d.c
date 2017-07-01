@@ -6,8 +6,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   int i;
   int byteLength;
   int bytesMatched;
-  int didAllocateBytes = FALSE;
-  char* bytes = NULL;
+  int bytesToStore;
+  char bytes[4];
   void (*getBytes)(long, char **, int *);
   size_t temp;
 
@@ -38,14 +38,10 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
 
     case ENC_UTF16LE: {
       getBytes = getBytesUtf16Le;
-      reallocMsg((void**)&bytes, 4);
-      didAllocateBytes = TRUE;
     } break;
 
     case ENC_UTF16BE: {
       getBytes = getBytesUtf16Be;
-      reallocMsg((void**)&bytes, 4);
-      didAllocateBytes = TRUE;
     } break;
 
     default: {
@@ -53,31 +49,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
     } break;
   }
 
-  if(bytesStored != NULL) {
-    for( ; ; ) {
-      /* call getUnicodeCharFast */
-      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
-
-      if(codepoint == 0) {
-        if(didAllocateBytes) {
-          free(bytes);
-        }
-
-        return buffer;
-      }
-
-      /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
-      getBytes(codepoint, &bytes, &byteLength);
-
-      /* for each byte returned, call strAppend */
-      for(i=0; i < byteLength; i++) {
-        strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
-      }
-
-      s += bytesMatched;
-    }
-  }
-  else {
+  /* if we don't care how long the returned string is. always includes trailing null byte */
+  if(bytesStored == NULL) {
     temp = 0;
 
     for( ; ; ) {
@@ -85,7 +58,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
       /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
-      getBytes(codepoint, &bytes, &byteLength);
+      getBytes(codepoint, (char **)&bytes, &byteLength);
 
       /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
@@ -93,14 +66,60 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       }
 
       if(codepoint == 0) {
-        if(didAllocateBytes) {
-          free(bytes);
-        }
-
         return buffer;
       }
 
       s += bytesMatched;
     }
+  }
+
+  /* if bytesStored is initially non zero, it means limit to read at most that many characters from the source. a trailing null byte isn't added */
+  if(*bytesStored > 0) {
+    bytesToStore = *bytesStored;
+    *bytesStored = 0;
+
+    for( ; ; ) {
+      if(bytesToStore < 1) {
+        return buffer;
+      }
+
+      /* call getUnicodeCharFast */
+      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
+
+      if(codepoint == 0) {
+        return buffer;
+      }
+
+      /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
+      getBytes(codepoint, (char **)&bytes, &byteLength);
+
+      /* for each byte returned, call strAppend */
+      for(i=0; i < byteLength; i++) {
+        strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
+      }
+
+      bytesToStore -= bytesMatched;
+      s += bytesMatched;
+    }
+  }
+
+  /* get until a null byte in the source. a trailing null byte isn't added */
+  for( ; ; ) {
+    /* call getUnicodeCharFast */
+    codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
+
+    if(codepoint == 0) {
+      return buffer;
+    }
+
+    /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
+    getBytes(codepoint, (char **)&bytes, &byteLength);
+
+    /* for each byte returned, call strAppend */
+    for(i=0; i < byteLength; i++) {
+      strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
+    }
+
+    s += bytesMatched;
   }
 }

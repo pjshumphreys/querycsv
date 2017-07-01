@@ -51,12 +51,14 @@
 
 #endif
 
+#include <Traps.h>
+
 int main(void);
 void setupMLTE(void);
 void alertUser(short error);
 void loopTick(void);
 void handleEvent(EventRecord *event);
-void adjustCursor(RgnHandle region);
+void adjustCursor(Point mouse, RgnHandle region);
 void growWindow(WindowPtr window, EventRecord *event);
 void zoomWindow(WindowPtr window, short part);
 void repaintWindow(WindowPtr window);
@@ -132,10 +134,6 @@ struct lineOffsets *lastLine = NULL;
 SInt32 textUsed = 0;
 int lineHeight2 = 10;
 
-TXNFontMenuObject gTXNFontMenuObject;
-
-const short kStartHierMenuID = 160;
-
 NavDialogRef gOpenFileDialog = NULL;
 NavEventUPP gEventUPP = NULL;
 
@@ -163,6 +161,21 @@ Str255 fontName;
 int fontSizeIndex = 2;
 int windowZoomed = 0;
 extern char * devNull;
+
+/*
+  gMac is used to hold the result of a SysEnvirons call. This makes
+  it convenient for any routine to check the environment. It is
+  global information, anyway.
+  It is set up by Initialize
+*/
+SysEnvRec gMac;
+
+/*
+  gHasWaitNextEvent is set at startup, and tells whether the WaitNextEvent
+  trap is available. If it is false, we know that we must call GetNextEvent.
+  It is set up by Initialize
+*/
+Boolean gHasWaitNextEvent;
 
 /*
   gInBackground is maintained by our OSEvent handling routines. Any part of
@@ -197,6 +210,10 @@ Boolean gInBackground;
   values for control positioning and sizing. */
 #define kScrollbarWidth     16
 #define kScrollbarAdjust    (kScrollbarWidth - 1)
+
+/* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
+   SysEnvRec we understand. */
+#define	kSysEnvironsVersion		1
 
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
@@ -268,7 +285,7 @@ int stricmp(const char *str1, const char *str2) {
   unsigned long c1, c2;
 
   while (tolower(c1 = *++p1) == tolower(c2 = *++p2)){
-    if (!c1) {
+    if(!c1) {
       return(0);
     }
   }
@@ -285,17 +302,49 @@ short getWindowKind(WindowPtr window) {
   #define getWindowKind GetWindowKind
 #endif
 
+//Check to see if a window is an application one (???).
+int isApplicationWindow(WindowPtr window) {
+  //application windows have windowKinds = userKind (8)
+  return (window != NULL) && (getWindowKind(window) == userKind);
+}
+
 //Check to see if a window belongs to a desk accessory.
 int isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
   return (window == NULL) && (getWindowKind(window) < 0);
 }
 
-//Check to see if a window is an application one (???).
-int isApplicationWindow(WindowPtr window) {
-  //application windows have windowKinds = userKind (8)
-  return (window != NULL) && (getWindowKind(window) == userKind);
+//Check to see if a given trap is available on the system
+Boolean trapAvailable(short tNumber) {
+#if TARGET_API_MAC_CARBON
+  return TRUE;
+#else
+  TrapType tType = tNumber & 0x800 ? ToolTrap : OSTrap;
+
+  if (
+      tType == (unsigned char)ToolTrap &&
+      gMac.machineType > envMachUnknown &&
+      gMac.machineType < envMacII
+  ) {
+    /* it's a 512KE, Plus, or SE. As a consequence, the tool traps only go to 0x01FF */
+    tNumber = tNumber & 0x03FF;
+
+    if (tNumber > 0x01FF) {
+      tNumber = _Unimplemented;
+    }
+  }
+
+  return NGetTrapAddress(tNumber, tType) != NGetTrapAddress(_Unimplemented, ToolTrap);
+#endif
 }
+
+void getGlobalMouse(Point *mouse) {
+  EventRecord event;
+
+  OSEventAvail(kNoEvents, &event);    /* we aren't interested in any events */
+  *mouse = event.where;               /* just the mouse position */
+}
+
 
 #if TARGET_API_MAC_CARBON
 TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
@@ -308,6 +357,23 @@ TEHandle getTEHandle(WindowPtr window) {
   return (((DocumentPeek) window)->docTE);
 }
 #endif
+
+//  Calculate sleep value for WaitNextEvent.
+static UInt32 getSleep() {
+#if TARGET_API_MAC_CARBON
+  WindowPtr window;
+  TXNObject object = NULL;
+
+  window = FrontWindow();
+
+  if (isApplicationWindow(window)) {
+    return TXNGetSleepTicks(*getTXNObject(window, &object));
+  }
+#endif
+
+  return GetCaretTime();
+}
+
 
 Rect getWindowBounds(WindowPtr window) {
   Rect r;
@@ -409,7 +475,6 @@ pascal OSErr appleEventOpenDoc(
   FSRef       theFSRef;
   Size        actualSize;
   long        itemsInList;
-  long        index;
   OSErr       result;
   Boolean     showMessage = FALSE;
   char *text = NULL;
@@ -551,6 +616,7 @@ void setupAppleEvents(void) {
   long result;
 
   if(
+    !trapAvailable(_Gestalt) ||
     Gestalt(gestaltAppleEventsAttr, &result) != noErr ||  //Problem calling Gestalt or
     (result & (1 << gestaltAppleEventsPresent)) == 0      //test the 0th bit of the result. If it is zero then Apple events is not available
   ) {
@@ -564,27 +630,27 @@ void setupAppleEvents(void) {
         NewAEEventHandlerUPP(appleEventOpenApp),
         0,
         FALSE
-      ) != noErr ||
+    ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEOpenDocuments,
         NewAEEventHandlerUPP(appleEventOpenDoc),
         0,
         FALSE
-      ) != noErr ||
+    ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEPrintDocuments,
         NewAEEventHandlerUPP(appleEventPrintDoc),
         0,
         FALSE
-      ) != noErr ||
+    ) != noErr ||
     AEInstallEventHandler(
-      kCoreEventClass,
-      kAEQuitApplication,
-      NewAEEventHandlerUPP(appleEventQuit),
-      0,
-      FALSE
+        kCoreEventClass,
+        kAEQuitApplication,
+        NewAEEventHandlerUPP(appleEventQuit),
+        0,
+        FALSE
     ) != noErr
   ) {
     ExitToShell();
@@ -594,7 +660,6 @@ void setupAppleEvents(void) {
 void setupMLTE(void) {
   OSStatus status;
   TXNMacOSPreferredFontDescription defaults;
-  TXNInitOptions options;
 
   if(TXNVersionInformation == (void*)kUnresolvedCFragSymbolAddress) {
     BigBadError(eWrongSystem);
@@ -604,16 +669,14 @@ void setupMLTE(void) {
   defaults.pointSize = kTXNDefaultFontSize;
 
   defaults.encoding = CreateTextEncoding(
-    kTextEncodingMacRoman,
+    kTextEncodingUnicodeV3_2,
     kTextEncodingDefaultVariant,
     kTextEncodingDefaultFormat
   );
 
-  defaults.fontStyle  = kTXNDefaultFontStyle;
+  defaults.fontStyle = kTXNDefaultFontStyle;
 
-  options = kTXNWantMoviesMask | kTXNWantSoundMask | kTXNWantGraphicsMask;
-
-  status = TXNInitTextension(&defaults, 1, options);
+  status = TXNInitTextension(&defaults, 1, 0L);
 
   if(status != noErr) {
     BigBadError(eNoMLTE);
@@ -625,7 +688,6 @@ void setupMenus(void) {
   MenuHandle myMenus[5];
   int i;
   long result;
-  OSStatus err;
 
   myMenus[appleM] = GetMenu(mApple);
 
@@ -658,16 +720,8 @@ void setupMenus(void) {
   }
 #endif
 
-  err = TXNNewFontMenuObject(
-    GetMenuHandle(mFont),
-    mFont,
-    kStartHierMenuID,
-    &gTXNFontMenuObject
-  );
-
-  if(err != noErr) {
-    BigBadError(eNoMemory);
-  }
+  menu = GetMenuHandle(mFont);
+  AppendResMenu(menu, 'FONT');
 
   DrawMenuBar();
 }
@@ -678,7 +732,7 @@ void restoreSettings(void) {
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh = GetString(rZoomPrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)fontName, (void *)*strh, 256);
     p2cstr(fontName);
     windowZoomed = atoi((char *)fontName);
@@ -687,7 +741,7 @@ void restoreSettings(void) {
 
   //font size (in a bit of a roundabout way but I know this'll work)
   strh = GetString(rFontSizePrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)fontName, (void *)*strh, 256);
     p2cstr(fontName);
     fontSizeIndex = atoi((char *)fontName);
@@ -696,7 +750,7 @@ void restoreSettings(void) {
 
   //font name
   strh = GetString(rFontPrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)fontName, (void *)*strh, 256);
     ReleaseResource((Handle)strh);
   }
@@ -709,7 +763,7 @@ void saveSettings(void) {
 
   //font name
   strh = GetString(rFontPrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)*strh, (void *)fontName, 256);
     ChangedResource((Handle)strh);
     WriteResource((Handle)strh);
@@ -719,7 +773,7 @@ void saveSettings(void) {
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh2 = GetString(rZoomPrefStr);
-  if (strh2 != (StringHandle) NULL) {
+  if(strh2 != (StringHandle) NULL) {
     sprintf((char *)str, "%d", windowZoomed);
     c2pstr((char *)str);
     memcpy((void *)*strh2, (void *)str, 256);
@@ -730,7 +784,7 @@ void saveSettings(void) {
 
   //font size (in a bit of a roundabout way but I know this'll work)
   strh2 = GetString(rFontSizePrefStr);
-  if (strh2 != (StringHandle) NULL) {
+  if(strh2 != (StringHandle) NULL) {
     sprintf((char *)str, "%d", fontSizeIndex);
     c2pstr((char *)str);
     memcpy((void *)*strh2, (void *)str, 256);
@@ -740,7 +794,7 @@ void saveSettings(void) {
   }
 }
 
-void adjustCursor(RgnHandle region) {
+void adjustCursor(Point mouse, RgnHandle region) {
   WindowPtr window = FrontWindow();
   TXNObject object = NULL;
 
@@ -750,23 +804,21 @@ void adjustCursor(RgnHandle region) {
 }
 
 void adjustMenus(void) {
-  MenuRef menu;
+  MenuHandle menu;
   int i, len;
   Boolean found = FALSE;
   Str255 currentFontName;
-  WindowPtr window;
   TXNObject object = NULL;
 
-  menu = GetMenuRef(mFile);
+  menu = GetMenuHandle(mFile);
   if(!windowNotOpen) {
     DisableMenuItem(menu, mFileOpen);
 
-    menu = GetMenuRef(mEdit);
+    menu = GetMenuHandle(mEdit);
     EnableMenuItem(menu, mEditSelectAll);
 
-    window = FrontWindow();
-    if(isApplicationWindow(window)) {
-      if(!TXNIsSelectionEmpty(*getTXNObject(window, &object))) {
+    if(mainWindowPtr) {
+      if(!TXNIsSelectionEmpty(*getTXNObject(mainWindowPtr, &object))) {
         EnableMenuItem(menu, mEditCopy);
       }
       else {
@@ -775,7 +827,7 @@ void adjustMenus(void) {
     }
   }
 
-  menu = GetMenuRef(mFont);
+  menu = GetMenuHandle(mFont);
   for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     GetMenuItemText(menu, i, currentFontName);
 
@@ -794,7 +846,7 @@ void adjustMenus(void) {
   }
 
   found = FALSE;
-  menu = GetMenuRef(mSize);
+  menu = GetMenuHandle(mSize);
   for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
       SetItemMark(menu, i, checkMark);
@@ -811,6 +863,7 @@ void adjustMenus(void) {
   }
 }
 
+/* resync diffs */
 void saveWindow(WindowPtr window) {
   Rect *rptr;
   Rect windRect;
@@ -856,14 +909,14 @@ void growWindow(WindowPtr window, EventRecord *event) {
   }
 }
 
+/* resync */
 void zoomWindow(WindowPtr window, short part) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
-    //change replace the guts of this whole function with a call to TXNZoomWindow
     TXNZoomWindow(*getTXNObject(window, &object), part);
-    windowZoomed = (part == inZoomOut);
   }
+  windowZoomed = (part == inZoomOut);
 }
 
 int openWindow(void) {
@@ -872,7 +925,7 @@ int openWindow(void) {
   TXNObject object;
   TXNFrameID frameID;
   Rect frame;
-  OSStatus status = noErr;    //change add an OSStatus
+  OSStatus status = noErr;
 
   window = GetNewCWindow(rDocWindow, NULL, (WindowPtr)-1L);
 
@@ -890,7 +943,6 @@ int openWindow(void) {
   /* TEXTEDIT STUFF begins here
   ******************************/
 
-  //change 9 replace call to TENew with a call to TXNNewObject
   status = TXNNewObject(
     NULL, /* can be NULL */
     window,
@@ -930,9 +982,13 @@ int openWindow(void) {
 
       isAttached = TXNIsObjectAttachedToWindow(object);
 
-      if (!isAttached) {
+      if(!isAttached) {
         alertUser(eObjectNotAttachedToWindow);
       }
+    }
+
+    if(windowZoomed) {
+      zoomWindow(window, inZoomOut);
     }
 
     adjustMenus();
@@ -949,20 +1005,17 @@ void idleWindow(void) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
-    //change: replace TEIdle with a call to TXNIdle
     TXNIdle(*getTXNObject(window, &object));
   }
 }
 
 void repaintWindow(WindowPtr window) {
-  GrafPtr savePort;
   TXNObject object = NULL;
+  GrafPtr savePort;
 
   GetPort(&savePort);
 
   if(isApplicationWindow(window)) {
-    //change: replace all this with a call to TXNUpdate.  TXNUpdate calls BeginUpdate/EndUpdate
-    //and handles drawing the scroll bars.
     TXNUpdate(*getTXNObject(window, &object));
   }
 
@@ -978,7 +1031,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
 
     GetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), NULL, &frameID);
 
-    if (becomingActive) {
+    if(becomingActive) {
       TXNActivate(object, frameID, kScrollBarsAlwaysActive);
       adjustMenus();
     }
@@ -1067,9 +1120,7 @@ void menuSelect(long mResult) {
   short theMenu;
   Str255 daName;
   short itemHit;
-  OSStatus status = noErr;
   TXNObject object = NULL;
-  TXNTypeAttributes typeAttr;
 
   theItem = LoWord(mResult);
   theMenu = HiWord(mResult);
@@ -1109,72 +1160,24 @@ void menuSelect(long mResult) {
       if(mainWindowPtr) {
         switch(theItem) {
           case mEditCopy: {
-            //change: replace the guts of this with a call to TXNCopy
-            //again TXNCopy returns an OSStatus which we are ignoring
-            if(TXNCopy(*getTXNObject(window, &object)) != noErr) {
+            if(TXNCopy(*getTXNObject(mainWindowPtr, &object)) != noErr) {
               alertUser(eNoCopy);
             }
           } break;
 
           case mEditSelectAll: {
-            TXNSelectAll(*getTXNObject(window, &object));
+            TXNSelectAll(*getTXNObject(mainWindowPtr, &object));
           } break;
         }
       }
     } break;
 
     case mFont: {
-      if(
-          isApplicationWindow(window) &&
-          gTXNFontMenuObject != NULL &&
-          TXNDoFontMenuSelection(
-            *getTXNObject(window, &object),
-            gTXNFontMenuObject,
-            theMenu,
-            theItem
-          ) != noErr
-      ) {
-        alertUser(eNoFontName);
-      }
+      setFont(theItem);
     } break;
 
     case mSize: {
-      if(isApplicationWindow(window)) {
-        static short aFontSizeList[] = {9, 10, 12, 14, 18, 24, 36};
-        short shortValue = aFontSizeList[theItem - 1];
-
-        typeAttr.tag = kTXNQDFontSizeAttribute;
-        typeAttr.size = kTXNFontSizeAttributeSize;
-        typeAttr.data.dataValue = shortValue << 16;
-
-        status = TXNSetTypeAttributes(
-          *getTXNObject(window, &object),
-          1,
-          &typeAttr,
-          kTXNUseCurrentSelection,
-          kTXNUseCurrentSelection
-        );
-
-        if(status != noErr) {
-          alertUser(eNoFontSize);
-        }
-      }
-    } break;
-
-    default: {
-      if(
-          theMenu >= kStartHierMenuID &&
-          isApplicationWindow(window) &&
-          gTXNFontMenuObject != NULL &&
-          TXNDoFontMenuSelection(
-            *getTXNObject(window, &object),
-            gTXNFontMenuObject,
-            theMenu,
-            theItem
-          ) != noErr
-      ) {
-        alertUser(eNoFontName);
-      }
+      setFontSize(theItem);
     } break;
   }
 
@@ -1330,12 +1333,27 @@ void loopTick(void) {
   EventRecord event;
 
 #if TARGET_API_MAC_TOOLBOX
-  SystemTask();
+  Point mouse;
+
+  if(!gHasWaitNextEvent) {
+    SystemTask();
+
+    if(GetNextEvent(everyEvent, &event)) {
+      handleEvent(&event);
+    }
+    else {
+      idleWindow();
+    }
+
+    return;
+  }
+  
+  getGlobalMouse(&mouse);
+  adjustCursor(mouse, cursorRgn);
 #endif
 
-  if(GetNextEvent(everyEvent, &event)) {
-    adjustCursor(cursorRgn);
-
+  if(WaitNextEvent(everyEvent, &event, 0, cursorRgn)) {
+    adjustCursor(event.where, cursorRgn);
     handleEvent(&event);
   }
   else {
@@ -1441,7 +1459,7 @@ static pascal void MyPrivateEventProc(
 
 #pragma unused (callbackUD)
 
-  switch (callbackSelector) {
+  switch(callbackSelector) {
     case kNavCBEvent: {
       switch(callbackParms->eventData.eventDataParms.event->what) {
         case updateEvt:
@@ -1488,7 +1506,7 @@ void openFileDialog(void) {
       YUCK! NavTypeList works by using the 'struct hack'!
     */
     openList = (NavTypeListHandle)NewHandle(sizeof(NavTypeList) + sizeof(OSType));
-    if (openList != NULL) {
+    if(openList != NULL) {
       (*openList)->componentSignature = kNavGenericSignature;
       (*openList)->osTypeCount        = 2;
       (*openList)->osType[0]          = 'TEXT';
@@ -1509,7 +1527,7 @@ void openFileDialog(void) {
         &gOpenFileDialog
       );
 
-    if (theErr == noErr) {
+    if(theErr == noErr) {
       theErr = NavDialogRun(gOpenFileDialog);
 
       if(theErr != noErr) {
@@ -1537,7 +1555,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   TXNTypeAttributes iAttributes[1];
   TXNObject fMLTEObject = NULL;  // our text
   Boolean skipByte;
-  size_t len = 0;
+  size_t len;
   wchar_t *wide = NULL;
 
   if(!mainWindowPtr) {
@@ -1634,6 +1652,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
+      len = (size_t)lineChars;
       wide = (wchar_t *)d_charsetEncode((char *)startPoint, ENC_UTF16BE, &len);
 
       TXNSetData(
@@ -1647,14 +1666,13 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
 
       free(wide);
       wide = NULL;
-      len = 0;
 
       lastLine->lineLength = temp;
       textUsed += lineChars;
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == '\r' && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
@@ -1674,7 +1692,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
       startPoint++;
       charsLeft--;
     }
-  } while (charsLeft > 0);   //any more characters to be output?
+  } while(charsLeft > 0);   //any more characters to be output?
 }
 
 int fputs_mac(const char *str, FILE *stream) {
@@ -1858,17 +1876,6 @@ void terminate() {
     window = FrontWindow();
   }
 
-  if(gTXNFontMenuObject != NULL) {
-    OSStatus status;
-
-    status = TXNDisposeFontMenuObject(gTXNFontMenuObject);
-
-    if (status != noErr) {
-      alertUser(eNoDisposeFontMenuObject);
-    }
-
-    gTXNFontMenuObject = NULL;
-  }
 
   TXNTerminateTextension();
   ExitToShell();
@@ -1890,9 +1897,18 @@ int main(void) {
   InitMenus();
   TEInit();
   InitDialogs(NULL);
-#endif
-
   InitCursor();
+
+  SysEnvirons(kSysEnvironsVersion, &gMac);
+
+  if (gMac.machineType < 0) {
+    BigBadError(eWrongSystem);
+  }
+
+  gHasWaitNextEvent = trapAvailable(_WaitNextEvent);
+#else
+  InitCursor();
+#endif
 
   setupAppleEvents();
 

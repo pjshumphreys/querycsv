@@ -51,6 +51,8 @@
 
 #endif
 
+#include <Traps.h>
+
 int main(void);
 void setupMLTE(void);
 void alertUser(short error);
@@ -159,6 +161,21 @@ int windowZoomed = 0;
 extern char * devNull;
 
 /*
+  gMac is used to hold the result of a SysEnvirons call. This makes
+  it convenient for any routine to check the environment. It is
+  global information, anyway.
+  It is set up by Initialize
+*/
+SysEnvRec gMac;
+
+/*
+  gHasWaitNextEvent is set at startup, and tells whether the WaitNextEvent
+  trap is available. If it is false, we know that we must call GetNextEvent.
+  It is set up by Initialize
+*/
+Boolean gHasWaitNextEvent;
+
+/*
   gInBackground is maintained by our OSEvent handling routines. Any part of
   the program can check it to find out if it is currently in the background.
   It is maintained by Initialize and DoEvent
@@ -192,6 +209,9 @@ Boolean gInBackground;
 #define kScrollbarWidth     16
 #define kScrollbarAdjust    (kScrollbarWidth - 1)
 
+/* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
+   SysEnvRec we understand. */
+#define	kSysEnvironsVersion		1
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
    high byte of the message sent to determine which kind it is. To differentiate
@@ -276,17 +296,49 @@ short getWindowKind(WindowPtr window) {
   #define getWindowKind GetWindowKind
 #endif
 
+//Check to see if a window is an application one (???).
+int isApplicationWindow(WindowPtr window) {
+  //application windows have windowKinds = userKind (8)
+  return (window != NULL) && (getWindowKind(window) == userKind);
+}
+
 //Check to see if a window belongs to a desk accessory.
 int isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
   return (window == NULL) && (getWindowKind(window) < 0);
 }
 
-//Check to see if a window is an application one (???).
-int isApplicationWindow(WindowPtr window) {
-  //application windows have windowKinds = userKind (8)
-  return (window != NULL) && (getWindowKind(window) == userKind);
+//Check to see if a given trap is available on the system
+Boolean trapAvailable(short tNumber) {
+#if TARGET_API_MAC_CARBON
+  return TRUE;
+#else
+  TrapType tType = tNumber & 0x800 ? ToolTrap : OSTrap;
+
+  if (
+      tType == (unsigned char)ToolTrap &&
+      gMac.machineType > envMachUnknown &&
+      gMac.machineType < envMacII
+  ) {
+    /* it's a 512KE, Plus, or SE. As a consequence, the tool traps only go to 0x01FF */
+    tNumber = tNumber & 0x03FF;
+
+    if (tNumber > 0x01FF) {
+      tNumber = _Unimplemented;
+    }
+  }
+
+  return NGetTrapAddress(tNumber, tType) != NGetTrapAddress(_Unimplemented, ToolTrap);
+#endif
 }
+
+void getGlobalMouse(Point *mouse) {
+  EventRecord event;
+
+  OSEventAvail(kNoEvents, &event);    /* we aren't interested in any events */
+  *mouse = event.where;               /* just the mouse position */
+}
+
 
 #if TARGET_API_MAC_CARBON
 TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
@@ -299,6 +351,23 @@ TEHandle getTEHandle(WindowPtr window) {
   return (((DocumentPeek) window)->docTE);
 }
 #endif
+
+//  Calculate sleep value for WaitNextEvent.
+static UInt32 getSleep() {
+#if TARGET_API_MAC_CARBON
+  WindowPtr window;
+  TXNObject object = NULL;
+
+  window = FrontWindow();
+
+  if (isApplicationWindow(window)) {
+    return TXNGetSleepTicks(*getTXNObject(window, &object));
+  }
+#endif
+
+  return GetCaretTime();
+}
+
 
 Rect getWindowBounds(WindowPtr window) {
   Rect r;
@@ -329,7 +398,7 @@ Rect getScreenBounds(void) {
 }
 
 void alertUser(short error) {
-  Str255  message;
+  Str255 message;
 
 #if TARGET_API_MAC_CARBON
   Cursor theArrow;
@@ -463,7 +532,7 @@ pascal OSErr appleEventQuit(
     const AppleEvent *theAppleEvent,
     AEDescList *reply,
     long handlerRefCon
-  ) {
+) {
 #pragma unused (theAppleEvent, reply, handlerRefCon)
   quit = TRUE;
   return noErr;
@@ -473,6 +542,7 @@ void setupAppleEvents(void) {
   long result;
 
   if(
+    !trapAvailable(_Gestalt) ||
     Gestalt(gestaltAppleEventsAttr, &result) != noErr ||  //Problem calling Gestalt or
     (result & (1 << gestaltAppleEventsPresent)) == 0      //test the 0th bit of the result. If it is zero then Apple events is not available
   ) {
@@ -483,31 +553,31 @@ void setupAppleEvents(void) {
     AEInstallEventHandler(
         kCoreEventClass,
         kAEOpenApplication,
-        NewAEEventHandlerProc(appleEventOpenApp),
+        NewAEEventHandlerUPP(appleEventOpenApp),
         0,
         FALSE
-      ) != noErr ||
+    ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEOpenDocuments,
-        NewAEEventHandlerProc(appleEventOpenDoc),
+        NewAEEventHandlerUPP(appleEventOpenDoc),
         0,
         FALSE
-      ) != noErr ||
+    ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEPrintDocuments,
-        NewAEEventHandlerProc(appleEventPrintDoc),
+        NewAEEventHandlerUPP(appleEventPrintDoc),
         0,
         FALSE
-      ) != noErr ||
+    ) != noErr ||
     AEInstallEventHandler(
         kCoreEventClass,
         kAEQuitApplication,
-        NewAEEventHandlerProc(appleEventQuit),
+        NewAEEventHandlerUPP(appleEventQuit),
         0,
         FALSE
-      ) != noErr
+    ) != noErr
   ) {
     ExitToShell();
   }
@@ -517,11 +587,12 @@ void setupMenus(void) {
   MenuRef menu;
   MenuHandle myMenus[5];
   int i;
+  long result;
 
   myMenus[appleM] = GetMenu(mApple);
 
 #if TARGET_API_MAC_TOOLBOX
-  AddResMenu(myMenus[appleM],'DRVR'); // System-provided Desk Accessories menu
+  AddResMenu(myMenus[appleM], 'DRVR'); // System-provided Desk Accessories menu
 #endif
 
   myMenus[fileM]  = GetMenu(mFile);
@@ -624,12 +695,10 @@ void saveSettings(void) {
 }
 
 void adjustCursor(Point mouse, RgnHandle region) {
-  WindowPtr   window;
-  RgnHandle   arrowRgn;
-  RgnHandle   iBeamRgn;
-  Rect        iBeamRect;
-
-  window = FrontWindow();   //we only adjust the cursor when we are in front
+  WindowPtr window = FrontWindow();
+  RgnHandle arrowRgn;
+  RgnHandle iBeamRgn;
+  Rect      iBeamRect;
 
   if(!gInBackground && !isDeskAccessory(window)) {
     //calculate regions for different cursor shapes
@@ -681,23 +750,25 @@ void adjustMenus(void) {
 
   menu = GetMenuHandle(mFile);
   if(!windowNotOpen) {
-    DisableItem(menu, mFileOpen);
+    DisableMenuItem(menu, mFileOpen);
 
     menu = GetMenuHandle(mEdit);
-    EnableItem(menu, mEditSelectAll);
+    EnableMenuItem(menu, mEditSelectAll);
 
-    te = getTEHandle(mainWindowPtr);
+    if(mainWindowPtr) {
+      te = getTEHandle(mainWindowPtr);
 
-    if((*te)->selStart < (*te)->selEnd) {
-      EnableItem(menu, mEditCopy);
-    }
-    else {
-      DisableItem(menu, mEditCopy);
+      if((*te)->selStart < (*te)->selEnd) {
+        EnableMenuItem(menu, mEditCopy);
+      }
+      else {
+        DisableMenuItem(menu, mEditCopy);
+      }
     }
   }
 
   menu = GetMenuHandle(mFont);
-  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     GetMenuItemText(menu, i, currentFontName);
 
     if(!found && EqualString(fontName, currentFontName, TRUE, TRUE)) {
@@ -716,7 +787,7 @@ void adjustMenus(void) {
 
   found = FALSE;
   menu = GetMenuHandle(mSize);
-  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
       SetItemMark(menu, i, checkMark);
       found = TRUE;
@@ -732,6 +803,7 @@ void adjustMenus(void) {
   }
 }
 
+/* resync diffs */
 void adjustTE(WindowPtr window) {
   TEPtr te;
 
@@ -1094,6 +1166,7 @@ void growWindow(WindowPtr window, EventRecord *event) {
   }
 }
 
+/* resync */
 void zoomWindow(WindowPtr window, short part) {
   EraseRect(&window->portRect);
   ZoomWindow(window, part, window == FrontWindow());
@@ -1121,10 +1194,11 @@ int openWindow(void) {
   window = GetNewWindow(rDocWindow, storage, (WindowPtr)-1);
 
   if(window == NULL) {
+    alertUser(eNoWindow);
+
     // get rid of the storage if it is never used
     DisposePtr(storage);
 
-    // The raising of the abort signal should mean we never get here, but just in case
     return FALSE;
   }
 
@@ -1184,6 +1258,8 @@ int openWindow(void) {
       zoomWindow(window, inZoomOut);
     }
 
+    adjustMenus();
+    gNumDocuments++;
     mainWindowPtr = window;
 
     return TRUE;
@@ -1206,6 +1282,10 @@ void idleWindow(void) {
 }
 
 void repaintWindow(WindowPtr window) {
+  GrafPtr savePort;
+
+  GetPort(&savePort);
+
   if(isApplicationWindow(window)) {
     BeginUpdate(window);
 
@@ -1220,6 +1300,8 @@ void repaintWindow(WindowPtr window) {
 
     EndUpdate(window);
   }
+
+  SetPort(savePort);
 }
 
 void activateWindow(WindowPtr window, Boolean becomingActive) {
@@ -1406,9 +1488,6 @@ void menuSelect(long mResult) {
 
     case mSize: {
       setFontSize(theItem);
-    } break;
-
-    default: {
     } break;
   }
 
@@ -1620,10 +1699,26 @@ void loopTick(void) {
   EventRecord event;
 
 #if TARGET_API_MAC_TOOLBOX
-  SystemTask();
+  Point mouse;
+
+  if(!gHasWaitNextEvent) {
+    SystemTask();
+
+    if(GetNextEvent(everyEvent, &event)) {
+      handleEvent(&event);
+    }
+    else {
+      idleWindow();
+    }
+
+    return;
+  }
+  
+  getGlobalMouse(&mouse);
+  adjustCursor(mouse, cursorRgn);
 #endif
 
-  if(GetNextEvent(everyEvent, &event)) {
+  if(WaitNextEvent(everyEvent, &event, 0, cursorRgn)) {
     adjustCursor(event.where, cursorRgn);
     handleEvent(&event);
   }
@@ -1635,7 +1730,7 @@ void loopTick(void) {
 void macYield(void) {
   loopTick(); // get one event
 
-  if(quit)  {
+  if(quit) {
     terminate();
   }
 }
@@ -1788,7 +1883,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == '\r' && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
@@ -1808,7 +1903,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
       startPoint++;
       charsLeft--;
     }
-  } while (charsLeft > 0);   //any more characters to be output?
+  } while(charsLeft > 0);   //any more characters to be output?
 
   adjustScrollBars(mainWindowPtr, FALSE);
 }
@@ -1922,9 +2017,18 @@ int main(void) {
   InitMenus();
   TEInit();
   InitDialogs(NULL);
-#endif
-
   InitCursor();
+
+  SysEnvirons(kSysEnvironsVersion, &gMac);
+
+  if (gMac.machineType < 0) {
+    BigBadError(eWrongSystem);
+  }
+
+  gHasWaitNextEvent = trapAvailable(_WaitNextEvent);
+#else
+  InitCursor();
+#endif
 
   setupAppleEvents();
 

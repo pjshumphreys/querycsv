@@ -51,6 +51,3 @@
 #define rFontPrefStr 128
 #define rFontSizePrefStr 129
 #define rZoomPrefStr 130
-
-
-
