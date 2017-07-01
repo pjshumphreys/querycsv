@@ -88,6 +88,8 @@ int main(int argc, char** argv) {
   int idx;
   FILE* fp;
 
+  devNull = "Nil:";  /* null filename on DOS/Windows */
+
   if(argc == 0) {
     argmsg = (struct WBStartup *)argv;
 

@@ -213,7 +213,7 @@ Boolean gInBackground;
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */
-#define	kSysEnvironsVersion		1
+#define kSysEnvironsVersion   1
 
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
@@ -947,7 +947,7 @@ int openWindow(void) {
     NULL, /* can be NULL */
     window,
     &frame, /* can be NULL */
-    kTXNShowWindowMask|kTXNReadOnlyMask|
+    kTXNShowWindowMask|
     kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
     kOutputTextInUnicodeEncodingMask|
     kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
@@ -1318,13 +1318,14 @@ void handleEvent(EventRecord *event) {
     #endif
   }
 
+  /*
   if(quit) {
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
     }
 
     saveSettings();
-  }
+  }*/
 }
 
 RgnHandle cursorRgn;
@@ -1347,17 +1348,16 @@ void loopTick(void) {
 
     return;
   }
-  
+
   getGlobalMouse(&mouse);
   adjustCursor(mouse, cursorRgn);
 #endif
 
   if(WaitNextEvent(everyEvent, &event, 0, cursorRgn)) {
-    adjustCursor(event.where, cursorRgn);
-    handleEvent(&event);
-  }
-  else {
-    idleWindow();
+    do {
+      adjustCursor(event.where, cursorRgn);
+      handleEvent(&event);
+    } while(WaitNextEvent(everyEvent, &event, getSleep(), cursorRgn));
   }
 }
 
@@ -1875,7 +1875,6 @@ void terminate() {
 
     window = FrontWindow();
   }
-
 
   TXNTerminateTextension();
   ExitToShell();

@@ -7,7 +7,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   int byteLength;
   int bytesMatched;
   int bytesToStore;
-  char bytes[4];
+  char* bytes = NULL; /* a pointer to constant data *OR* some allocated data for utf-16 */
+  char utf16Bytes[4];
   void (*getBytes)(long, char **, int *);
   size_t temp;
 
@@ -38,10 +39,12 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
 
     case ENC_UTF16LE: {
       getBytes = getBytesUtf16Le;
+      bytes = (char *)utf16Bytes;
     } break;
 
     case ENC_UTF16BE: {
       getBytes = getBytesUtf16Be;
+      bytes = (char *)utf16Bytes;
     } break;
 
     default: {
@@ -58,7 +61,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
       /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
-      getBytes(codepoint, (char **)&bytes, &byteLength);
+      getBytes(codepoint, &bytes, &byteLength);
 
       /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
@@ -91,7 +94,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       }
 
       /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
-      getBytes(codepoint, (char **)&bytes, &byteLength);
+      getBytes(codepoint, &bytes, &byteLength);
 
       /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
@@ -113,7 +116,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
     }
 
     /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
-    getBytes(codepoint, (char **)&bytes, &byteLength);
+    getBytes(codepoint, &bytes, &byteLength);
 
     /* for each byte returned, call strAppend */
     for(i=0; i < byteLength; i++) {
