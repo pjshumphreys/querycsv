@@ -1,4 +1,3 @@
-
 #include "SysTypes.r"
 #include "Types.r"
 
@@ -134,18 +133,29 @@ resource 'MENU' (mSize, preload)
 
 resource 'STR#' (kErrStrings, purgeable) {
 	{
-	"You must run on 512Ke or later";
-	"Application Memory Size is too small";
-	"Not enough memory to run QueryCSV";
-	"Not enough memory to do Cut";
-	"Cannot do Cut";
-	"Cannot do Copy";
-	"Cannot exceed 32,000 characters with Paste";
-	"Not enough memory to do Paste";
-	"Cannot create window";
-	"Cannot exceed 32,000 characters";
-	"Cannot do Paste";
-  "A file is already open in QueryCSV. Close that one first"
+    "You must run on 512Ke or later";
+    "Application Memory Size is too small";
+    "Not enough memory to run QueryCSV";
+    "Not enough memory to do Cut";
+    "Cannot do Cut";
+    "Cannot do Copy";
+    "Cannot do Clear";
+    "Cannot exceed 32,000 characters with Paste";
+    "Not enough memory to do Paste";
+    "Cannot create window";
+    "Cannot exceed 32,000 characters";
+    "Cannot do Paste";
+    "A file is already open in QueryCSV. Close that one first";
+    "Cannot initialize Multilingual Text Editor";
+    "Cannot attach Textension object to window";
+    "Cannot activate/deactivate";
+    "Textension object document not attached to window";
+    "Cannot set the font you specified";
+    "Cannot set the size you specified";
+    "Cannot set the style you specified";
+    "Cannot set the justification you specified";
+    "Cannot dispose the Textension font menu object";
+    "Cannot set the word wrap option you specified"
 	}
 };
 
@@ -276,6 +286,15 @@ resource 'open' (128) {   /* for the Translation Manager aka Easy Open */
 	{
 		'****'
 	}
+};
+
+data 'aete' (0, "Apple Events Terminology") {
+	$"0090 0000 0000 0001 0E52 6571 7569 7265"            /* .ê.......Require */
+	$"6420 5375 6974 652C 4576 656E 7473 2074"            /* d Suite,Events t */
+	$"6861 7420 6576 6572 7920 6170 706C 6963"            /* hat every applic */
+	$"6174 696F 6E20 7368 6F75 6C64 2073 7570"            /* ation should sup */
+	$"706F 7274 7265 7164 0001 0001 0000 0000"            /* portreqd........ */
+	$"0000 0000"                                          /* .... */
 };
 
 data 'ICN#' (128) {

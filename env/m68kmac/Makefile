@@ -51,7 +51,6 @@ ObjFiles-68K    =  ¶
 ### Libraries ###
 
 LibFiles-68K    =  ¶
-				  "{Libraries}SIO.o" ¶
 				  "{Libraries}MathLib.o" ¶
 				  "{CLibraries}StdCLib.o" ¶
 				  "{Libraries}MacRuntime.o" ¶

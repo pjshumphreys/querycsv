@@ -178,9 +178,7 @@
 
   int fputs_mac(const char *str, FILE *stream);
   int fprintf_mac(FILE *stream, const char *format, ...);
-  FILE *fopen_mac(const char *filename, const char *mode);
   #define fputs fputs_mac
-  #define fopen fopen_mac
   #define fprintf fprintf_mac
   #define YYFPRINTF fprintf_mac   //for the bison parser
 
@@ -188,7 +186,9 @@
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
-  #ifdef TARGET_API_MAC_CARBON
+  #if TARGET_API_MAC_CARBON
+    FILE *fopen_mac(const char *filename, const char *mode);
+    #define fopen fopen_mac
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_UTF16BE
   #else

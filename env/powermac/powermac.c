@@ -52,7 +52,6 @@
 #endif
 
 int main(void);
-void initialize(void);
 void setupMLTE(void);
 void alertUser(short error);
 void loopTick(void);
@@ -727,34 +726,6 @@ void saveSettings(void) {
   }
 }
 
-void initialize(void) {
-#if TARGET_API_MAC_TOOLBOX
-  MaxApplZone();
-  InitGraf((Ptr)&qd.thePort);
-  InitFonts();
-  InitWindows();
-  InitMenus();
-  TEInit();
-  InitDialogs(NULL);
-#endif
-
-  InitCursor();
-
-  setupAppleEvents();
-
-  /* get the system default encoding. used by the fopen wrapper */
-  enc = CFStringGetSystemEncoding();
-
-  setupMLTE();
-
-  setupMenus();
-
-  restoreSettings();
-
-  gInBackground = FALSE;
-  gNumDocuments = 0;
-}
-
 void adjustCursor(RgnHandle region) {
   WindowPtr window = FrontWindow();
   TXNObject object = NULL;
@@ -1017,11 +988,11 @@ void setFont(SInt16 menuItem) {
   OSStatus status = noErr;
   short res;
 
-  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
-
   if(!mainWindowPtr) {
     return;
   }
+
+  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
 
   GetFNum(fontName, &res);
 
@@ -1341,19 +1312,23 @@ void handleEvent(EventRecord *event) {
   }
 }
 
+RgnHandle cursorRgn;
+
 void loopTick(void) {
   EventRecord event;
-  RgnHandle cursorRgn = NewRgn();
 
 #if TARGET_API_MAC_TOOLBOX
   SystemTask();
 #endif
 
-  GetNextEvent(everyEvent, &event);
+  if(GetNextEvent(everyEvent, &event)) {
+    adjustCursor(cursorRgn);
 
-  adjustCursor(cursorRgn);
-
-  handleEvent(&event);
+    handleEvent(&event);
+  }
+  else {
+    idleWindow();
+  }
 }
 
 void macYield(void) {
@@ -1489,7 +1464,7 @@ static pascal void MyPrivateEventProc(
   }
 }
 
-OSStatus openFileDialog(void) {
+void openFileDialog(void) {
   OSStatus theErr = noErr;
   NavDialogCreationOptions dialogOptions;
   NavTypeListHandle openList = NULL;
@@ -1788,7 +1763,6 @@ FILE *fopen_mac(const char *filename, const char *mode) {
     kCFAllocatorNull
   );
 
-
 /*
 * the function "fsetfileinfo" can be used to change the creator and type code for a file
 */
@@ -1898,29 +1872,55 @@ int main(void) {
   char progName[] = "querycsv";
   char* argv[3];
 
-  initialize();
-
   argv[0] = progName;
   argv[1] = NULL;
   argv[2] = NULL;
+
+#if TARGET_API_MAC_TOOLBOX
+  MaxApplZone();
+  InitGraf((Ptr)&qd.thePort);
+  InitFonts();
+  InitWindows();
+  InitMenus();
+  TEInit();
+  InitDialogs(NULL);
+#endif
+
+  InitCursor();
+
+  setupAppleEvents();
+
+  /* get the system default encoding. used by the fopen wrapper */
+  enc = CFStringGetSystemEncoding();
+
+  setupMLTE();
+
+  setupMenus();
+
+  restoreSettings();
+
+  gInBackground = FALSE;
+  gNumDocuments = 0;
+
+  cursorRgn = NewRgn();
 
   while(!quit && windowNotOpen) {
     loopTick();
   }
 
   if(quit) {
-    ExitToShell(); //raise(SIGABRT);
+    ExitToShell();
   }
   else if(!windowNotOpen) {
-    openWindow();
     argv[1] = progArg;
+
+    openWindow();
 
     realmain(2, argv);
 
     free(progArg);
 
     while(!quit) {
-      // loop until user quits.
       loopTick();
     }
 

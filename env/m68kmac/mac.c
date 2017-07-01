@@ -23,7 +23,7 @@
 #include <signal.h>
 #include <ctype.h>
 
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
 
 #ifdef __MACH__
 #include <Carbon/Carbon.h>
@@ -52,12 +52,11 @@
 #endif
 
 int main(void);
-void initialize(void);
 void setupMLTE(void);
 void alertUser(short error);
 void loopTick(void);
 void handleEvent(EventRecord *event);
-void adjustCursor(RgnHandle region);
+void adjustCursor(Point mouse, RgnHandle region);
 void growWindow(WindowPtr window, EventRecord *event);
 void zoomWindow(WindowPtr window, short part);
 void repaintWindow(WindowPtr window);
@@ -67,12 +66,12 @@ void idleWindow(void);
 void setupMenus(void);
 void adjustMenus(void);
 void menuSelect(long menuResult);
-OSStatus openWindow(void);
-Boolean closeWindow(WindowPtr window);
+int openWindow(void);
+void closeWindow(WindowPtr window);
 void terminate(void);
 void BigBadError(short error);
-Boolean isApplicationWindow(WindowPtr window);
-Boolean isDeskAccessory(WindowPtr window);
+int isApplicationWindow(WindowPtr window);
+int isDeskAccessory(WindowPtr window);
 void setupAppleEvents(void);
 pascal OSErr appleEventOpenApp(
     const AppleEvent *theAppleEvent,
@@ -92,7 +91,7 @@ pascal OSErr appleEventQuit(
     long handlerRefCon);
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
-#ifdef TARGET_API_MAC_TOOLBOX
+#if TARGET_API_MAC_TOOLBOX
 #define GetWindowPort(w) w
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
@@ -108,17 +107,20 @@ int realmain(int argc, char **argv);
   can be added to this record as needed. For a similar example, see how the
   Window Manager and Dialog Manager add fields after the GrafPort.
 */
+#if TARGET_API_MAC_CARBON
 typedef struct {
-#ifdef TARGET_API_MAC_CARBON
   TXNObject     docMLTEObject;
   TXNFrameID    docMLTEFrameID;
+} DocumentRecord, *DocumentPeek;
 #else
+typedef struct {
+  WindowRecord  docWindow;
   TEHandle      docTE;
   ControlHandle docVScroll;
   ControlHandle docHScroll;
   ProcPtr       docClik;
-#endif
 } DocumentRecord, *DocumentPeek;
+#endif
 
 struct lineOffsets {
   int lineLength;
@@ -230,7 +232,7 @@ DocumentRecord mainWindowDoc;
 //  field of our TE record.
 extern pascal void AsmClikLoop(void);
 
-OSStatus openFileDialog(void);
+void openFileDialog(void);
 
 SInt32 macOSVersion;
 
@@ -241,7 +243,7 @@ SInt32 macOSVersion;
 //  Based on MSL version of strcmp, just added tolower() before comparing.
 
 int stricmp(const char *str1, const char *str2) {
-#if !__POWERPC__
+#ifndef __POWERPC__
   const unsigned char *p1 = (unsigned char *)str1;
   const unsigned char *p2 = (unsigned char *)str2;
   unsigned char c1, c2;
@@ -257,7 +259,7 @@ int stricmp(const char *str1, const char *str2) {
   unsigned long c1, c2;
 
   while (tolower(c1 = *++p1) == tolower(c2 = *++p2)){
-    if (!c1) {
+    if(!c1) {
       return(0);
     }
   }
@@ -267,21 +269,23 @@ int stricmp(const char *str1, const char *str2) {
 }
 
 #ifdef TARGET_API_MAC_TOOLBOX
-short GetWindowKind(WindowPtr window) {
-  return ((WindowPeek)window)->windowKind;
+short getWindowKind(WindowPtr window) {
+  return ((WindowPeek) window)->windowKind;
 }
+#else
+  #define getWindowKind GetWindowKind
 #endif
 
 //Check to see if a window belongs to a desk accessory.
-Boolean isDeskAccessory(WindowPtr window) {
+int isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
-  return (window == NULL) && (GetWindowKind(window) < 0);
+  return (window == NULL) && (getWindowKind(window) < 0);
 }
 
 //Check to see if a window is an application one (???).
-Boolean isApplicationWindow(WindowPtr window) {
+int isApplicationWindow(WindowPtr window) {
   //application windows have windowKinds = userKind (8)
-  return (window != NULL) && (GetWindowKind(window) == userKind);
+  return (window != NULL) && (getWindowKind(window) == userKind);
 }
 
 #if TARGET_API_MAC_CARBON
@@ -292,7 +296,7 @@ TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
 }
 #else
 TEHandle getTEHandle(WindowPtr window) {
-  return ((DocumentPeek)window)->docTE;
+  return (((DocumentPeek) window)->docTE);
 }
 #endif
 
@@ -302,6 +306,7 @@ Rect getWindowBounds(WindowPtr window) {
 #if TARGET_API_MAC_CARBON
   GetWindowPortBounds(window, &r);
 #else
+  #pragma unused (window)
   r = qd.thePort->portRect;
 #endif
 
@@ -387,13 +392,13 @@ pascal OSErr appleEventOpenDoc(
     AEDescList *reply,
     long handlerRefCon
 ) {
+#pragma unused (reply, handlerRefCon)
   AEDescList  docList;
   AEKeyword   keyword;
   DescType    returnedType;
   FSSpec      theFSSpec;
   Size        actualSize;
   long        itemsInList;
-  long        index;
   OSErr       result;
   Boolean     showMessage = FALSE;
   char *text = NULL;
@@ -556,7 +561,7 @@ void restoreSettings(void) {
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh = GetString(rZoomPrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)fontName, (void *)*strh, 256);
     p2cstr(fontName);
     windowZoomed = atoi((char *)fontName);
@@ -565,7 +570,7 @@ void restoreSettings(void) {
 
   //font size (in a bit of a roundabout way but I know this'll work)
   strh = GetString(rFontSizePrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)fontName, (void *)*strh, 256);
     p2cstr(fontName);
     fontSizeIndex = atoi((char *)fontName);
@@ -574,7 +579,7 @@ void restoreSettings(void) {
 
   //font name
   strh = GetString(rFontPrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)fontName, (void *)*strh, 256);
     ReleaseResource((Handle)strh);
   }
@@ -587,7 +592,7 @@ void saveSettings(void) {
 
   //font name
   strh = GetString(rFontPrefStr);
-  if (strh != (StringHandle) NULL) {
+  if(strh != (StringHandle) NULL) {
     memcpy((void *)*strh, (void *)fontName, 256);
     ChangedResource((Handle)strh);
     WriteResource((Handle)strh);
@@ -597,7 +602,7 @@ void saveSettings(void) {
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh2 = GetString(rZoomPrefStr);
-  if (strh2 != (StringHandle) NULL) {
+  if(strh2 != (StringHandle) NULL) {
     sprintf((char *)str, "%d", windowZoomed);
     c2pstr((char *)str);
     memcpy((void *)*strh2, (void *)str, 256);
@@ -608,7 +613,7 @@ void saveSettings(void) {
 
   //font size (in a bit of a roundabout way but I know this'll work)
   strh2 = GetString(rFontSizePrefStr);
-  if (strh2 != (StringHandle) NULL) {
+  if(strh2 != (StringHandle) NULL) {
     sprintf((char *)str, "%d", fontSizeIndex);
     c2pstr((char *)str);
     memcpy((void *)*strh2, (void *)str, 256);
@@ -616,29 +621,6 @@ void saveSettings(void) {
     WriteResource((Handle)strh2);
     ReleaseResource((Handle)strh2);
   }
-}
-
-void initialize(void) {
-#if TARGET_API_MAC_TOOLBOX
-  MaxApplZone();
-  InitGraf((Ptr)&qd.thePort);
-  InitFonts();
-  InitWindows();
-  InitMenus();
-  TEInit();
-  InitDialogs(NULL);
-#endif
-
-  InitCursor();
-
-  setupAppleEvents();
-
-  setupMenus();
-
-  restoreSettings();
-
-  gInBackground = FALSE;
-  gNumDocuments = 0;
 }
 
 void adjustCursor(Point mouse, RgnHandle region) {
@@ -649,7 +631,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
 
   window = FrontWindow();   //we only adjust the cursor when we are in front
 
-  if (!gInBackground && !isDeskAccessory(window)) {
+  if(!gInBackground && !isDeskAccessory(window)) {
     //calculate regions for different cursor shapes
     arrowRgn = NewRgn();
     iBeamRgn = NewRgn();
@@ -658,8 +640,8 @@ void adjustCursor(Point mouse, RgnHandle region) {
     SetRectRgn(arrowRgn, kExtremeNeg, kExtremeNeg, kExtremePos, kExtremePos);
 
     //calculate iBeamRgn
-    if (isApplicationWindow(window)) {
-      iBeamRect = (*((DocumentPeek) window)->docTE)->viewRect;
+    if(isApplicationWindow(window)) {
+      iBeamRect = (*getTEHandle(window))->viewRect;
 
       SetPort(window);        //make a global version of the viewRect
       LocalToGlobal(&TopLeft(iBeamRect));
@@ -676,7 +658,7 @@ void adjustCursor(Point mouse, RgnHandle region) {
     DiffRgn(arrowRgn, iBeamRgn, arrowRgn);
 
     //change the cursor and the region parameter
-    if (PtInRgn(mouse, iBeamRgn)) {
+    if(PtInRgn(mouse, iBeamRgn)) {
       SetCursor(*GetCursor(iBeamCursor));
       CopyRgn(iBeamRgn, region);
     }
@@ -704,9 +686,9 @@ void adjustMenus(void) {
     menu = GetMenuHandle(mEdit);
     EnableItem(menu, mEditSelectAll);
 
-    te = ((DocumentPeek) mainWindowPtr)->docTE;
+    te = getTEHandle(mainWindowPtr);
 
-    if ((*te)->selStart < (*te)->selEnd) {
+    if((*te)->selStart < (*te)->selEnd) {
       EnableItem(menu, mEditCopy);
     }
     else {
@@ -753,16 +735,16 @@ void adjustMenus(void) {
 void adjustTE(WindowPtr window) {
   TEPtr te;
 
-  te = *((DocumentPeek)window)->docTE;
+  te = *getTEHandle(window);
 
   TEScroll(
     te->viewRect.left -
     te->destRect.left -
-    GetControlValue(((DocumentPeek)window)->docHScroll),
+    GetControlValue(((DocumentPeek) window)->docHScroll),
     te->viewRect.top -
     te->destRect.top -
-    (GetControlValue(((DocumentPeek)window)->docVScroll) * lineHeight2),
-    ((DocumentPeek)window)->docTE
+    (GetControlValue(((DocumentPeek) window)->docVScroll) * lineHeight2),
+    getTEHandle(window)
   );
 }
 
@@ -788,10 +770,10 @@ void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean can
   oldValue = GetControlValue(control);
   oldMax = GetControlMaximum(control);
 
-  if (isVert) {
+  if(isVert) {
     lines = te->nLines;
 
-    if (*(*te->hText + te->teLength - 1) == kCrChar) {
+    if(*(*te->hText + te->teLength - 1) == kCrChar) {
       lines += 1;
     }
 
@@ -801,29 +783,29 @@ void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean can
     max = kMaxDocWidth - (te->viewRect.right - te->viewRect.left);
   }
 
-  if (max < 0) {
+  if(max < 0) {
     max = 0;
   }
 
   SetControlMaximum(control, max);
 
-  if (isVert) {
+  if(isVert) {
     value = (te->viewRect.top - te->destRect.top) / lineHeight2;
   }
   else {
     value = te->viewRect.left - te->destRect.left;
   }
 
-  if (value < 0) {
+  if(value < 0) {
     value = 0;
   }
-  else if (value > max) {
+  else if(value > max) {
     value = max;
   }
 
   SetControlValue(control, value);
 
-  if (
+  if(
       canRedraw ||
       max != oldMax ||
       value != oldValue
@@ -835,8 +817,8 @@ void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean can
 void adjustScrollbarValues(WindowPtr window, Boolean canRedraw) {
   DocumentPeek doc = (DocumentPeek)window;
 
-  adjustHV(TRUE,  doc->docVScroll, doc->docTE, canRedraw);
-  adjustHV(FALSE, doc->docHScroll, doc->docTE, canRedraw);
+  adjustHV(TRUE,  doc->docVScroll, getTEHandle(window), canRedraw);
+  adjustHV(FALSE, doc->docHScroll, getTEHandle(window), canRedraw);
 }
 
 void getTERect(WindowPtr window, Rect *teRect) {
@@ -856,15 +838,15 @@ void adjustScrollBars(WindowPtr window, Boolean needsResize) {
   (*doc->docVScroll)->contrlVis = kControlInvisible;
   (*doc->docHScroll)->contrlVis = kControlInvisible;
 
-  lineHeight2 = TEGetHeight(1, 1, doc->docTE);
+  lineHeight2 = TEGetHeight(1, 1, getTEHandle(window));
 
-  if (needsResize) {    //move & size as needed
+  if(needsResize) {    //move & size as needed
     //start with TERect
     getTERect(window, &teRect);
-    (*doc->docTE)->viewRect = teRect;
+    (*getTEHandle(window))->viewRect = teRect;
 
     //snap to nearest line
-    adjustViewRect(doc->docTE);
+    adjustViewRect(getTEHandle(window));
 
     MoveControl(doc->docVScroll, window->portRect.right - kScrollbarAdjust, -1);
     SizeControl(
@@ -907,15 +889,14 @@ void resizedWindow(WindowPtr window) {
 //  sets it to the portRect, adjusts the scrollbar values to match the TE scroll
 //  amount, then restores the clip region.
 pascal void PascalClikLoop(void) {
-  WindowPtr window;
-  RgnHandle region;
-
-  window = FrontWindow();
-  region = NewRgn();
+  WindowPtr window = FrontWindow();
+  RgnHandle region = NewRgn();
 
   GetClip(region);
   ClipRect(&window->portRect);
+
   adjustScrollbarValues(window, TRUE);
+
   SetClip(region);
   DisposeRgn(region);
 }
@@ -937,10 +918,10 @@ void commonAction(ControlHandle control, short *amount) {
   max = GetControlMaximum(control);        /* and maximum value */
   *amount = value - *amount;
 
-  if (*amount < 0) {
+  if(*amount < 0) {
     *amount = 0;
   }
-  else if (*amount > max) {
+  else if(*amount > max) {
     *amount = max;
   }
 
@@ -954,11 +935,11 @@ pascal void VActionProc(ControlHandle control, short part) {
   TEPtr       te;
 
   /* if it was actually in the control */
-  if (part != 0) {
+  if(part != 0) {
     window = (*control)->contrlOwner;
-    te = *((DocumentPeek) window)->docTE;
+    te = *getTEHandle(window);
 
-    switch (part) {
+    switch(part) {
       case kControlUpButtonPart:        /* one line */
       case kControlDownButtonPart: {
         amount = 1;
@@ -970,7 +951,7 @@ pascal void VActionProc(ControlHandle control, short part) {
       } break;
     }
 
-    if (
+    if(
         part == kControlDownButtonPart ||
         part == kControlPageDownPart
     ) {
@@ -979,8 +960,8 @@ pascal void VActionProc(ControlHandle control, short part) {
 
     commonAction(control, &amount);
 
-    if (amount != 0) {
-      TEScroll(0, amount * lineHeight2, ((DocumentPeek) window)->docTE);
+    if(amount != 0) {
+      TEScroll(0, amount * lineHeight2, getTEHandle(window));
     }
   }
 }
@@ -995,11 +976,11 @@ pascal void HActionProc(ControlHandle control, short part) {
   WindowPtr   window;
   TEPtr       te;
 
-  if (part != 0) {
+  if(part != 0) {
     window = (*control)->contrlOwner;
-    te = *((DocumentPeek) window)->docTE;
+    te = *getTEHandle(window);
 
-    switch (part) {
+    switch(part) {
       case kControlUpButtonPart:                /* a few pixels */
       case kControlDownButtonPart: {
         amount = kButtonScroll;
@@ -1011,7 +992,7 @@ pascal void HActionProc(ControlHandle control, short part) {
       } break;
     }
 
-    if (
+    if(
         part == kControlDownButtonPart ||
         part == kControlPageDownPart
     ) {
@@ -1020,8 +1001,8 @@ pascal void HActionProc(ControlHandle control, short part) {
 
     commonAction(control, &amount);
 
-    if (amount != 0) {
-      TEScroll(amount, 0, ((DocumentPeek) window)->docTE);
+    if(amount != 0) {
+      TEScroll(amount, 0, getTEHandle(window));
     }
   }
 }
@@ -1053,16 +1034,16 @@ void saveWindow(WindowPtr window) {
   WriteResource(wind);
 }
 
-Boolean closeWindow(WindowPtr window) {
+void closeWindow(WindowPtr window) {
   TEHandle te;
 
-  if (isDeskAccessory(window)) {
-    CloseDeskAcc(((WindowPeek) window)->windowKind);
+  if(isDeskAccessory(window)) {
+    CloseDeskAcc(getWindowKind(window));
   }
-  else if (isApplicationWindow(window)) {
-    te = ((DocumentPeek) window)->docTE;
+  else if(isApplicationWindow(window)) {
+    te = getTEHandle(window);
 
-    if (te != NULL) {
+    if(te != NULL) {
       // dispose the TEHandle if we got far enough to make one
       TEDispose(te);
     }
@@ -1070,14 +1051,7 @@ Boolean closeWindow(WindowPtr window) {
     //TODO: ensure allocated memory associated to the window is freed
     DisposeWindow(window);
     gNumDocuments -= 1;
-
-    //As we only only ever have 1 application window, if it's
-    //closed then we quit the application
-    quit = TRUE;
   }
-
-  adjustMenus();
-  return TRUE;
 }
 
 void growWindow(WindowPtr window, EventRecord *event) {
@@ -1095,11 +1069,11 @@ void growWindow(WindowPtr window, EventRecord *event) {
   growResult = GrowWindow(window, event->where, &tempRect);
 
   //see if it really changed size
-  if (growResult != 0) {
+  if(growResult != 0) {
     doc = (DocumentPeek) window;
 
     //save old text box
-    tempRect = (*doc->docTE)->viewRect;
+    tempRect = (*getTEHandle(window))->viewRect;
     tempRgn = NewRgn();
 
     //get localized update region
@@ -1108,7 +1082,7 @@ void growWindow(WindowPtr window, EventRecord *event) {
     resizedWindow(window);
 
     //calculate & validate the region that hasn't changed so it won't get redrawn
-    SectRect(&tempRect, &(*doc->docTE)->viewRect, &tempRect);
+    SectRect(&tempRect, &(*getTEHandle(window))->viewRect, &tempRect);
 
     //take it out of update
     ValidRect(&tempRect);
@@ -1127,7 +1101,7 @@ void zoomWindow(WindowPtr window, short part) {
   windowZoomed = (part == inZoomOut);
 }
 
-OSStatus openWindow(void) {
+int openWindow(void) {
   WindowPtr window;
   DocumentPeek doc;
   Rect viewRect, destRect;
@@ -1138,26 +1112,20 @@ OSStatus openWindow(void) {
   //Attempt to allocate some memory to bind the generic window to TextEdit functionality
   storage = NewPtr(sizeof(DocumentRecord));
 
-  if (storage == NULL) {
-    //abort the program
-    raise(SIGABRT);
-
+  if(storage == NULL) {
     //The raising of the abort signal should mean we never get here, but just in case
-    return;
+    return FALSE;
   }
 
   //attempt to create the window that will contain program output
   window = GetNewWindow(rDocWindow, storage, (WindowPtr)-1);
 
-  if (window == NULL) {
+  if(window == NULL) {
     // get rid of the storage if it is never used
     DisposePtr(storage);
 
-    // abort the program
-    raise(SIGABRT);
-
     // The raising of the abort signal should mean we never get here, but just in case
-    return;
+    return FALSE;
   }
 
   //set the port (Mac OS boilerplate?)
@@ -1198,13 +1166,13 @@ OSStatus openWindow(void) {
     proceed = (doc->docVScroll != NULL);
   }
 
-  if (proceed) {
+  if(proceed) {
     // Attempt to setup horizontal scrollbar control
     doc->docHScroll = GetNewControl(rHScroll, window);
     proceed = (doc->docHScroll != NULL);
   }
 
-  if (proceed) {
+  if(proceed) {
     //Adjust & draw the controls, then show the window.
     //False to adjustScrollValues means musn't redraw; technically, of course,
     //the window is hidden so it wouldn't matter whether we called ShowControl or not.
@@ -1217,39 +1185,37 @@ OSStatus openWindow(void) {
     }
 
     mainWindowPtr = window;
-  }
-  else {
-    //Something failed in the window creation process.
-    //Clean up then tell the user what happened
-    closeWindow(window);
-    alertUser(eNoWindow);
 
-    // abort the program
-    raise(SIGABRT);
+    return TRUE;
   }
 
-  return status;
+  //Something failed in the window creation process.
+  //Clean up then tell the user what happened
+  closeWindow(window);
+  alertUser(eNoWindow);
+
+  return FALSE;
 }
 
 void idleWindow(void) {
   WindowPtr window = FrontWindow();
 
   if(isApplicationWindow(window)) {
-    TEIdle(((DocumentPeek) window)->docTE);
+    TEIdle(getTEHandle(window));
   }
 }
 
 void repaintWindow(WindowPtr window) {
-  if (isApplicationWindow(window)) {
+  if(isApplicationWindow(window)) {
     BeginUpdate(window);
 
     // draw if updating needs to be done
-    if (!EmptyRgn(window->visRgn)) {
+    if(!EmptyRgn(window->visRgn)) {
       SetPort(window);
       EraseRect(&window->portRect);
       DrawControls(window);
       DrawGrowIcon(window);
-      TEUpdate(&window->portRect, ((DocumentPeek) window)->docTE);
+      TEUpdate(&window->portRect, getTEHandle(window));
     }
 
     EndUpdate(window);
@@ -1261,10 +1227,10 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
   Rect          growRect;
   DocumentPeek  doc;
 
-  if (isApplicationWindow(window)) {
+  if(isApplicationWindow(window)) {
     doc = (DocumentPeek)window;
 
-    if (becomingActive) {
+    if(becomingActive) {
       //since we don't want TEActivate to draw a selection in an area where
       //we're going to erase and redraw, we'll clip out the update region
       //before calling it.
@@ -1278,7 +1244,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
       // subtract updateRgn from clipRgn
       DiffRgn(clipRgn, tempRgn, tempRgn);
       SetClip(tempRgn);
-      TEActivate(doc->docTE);
+      TEActivate(getTEHandle(window));
 
       // restore the full-blown clipRgn
       SetClip(clipRgn);
@@ -1300,7 +1266,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
       InvalRect(&growRect);
     }
     else {
-      TEDeactivate(doc->docTE);
+      TEDeactivate(getTEHandle(window));
       // the controls must be hidden on deactivation:
       HideControl(doc->docVScroll);
       HideControl(doc->docHScroll);
@@ -1315,19 +1281,19 @@ void setFont(SInt16 menuItem) {
   OSStatus status = noErr;
   short res;
 
-  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
-
   if(!mainWindowPtr) {
     return;
   }
+
+  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
 
   GetFNum(fontName, &res);
 
   styleRec.tsFont = res;
 
-  TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  TESetStyle(doFont, &styleRec, TRUE, ((DocumentPeek)mainWindowPtr)->docTE);
-  TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  TESetSelect(0, 32767, getTEHandle(mainWindowPtr));
+  TESetStyle(doFont, &styleRec, TRUE, getTEHandle(mainWindowPtr));
+  TESetSelect(32767, 32767, getTEHandle(mainWindowPtr));
 
   adjustScrollBars(mainWindowPtr, FALSE);
 }
@@ -1364,9 +1330,9 @@ void setFontSize(SInt16 menuItem) {
 
   styleRec.tsSize = doGetSize(fontSizeIndex);
 
-  TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-  TESetStyle(doSize, &styleRec, TRUE, ((DocumentPeek)mainWindowPtr)->docTE);
-  TESetSelect(32767, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
+  TESetSelect(0, 32767, getTEHandle(mainWindowPtr));
+  TESetStyle(doSize, &styleRec, TRUE, getTEHandle(mainWindowPtr));
+  TESetSelect(32767, 32767, getTEHandle(mainWindowPtr));
 
   adjustScrollBars(mainWindowPtr, FALSE);
 }
@@ -1413,25 +1379,26 @@ void menuSelect(long mResult) {
     } break;
 
     case mEdit: {
-      switch(theItem) {
-        case mEditCopy: {
-          if (ZeroScrap() == noErr) {
-            if(mainWindowPtr){
-              TECopy(((DocumentPeek)mainWindowPtr)->docTE);
+      if(mainWindowPtr) {
+        switch(theItem) {
+          case mEditCopy: {
+            if(ZeroScrap() == noErr) {
+              TECopy(getTEHandle(mainWindowPtr));
+
+              // after copying, export the TE scrap
+              if(TEToScrap() != noErr) {
+                alertUser(eNoCopy);
+                ZeroScrap();
+              }
             }
+          } break;
 
-            // after copying, export the TE scrap
-            if (TEToScrap() != noErr) {
-              alertUser(eNoCopy);
-              ZeroScrap();
+          case mEditSelectAll: {
+            if(mainWindowPtr) {
+              TESetSelect(0, 32767, getTEHandle(mainWindowPtr));
             }
-          }
-
-        } break;
-
-        case mEditSelectAll: {
-          TESetSelect(0, 32767, ((DocumentPeek)mainWindowPtr)->docTE);
-        } break;
+          } break;
+        }
       }
     } break;
 
@@ -1462,27 +1429,26 @@ void contentClick(WindowPtr window, EventRecord *event) {
   DocumentPeek    doc;
   Rect            teRect;
 
-  if (isApplicationWindow(window)) {
+  if(isApplicationWindow(window)) {
     SetPort(window);
 
     /* get the click position */
     mouse = event->where;
     GlobalToLocal(&mouse);
 
-    doc = (DocumentPeek) window;
-
     /* see if we are in the viewRect. if so, we wonÕt check the controls */
     getTERect(window, &teRect);
 
-    if (PtInRect(mouse, &teRect)) {
+    if(PtInRect(mouse, &teRect)) {
       /* see if we need to extend the selection */
       shiftDown = (event->modifiers & shiftKey) != 0;        /* extend if Shift is down */
-      TEClick(mouse, shiftDown, doc->docTE);
+      TEClick(mouse, shiftDown, getTEHandle(window));
     }
     else {
+      doc = (DocumentPeek)window;
       part = FindControl(mouse, window, &control);
 
-      switch (part) {
+      switch(part) {
         case 0: {
           /* do nothing for viewRect case */
         } break;
@@ -1491,23 +1457,23 @@ void contentClick(WindowPtr window, EventRecord *event) {
           value = GetControlValue(control);
           part = TrackControl(control, mouse, NULL);
 
-          if (part != 0) {
+          if(part != 0) {
             value -= GetControlValue(control);
 
             /* value now has CHANGE in value; if value changed, scroll */
-            if (value != 0) {
-              if (control == doc->docVScroll) {
-                TEScroll(0, value * lineHeight2, doc->docTE);
+            if(value != 0) {
+              if(control == doc->docVScroll) {
+                TEScroll(0, value * lineHeight2, getTEHandle(window));
               }
               else {
-                TEScroll(value, 0, doc->docTE);
+                TEScroll(value, 0, getTEHandle(window));
               }
             }
           }
         } break;
 
         default: {    /* they clicked in an arrow, so track & scroll */
-          if (control == doc->docVScroll) {
+          if(control == doc->docVScroll) {
             value = TrackControl(control, mouse, (ControlActionUPP) VActionProc);
           }
           else {
@@ -1571,6 +1537,17 @@ void mouseClick(EventRecord *event) {
   }
 }
 
+#if TARGET_API_MAC_TOOLBOX
+void badMount(EventRecord *event) {
+  Point pt = {70, 70};
+
+  if((event->message & 0xFFFF0000) != noErr) {
+    DILoad();
+    DIBadMount(pt, event->message);
+    DIUnload();
+  }
+}
+#endif
 
 void handleEvent(EventRecord *event) {
 #if TARGET_API_MAC_CARBON
@@ -1588,7 +1565,7 @@ void handleEvent(EventRecord *event) {
     } break;
 
     case kOSEvent: {
-      switch ((event->message >> 24) & 0x0FF) {
+      switch((event->message >> 24) & 0x0FF) {
         case kMouseMovedMessage: {
           idleWindow();
         } break;
@@ -1625,11 +1602,7 @@ void handleEvent(EventRecord *event) {
 
     #if TARGET_API_MAC_TOOLBOX
     case diskEvt: {
-      if((event->message & 0xFFFF0000) != noErr) {
-        DILoad();
-        DIBadMount({70, 70}, event->message);
-        DIUnload();
-      }
+      badMount(event);
     } break;
     #endif
   }
@@ -1637,12 +1610,13 @@ void handleEvent(EventRecord *event) {
   if(quit) {
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
-      closeWindow(mainWindowPtr);
     }
 
     saveSettings();
   }
 }
+
+RgnHandle cursorRgn;
 
 void loopTick(void) {
   EventRecord event;
@@ -1651,9 +1625,13 @@ void loopTick(void) {
   SystemTask();
 #endif
 
-  GetNextEvent(everyEvent, &event);
-
-  handleEvent(&event);
+  if(GetNextEvent(everyEvent, &event)) {
+    adjustCursor(event.where, cursorRgn);
+    handleEvent(&event);
+  }
+  else {
+    idleWindow();
+  }
 }
 
 void macYield(void) {
@@ -1667,7 +1645,7 @@ void macYield(void) {
 #if TARGET_API_MAC_TOOLBOX
 #include <StandardFile.h>
 
-OSStatus openFileDialog(void) {
+void openFileDialog(void) {
   Point where;
   unsigned const char prompt = '\0';
   OSType typeList = 'TEXT';
@@ -1704,12 +1682,10 @@ OSStatus openFileDialog(void) {
       }
     }
   }
-
-  return noErr;
 }
 #endif
 
-int output(char *buffer, SInt32 nChars, Boolean isBold) {
+void output(char *buffer, SInt32 nChars, Boolean isBold) {
   char* startPoint = buffer;
   SInt32 lineChars = 0;
   SInt32 charsLeft = nChars;
@@ -1720,10 +1696,10 @@ int output(char *buffer, SInt32 nChars, Boolean isBold) {
   Boolean skipByte;
 
   if(!mainWindowPtr) {
-    return;
+    return ;
   }
 
-  docTE = ((DocumentPeek)mainWindowPtr)->docTE;
+  docTE = getTEHandle(mainWindowPtr);
 
   theStyle.tsFace = isBold?bold:normal;
 
@@ -1851,10 +1827,10 @@ int fputs_mac(const char *str, FILE *stream) {
     len = fputs(str, stream);
 	}
 
-	loopTick(); // get one event
+	loopTick();
 
 	if(quit)	{
-		ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+		terminate();
 	}
 
   return len;
@@ -1884,7 +1860,7 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
     //as any old values could overlap with the format string. quit on failure
     if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
       return FALSE;
-}
+    }
 
     //do the string formatting for real
     va_start(args, format);
@@ -1901,8 +1877,8 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
     loopTick(); // get one event
 
     if(quit) {
-      ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
-        }
+      terminate();
+    }
 
     return newSize-1;
   }
@@ -1914,116 +1890,20 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   loopTick(); // get one event
 
   if(quit) {
-    ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+    terminate();
   }
-
-  return retval;
-}
-
-FILE *fopen_mac(const char *filename, const char *mode) {
-  char* absolutePath = NULL;
-  FILE * retval;
-  CFIndex neededLen;
-  CFIndex usedLen;
-  CFRange range;
-  CFStringRef text1;
-  CFURLRef cfabsolute;
-  CFStringRef text2;
-
-  text1 = CFStringCreateWithCStringNoCopy(
-    NULL,
-    filename,
-    kCFStringEncodingUTF8,
-    kCFAllocatorNull
-  );
-
-
-/*
-* the function "fsetfileinfo" can be used to change the creator and type code for a file
-*/
-  if(text1 == NULL) {
-    text1 = CFStringCreateWithCString(
-      NULL,
-      filename,
-      kCFStringEncodingUTF8
-    );
-
-    if(text1 == NULL) {
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
-    kCFAllocatorDefault,
-    text1,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
-    FALSE,
-    baseFolder
-  );
-
-  text2 = CFURLCopyFileSystemPath(
-    cfabsolute,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
-  );
-
-  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
-    retval = fopen(absolutePath, mode);
-  }
-  else {
-    neededLen = 0;
-    usedLen = 0;
-    range = CFRangeMake(0, CFStringGetLength(text2));
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      NULL,
-      0,
-      &neededLen
-    );
-
-    reallocMsg((void**)&absolutePath, neededLen + 1);
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      (UInt8 *)absolutePath,
-      neededLen,
-      &usedLen
-    );
-
-    absolutePath[usedLen] = 0;
-
-    retval = fopen(absolutePath, mode);
-
-    free(absolutePath);
-  }
-
-  CFRelease(text2);
-  CFRelease(cfabsolute);
-  CFRelease(text1);
 
   return retval;
 }
 
 void terminate() {
-  WindowPtr aWindow;
-  Boolean closed;
-  closed = TRUE;
+  WindowPtr window = FrontWindow();
 
-  do {
-    aWindow = FrontWindow();
+  while(window) {
+    closeWindow(window);
 
-    if(aWindow != NULL) {
-      closed = closeWindow(aWindow);
-    }
-  } while (closed && (aWindow != NULL));
+    window = FrontWindow();
+  }
 
   ExitToShell();
 }
@@ -2032,21 +1912,38 @@ int main(void) {
   char progName[] = "querycsv";
   char* argv[3];
 
-  initialize();
-
   argv[0] = progName;
   argv[1] = NULL;
   argv[2] = NULL;
+
+#if TARGET_API_MAC_TOOLBOX
+  MaxApplZone();
+  InitGraf((Ptr)&qd.thePort);
+  InitFonts();
+  InitWindows();
+  InitMenus();
+  TEInit();
+  InitDialogs(NULL);
+#endif
+
+  InitCursor();
+
+  setupAppleEvents();
+
+  setupMenus();
+
+  restoreSettings();
+
+  gInBackground = FALSE;
+  gNumDocuments = 0;
+
+  cursorRgn = NewRgn();
 
   while(!quit && windowNotOpen) {
     loopTick();
   }
 
-  if(quit) {
-    ExitToShell(); //raise(SIGABRT);
-  }
-  else if(!windowNotOpen) {
-    openWindow();
+  if(!quit && openWindow()) {
     argv[1] = progArg;
 
     realmain(2, argv);
@@ -2054,12 +1951,11 @@ int main(void) {
     free(progArg);
 
     while(!quit) {
-      // loop until user quits.
       loopTick();
     }
-
-    terminate();
   }
+
+  terminate();
 
   return 0; //macs don't do anything with the return value
 }
