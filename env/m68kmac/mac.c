@@ -165,58 +165,58 @@ extern char * devNull;
 */
 Boolean gInBackground;
 
-/*	kMaxDocWidth is an arbitrary number used to specify the width of the TERec's
-	destination rectangle so that word wrap and horizontal scrolling can be
-	demonstrated. */
-#define	kMaxDocWidth			576
+/*  kMaxDocWidth is an arbitrary number used to specify the width of the TERec's
+  destination rectangle so that word wrap and horizontal scrolling can be
+  demonstrated. */
+#define kMaxDocWidth      576
 
 /* kMinDocDim is used to limit the minimum dimension of a window when GrowWindow
-	is called. */
-#define	kMinDocDim				64
+  is called. */
+#define kMinDocDim        64
 
-/*	kCrChar is used to match with a carriage return when calculating the
-	number of lines in the TextEdit record. kDelChar is used to check for
-	delete in keyDowns. */
-#define kCrChar					13
-#define kDelChar				8
+/*  kCrChar is used to match with a carriage return when calculating the
+  number of lines in the TextEdit record. kDelChar is used to check for
+  delete in keyDowns. */
+#define kCrChar         13
+#define kDelChar        8
 
-/*	kControlInvisible is used to 'turn off' controls (i.e., cause the control not
-	to be redrawn as a result of some Control Manager call such as SetCtlValue)
-	by being put into the contrlVis field of the record. kControlVisible is used
-	the same way to 'turn on' the control. */
-#define kControlInvisible		0
-#define kControlVisible			0xFF
+/*  kControlInvisible is used to 'turn off' controls (i.e., cause the control not
+  to be redrawn as a result of some Control Manager call such as SetCtlValue)
+  by being put into the contrlVis field of the record. kControlVisible is used
+  the same way to 'turn on' the control. */
+#define kControlInvisible   0
+#define kControlVisible     0xFF
 
-/*	kScrollbarAdjust and kScrollbarWidth are used in calculating
-	values for control positioning and sizing. */
-#define kScrollbarWidth			16
-#define kScrollbarAdjust		(kScrollbarWidth - 1)
+/*  kScrollbarAdjust and kScrollbarWidth are used in calculating
+  values for control positioning and sizing. */
+#define kScrollbarWidth     16
+#define kScrollbarAdjust    (kScrollbarWidth - 1)
 
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
    high byte of the message sent to determine which kind it is. To differentiate
    suspend and resume events we check the resumeMask bit. */
-#define	kOSEvent				app4Evt	/* event used by MultiFinder */
-#define	kSuspendResumeMessage	1		/* high byte of suspend/resume event message */
-#define	kResumeMask				1		/* bit of message field for resume vs. suspend */
-#define	kMouseMovedMessage		0xFA	/* high byte of mouse-moved event message */
-#define	kNoEvents				0		/* no events mask */
+#define kOSEvent        app4Evt /* event used by MultiFinder */
+#define kSuspendResumeMessage 1   /* high byte of suspend/resume event message */
+#define kResumeMask       1   /* bit of message field for resume vs. suspend */
+#define kMouseMovedMessage    0xFA  /* high byte of mouse-moved event message */
+#define kNoEvents       0   /* no events mask */
 
-/*	kExtremeNeg and kExtremePos are used to set up wide open rectangles and regions. */
-#define kExtremeNeg				-32768
-#define kExtremePos				(32767 - 1)	/* required to address an old region bug */
+/*  kExtremeNeg and kExtremePos are used to set up wide open rectangles and regions. */
+#define kExtremeNeg       -32768
+#define kExtremePos       (32767 - 1) /* required to address an old region bug */
 
-/*	kScrollTweek compensates for off-by-one requirements of the scrollbars
+/*  kScrollTweek compensates for off-by-one requirements of the scrollbars
  to have borders coincide with the growbox. */
-#define kScrollTweek			-2
+#define kScrollTweek      -2
 
 /* 1.01 - changed constants to begin with 'k' for consistency, except for resource IDs */
-/*	kTextMargin is the number of pixels we leave blank at the edge of the window. */
-#define kTextMargin				2
+/*  kTextMargin is the number of pixels we leave blank at the edge of the window. */
+#define kTextMargin       2
 
-/*	kButtonScroll is how many pixels to scroll horizontally when the button part
-	of the horizontal scrollbar is pressed. */
-#define kButtonScroll			4
+/*  kButtonScroll is how many pixels to scroll horizontally when the button part
+  of the horizontal scrollbar is pressed. */
+#define kButtonScroll     4
 
 /*
   gNumDocuments is used to keep track of how many open documents there are
@@ -243,7 +243,7 @@ SInt32 macOSVersion;
 //  Based on MSL version of strcmp, just added tolower() before comparing.
 
 int stricmp(const char *str1, const char *str2) {
-#ifndef __POWERPC__
+#if !__POWERPC__
   const unsigned char *p1 = (unsigned char *)str1;
   const unsigned char *p2 = (unsigned char *)str2;
   unsigned char c1, c2;
@@ -268,7 +268,7 @@ int stricmp(const char *str1, const char *str2) {
   return(c1 - c2);
 }
 
-#ifdef TARGET_API_MAC_TOOLBOX
+#if TARGET_API_MAC_TOOLBOX
 short getWindowKind(WindowPtr window) {
   return ((WindowPeek) window)->windowKind;
 }
@@ -314,18 +314,18 @@ Rect getWindowBounds(WindowPtr window) {
 }
 
 Rect getScreenBounds(void) {
-	Rect r;
+  Rect r;
 
 #if TARGET_API_MAC_CARBON
-	BitMap theScreenBits;
+  BitMap theScreenBits;
 
-	GetQDGlobalsScreenBits(&theScreenBits); //carbon accessor
-	r = theScreenBits.bounds;
+  GetQDGlobalsScreenBits(&theScreenBits); //carbon accessor
+  r = theScreenBits.bounds;
 #else
-	r = qd.screenBits.bounds;
+  r = qd.screenBits.bounds;
 #endif
 
-	return r;
+  return r;
 }
 
 void alertUser(short error) {
@@ -673,15 +673,15 @@ void adjustCursor(Point mouse, RgnHandle region) {
 }
 
 void adjustMenus(void) {
-	MenuHandle menu;
+  MenuHandle menu;
   int i, len;
   Boolean found = FALSE;
   Str255 currentFontName;
   TEHandle te;
 
-	menu = GetMenuHandle(mFile);
-	if(!windowNotOpen) {
-		DisableItem(menu, mFileOpen);
+  menu = GetMenuHandle(mFile);
+  if(!windowNotOpen) {
+    DisableItem(menu, mFileOpen);
 
     menu = GetMenuHandle(mEdit);
     EnableItem(menu, mEditSelectAll);
@@ -1008,7 +1008,7 @@ pascal void HActionProc(ControlHandle control, short part) {
 }
 
 void saveWindow(WindowPtr window) {
-	Rect *rptr;
+  Rect *rptr;
   Rect windRect;
   Handle wind;
 
@@ -1020,16 +1020,16 @@ void saveWindow(WindowPtr window) {
 
   LocalToGlobal(&((Point)windRect));
 
-	HLock(wind);
-	rptr = (Rect *) *wind;
+  HLock(wind);
+  rptr = (Rect *) *wind;
 
   rptr->top = windRect.top;
-	rptr->left = windRect.left;
+  rptr->left = windRect.left;
   rptr->bottom = windRect.top + windRect.bottom;
-	rptr->right = windRect.left + windRect.right;
+  rptr->right = windRect.left + windRect.right;
 
-	ChangedResource(wind);
-	HUnlock(wind);
+  ChangedResource(wind);
+  HUnlock(wind);
 
   WriteResource(wind);
 }
@@ -1394,9 +1394,7 @@ void menuSelect(long mResult) {
           } break;
 
           case mEditSelectAll: {
-            if(mainWindowPtr) {
-              TESetSelect(0, 32767, getTEHandle(mainWindowPtr));
-            }
+            TESetSelect(0, 32767, getTEHandle(mainWindowPtr));
           } break;
         }
       }
@@ -1637,9 +1635,9 @@ void loopTick(void) {
 void macYield(void) {
   loopTick(); // get one event
 
-	if(quit)	{
-		terminate();
-	}
+  if(quit)  {
+    terminate();
+  }
 }
 
 #if TARGET_API_MAC_TOOLBOX
@@ -1691,12 +1689,12 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   SInt32 charsLeft = nChars;
   long temp;
   struct lineOffsets *temp2;
-	TextStyle theStyle;
+  TextStyle theStyle;
   TEHandle docTE;
   Boolean skipByte;
 
   if(!mainWindowPtr) {
-    return ;
+    return;
   }
 
   docTE = getTEHandle(mainWindowPtr);
@@ -1822,16 +1820,16 @@ int fputs_mac(const char *str, FILE *stream) {
     len = strlen(str);
 
     output((char *)str, len, stream == stderr);
-	}
+  }
   else {
     len = fputs(str, stream);
-	}
+  }
 
-	loopTick();
+  loopTick();
 
-	if(quit)	{
-		terminate();
-	}
+  if(quit) {
+    terminate();
+  }
 
   return len;
 }

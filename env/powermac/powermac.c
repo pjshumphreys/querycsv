@@ -23,7 +23,7 @@
 #include <signal.h>
 #include <ctype.h>
 
-#ifdef TARGET_API_MAC_CARBON
+#if TARGET_API_MAC_CARBON
 
 #ifdef __MACH__
 #include <Carbon/Carbon.h>
@@ -66,12 +66,12 @@ void idleWindow(void);
 void setupMenus(void);
 void adjustMenus(void);
 void menuSelect(long menuResult);
-OSStatus openWindow(void);
-Boolean closeWindow(WindowPtr window);
+int openWindow(void);
+void closeWindow(WindowPtr window);
 void terminate(void);
 void BigBadError(short error);
-Boolean isApplicationWindow(WindowPtr window);
-Boolean isDeskAccessory(WindowPtr window);
+int isApplicationWindow(WindowPtr window);
+int isDeskAccessory(WindowPtr window);
 void setupAppleEvents(void);
 pascal OSErr appleEventOpenApp(
     const AppleEvent *theAppleEvent,
@@ -91,7 +91,7 @@ pascal OSErr appleEventQuit(
     long handlerRefCon);
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
-#ifdef TARGET_API_MAC_TOOLBOX
+#if TARGET_API_MAC_TOOLBOX
 #define GetWindowPort(w) w
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
@@ -107,17 +107,20 @@ int realmain(int argc, char **argv);
   can be added to this record as needed. For a similar example, see how the
   Window Manager and Dialog Manager add fields after the GrafPort.
 */
+#if TARGET_API_MAC_CARBON
 typedef struct {
-#ifdef TARGET_API_MAC_CARBON
   TXNObject     docMLTEObject;
   TXNFrameID    docMLTEFrameID;
+} DocumentRecord, *DocumentPeek;
 #else
+typedef struct {
+  WindowRecord  docWindow;
   TEHandle      docTE;
   ControlHandle docVScroll;
   ControlHandle docHScroll;
   ProcPtr       docClik;
-#endif
 } DocumentRecord, *DocumentPeek;
+#endif
 
 struct lineOffsets {
   int lineLength;
@@ -175,31 +178,31 @@ Boolean gInBackground;
 
 /* kMinDocDim is used to limit the minimum dimension of a window when GrowWindow
   is called. */
-#define	kMinDocDim				64
+#define kMinDocDim        64
 
 /*  kCrChar is used to match with a carriage return when calculating the
   number of lines in the TextEdit record. kDelChar is used to check for
   delete in keyDowns. */
-#define kCrChar					13
-#define kDelChar				8
+#define kCrChar         13
+#define kDelChar        8
 
 /*  kControlInvisible is used to 'turn off' controls (i.e., cause the control not
   to be redrawn as a result of some Control Manager call such as SetCtlValue)
   by being put into the contrlVis field of the record. kControlVisible is used
   the same way to 'turn on' the control. */
-#define kControlInvisible		0
-#define kControlVisible			0xFF
+#define kControlInvisible   0
+#define kControlVisible     0xFF
 
 /*  kScrollbarAdjust and kScrollbarWidth are used in calculating
   values for control positioning and sizing. */
-#define kScrollbarWidth			16
-#define kScrollbarAdjust		(kScrollbarWidth - 1)
+#define kScrollbarWidth     16
+#define kScrollbarAdjust    (kScrollbarWidth - 1)
 
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
    high byte of the message sent to determine which kind it is. To differentiate
    suspend and resume events we check the resumeMask bit. */
-#define	kOSEvent				app4Evt	/* event used by MultiFinder */
+#define kOSEvent        app4Evt /* event used by MultiFinder */
 #define kSuspendResumeMessage 1   /* high byte of suspend/resume event message */
 #define kResumeMask       1   /* bit of message field for resume vs. suspend */
 #define kMouseMovedMessage    0xFA  /* high byte of mouse-moved event message */
@@ -233,7 +236,8 @@ DocumentRecord mainWindowDoc;
 
 #define ENC_UTF16BE 9
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
-OSStatus openFileDialog(void);
+
+void openFileDialog(void);
 
 /* how to treat filenames that are fopened */
 CFURLRef baseFolder;
@@ -273,16 +277,24 @@ int stricmp(const char *str1, const char *str2) {
   return(c1 - c2);
 }
 
+#if TARGET_API_MAC_TOOLBOX
+short getWindowKind(WindowPtr window) {
+  return ((WindowPeek) window)->windowKind;
+}
+#else
+  #define getWindowKind GetWindowKind
+#endif
+
 //Check to see if a window belongs to a desk accessory.
-Boolean isDeskAccessory(WindowPtr window) {
+int isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
-  return (window == NULL) && (GetWindowKind(window) < 0);
+  return (window == NULL) && (getWindowKind(window) < 0);
 }
 
 //Check to see if a window is an application one (???).
-Boolean isApplicationWindow(WindowPtr window) {
+int isApplicationWindow(WindowPtr window) {
   //application windows have windowKinds = userKind (8)
-  return (window != NULL) && (GetWindowKind(window) == userKind);
+  return (window != NULL) && (getWindowKind(window) == userKind);
 }
 
 #if TARGET_API_MAC_CARBON
@@ -293,7 +305,7 @@ TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
 }
 #else
 TEHandle getTEHandle(WindowPtr window) {
-  return ((DocumentPeek)window)->docTE;
+  return (((DocumentPeek) window)->docTE);
 }
 #endif
 
@@ -303,6 +315,7 @@ Rect getWindowBounds(WindowPtr window) {
 #if TARGET_API_MAC_CARBON
   GetWindowPortBounds(window, &r);
 #else
+  #pragma unused (window)
   r = qd.thePort->portRect;
 #endif
 
@@ -388,6 +401,7 @@ pascal OSErr appleEventOpenDoc(
     AEDescList *reply,
     long handlerRefCon
 ) {
+#pragma unused (reply, handlerRefCon)
   AEDescList  docList;
   AEKeyword   keyword;
   DescType    returnedType;
@@ -824,21 +838,14 @@ void saveWindow(WindowPtr window) {
   WriteResource(wind);
 }
 
-Boolean closeWindow(WindowPtr window) {
+void closeWindow(WindowPtr window) {
   TXNObject object = NULL;
 
   if(isApplicationWindow(window)) {
     TXNDeleteObject(*getTXNObject(window, &object));
     DisposeWindow(window);
     gNumDocuments -= 1;
-
-    //As we only only ever have 1 application window, if it's
-    //closed then we quit the application
-    quit = TRUE;
   }
-
-  adjustMenus();
-  return TRUE;
 }
 
 void growWindow(WindowPtr window, EventRecord *event) {
@@ -859,7 +866,7 @@ void zoomWindow(WindowPtr window, short part) {
   }
 }
 
-OSStatus openWindow(void) {
+int openWindow(void) {
   WindowPtr window;
   DocumentPeek doc;
   TXNObject object;
@@ -872,7 +879,7 @@ OSStatus openWindow(void) {
   if(window == NULL) {
     alertUser(eNoWindow);
 
-    return status;
+    return FALSE;
   }
 
   object = NULL;
@@ -933,7 +940,8 @@ OSStatus openWindow(void) {
   }
 
   mainWindowPtr = window;
-  return status;
+
+  return TRUE;
 }
 
 void idleWindow(void) {
@@ -1059,12 +1067,10 @@ void menuSelect(long mResult) {
   short theMenu;
   Str255 daName;
   short itemHit;
-  WindowPtr window;
   OSStatus status = noErr;
   TXNObject object = NULL;
   TXNTypeAttributes typeAttr;
 
-  window = FrontWindow();
   theItem = LoWord(mResult);
   theMenu = HiWord(mResult);
 
@@ -1100,7 +1106,7 @@ void menuSelect(long mResult) {
     } break;
 
     case mEdit: {
-      if(isApplicationWindow(window)) {
+      if(mainWindowPtr) {
         switch(theItem) {
           case mEditCopy: {
             //change: replace the guts of this with a call to TXNCopy
@@ -1193,7 +1199,7 @@ void mouseClick(EventRecord *event) {
   WindowPtr window;
   short part = FindWindow(event->where, &window);
 
-  switch (part) {
+  switch(part) {
     case inContent: {
       if(window != FrontWindow()) {
         SelectWindow(window);
@@ -1239,6 +1245,17 @@ void mouseClick(EventRecord *event) {
   }
 }
 
+#if TARGET_API_MAC_TOOLBOX
+void badMount(EventRecord *event) {
+  Point pt = {70, 70};
+
+  if((event->message & 0xFFFF0000) != noErr) {
+    DILoad();
+    DIBadMount(pt, event->message);
+    DIUnload();
+  }
+}
+#endif
 
 void handleEvent(EventRecord *event) {
 #if TARGET_API_MAC_CARBON
@@ -1250,7 +1267,7 @@ void handleEvent(EventRecord *event) {
   }
 #endif
 
-  switch (event->what) {
+  switch(event->what) {
     case nullEvent: {
       idleWindow();
     } break;
@@ -1293,11 +1310,7 @@ void handleEvent(EventRecord *event) {
 
     #if TARGET_API_MAC_TOOLBOX
     case diskEvt: {
-      if((event->message & 0xFFFF0000) != noErr) {
-        DILoad();
-        DIBadMount({70, 70}, event->message);
-        DIUnload();
-      }
+      badMount(event);
     } break;
     #endif
   }
@@ -1305,7 +1318,6 @@ void handleEvent(EventRecord *event) {
   if(quit) {
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
-      closeWindow(mainWindowPtr);
     }
 
     saveSettings();
@@ -1516,7 +1528,7 @@ void openFileDialog(void) {
 }
 #endif
 
-int output(char *buffer, SInt32 nChars, Boolean isBold) {
+void output(char *buffer, SInt32 nChars, Boolean isBold) {
   char* startPoint = buffer;
   SInt32 lineChars = 0;
   SInt32 charsLeft = nChars;
@@ -1677,10 +1689,10 @@ int fputs_mac(const char *str, FILE *stream) {
     len = fputs(str, stream);
   }
 
-  loopTick(); // get one event
+  loopTick();
 
   if(quit) {
-    ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+    terminate();
   }
 
   return len;
@@ -1727,7 +1739,7 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
     loopTick(); // get one event
 
     if(quit) {
-      ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+      terminate();
     }
 
     return newSize-1;
@@ -1740,7 +1752,7 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   loopTick(); // get one event
 
   if(quit) {
-    ExitToShell();  //raise(SIGABRT); // does not return to sioDemoRead...
+    terminate();
   }
 
   return retval;
@@ -1838,30 +1850,24 @@ FILE *fopen_mac(const char *filename, const char *mode) {
 }
 
 void terminate() {
-  WindowPtr aWindow;
-  Boolean closed;
-  closed = TRUE;
+  WindowPtr window = FrontWindow();
 
-  do {
-    aWindow = FrontWindow();
+  while(window) {
+    closeWindow(window);
 
-    if(aWindow != NULL) {
-      closed = closeWindow(aWindow);
+    window = FrontWindow();
+  }
+
+  if(gTXNFontMenuObject != NULL) {
+    OSStatus status;
+
+    status = TXNDisposeFontMenuObject(gTXNFontMenuObject);
+
+    if (status != noErr) {
+      alertUser(eNoDisposeFontMenuObject);
     }
-  } while (closed && (aWindow != NULL));
 
-  if(closed) {
-    if(gTXNFontMenuObject != NULL) {
-      OSStatus status;
-
-      status = TXNDisposeFontMenuObject(gTXNFontMenuObject);
-
-      if (status != noErr) {
-        alertUser(eNoDisposeFontMenuObject);
-      }
-
-      gTXNFontMenuObject = NULL;
-    }
+    gTXNFontMenuObject = NULL;
   }
 
   TXNTerminateTextension();
@@ -1908,13 +1914,8 @@ int main(void) {
     loopTick();
   }
 
-  if(quit) {
-    ExitToShell();
-  }
-  else if(!windowNotOpen) {
+  if(!quit && openWindow()) {
     argv[1] = progArg;
-
-    openWindow();
 
     realmain(2, argv);
 
@@ -1923,9 +1924,9 @@ int main(void) {
     while(!quit) {
       loopTick();
     }
-
-    terminate();
   }
+
+  terminate();
 
   return 0; //macs don't do anything with the return value
 }
