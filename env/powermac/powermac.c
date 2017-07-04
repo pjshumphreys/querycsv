@@ -298,6 +298,8 @@ int stricmp(const char *str1, const char *str2) {
 short getWindowKind(WindowPtr window) {
   return ((WindowPeek) window)->windowKind;
 }
+  #define DisableMenuItem DisableItem
+  #define EnableMenuItem EnableItem
 #else
   #define getWindowKind GetWindowKind
 #endif
@@ -357,23 +359,6 @@ TEHandle getTEHandle(WindowPtr window) {
   return (((DocumentPeek) window)->docTE);
 }
 #endif
-
-//  Calculate sleep value for WaitNextEvent.
-static UInt32 getSleep() {
-#if TARGET_API_MAC_CARBON
-  WindowPtr window;
-  TXNObject object = NULL;
-
-  window = FrontWindow();
-
-  if (isApplicationWindow(window)) {
-    return TXNGetSleepTicks(*getTXNObject(window, &object));
-  }
-#endif
-
-  return GetCaretTime();
-}
-
 
 Rect getWindowBounds(WindowPtr window) {
   Rect r;
@@ -1354,10 +1339,11 @@ void loopTick(void) {
 #endif
 
   if(WaitNextEvent(everyEvent, &event, 0, cursorRgn)) {
-    do {
-      adjustCursor(event.where, cursorRgn);
-      handleEvent(&event);
-    } while(WaitNextEvent(everyEvent, &event, getSleep(), cursorRgn));
+    adjustCursor(event.where, cursorRgn);
+    handleEvent(&event);
+  }
+  else {
+    idleWindow();
   }
 }
 
@@ -1546,15 +1532,15 @@ void openFileDialog(void) {
 }
 #endif
 
-void output(char *buffer, SInt32 nChars, Boolean isBold) {
-  char* startPoint = buffer;
-  SInt32 lineChars = 0;
-  SInt32 charsLeft = nChars;
+void output(char *buffer, size_t nChars, Boolean isBold) {
+  char* startPoint;
+  size_t lineChars = 0;
+  size_t charsLeft = nChars;
   long temp;
   struct lineOffsets *temp2;
   TXNTypeAttributes iAttributes[1];
   TXNObject fMLTEObject = NULL;  // our text
-  Boolean skipByte;
+  int skipByte;
   size_t len;
   wchar_t *wide = NULL;
 
@@ -1592,6 +1578,8 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
 
       switch(startPoint[lineChars]) {
         case '\r': {
+          startPoint[lineChars] = '\n';
+
           if(startPoint[lineChars+1] == '\n') {
             skipByte = TRUE;
           }
@@ -1601,8 +1589,6 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
         } break;
 
         case '\n': {
-          startPoint[lineChars] = '\r';
-
           lineChars++;
           charsLeft--;
         } break;
@@ -1672,7 +1658,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\r' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
@@ -1696,7 +1682,7 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
 }
 
 int fputs_mac(const char *str, FILE *stream) {
-  int len;
+  size_t len;
 
   if(stream == stdout || stream == stderr) {
     len = strlen(str);

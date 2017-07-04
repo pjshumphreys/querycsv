@@ -211,7 +211,8 @@ Boolean gInBackground;
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */
-#define	kSysEnvironsVersion		1
+#define kSysEnvironsVersion   1
+
 /* kOSEvent is the event number of the suspend/resume and mouse-moved events sent
    by MultiFinder. Once we determine that an event is an OSEvent, we look at the
    high byte of the message sent to determine which kind it is. To differentiate
@@ -356,23 +357,6 @@ TEHandle getTEHandle(WindowPtr window) {
   return (((DocumentPeek) window)->docTE);
 }
 #endif
-
-//  Calculate sleep value for WaitNextEvent.
-static UInt32 getSleep() {
-#if TARGET_API_MAC_CARBON
-  WindowPtr window;
-  TXNObject object = NULL;
-
-  window = FrontWindow();
-
-  if (isApplicationWindow(window)) {
-    return TXNGetSleepTicks(*getTXNObject(window, &object));
-  }
-#endif
-
-  return GetCaretTime();
-}
-
 
 Rect getWindowBounds(WindowPtr window) {
   Rect r;
@@ -1125,8 +1109,16 @@ void closeWindow(WindowPtr window) {
       TEDispose(te);
     }
 
+    //calling disposeWindow here would be technically incorrect,
+    //even though we allocated storage for the window on the heap.
+    //We instead call CloseWindow to have the structures taken
+    //care of and then dispose of the storage ourselves.
+    CloseWindow(window);
+    DisposePtr((Ptr)window);
+
     //TODO: ensure allocated memory associated to the window is freed
-    DisposeWindow(window);
+    //DisposeWindow(window);
+
     gNumDocuments -= 1;
   }
 }
@@ -1718,7 +1710,7 @@ void loopTick(void) {
 
     return;
   }
-  
+
   getGlobalMouse(&mouse);
   adjustCursor(mouse, cursorRgn);
 #endif
@@ -1829,6 +1821,8 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
       switch(startPoint[lineChars]) {
         case '\r': {
+          startPoint[lineChars] = '\n';
+
           if(startPoint[lineChars+1] == '\n') {
             skipByte = TRUE;
           }
@@ -1838,8 +1832,6 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
         } break;
 
         case '\n': {
-          startPoint[lineChars] = '\r';
-
           lineChars++;
           charsLeft--;
         } break;
@@ -1892,7 +1884,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\r' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
