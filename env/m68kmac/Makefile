@@ -85,7 +85,7 @@ QueryCSV  ÄÄ  {ObjFiles-68K} {LibFiles-68K} {¥MondoBuild¥}
 		-state rewrite ¶
 		-compact -pad 0
 	If "{Sym-68K}" =~ /-sym Å[nNuU]Å/
-		ILinkToSYM {Targ}.NJ -mf -sym 3.2 -c 'sade'MacOS:dirs:test:mac.c
+		ILinkToSYM {Targ}.NJ -mf -sym 3.2 -c 'sade'MacOS:dirs:m68kmac:mac.c
 	End
 
 QueryCSV  ÄÄ  {¥MondoBuild¥}

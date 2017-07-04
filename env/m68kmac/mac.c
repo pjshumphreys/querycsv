@@ -252,6 +252,9 @@ DocumentRecord mainWindowDoc;
 //  field of our TE record.
 extern pascal void AsmClikLoop(void);
 
+#define ENC_MAC 4
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+
 void openFileDialog(void);
 
 SInt32 macOSVersion;
@@ -292,6 +295,8 @@ int stricmp(const char *str1, const char *str2) {
 short getWindowKind(WindowPtr window) {
   return ((WindowPeek) window)->windowKind;
 }
+  #define DisableMenuItem DisableItem
+  #define EnableMenuItem EnableItem
 #else
   #define getWindowKind GetWindowKind
 #endif
@@ -1778,15 +1783,16 @@ void openFileDialog(void) {
 }
 #endif
 
-void output(char *buffer, SInt32 nChars, Boolean isBold) {
-  char* startPoint = buffer;
-  SInt32 lineChars = 0;
-  SInt32 charsLeft = nChars;
+void output(char *buffer, size_t nChars, Boolean isBold) {
+  char* startPoint;
+  size_t lineChars = 0;
+  size_t charsLeft = nChars;
   long temp;
   struct lineOffsets *temp2;
   TextStyle theStyle;
   TEHandle docTE;
-  Boolean skipByte;
+  int skipByte;
+  char *encoded = NULL;
 
   if(!mainWindowPtr) {
     return;
@@ -1795,6 +1801,9 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
   docTE = getTEHandle(mainWindowPtr);
 
   theStyle.tsFace = isBold?bold:normal;
+
+  encoded = d_charsetEncode((char *)buffer, ENC_MAC, &charsLeft);
+  startPoint = encoded;
 
   //first run initialization
   if(firstLine == NULL) {
@@ -1905,11 +1914,13 @@ void output(char *buffer, SInt32 nChars, Boolean isBold) {
     }
   } while(charsLeft > 0);   //any more characters to be output?
 
+  free(encoded);
+
   adjustScrollBars(mainWindowPtr, FALSE);
 }
 
 int fputs_mac(const char *str, FILE *stream) {
-  int len;
+  size_t len;
 
   if(stream == stdout || stream == stderr) {
     len = strlen(str);

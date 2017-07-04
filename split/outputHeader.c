@@ -46,6 +46,11 @@ void outputHeader(
       }
     }
   }
+  /* if we're printing the results, each environment can only
+  correctly display its own print encoding */
+  else {
+    query->outputEncoding = ENC_PRINT;
+  }
 
   /* write column headers to the output file */
   for(

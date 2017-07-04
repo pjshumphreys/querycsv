@@ -92,6 +92,7 @@
 #define ENC_PETSCII 13
 #define ENC_INPUT ENC_UTF8
 #define ENC_OUTPUT ENC_UTF8
+#define ENC_PRINT ENC_UTF8
 
 /* macro used to help prevent double freeing of heap data */
 #define freeAndZero(p) { free(p); p = 0; }
@@ -124,8 +125,10 @@
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
+  #undef ENC_PRINT
   #define ENC_INPUT ENC_PETSCII
   #define ENC_OUTPUT ENC_PETSCII
+  #define ENC_PRINT ENC_PETSCII
 #endif
 
 #ifdef __unix__
@@ -159,8 +162,10 @@
   #else
     #undef ENC_INPUT
     #undef ENC_OUTPUT
+    #undef ENC_PRINT
     #define ENC_INPUT ENC_CP437
     #define ENC_OUTPUT ENC_CP437
+    #define ENC_PRINT ENC_CP437
   #endif
 #endif
 
@@ -210,6 +215,8 @@
 
   #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252
+  #undef ENC_PRINT
+  #define ENC_PRINT ENC_CP1252
 #endif
 
 #ifdef __VBCC__
@@ -223,6 +230,8 @@
 
   #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252
+  #undef ENC_PRINT
+  #define ENC_PRINT ENC_CP1252
 #endif
 
 /* structures */
