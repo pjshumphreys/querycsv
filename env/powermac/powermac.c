@@ -313,7 +313,7 @@ int isApplicationWindow(WindowPtr window) {
 //Check to see if a window belongs to a desk accessory.
 int isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
-  return (window == NULL) && (getWindowKind(window) < 0);
+  return (window != NULL) && (getWindowKind(window) < 0);
 }
 
 //Check to see if a given trap is available on the system
@@ -1533,7 +1533,7 @@ void openFileDialog(void) {
 #endif
 
 void output(char *buffer, size_t nChars, Boolean isBold) {
-  char* startPoint;
+  char* startPoint = buffer;
   size_t lineChars = 0;
   size_t charsLeft = nChars;
   long temp;
@@ -1638,8 +1638,8 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
         kTXNUseCurrentSelection
       );
 
-      len = (size_t)lineChars;
-      wide = (wchar_t *)d_charsetEncode((char *)startPoint, ENC_UTF16BE, &len);
+      len = lineChars;
+      wide = (wchar_t *)d_charsetEncode(startPoint, ENC_UTF16BE, &len);
 
       TXNSetData(
         fMLTEObject,

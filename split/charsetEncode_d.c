@@ -77,8 +77,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   }
 
   /* if bytesStored is initially non zero, it means limit to read at most that many characters from the source. a trailing null byte isn't added */
-  if(*bytesStored > 0) {
-    bytesToStore = *bytesStored;
+  if(*bytesStored != 0) {
+    bytesToStore = (int)*bytesStored;
     *bytesStored = 0;
 
     for( ; ; ) {

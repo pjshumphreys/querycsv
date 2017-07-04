@@ -311,7 +311,7 @@ int isApplicationWindow(WindowPtr window) {
 //Check to see if a window belongs to a desk accessory.
 int isDeskAccessory(WindowPtr window) {
   //DA windows have negative windowKinds
-  return (window == NULL) && (getWindowKind(window) < 0);
+  return (window != NULL) && (getWindowKind(window) < 0);
 }
 
 //Check to see if a given trap is available on the system
