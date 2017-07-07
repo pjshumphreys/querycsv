@@ -19,7 +19,7 @@ int strCompare(
 
   for( ; ; ) {  /* we'll quit from this function via other means */
     /* check if we've reached the end of string 2 */
-    if (*offset2 == 0) {
+    if(*offset2 == 0) {
       /* if string2 is on the slower version of getUnicodeChar, */
       /* there were no weird characters, so we can switch to always using the faster version  */
 
@@ -50,11 +50,11 @@ int strCompare(
     }
 
     /* character 1 has not yet been found */
-    else if (char1found == 0) {
+    else if(char1found == 0) {
       /* read a character from string 1 */
       char1 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get1))(&offset1, str1, 0, &bytesMatched1, get1);
 
-      if (char1 != 0x34F) {
+      if(char1 != 0x34F) {
         /* read a character from string 2 */
         char2 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset2, str2, 0, &bytesMatched2, get2);
 
@@ -153,7 +153,7 @@ int strCompare(
     }
 
     /* character 1 has been found and is in the lookup table */
-    else if (char1found == 1) {
+    else if(char1found == 1) {
       /* read a character from string 2 */
       char2 = (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset1, str1, 0, &bytesMatched2, get2);
 

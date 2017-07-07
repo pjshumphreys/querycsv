@@ -46,7 +46,7 @@ void getCodepointsUTF8(
     }
     /* ensure the current byte is the start of a valid utf-8 sequence */
     else if(c > 0xC1) {
-      if (c < 0xE0) {
+      if(c < 0xE0) {
         /* read 2 bytes */
         if((c = fgetc(stream)) != EOF) {
           codepoints[++byteIndex] = c;
@@ -69,7 +69,7 @@ void getCodepointsUTF8(
         ungetc(c, stream);
         byteIndex--;
       }
-      else if (c < 0xF0) {
+      else if(c < 0xF0) {
         /* read 3 bytes */
         if((c = fgetc(stream)) != EOF) {
           codepoints[++byteIndex] = c;
@@ -103,7 +103,7 @@ void getCodepointsUTF8(
         ungetc(c, stream);
         byteIndex--;
       }
-      else if (c < 0xF5) {
+      else if(c < 0xF5) {
         /* read 4 bytes */
         if((c = fgetc(stream)) != EOF) {
           codepoints[++byteIndex] = c;

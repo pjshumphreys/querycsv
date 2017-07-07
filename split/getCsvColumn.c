@@ -73,9 +73,10 @@ int getCsvColumn(
           break;
         }
         else {
-          if (quotedValue != NULL) {
+          if(quotedValue != NULL) {
             *quotedValue = TRUE;
           }
+
           strAppend('\r', value, strSize);
           strAppend('\n', value, strSize);
         }
@@ -119,7 +120,7 @@ int getCsvColumn(
 
     /* for each codepoint returned treat it as we previously treated bytes */
     /* read a character */
-    for (i = 0; i < arrLength && exitCode == 0; i++) {
+    for(i = 0; i < arrLength && exitCode == 0; i++) {
       c = codepoints[i];
 
       switch(c) {
@@ -141,16 +142,17 @@ int getCsvColumn(
             break;
           }
           else {
-            if (quotedValue != NULL) {
+            if(quotedValue != NULL) {
               *quotedValue = TRUE;
             }
+
             strAppend('\r', value, strSize);
             strAppend('\n', value, strSize);
           }
         } break;
 
         case 0x0: {
-          if (quotedValue != NULL) {
+          if(quotedValue != NULL) {
             *quotedValue = TRUE;
           }
         } break;
@@ -162,7 +164,7 @@ int getCsvColumn(
         case 0x22: {  /* '"' */
           canEnd = FALSE;
 
-          if (quotedValue != NULL) {
+          if(quotedValue != NULL) {
             *quotedValue = TRUE;
           }
 

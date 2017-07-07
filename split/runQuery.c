@@ -90,5 +90,5 @@ int runQuery(char *queryFileName) {
   /* free the query data structures */
   cleanup_query(&query);
 
-  return 0;
+  return EXIT_SUCCESS;
 }

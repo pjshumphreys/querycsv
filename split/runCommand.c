@@ -24,7 +24,7 @@ void runCommand(char *string) {
     }
 
     //get the current date in ISO8601 format (local time with UTC offset)
-    else if (strcmp(argv2[1], "--date") == 0 && argc2 == 3) {
+    else if(strcmp(argv2[1], "--date") == 0 && argc2 == 3) {
       if(strcmp(argv2[2], "now") == 0) {
         return getCurrentDate();
       }

@@ -31,7 +31,7 @@ int d_tztime(
 
     memcpy((void*)lcl, (void*)localtime(now), sizeof(struct tm));
   }
-  else if (output != NULL) {
+  else if(output != NULL) {
     lcl = (struct tm *)malloc(sizeof(struct tm));
 
     if(lcl == NULL) {
@@ -82,13 +82,13 @@ int d_tztime(
     if(lcl->tm_year > gm->tm_year) {
       hourlcl+=24;
     }
-    else if (gm->tm_year > lcl->tm_year) {
+    else if(gm->tm_year > lcl->tm_year) {
       hourutc+=24;
     }
     else if(lcl->tm_yday > gm->tm_yday) {
       hourlcl+=24;
     }
-    else if (gm->tm_yday > lcl->tm_yday) {
+    else if(gm->tm_yday > lcl->tm_yday) {
       hourutc+=24;
     }
 

@@ -7,7 +7,7 @@ void outputHeader(
   int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
   FILE *outputFile;
-  char *separator = (((query->params) & PRM_SPACE) != 0)?",":", ";
+  char *separator = (((query->params) & PRM_SPACE) != 0) ? "," : ", ";
 
   MAC_YIELD
 
@@ -16,7 +16,7 @@ void outputHeader(
     query->newLine = "\r\n";
     query->outputFile = fopen(query->outputFileName, "wb");
 
-    if (query->outputFile == NULL) {
+    if(query->outputFile == NULL) {
       fputs("opening output file failed", stderr);
       return;
     }
@@ -60,7 +60,7 @@ void outputHeader(
     ) {
 
     if(currentResultColumn->isHidden == FALSE) {
-      if (!firstColumn) {
+      if(!firstColumn) {
         fputsEncoded(separator, outputFile, query->outputEncoding);
       }
       else {

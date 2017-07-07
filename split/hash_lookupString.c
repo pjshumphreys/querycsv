@@ -14,7 +14,7 @@ struct columnReference *hash_lookupString(
    * If it isn't, the item isn't in the table, so return NULL.
    */
   for(list = hashtable->table[hashval]; list != NULL; list = list->nextReferenceInHash) {
-    if (strcmp(str, list->referenceName) == 0) {
+    if(strcmp(str, list->referenceName) == 0) {
       return list->content;
     }
   }

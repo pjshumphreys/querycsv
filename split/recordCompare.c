@@ -18,8 +18,8 @@ int recordCompare(
   matchParams.params = ((struct qryData*)c)->params;
 
   for(
-      orderByClause = ((struct qryData*)c)->useGroupBy?
-          ((struct qryData*)c)->groupByClause:
+      orderByClause = ((struct qryData*)c)->useGroupBy ?
+          ((struct qryData*)c)->groupByClause :
           ((struct qryData*)c)->orderByClause;
       orderByClause != NULL;
       orderByClause = orderByClause->nextInList
@@ -60,7 +60,7 @@ int recordCompare(
 
     /*  if the fields didn't compare as being the same, then return which was greater */
     if(compare != 0) {
-      return orderByClause->isDescending?compare:-compare;
+      return orderByClause->isDescending ? compare : -compare;
     }
   }
 

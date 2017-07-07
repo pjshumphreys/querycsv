@@ -39,5 +39,5 @@ int main(int argc, char *argv[]) {
   /* something else. print an error message and quit */
   fputs(TDB_INVALID_COMMAND_LINE, stderr);
 
-  return -1;
+  return EXIT_FAILURE;
 }

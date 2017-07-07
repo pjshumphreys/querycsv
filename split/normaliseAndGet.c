@@ -87,17 +87,17 @@ int normaliseAndGet(
 
     /* ensure the current byte is the start of a valid utf-8 sequence */
     if(**offset > 0xC1) {
-      if (**offset < 0xE0) {
+      if(**offset < 0xE0) {
         /* read 2 bytes */
         bytesRead = 2;
         codepoint = ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3080;
       }
-      else if (**offset < 0xF0) {
+      else if(**offset < 0xF0) {
         /* read 3 bytes */
         bytesRead = 3;
         codepoint = ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0xE2080;
       }
-      else if (**offset < 0xF5) {
+      else if(**offset < 0xF5) {
         /* read 4 bytes */
         bytesRead = 4;
         codepoint = ((long)(*((*offset)++)) << 18) + ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3C82080;
@@ -106,7 +106,7 @@ int normaliseAndGet(
 
     if(bytesRead == 0) {
       /* as getCodepoints now pre converts invalid bytes, this should
-        never hapen now. If it does, should a message an quit */
+        never happen now. If it does, should a message an quit */
       fputs("invalid utf-8 bytes stored in memory", stderr);
       exit(EXIT_FAILURE);
     }

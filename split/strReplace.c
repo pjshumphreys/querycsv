@@ -35,11 +35,11 @@ char *strReplace(char *search, char *replace, char *subject) {
     p2 = p;
   }
 
-  if (found == 1) {
-    if (strlen(p2) > 0) {
+  if(found == 1) {
+    if(strlen(p2) > 0) {
       temp = realloc(replaced, strlen(replaced) + strlen(p2) + 1);
 
-      if (temp == NULL) {
+      if(temp == NULL) {
         free(replaced);
         return NULL;
       }
@@ -51,7 +51,7 @@ char *strReplace(char *search, char *replace, char *subject) {
   else {
     temp = realloc(replaced, strlen(subject) + 1);
 
-    if (temp != NULL) {
+    if(temp != NULL) {
       replaced = temp;
       strcpy(replaced, subject);
     }

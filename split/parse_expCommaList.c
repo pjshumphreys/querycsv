@@ -118,7 +118,7 @@ struct resultColumn *parse_expCommaList(
 
       /* loop over each copy of the csv column in the result set, */
       /* testing if it's the most recently defined result column */
-      while (newResultColumn != NULL) {
+      while(newResultColumn != NULL) {
 
         /* if the expression is just the most recently referenced column, */
         /* then associate the reference with it also  */

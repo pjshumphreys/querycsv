@@ -15,11 +15,11 @@ int hash_addString(
     current_list = hash_lookupString(hashtable, str);
 
     /* item already exists, don't insert it again. */
-    if (current_list != NULL) {
+    if(current_list != NULL) {
       return 2;
     }
 
-    if ((new_list2 = malloc(sizeof(struct columnRefHashEntry))) == NULL) {
+    if((new_list2 = malloc(sizeof(struct columnRefHashEntry))) == NULL) {
       return 1;
     }
 

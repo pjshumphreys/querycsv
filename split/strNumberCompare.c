@@ -68,7 +68,7 @@ int strNumberCompare(char *input1, char *input2) {
           string1 = input1;
           string2 = input2;
 
-          for ( ; ; ) {
+          for( ; ; ) {
             if(do1) {
               if(decimalNotFound1 && (*string1 == '.' || *string1 == ',')) {
                 decimalNotFound1 = FALSE;
@@ -76,7 +76,7 @@ int strNumberCompare(char *input1, char *input2) {
               else if(*string1 > '9' || *string1 < '0') {
                 do1 = FALSE;
               }
-              else if (do2 == FALSE && *string1 != '0') {
+              else if(do2 == FALSE && *string1 != '0') {
                 compare = -1;
                 break;
               }
@@ -89,7 +89,7 @@ int strNumberCompare(char *input1, char *input2) {
               else if(*string2 > '9' || *string2 < '0') {
                 do2 = FALSE;
               }
-              else if (do1 == FALSE && *string2 != '0') {
+              else if(do1 == FALSE && *string2 != '0') {
                 compare = 1;
                 break;
               }
@@ -103,7 +103,7 @@ int strNumberCompare(char *input1, char *input2) {
                     *string2 >= '0' &&
                     *string2 <= '9' &&
                     *string1 != *string2) {
-                  compare = *string1 < *string2?-1:1;
+                  compare = *string1 < *string2 ? -1 : 1;
                   break;
                 }
 

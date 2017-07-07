@@ -13,7 +13,7 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
     return FALSE;
   }
 
-  while (length2 == 0) {
+  while(length2 == 0) {
     output2 = realloc((void*)output, length*sizeof(char));
 
     if(output2 == NULL) {

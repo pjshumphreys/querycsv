@@ -1,38 +1,43 @@
-if (!String.fromCodePoint) {
-    String.fromCodePoint = function () {
-        var strChars = [], codePoint, offset, codeValues, i;
-        for (i = 0; i < arguments.length; ++i) {
-            codePoint = arguments[i];
-            offset = codePoint - 0x10000;
-            if (codePoint > 0xFFFF){
-                codeValues = [0xD800 + (offset >> 10), 0xDC00 + (offset & 0x3FF)];
-            } else{
-                codeValues = [codePoint];
-            }
-            strChars.push(String.fromCharCode.apply(null, codeValues));
-        }
-        return strChars.join("");
-    };
+if(!String.fromCodePoint) {
+  String.fromCodePoint = function () {
+    var strChars = [], codePoint, offset, codeValues, i;
+
+    for(i = 0; i < arguments.length; ++i) {
+      codePoint = arguments[i];
+      offset = codePoint - 0x10000;
+
+      if(codePoint > 0xFFFF) {
+        codeValues = [0xD800 + (offset >> 10), 0xDC00 + (offset & 0x3FF)];
+      }
+      else {
+        codeValues = [codePoint];
+      }
+
+      strChars.push(String.fromCharCode.apply(null, codeValues));
+    }
+
+    return strChars.join("");
+  };
 }
 
-if (!Array.prototype.filter) {
+if(!Array.prototype.filter) {
   Array.prototype.filter = function(fun/*, thisArg*/) {
     'use strict';
 
-    if (this === void 0 || this === null) {
+    if(this === void 0 || this === null) {
       throw new TypeError();
     }
 
     var t = Object(this);
     var len = t.length >>> 0;
-    if (typeof fun !== 'function') {
+    if(typeof fun !== 'function') {
       throw new TypeError();
     }
 
     var res = [];
     var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
-    for (var i = 0; i < len; i++) {
-      if (i in t) {
+    for(var i = 0; i < len; i++) {
+      if(i in t) {
         var val = t[i];
 
         /*  NOTE: Technically this should Object.defineProperty at */
@@ -40,7 +45,7 @@ if (!Array.prototype.filter) {
         /*        properties on Object.prototype and Array.prototype. */
         /*        But that method's new, and collisions should be */
         /*        rare, so use the more-compatible alternative. */
-        if (fun.call(thisArg, val, i, t)) {
+        if(fun.call(thisArg, val, i, t)) {
           res.push(val);
         }
       }
@@ -117,13 +122,13 @@ function expand(hash2, weired) {
   return hash2.
     concat(weired).
     sort(function(a, b) {
-      var len1 = a[1].split(" ").length,len2 = b[1].split(" ").length;
+      var len1 = a[1].split(" ").length, len2 = b[1].split(" ").length;
 
       if(len1 !== len2) {
         return len1 > len2?-1:1;
       }
 
-      return parseInt(a[0],16) - parseInt(b[0],16)
+      return parseInt(a[0], 16) - parseInt(b[0], 16);
     }).
     filter(function(elem) {
       if(!hash.hasOwnProperty(elem[0])) {
@@ -134,7 +139,7 @@ function expand(hash2, weired) {
       return false;
     }).
     sort(function(a, b) {
-      return parseInt(a[0],16) - parseInt(b[0],16)
+      return parseInt(a[0], 16) - parseInt(b[0], 16);
     });
 }
 
@@ -169,11 +174,11 @@ function innerRead(err, contents) {
 
   var arrays = [];
   
-  var size = process.argv.length > 2 && parseInt(process.argv[2],10)?parseInt(process.argv[2],10):1114112;
+  var size = process.argv.length > 2 && parseInt(process.argv[2], 10) ? parseInt(process.argv[2],10) : 1114112;
   var string;
   var string2;
 
-  while (data.length > 0) {
+  while(data.length > 0) {
     arrays.push(data.splice(0, size));
   }
 
@@ -189,7 +194,7 @@ function innerRead(err, contents) {
                 '[] = {0x' +
                 arrays[j][i][1].replace(/ /g, ", 0x") +
                 '}' +
-                (i==len-1?';':',') +
+                (i == len - 1 ? ';' : ',') +
                 '  /* ' +
                 arrays[j][i][2] +
                 " */ \n"; 

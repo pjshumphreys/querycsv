@@ -7,18 +7,18 @@ struct columnReferenceHash *hash_createTable(int size) {
 
   MAC_YIELD
 
-  if (size < 1) {
+  if(size < 1) {
     return NULL; /* invalid size for table */
   }
 
   /* Attempt to allocate memory for the table structure */
-  if ((new_table = malloc(sizeof(struct columnReferenceHash))) == NULL) {
-      return NULL;
+  if((new_table = malloc(sizeof(struct columnReferenceHash))) == NULL) {
+    return NULL;
   }
 
   /* Attempt to allocate memory for the table itself */
-  if ((new_table->table = malloc(sizeof(struct columnReference *) * size)) == NULL) {
-      return NULL;
+  if((new_table->table = malloc(sizeof(struct columnReference *) * size)) == NULL) {
+    return NULL;
   }
 
   /* Initialize the elements of the table */

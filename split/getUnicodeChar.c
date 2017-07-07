@@ -40,7 +40,7 @@ long getUnicodeChar(
       return codepoint;
     }
   }
-  else if (*temp < 0xF0) {
+  else if(*temp < 0xF0) {
     /* read 3 bytes */
     codepoint = ((long)(*(temp)) << 12) + ((long)(*(temp+1)) << 6) + (*(temp+2)) - 0xE2080;
 

@@ -41,7 +41,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
       /* reset the flag that says the column values ran out */
       recordHasColumn = TRUE;
 
-      for (
+      for(
           currentInputColumn = currentInputTable->firstInputColumn;
           currentInputColumn != NULL;
           currentInputColumn = currentInputColumn->nextColumnInTable

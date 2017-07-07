@@ -10,7 +10,7 @@ void outputResult(
   struct resultColumnValue *field;
   int firstColumn = TRUE, j = 0;
   FILE *outputFile = query->outputFile;
-  char *separator = (((query->params) & PRM_SPACE) != 0)?",":", ";
+  char *separator = (((query->params) & PRM_SPACE) != 0) ? "," : ", ";
 
   char *string = NULL;
   char *string2 = NULL;
@@ -25,7 +25,7 @@ void outputResult(
     ) {
 
     if(currentResultColumn->isHidden == FALSE) {
-      if (!firstColumn) {
+      if(!firstColumn) {
         fputsEncoded(separator, outputFile, query->outputEncoding);
       }
       else {
@@ -49,7 +49,7 @@ void outputResult(
             fputsEncoded("\"\"", outputFile, query->outputEncoding);  /* empty string always needs escaping */
           }
           else if(needsEscaping(string, query->params)) {
-            string2 = strReplace("\"","\"\"", string);
+            string2 = strReplace("\"", "\"\"", string);
             fputsEncoded("\"", outputFile, query->outputEncoding);
             fputsEncoded(string2, outputFile, query->outputEncoding);
             fputsEncoded("\"", outputFile, query->outputEncoding);

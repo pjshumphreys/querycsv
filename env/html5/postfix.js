@@ -9,7 +9,7 @@ function ___syscall220(which, varargs) {
       stream.getdents = FS.readdir(stream.path);
     }
 
-    while (stream.getdents.length > 0 && pos + 268 < count) {
+    while(stream.getdents.length > 0 && pos + 268 < count) {
       var id;
       var type;
       var name = stream.getdents.pop();
@@ -199,7 +199,7 @@ FS.filesystems.IDBWFS = (function() {
 
       var check = FS.readdir(mount.mountpoint).filter(isRealDir).map(toAbsolute(mount.mountpoint));
 
-      while (check.length) {
+      while(check.length) {
         var path = check.pop();
         var stat;
 

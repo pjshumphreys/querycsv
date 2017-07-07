@@ -321,7 +321,7 @@ Boolean trapAvailable(short tNumber) {
 #else
   TrapType tType = tNumber & 0x800 ? ToolTrap : OSTrap;
 
-  if (
+  if(
       tType == (unsigned char)ToolTrap &&
       gMac.machineType > envMachUnknown &&
       gMac.machineType < envMacII
@@ -329,7 +329,7 @@ Boolean trapAvailable(short tNumber) {
     /* it's a 512KE, Plus, or SE. As a consequence, the tool traps only go to 0x01FF */
     tNumber = tNumber & 0x03FF;
 
-    if (tNumber > 0x01FF) {
+    if(tNumber > 0x01FF) {
       tNumber = _Unimplemented;
     }
   }
@@ -2024,7 +2024,7 @@ int main(void) {
 
   SysEnvirons(kSysEnvironsVersion, &gMac);
 
-  if (gMac.machineType < 0) {
+  if(gMac.machineType < 0) {
     BigBadError(eWrongSystem);
   }
 

@@ -27,7 +27,7 @@ int parse_columnRefUnsuccessful(
   /* if a table name was specified, try to find the first column reference */
   /* in the list thats of type 1 with a matching table name and return that */
   if(tableName != NULL) {
-    while (currentReference != NULL) {
+    while(currentReference != NULL) {
       if(
           currentReference->referenceType == 1 &&
           strcmp(tableName, ((struct inputTable*)(currentReference->reference.columnPtr->inputTablePtr))->queryTableName) == 0

@@ -23,7 +23,7 @@ int d_sprintf(char **str, char *format, ...) {
     va_end(args);
   #else
     /* open /dev/null so that we can get the space needed for the new string. */
-    if ((pFile = fopen(devNull, "wb")) == NULL) {
+    if((pFile = fopen(devNull, "wb")) == NULL) {
       return FALSE;
     }
 

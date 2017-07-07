@@ -32,7 +32,7 @@ void getGroupedColumns(struct qryData *query) {
                 currentResultColumn->groupCount);
             case GRP_SUM:
             case GRP_DIS_SUM:
-              ftostr(&(currentResultColumn->groupText),currentResultColumn->groupNum);
+              ftostr(&(currentResultColumn->groupText), currentResultColumn->groupNum);
             break;
             case GRP_COUNT:
             case GRP_DIS_COUNT:

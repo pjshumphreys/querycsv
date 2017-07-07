@@ -119,7 +119,7 @@
   #define HAS_VSNPRINTF
   #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii to ascii. We'll convert our output strings ourselves */
   #include "floatlib/float.h" /* fudges kinda support for floating point into cc65 by utilising functionality in the c64 basic rom */
-  #define ftostr(_d,_a) {reallocMsg((void**)_d, 33);_ftostr(*(_d),_a);reallocMsg((void**)_d, strlen(*(_d))+1);} /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
+  #define ftostr(_d,_a) { reallocMsg((void**)_d, 33); _ftostr(*(_d), _a); reallocMsg((void**)_d, strlen(*(_d)) + 1); } /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
   #define fneg(_d) _fneg(_d) 
   double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
 
@@ -414,9 +414,9 @@ struct codepointToBytes {
 };
 
 /* function prototypes */
-struct hash4Entry *in_word_set_a(register const char *str,register unsigned int len);
-struct hash4Entry *in_word_set_b(register const char *str,register unsigned int len);
-struct hash4Entry *in_word_set_c(register const char *str,register unsigned int len);
+struct hash4Entry *in_word_set_a(register const char *str, register unsigned int len);
+struct hash4Entry *in_word_set_b(register const char *str, register unsigned int len);
+struct hash4Entry *in_word_set_c(register const char *str, register unsigned int len);
 
 /* void getHash1(char byte); */
 

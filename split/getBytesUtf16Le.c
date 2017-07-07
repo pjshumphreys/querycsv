@@ -9,7 +9,7 @@ void getBytesUtf16Le(
   short lowSurrogate;
 
   if(byteLength != NULL && bytes != NULL) {
-    if (codepoint < 0x10000) {
+    if(codepoint < 0x10000) {
       *byteLength = 2;
 
       (*bytes)[0] = codepoint & 0xFF;

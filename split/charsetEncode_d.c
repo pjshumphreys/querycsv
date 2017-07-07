@@ -65,7 +65,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
 
       /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
-        strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, &temp);
+        strAppend(bytes == NULL ? ((char)codepoint) : bytes[i], &buffer, &temp);
       }
 
       if(codepoint == 0) {
@@ -98,7 +98,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
 
       /* for each byte returned, call strAppend */
       for(i=0; i < byteLength; i++) {
-        strAppend(bytes == NULL?((char)codepoint):bytes[i], &buffer, bytesStored);
+        strAppend(bytes == NULL ? ((char)codepoint) : bytes[i], &buffer, bytesStored);
       }
 
       bytesToStore -= bytesMatched;

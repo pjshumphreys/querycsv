@@ -90,47 +90,45 @@ int main(int argc, char** argv) {
 
   devNull = "Nil:";  /* null filename on DOS/Windows */
 
-  if(argc == 0) {
-    argmsg = (struct WBStartup *)argv;
-
-    if(argmsg->sm_NumArgs < 2) {
-      IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0);
-      AutoRequest(NULL, &hello_text, NULL, &ok_text, NULL, NULL, 358, 85);
-      CloseLibrary(IntuitionBase);
-      exit(EXIT_FAILURE);
-    }
-
-    /* open console for reading and writing so that we can prevent the console window
-    from closing until enter has been pressed */
-    if((fp = freopen("CON:30/30/510/175/QueryCSV", "a+", stdout)) == NULL) {
-      exit(EXIT_FAILURE);
-    }
-
-    atexit(shutdownfoo);
-
-    if((myargv = malloc(3*sizeof(char*))) == NULL) {
-      free(myargv);
-      exit(EXIT_FAILURE);
-    }
-
-    for(idx = 0, wbarg = argmsg->sm_ArgList; idx < argmsg->sm_NumArgs; idx++, wbarg++) {
-      if(olddir != (BPTR)-1) {
-        CurrentDir(olddir);
-        olddir = (BPTR)-1;
-      }
-
-      if(wbarg->wa_Lock != (BPTR)0) {
-        olddir = CurrentDir(wbarg->wa_Lock);
-      }
-
-      myargv[idx] = wbarg->wa_Name;
-    }
-
-    myargv[idx] = (char *)0;
-
-    return realmain(idx, myargv);
-  }
-  else {
+  if(argc != 0) {
     return realmain(argc, argv);
   }
+
+  argmsg = (struct WBStartup *)argv;
+
+  if(argmsg->sm_NumArgs < 2) {
+    IntuitionBase = (struct IntuitionBase *)OpenLibrary("intuition.library", 0);
+    AutoRequest(NULL, &hello_text, NULL, &ok_text, NULL, NULL, 358, 85);
+    CloseLibrary(IntuitionBase);
+    return EXIT_FAILURE;
+  }
+
+  /* open console for reading and writing so that we can prevent the console window
+  from closing until enter has been pressed */
+  if((fp = freopen("CON:30/30/510/175/QueryCSV", "a+", stdout)) == NULL) {
+    return EXIT_FAILURE;
+  }
+
+  if((myargv = malloc(3*sizeof(char*))) == NULL) {
+    return EXIT_FAILURE;
+  }
+
+  atexit(shutdownfoo);
+
+  for(idx = 0, wbarg = argmsg->sm_ArgList; idx < argmsg->sm_NumArgs; idx++, wbarg++) {
+    if(olddir != (BPTR)-1) {
+      CurrentDir(olddir);
+      olddir = (BPTR)-1;
+    }
+
+    if(wbarg->wa_Lock != (BPTR)0) {
+      olddir = CurrentDir(wbarg->wa_Lock);
+    }
+
+    myargv[idx] = wbarg->wa_Name;
+  }
+
+  myargv[idx] = (char *)0;
+
+  return realmain(idx, myargv);
 }

@@ -95,40 +95,42 @@ void readQuery(
   }
 
   switch(parserReturn) {
-    case 0:
+    case 0: {
       /* parsing finished sucessfully. continue processing */
-    break;
+    } break;
 
-    case 1:
+    case 1: {
       /* the input script contained a syntax error. show message and exit */
       fputs(TDB_PARSER_SYNTAX, stderr);
       exit(EXIT_FAILURE);
-    break;
+    } break;
 
-    case 2:
+    case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs(TDB_PARSER_USED_ALL_RAM, stderr);
       exit(EXIT_FAILURE);
-    break;
+    } break;
 
-    default:
+    default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs(TDB_PARSER_UNKNOWN, stderr);
       exit(EXIT_FAILURE);
-    break;
+    } break;
   }
 
-  query->newLine = query->outputFileName?"\r\n":"\n";
+  query->newLine = query->outputFileName ? "\r\n" : "\n";
 
   /* set query->firstInputTable to actually be the first input table. */
   query->firstInputTable = currentInputTable =
-  (query->secondaryInputTable != NULL ?
-  query->secondaryInputTable :
-  query->firstInputTable)->nextInputTable;
+    (
+      query->secondaryInputTable != NULL ?
+      query->secondaryInputTable :
+      query->firstInputTable
+    )->nextInputTable;
 
   /* set the index columns for every table other than the first */
-  while (currentInputTable->nextInputTable != query->firstInputTable) {
+  while(currentInputTable->nextInputTable != query->firstInputTable) {
     currentInputTable = currentInputTable->nextInputTable;
     currentInputTable->fileIndex = inputTableIndex++;
   }
@@ -182,28 +184,28 @@ void readQuery(
   /* the parser will set up the contents of qryData as necessary */
   /* check that the parsing completed sucessfully, otherwise show a message and quit */
   switch(yyparse(query, scanner)) {
-    case 0:
+    case 0: {
       /* parsing finished sucessfully. continue processing */
-    break;
+    } break;
 
-    case 1:
+    case 1: {
       /* the input script contained a syntax error. show message and exit */
       fputs(TDB_PARSER_SYNTAX, stderr);
       exit(EXIT_FAILURE);
-    break;
+    } break;
 
-    case 2:
+    case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs(TDB_PARSER_USED_ALL_RAM, stderr);
       exit(EXIT_FAILURE);
-    break;
+    } break;
 
-    default:
+    default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs(TDB_PARSER_UNKNOWN, stderr);
       exit(EXIT_FAILURE);
-    break;
+    } break;
   }
 
   currentResultColumn = query->firstResultColumn;

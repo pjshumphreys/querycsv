@@ -20,7 +20,7 @@ long getUnicodeCharFast(
 
     return (long)((*(temp) << 6) + *(temp+1)) - 0x3080;
   }
-  else if (*temp < 0xF0) {
+  else if(*temp < 0xF0) {
     /* read 3 bytes */
     *bytesMatched = 3;
 

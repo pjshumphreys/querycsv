@@ -14,7 +14,7 @@ struct expression *parse_functionRefStar(
   if(aggregationType != GRP_COUNT) {
     /* I don't think in sql you can aggregate an aggregate. */
     /* therefore we should error out if we get to this point */
-    fputs("only count(*) is valid",stderr);
+    fputs("only count(*) is valid", stderr);
     exit(EXIT_FAILURE);
   }
 
