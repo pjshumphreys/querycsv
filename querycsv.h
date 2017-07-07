@@ -372,6 +372,14 @@ struct qryData {
   struct resultColumnValue *match;
 };
 
+/*
+  some alternative names for the fields in this structure,
+  so it can be repurposed to run commands */
+#define CMD_TYPE = hasGrouping
+#define CMD_RETVAL = columnCount
+#define CMD_OFFSET = groupCount
+#define CMD_COLINDEX = hiddenColumnCount
+
 struct resultColumnParam {
   int params;
   struct resultColumnValue *ptr;

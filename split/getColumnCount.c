@@ -23,5 +23,6 @@ int getColumnCount(char *inputFileName) {
 
   /* close the input file and return */
   fclose(inputFile);
-  return 0;
+
+  return EXIT_SUCCESS;
 }

@@ -9,14 +9,14 @@ int getNextRecordOffset(char *inputFileName, long offset) {
   inputFile = skipBom(inputFileName, NULL, NULL);
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    return -1;
+    return EXIT_FAILURE;
   }
 
   /* seek to offset */
   /* TODO: replace the fseek reference with our own implementation as fseek doesn't work in cc65 */
   if(myfseek(inputFile, offset, SEEK_SET) != 0) {
     fputs(TDB_COULDNT_SEEK, stderr);
-    return -1;
+    return EXIT_FAILURE;
   }
 
   /* read csv columns until end of line occurs */
@@ -29,5 +29,5 @@ int getNextRecordOffset(char *inputFileName, long offset) {
 
   /* close the input file and return */
   fclose(inputFile);
-  return 0;
+  return EXIT_SUCCESS;
 }

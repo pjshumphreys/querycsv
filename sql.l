@@ -12,6 +12,9 @@
 
 %option reentrant noyywrap never-interactive nounistd yylineno
 %option bison-bridge
+
+%s commands
+
 %%
 
 	/* literal keyword tokens */
@@ -34,7 +37,13 @@
 (?i:CHECK)		TOK(CHECK)
 (?i:CLOSE)		TOK(CLOSE)
 (?i:COLLATE)		TOK(COLLATE)
-(?i:COMMAND)		TOK(COMMAND)
+(?i:COMMAND)		{ BEGIN(commands); return COMMAND; }
+<defname>(?i:COLUMNS)		{ BEGIN(INITIAL); return COLUMNS; }
+<defname>(?i:NEXT)		{ BEGIN(INITIAL); return NEXT; }
+<defname>(?i:VALUE)		{ BEGIN(INITIAL); return VALUE; }
+<defname>(?i:DATE)		{ BEGIN(INITIAL); return DATE; }
+<defname>[^ \t\r\n]		{ yyless(0); BEGIN(INITIAL); }
+
 (?i:COMMIT)		TOK(COMMIT)
 (?i:CONTINUE)		TOK(CONTINUE)
 (?i:CONCAT)		TOK(CONCAT)

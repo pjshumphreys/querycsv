@@ -55,13 +55,14 @@ typedef void* yyscan_t;
 %token PUBLIK REAL REFERENCES ROLLBACK SCHEMA SELECT
 %token SMALLINT SOME SQLCODE SQLERROR TABLE THEN TO UNION
 %token UNIQUE UPDATE USER VALUES VIEW WHEN WHENEVER WHERE WITH WORK
-%token COBOL FORTRAN PASKAL PLI C ADA ALLOCFAIL
+%token COBOL FORTRAN PASKAL PLI C ADA ALLOCFAIL COLUMNS NEXT VALUE DATE
 
 %token <intval> AMMSC
 %token <strval> NAME STRING
 %token <intval> INTNUM
 %token <intval> APPROXNUM /* floatval*/
 %type <strval> optional_as_name literal
+%type <strval> command_types
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding
 %type <expressionPtr> scalar_exp search_condition predicate function_ref
@@ -78,18 +79,19 @@ main_file:
 
       YYACCEPT;
     }
-  } command_or_select
-  | command_or_select;
+  } opt_params
+    command_or_select
+  | opt_params
+    command_or_select;
 
 command_or_select:
-    COMMAND STRING
+    COMMAND command_types
     opt_into_clause {
-      if(queryData->parseMode != 1) {
-        runCommand($2);
-      }
+      runCommand(queryData, $2);
+
+      YYACCEPT;
     }
   |
-    opt_params
     SELECT
     scalar_exp_commalist
     FROM table_references
@@ -98,6 +100,32 @@ command_or_select:
     opt_having_clause
     opt_order_by_clause
     opt_into_clause
+  ;
+
+command_types:
+    COLUMNS '(' STRING ')' {
+      queryData->CMD_TYPE = 1;
+
+      $$ = $3;
+    }
+  | NEXT '(' STRING ',' INTNUM ')' {
+      queryData->CMD_TYPE = 2;
+      queryData->CMD_OFFSET = $5;
+
+      $$ = $3;
+    }
+  | VALUE '(' STRING ',' INTNUM ',' INTNUM ')' {
+      queryData->CMD_TYPE = 3;
+      queryData->CMD_OFFSET = $5;
+      queryData->CMD_COLINDEX = $7;
+
+      $$ = $3;
+    }
+  | DATE {
+      queryData->CMD_TYPE = 4;
+
+      $$ = NULL;
+    }
   ;
 
 opt_params:

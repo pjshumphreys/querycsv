@@ -18,7 +18,7 @@ int getColumnValue(
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     freeAndZero(output);
-    return -1;
+    return EXIT_FAILURE;
   }
 
   /* seek to offset */
@@ -26,7 +26,7 @@ int getColumnValue(
   if(myfseek(inputFile, offset, SEEK_SET) != 0) {
     fputs(TDB_COULDNT_SEEK, stderr);
     freeAndZero(output);
-    return -1;
+    return EXIT_FAILURE;
   }
 
   /* get the text of the specified csv column (if available). */
@@ -48,5 +48,6 @@ int getColumnValue(
 
   /* close the input file and return */
   fclose(inputFile);
-  return 0;
+
+  return EXIT_SUCCESS;
 }

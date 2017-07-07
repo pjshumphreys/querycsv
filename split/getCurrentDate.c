@@ -30,7 +30,7 @@ int getCurrentDate(void) {
 
     freeAndZero(output);
 
-    return -1;
+    return EXIT_FAILURE;
   };
 
   /* place the rest of the time data in the output string */
@@ -39,7 +39,7 @@ int getCurrentDate(void) {
 
     freeAndZero(output);
 
-    return -1;
+    return EXIT_FAILURE;
   }
 
   /* print the timestamp */
@@ -50,5 +50,5 @@ int getCurrentDate(void) {
   freeAndZero(output);
 
   /* quit */
-  return 0;
+  return EXIT_SUCCESS;
 }

@@ -3,10 +3,18 @@
 int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
-
+  int retval
   MAC_YIELD
 
   readQuery(queryFileName, &query);
+
+  /* if a command was run, just return the result */
+  if(query.CMD_TYPE) {
+    /* free the query data structures */
+    cleanup_query(&query);
+
+    return query.CMD_RETVAL;
+  }
 
   /* allocates space for the next record in the record set */
   reallocMsg(
@@ -77,10 +85,7 @@ int runQuery(char *queryFileName) {
       &outputResult
     );
 
-    /* close the output file */
     if(query.outputFileName) {
-      fclose(query.outputFile);
-
       /* output the number of records returned iff there was an into clause specified */
       fprintf(stdout, "%d", query.recordCount);
       fflush(stdout);

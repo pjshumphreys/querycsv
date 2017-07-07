@@ -73,6 +73,7 @@ void readQuery(
     /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
     fclose(queryFile);
     queryFile = fopen(queryFileName, "r");
+
     if(queryFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
       exit(EXIT_FAILURE);
@@ -96,7 +97,14 @@ void readQuery(
 
   switch(parserReturn) {
     case 0: {
-      /* parsing finished sucessfully. continue processing */
+      /* parsing finished sucessfully.
+
+      /* Quit early if a command was run */
+      if(query->CMD_TYPE) {
+        return;
+      }
+
+      /* otherwise continue processing */
     } break;
 
     case 1: {
