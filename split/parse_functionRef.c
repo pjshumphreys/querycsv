@@ -27,8 +27,6 @@ struct expression *parse_functionRef(
     exit(EXIT_FAILURE);
   }
 
-  queryData->hasGrouping = TRUE;  /* at least one, perhaps more */
-
   /* parse_expCommaList is used to put an expression into a */
   /* new, hidden, calculated column in the output result set */
   columnPtr = parse_expCommaList(queryData, expressionPtr, NULL, aggregationType);   /* parse_exp_commalist returns an output column pointer */

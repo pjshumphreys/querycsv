@@ -35,7 +35,7 @@ void readQuery(
   query->getCodepoints = chooseGetter(initialEncoding);
   query->inputEncoding = ENC_UNKNOWN;
   query->parseMode = 0;   /* specify we want to just read the file data for now */
-  query->hasGrouping = FALSE;
+  query->commandMode = 0;
   query->useGroupBy = FALSE;
   query->columnCount = 0;
   query->hiddenColumnCount = 0;
@@ -100,7 +100,10 @@ void readQuery(
       /* parsing finished sucessfully.
 
       /* Quit early if a command was run */
-      if(query->CMD_TYPE) {
+      if(query->commandMode) {
+        /* clean up the re-entrant flex scanner */
+        yylex_destroy(scanner);
+
         return;
       }
 

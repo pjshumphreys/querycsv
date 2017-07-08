@@ -348,7 +348,7 @@ struct resultTree {
 
 struct qryData {
   int parseMode;  /* 0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure, */
-  int hasGrouping;
+  int commandMode;
   int columnCount;
   int hiddenColumnCount;
   int recordCount;
@@ -375,10 +375,10 @@ struct qryData {
 /*
   some alternative names for the fields in this structure,
   so it can be repurposed to run commands */
-#define CMD_TYPE = hasGrouping
 #define CMD_RETVAL = columnCount
-#define CMD_OFFSET = groupCount
-#define CMD_COLINDEX = hiddenColumnCount
+#define CMD_OFFSET = hiddenColumnCount
+#define CMD_COLINDEX = recordCount
+#define CMD_ENCODING = groupCount
 
 struct resultColumnParam {
   int params;

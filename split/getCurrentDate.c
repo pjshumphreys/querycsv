@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-int getCurrentDate(void) {
+int getCurrentDate(struct qryData *query) {
   time_t now;
   struct tm local;
 
@@ -44,7 +44,7 @@ int getCurrentDate(void) {
 
   /* print the timestamp */
   /* TODO: use fputsEncoded instead */
-  fputs(output, stdout);
+  fputs(output, query->outputFile, query->outputEncoding);
 
   /* free the string data */
   freeAndZero(output);

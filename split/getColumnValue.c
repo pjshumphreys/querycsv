@@ -1,47 +1,73 @@
 #include "querycsv.h"
 
 int getColumnValue(
+    struct qryData *query,
     char *inputFileName,
     long offset,
     int columnIndex
   ) {
 
   FILE *inputFile = NULL;
-  char *output = (char*)malloc(1);
+  char *output = NULL;
   size_t strSize = 0;
   int currentColumn = 0;
+  int temp = 0;
+  int encodingFromBom = ENC_UNKNOWN;
 
   MAC_YIELD
 
   /* attempt to open the input file */
-  inputFile = skipBom(inputFileName, NULL, NULL);
+  inputFile = skipBom(inputFileName, &temp, &encodingFromBom);
+
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    freeAndZero(output);
     return EXIT_FAILURE;
   }
 
-  /* seek to offset */
-  /* TODO. replace the fseek reperence with our own implementation as fseek doesn't work in cc65 */
-  if(myfseek(inputFile, offset, SEEK_SET) != 0) {
-    fputs(TDB_COULDNT_SEEK, stderr);
-    freeAndZero(output);
-    return EXIT_FAILURE;
+  /* attempt to refine/identify the encoding of the input file */
+  if(encodingFromBom != ENC_UNKNOWN && encodingFromBom != ENC_CP1047) {
+    query->CMD_ENCODING = encodingFromBom;
+  }
+  else if(query->CMD_ENCODING == ENC_DEFAULT) {
+    query->CMD_ENCODING = ENC_INPUT;
+  }
+
+  if(offset == 0) {
+    offset = temp;
+  }
+  else {
+    fclose(inputFile);
+
+    /* go directly to the specified offset if it's non zero */
+    inputFile = fopen(inputFileName, "rb");
+
+    if(inputFile == NULL) {
+      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      return EXIT_FAILURE;
+    }
+
+    /* seek to offset */
+    if(myfseek(inputFile, offset, SEEK_SET) != 0) {
+      fputs(TDB_COULDNT_SEEK, stderr);
+
+      fclose(inputFile);
+
+      return EXIT_FAILURE;
+    }
   }
 
   /* get the text of the specified csv column (if available). */
   /* if it's not available we'll return an empty string */
   while(
         ++currentColumn != columnIndex ?
-        getCsvColumn(&inputFile, ENC_UTF8, NULL, NULL, NULL, NULL, TRUE):
-        (getCsvColumn(&inputFile, ENC_UTF8, &output, &strSize, NULL, NULL, TRUE) && FALSE)
+        getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE):
+        (getCsvColumn(&inputFile, query->CMD_ENCODING, &output, &strSize, NULL, NULL, TRUE) && FALSE)
       ) {
     /* get next column */
   }
 
   /* output the value */
-  /* TODO: use fputsEncoded instead */
-  fputs(output, stdout);
+  fputsEncoded(output, query->outputFile, query->outputEncoding);
 
   /* free the string memory */
   freeAndZero(output);

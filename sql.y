@@ -104,25 +104,69 @@ command_or_select:
 
 command_types:
     COLUMNS '(' STRING ')' {
-      queryData->CMD_TYPE = 1;
+      queryData->commandMode = 1;
+      queryData->CMD_ENCODING = ENC_DEFAULT;
 
       $$ = $3;
     }
+    COLUMNS '(' STRING ',' STRING ')' {
+      queryData->commandMode = 1;
+      queryData->CMD_ENCODING = parse_encoding(queryData, $5);
+      freeAndZero($5);
+
+      if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
+        YYABORT;
+      }
+
+      $$ = $3;
+    }
+
   | NEXT '(' STRING ',' INTNUM ')' {
-      queryData->CMD_TYPE = 2;
+      queryData->commandMode = 2;
       queryData->CMD_OFFSET = $5;
+
+      queryData->CMD_ENCODING = ENC_DEFAULT;
+
+      $$ = $3;
+    }
+  | NEXT '(' STRING ',' STRING ',' INTNUM ')' {
+      queryData->commandMode = 2;
+      queryData->CMD_OFFSET = $7;
+
+      queryData->CMD_ENCODING = parse_encoding(queryData, $5);
+      freeAndZero($5);
+
+      if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
+        YYABORT;
+      }
 
       $$ = $3;
     }
   | VALUE '(' STRING ',' INTNUM ',' INTNUM ')' {
-      queryData->CMD_TYPE = 3;
+      queryData->commandMode = 3;
       queryData->CMD_OFFSET = $5;
       queryData->CMD_COLINDEX = $7;
+
+      queryData->CMD_ENCODING = ENC_DEFAULT;
+
+      $$ = $3;
+    }
+  | VALUE '(' STRING ',' STRING ',' INTNUM ',' INTNUM ')' {
+      queryData->commandMode = 3;
+      queryData->CMD_OFFSET = $7;
+      queryData->CMD_COLINDEX = $9;
+
+      queryData->CMD_ENCODING = parse_encoding(queryData, $5);
+      freeAndZero($5);
+
+      if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
+        YYABORT;
+      }
 
       $$ = $3;
     }
   | DATE {
-      queryData->CMD_TYPE = 4;
+      queryData->commandMode = 4;
 
       $$ = NULL;
     }
@@ -259,7 +303,7 @@ atom_commalist:
 
 opt_group_by_clause:
                 /* empty */
-        |       GROUP BY column_ref_commalist { queryData->hasGrouping = TRUE; }
+        |       GROUP BY column_ref_commalist
         ;
 
 column_ref_commalist:

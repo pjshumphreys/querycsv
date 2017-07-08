@@ -9,7 +9,7 @@ int runQuery(char *queryFileName) {
   readQuery(queryFileName, &query);
 
   /* if a command was run, just return the result */
-  if(query.CMD_TYPE) {
+  if(query.commandMode) {
     /* free the query data structures */
     cleanup_query(&query);
 
