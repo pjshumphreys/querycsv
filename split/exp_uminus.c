@@ -13,6 +13,6 @@ void exp_uminus(char **value, double leftVal) {
     ftostr(value, temp);
   }
   else {
-    *value = strdup("0");
+    *value = mystrdup("0");
   }
 }

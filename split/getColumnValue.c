@@ -11,25 +11,16 @@ int getColumnValue(
   char *output = NULL;
   size_t strSize = 0;
   int currentColumn = 0;
-  int temp = 0;
-  int encodingFromBom = ENC_UNKNOWN;
+  long temp = 0;
 
   MAC_YIELD
 
   /* attempt to open the input file */
-  inputFile = skipBom(inputFileName, &temp, &encodingFromBom);
+  inputFile = skipBom(inputFileName, &temp, &(query->CMD_ENCODING));
 
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return EXIT_FAILURE;
-  }
-
-  /* attempt to refine/identify the encoding of the input file */
-  if(encodingFromBom != ENC_UNKNOWN && encodingFromBom != ENC_CP1047) {
-    query->CMD_ENCODING = encodingFromBom;
-  }
-  else if(query->CMD_ENCODING == ENC_DEFAULT) {
-    query->CMD_ENCODING = ENC_INPUT;
   }
 
   if(offset == 0) {

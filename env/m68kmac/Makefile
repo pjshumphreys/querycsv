@@ -19,7 +19,6 @@ COptions        = {Includes} {Sym-68K} -model far -opt space
 SrcFiles        =  ¶
 				  lexer.c ¶
 				  sql.c ¶
-				  hash1.c ¶
 				  hash2.c ¶
 				  hash3.c ¶
 				  hash4a.c ¶
@@ -37,7 +36,6 @@ RezFiles        =  ¶
 ObjFiles-68K    =  ¶
 				  "{ObjDir}lexer.c.o" ¶
 				  "{ObjDir}sql.c.o" ¶
-				  "{ObjDir}hash1.c.o" ¶
 				  "{ObjDir}hash2.c.o" ¶
 				  "{ObjDir}hash3.c.o" ¶
 				  "{ObjDir}hash4a.c.o" ¶
@@ -97,7 +95,6 @@ QueryCSV  ÄÄ  {¥MondoBuild¥}
 "{ObjDir}mac.c.o"  Ä  mac.c
 "{ObjDir}lexer.c.o"  Ä  lexer.c
 "{ObjDir}sql.c.o"  Ä  sql.c
-"{ObjDir}hash1.c.o"  Ä  hash1.c
 "{ObjDir}hash2.c.o"  Ä  hash2.c
 "{ObjDir}hash3.c.o"  Ä  hash3.c
 "{ObjDir}hash4a.c.o"  Ä  hash4a.c

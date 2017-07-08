@@ -95,16 +95,18 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
       case 197: { /* maybe the letters 'enc'(oding) (case insensitive) in EBCDIC */
         if(
             encoding &&
+            *encoding == ENC_UNKNOWN &&
             ((c = fgetc(file)) == 149 || c == 213) && /* 'N' */
             ((c = fgetc(file)) == 131 || c == 195) /* 'C' */
         ) {
           *encoding = ENC_CP1047;
+          break;
         }
-      } break;
+      } /*fall thru */
 
       default: {
-        if(encoding) {
-          *encoding = ENC_UNKNOWN;
+        if(encoding && *encoding == ENC_DEFAULT) {
+          *encoding = ENC_INPUT;
         }
       }
     }

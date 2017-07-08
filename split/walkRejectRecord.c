@@ -16,7 +16,7 @@ int walkRejectRecord(
     return FALSE;
   }
 
-  if(expressionPtr->type >= EXP_EQ && expressionPtr->type <= EXP_GTE){
+  if(expressionPtr->type >= EXP_EQ && expressionPtr->type <= EXP_GTE) {
     getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
     getValue(expressionPtr->unionPtrs.leaves.rightPtr, match);
 

@@ -26,7 +26,7 @@ struct resultColumn *parse_expCommaList(
     /* if the expression wasn't given a name then provide it with a default one */
     if(resultColumnName == NULL) {
       if(expressionPtr->type == EXP_COLUMN) {
-        if((resultColumnName = strdup(((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->fileColumnName)) == NULL) {
+        if((resultColumnName = mystrdup(((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->fileColumnName)) == NULL) {
           fputs(TDB_MALLOC_FAILED, stderr);
           exit(EXIT_FAILURE);
         }
@@ -124,7 +124,7 @@ struct resultColumn *parse_expCommaList(
         /* then associate the reference with it also  */
         if(queryData->firstResultColumn == newResultColumn) {
           queryData->firstResultColumn->isHidden = FALSE;
-          queryData->firstResultColumn->resultColumnName = strdup(newReference->referenceName);
+          queryData->firstResultColumn->resultColumnName = mystrdup(newReference->referenceName);
 
           return queryData->firstResultColumn;
         }
@@ -137,7 +137,7 @@ struct resultColumn *parse_expCommaList(
               queryData,
               /*isHidden = */FALSE,
               /*isCalculated = */FALSE,
-              /*resultColumnName = */strdup(newReference->referenceName),
+              /*resultColumnName = */mystrdup(newReference->referenceName),
               /*aggregationType = */GRP_NONE
             );
 
@@ -161,7 +161,7 @@ struct resultColumn *parse_expCommaList(
           queryData,
           /*isHidden = */aggregationType != GRP_NONE,
           /*isCalculated = */TRUE,
-          /*resultColumnName = */strdup(newReference->referenceName),
+          /*resultColumnName = */mystrdup(newReference->referenceName),
           /*aggregationType = */aggregationType
         );
 

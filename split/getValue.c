@@ -31,7 +31,7 @@ void getValue(
 
       if(field->leftNull) {
         expressionPtr->leftNull = TRUE;
-        expressionPtr->value = strdup("");
+        expressionPtr->value = mystrdup("");
       }
       else {
         stringGet((unsigned char **)(&(expressionPtr->value)), field, match->params);
@@ -39,7 +39,7 @@ void getValue(
     } break;
 
     case EXP_LITERAL: {
-      expressionPtr->value = strdup((char *)expressionPtr->unionPtrs.voidPtr);
+      expressionPtr->value = mystrdup((char *)expressionPtr->unionPtrs.voidPtr);
     } break;
 
     case EXP_CALCULATED: {
@@ -48,7 +48,7 @@ void getValue(
       getValue(calculatedField, match);
 
       expressionPtr->leftNull = calculatedField->leftNull;
-      expressionPtr->value = strdup(calculatedField->value);
+      expressionPtr->value = mystrdup(calculatedField->value);
 
       freeAndZero(calculatedField->value);
     } break;
@@ -64,12 +64,12 @@ void getValue(
         }
       }
       else if(column->groupText != NULL) {
-        expressionPtr->value = strdup(column->groupText);
+        expressionPtr->value = mystrdup(column->groupText);
         break;
       }
 
       expressionPtr->leftNull = TRUE;
-      expressionPtr->value = strdup("");
+      expressionPtr->value = mystrdup("");
     } break;
 
     case EXP_UPLUS: {
@@ -80,7 +80,7 @@ void getValue(
 
       if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
         expressionPtr->leftNull = TRUE;
-        expressionPtr->value = strdup("");
+        expressionPtr->value = mystrdup("");
       }
       else {
         temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
@@ -98,7 +98,7 @@ void getValue(
 
       if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
         expressionPtr->leftNull = TRUE;
-        expressionPtr->value = strdup("");
+        expressionPtr->value = mystrdup("");
       }
       else {
         exp_uminus(
@@ -112,7 +112,7 @@ void getValue(
 
     default: {
       if(expressionPtr->type > EXP_CONCAT) {
-        expressionPtr->value = strdup("");
+        expressionPtr->value = mystrdup("");
         break;
       }
 
@@ -131,7 +131,7 @@ void getValue(
           expressionPtr->unionPtrs.leaves.rightPtr->leftNull
         ) {
         expressionPtr->leftNull = TRUE;
-        expressionPtr->value = strdup("");
+        expressionPtr->value = mystrdup("");
       }
       else {
         switch(expressionPtr->type){

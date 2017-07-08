@@ -37,11 +37,6 @@ void getCalculatedColumns(
           j = currentResultColumn->resultColumnIndex;
           match[j].isQuoted = FALSE;
           match[j].isNormalized = FALSE;
-          /* match[j].source = &(query->scratchpad); */
-
-          /* seek to the end of the scratchpad file and update the start position */
-          /* fseek(query->scratchpad, 0, SEEK_END); */
-          /* fflush(query->scratchpad); */
           match[j].startOffset = 0;   /* ftell(query->scratchpad); */
 
           /* get expression value for this match */
@@ -51,15 +46,12 @@ void getCalculatedColumns(
           if(currentReference->reference.calculatedPtr.expressionPtr->leftNull) {
             match[j].length = 0;
             match[j].leftNull = TRUE;
-            match[j].value = strdup("");
+            match[j].value = mystrdup("");
           }
           else {
             match[j].leftNull = FALSE;
             match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
             match[j].value = currentReference->reference.calculatedPtr.expressionPtr->value;
-
-            /* write the value to the scratchpad file */
-            /* fputs(currentReference->reference.calculatedPtr.expressionPtr->value, query->scratchpad); */
           }
 
           /* free the expression value for this match */

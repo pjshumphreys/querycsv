@@ -2,4 +2,5 @@
 # add /d3 for debugging symbols
 OBJECTS = *.c
 querycsv.exe: $(OBJECTS)
-	wcl /ml /zt4000 /dMICROSOFT=1 /fpc /0 /os /k3000 /fe=querycsv $(OBJECTS)
+	wcl /ml /zt1900 /dMICROSOFT=1 /fpc /0 /os /k3000 /fe=querycsv $(OBJECTS)
+	c:\upx\upx --8086 .\querycsv.exe

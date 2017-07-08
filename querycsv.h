@@ -375,10 +375,10 @@ struct qryData {
 /*
   some alternative names for the fields in this structure,
   so it can be repurposed to run commands */
-#define CMD_RETVAL = columnCount
-#define CMD_OFFSET = hiddenColumnCount
-#define CMD_COLINDEX = recordCount
-#define CMD_ENCODING = groupCount
+#define CMD_RETVAL columnCount
+#define CMD_OFFSET hiddenColumnCount
+#define CMD_COLINDEX recordCount
+#define CMD_ENCODING groupCount
 
 struct resultColumnParam {
   int params;

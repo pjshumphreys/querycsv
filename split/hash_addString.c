@@ -28,7 +28,6 @@ int hash_addString(
     new_list2->content = new_list;
     new_list2->nextReferenceInHash = hashtable->table[hashval];
 
-
     hashtable->table[hashval] = new_list2;
 
     return 0;

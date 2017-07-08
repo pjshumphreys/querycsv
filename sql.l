@@ -161,7 +161,7 @@
     yylval->intval = atol(yytext);
     return INTNUM;
     */
-    yylval->strval = strdup(yytext);
+    yylval->strval = mystrdup(yytext);
     return STRING;
 }
 
@@ -174,7 +174,7 @@
     yylval->floatval = strtod(yytext, NULL);
     return APPROXNUM;
     */
-    yylval->strval = strdup(yytext);
+    yylval->strval = mystrdup(yytext);
     return STRING;
 }
 

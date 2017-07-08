@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-#include "cp1252.h"
+#include "hash1.h"
 
 void getCodepointsCP1252(
     FILE *stream,

@@ -1,6 +1,6 @@
 CC = gcc
 GPERF = gperf
-CFLAGS = -g -Wall -std=c99 -ansi
+CFLAGS = -O2 -g -Wall -std=c99 -ansi
 SOURCES = $(wildcard split/*.c)
 OBJECTS = $(SOURCES:%.c=%.o)
 INCFLAGS = -I/home/user/Projects/querycsv
@@ -46,18 +46,17 @@ lexer.c: sql.l querycsv.h yyinput.h
 	sed '/^[#] [0-9]*/d' lexer2.c > lexer.c
 	rm -rf lexer2.c
 	
-hash1.o: hash1.h gen.h en_gb.h querycsv.h
 hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h
 querycsv.o: gen.h en_gb.h querycsv.h
 sql.o: lexer.c gen.h en_gb.h querycsv.h
 lexer.o: gen.h en_gb.h querycsv.h
 
-querycsv: sql.o lexer.o hash1.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
+querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/posix/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/html5/ \;
 	find . -maxdepth 1 -type f -iname \*.o ! -exec mv {} env/posix/ \;
-	cd env/posix; $(CC) -o querycsv sql.o lexer.o hash1.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o $(LDFLAGS) $(LIBS)
+	cd env/posix; $(CC) -o querycsv sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o $(LDFLAGS) $(LIBS)
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
 	cd env/dos; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/win32/ \;

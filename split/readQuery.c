@@ -97,7 +97,7 @@ void readQuery(
 
   switch(parserReturn) {
     case 0: {
-      /* parsing finished sucessfully.
+      /* parsing finished sucessfully. */
 
       /* Quit early if a command was run */
       if(query->commandMode) {

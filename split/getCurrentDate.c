@@ -43,8 +43,7 @@ int getCurrentDate(struct qryData *query) {
   }
 
   /* print the timestamp */
-  /* TODO: use fputsEncoded instead */
-  fputs(output, query->outputFile, query->outputEncoding);
+  fputsEncoded(output, query->outputFile, query->outputEncoding);
 
   /* free the string data */
   freeAndZero(output);

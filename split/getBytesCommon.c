@@ -361,4 +361,3 @@ void getBytesCP1047(
     *bytes = (char*)(&(lookup->cp1047));
   }
 }
-

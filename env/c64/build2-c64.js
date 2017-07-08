@@ -613,8 +613,6 @@ function compilePages() {
 
 //compile hash1 and hash3 (they will fit in a memory page but their data is quite large so we don't want to store their RODATA in main RAM)
 function compileHash1() {
-  execSync("cl65 -o obj2/hash1.bin -Ln obj2/hash1.lbl -T -t c64 -C rodata-page.cfg hash1.c hash3.c labels.s;rm *.o");
-
   compileHash2();
 }
 

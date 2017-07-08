@@ -9,7 +9,7 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
   char *tempString2 = NULL;
   double tempFloat;
 
-  int i, j;
+  int i, j = 0;
 
   MAC_YIELD
 
@@ -35,28 +35,26 @@ void updateRunningCounts(struct qryData *query, struct resultColumnValue *match)
           if(field->leftNull == FALSE) {
             stringGet((unsigned char **)(&tempString), field, query->params);
 
-            if(currentResultColumn->groupType > GRP_STAR) {
-              if(query->groupCount > 1) {
-                for(j = 1; j < query->groupCount; j++) {
-                  stringGet((unsigned char **)(&tempString2), &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]), query->params);
+            if(currentResultColumn->groupType > GRP_STAR && query->groupCount > 1) {
+              for(j = 1; j < query->groupCount; j++) {
+                stringGet((unsigned char **)(&tempString2), &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]), query->params);
 
-                  if(strCompare(
-                    (unsigned char **)(&tempString),
-                    (unsigned char **)(&tempString2),
-                    TRUE,
-                    (void (*)(void))getUnicodeChar,
-                    (void (*)(void))getUnicodeChar
-                  ) == 0) {
-                    freeAndZero(tempString2);
-                    break;
-                  }
-
+                if(strCompare(
+                  (unsigned char **)(&tempString),
+                  (unsigned char **)(&tempString2),
+                  TRUE,
+                  (void (*)(void))getUnicodeChar,
+                  (void (*)(void))getUnicodeChar
+                ) == 0) {
                   freeAndZero(tempString2);
+                  break;
                 }
+
+                freeAndZero(tempString2);
               }
-              else {
-                j = query->groupCount;
-              }
+            }
+            else {
+              j = query->groupCount;
             }
 
             switch(currentResultColumn->groupType) {

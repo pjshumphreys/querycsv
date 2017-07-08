@@ -3,7 +3,6 @@
 int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
-  int retval
   MAC_YIELD
 
   readQuery(queryFileName, &query);

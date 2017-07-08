@@ -13,6 +13,6 @@ void exp_divide(char **value, double leftVal, double rightVal) {
     ftostr(value, temp);
   }
   else {
-    *value = strdup("Infinity");
+    *value = mystrdup("Infinity");
   }
 }

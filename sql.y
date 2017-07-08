@@ -24,15 +24,15 @@ typedef void* yyscan_t;
 %parse-param { yyscan_t scanner }
 
 %union {
-        /* double floatval; */
-        long intval;
-        char *strval;
+  /* double floatval; */
+  long intval;
+  char *strval;
   struct columnReference *referencePtr;
   struct expression *expressionPtr;
   struct atomEntry *atomPtr;
 }
 
-        /* operators */
+/* operators */
 
 %left COLLATE
 %left OR
@@ -109,7 +109,7 @@ command_types:
 
       $$ = $3;
     }
-    COLUMNS '(' STRING ',' STRING ')' {
+  | COLUMNS '(' STRING ',' STRING ')' {
       queryData->commandMode = 1;
       queryData->CMD_ENCODING = parse_encoding(queryData, $5);
       freeAndZero($5);

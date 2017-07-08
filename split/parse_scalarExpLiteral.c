@@ -17,7 +17,7 @@ struct expression *parse_scalarExpLiteral(
 
   expressionPtr->type = EXP_LITERAL;
   expressionPtr->value = NULL;
-  expressionPtr->unionPtrs.voidPtr = strdup(literal);
+  expressionPtr->unionPtrs.voidPtr = mystrdup(literal);
   expressionPtr->minColumn = 0;
   expressionPtr->minTable = 0;
 

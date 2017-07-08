@@ -8,8 +8,8 @@ int d_tztime(
     struct tm *utc,
     char **output
 ) {
-  struct tm *lcl;
-  struct tm *gm;
+  struct tm *lcl = NULL;
+  struct tm *gm = NULL;
 
   int hourlcl;
   int hourutc;

@@ -76,7 +76,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
           columnOffsetData.length = 0;
           columnOffsetData.isQuoted = FALSE;
           columnOffsetData.isNormalized = TRUE; /* an empty string needs no unicode normalization */
-          columnOffsetData.value = strdup("");
+          columnOffsetData.value = mystrdup("");
         }
 
         /* put the values retrieved into each of the columns in the output match */
@@ -161,7 +161,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
     /* end of records */
 
     /* rewind the file, but skip the column headers line */
-    /* TODO: replace the fseek reference with our own code as fseek doesn't work in cc65*/
     myfseek(currentInputTable->fileStream, currentInputTable->firstRecordOffset, SEEK_SET);
     currentInputTable->noLeftRecord = TRUE;
 

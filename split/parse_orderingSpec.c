@@ -32,5 +32,3 @@ void parse_orderingSpec(
     queryData->orderByClause = sortingListPtr;
   }
 }
-
-

@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-#include "cp1252.h"
+#include "hash1.h"
 
 /* returns a number of codepoints, each as a long */
 /* invalid bytes or bytes that form an overlong codepoint are treated as

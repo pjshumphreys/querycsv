@@ -18,7 +18,6 @@ void parse_tableFactor(
   size_t columnLength = 0;
   int recordContinues = TRUE;
   long headerByteLength = 0;
-  int encodingFromBom = ENC_UNKNOWN;
 
   MAC_YIELD
 
@@ -31,8 +30,8 @@ void parse_tableFactor(
 
   /* try to prevent heap fragmentation by shuffing the */
   csvFile = fopen(fileName, "rb");
-  columnText = strdup(tableName);
-  columnText2 = strdup(fileName);
+  columnText = mystrdup(tableName);
+  columnText2 = mystrdup(fileName);
 
   if(csvFile == NULL || columnText == NULL || columnText2 == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
@@ -44,13 +43,11 @@ void parse_tableFactor(
   fclose(csvFile);
 
   /* try opening the file specified in the query */
-  csvFile = skipBom(columnText2, &headerByteLength, &encodingFromBom);
-  tableName = strdup(columnText);
-  fileName = strdup(columnText2);
-  free(columnText);
+  csvFile = skipBom(columnText2, &headerByteLength, &fileEncoding);
+  tableName = mystrdup(columnText);
+  fileName = mystrdup(columnText2);
+  freeAndZero(columnText);
   free(columnText2);  /* free the filename string data as we don't need it any more */
-
-  columnText = NULL;
 
   if(csvFile == NULL || tableName == NULL || fileName == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
@@ -63,18 +60,7 @@ void parse_tableFactor(
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
   newTable->fileStream = csvFile;
-
-  if(encodingFromBom == ENC_UNKNOWN || encodingFromBom == ENC_CP1047) {
-    if(fileEncoding == ENC_DEFAULT) {
-      newTable->fileEncoding = ENC_INPUT;
-    }
-    else {
-      newTable->fileEncoding = fileEncoding;
-    }
-  }
-  else {
-    newTable->fileEncoding = encodingFromBom;
-  }
+  newTable->fileEncoding = fileEncoding;
 
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;

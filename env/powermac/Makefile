@@ -19,7 +19,6 @@ PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON
 SrcFiles        =  ¶
 				  lexer.c ¶
 				  sql.c ¶
-				  hash1.c ¶
 				  hash2.c ¶
 				  hash3.c ¶
 				  hash4a.c ¶
@@ -38,7 +37,6 @@ RezFiles        =  ¶
 ObjFiles-PPC    =  ¶
 				  "{ObjDir}lexer.c.x" ¶
 				  "{ObjDir}sql.c.x" ¶
-				  "{ObjDir}hash1.c.x" ¶
 				  "{ObjDir}hash2.c.x" ¶
 				  "{ObjDir}hash3.c.x" ¶
 				  "{ObjDir}hash4a.c.x" ¶
@@ -87,7 +85,6 @@ QueryCSV  ÄÄ  {¥MondoBuild¥}
 
 "{ObjDir}lexer.c.x"  Ä  lexer.c
 "{ObjDir}sql.c.x"  Ä  sql.c
-"{ObjDir}hash1.c.x"  Ä  hash1.c
 "{ObjDir}hash2.c.x"  Ä  hash2.c
 "{ObjDir}hash3.c.x"  Ä  hash3.c
 "{ObjDir}hash4a.c.x"  Ä  hash4a.c
@@ -113,4 +110,3 @@ Clean		Ä	$OutOfDate
 	Delete -i -y ¶
 		{ObjFiles-PPC} ¶
 		QueryCSV
-

@@ -32,9 +32,6 @@ void groupResultsInner(
       /* calculate remaining columns that make use of aggregation */
       getCalculatedColumns(query, previousMatch, TRUE);
 
-      /* free the group text strings (to prevent heap fragmentation) */
-      /* cleanup_groupedColumns(query, previousMatch); */
-
       query->useGroupBy = FALSE;
 
       /* append the record to the new result set */

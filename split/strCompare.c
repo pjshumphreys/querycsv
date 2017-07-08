@@ -10,7 +10,7 @@ int strCompare(
 
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
-  struct hash4Entry *entry1, *entry2;
+  struct hash4Entry *entry1 = NULL, *entry2 = NULL;
   int firstChar = TRUE, comparison = 0, char1found = FALSE;
   int bytesMatched1 = 0, bytesMatched2 = 0;
   int accentcheck = 0, combinerResult;

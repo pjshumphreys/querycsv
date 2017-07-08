@@ -1,28 +1,5 @@
 #include "querycsv.h"
 
-int mystrnicmp(const char *str1, const char *str2, size_t n) {
-  int i, retval = 0;
-
-  if(n) {
-    for(i = 0; i < n; ++i) {
-      retval = tolower(*str1++) - tolower(*str2++);
-
-      if(retval) {
-        break;
-      }
-
-      if(*str1 && *str2) {
-        continue;
-      }
-      else {
-        break;
-      }
-    }
-  }
-
-  return retval;
-}
-
 int parse_encoding(
     struct qryData *queryData,
     char *encoding
@@ -32,7 +9,7 @@ int parse_encoding(
   MAC_YIELD
 
   if(mystrnicmp("utf", encoding, 3) == 0) {
-    matcher = encoding +3;
+    matcher = encoding + 3;
     encoding += 3;
 
     if(mystrnicmp("-", matcher, 1) == 0) {
