@@ -60,12 +60,11 @@ int getCsvColumn(
         state = 0;
 
         c2 = fgetc(*inputFile);
+        offset++;
 
-        if(c2 == '\n') {
-          offset++;
-        }
-        else {
+        if(c2 != '\n') {
           ungetc(c2, *inputFile);
+          offset--;
         }
 
         if(canEnd) {
@@ -85,6 +84,7 @@ int getCsvColumn(
         state = 0;  /* go back to initial state */
 
         c2 = fgetc(*inputFile);
+        offset++;
 
         switch(c2) {
           case ' ':  /* ' ' */
@@ -94,16 +94,17 @@ int getCsvColumn(
           case ',': {  /* ',' */
             canEnd = TRUE;
             ungetc(c2, *inputFile);
+            offset--;
           } break;
 
           case '"': {  /* '"' */
             strAppend('"', value, strSize);
-            offset++;
           } break;
 
           default: {
             strAppend('"', value, strSize);
             ungetc(c2, *inputFile);
+            offset--;
           } break;
         }
       }
@@ -205,7 +206,6 @@ int getCsvColumn(
   strAppend('\0', value, strSize);
 
   (*strSize)--;
-  offset--;
 
   if(startPosition != NULL) {
     *startPosition = offset;

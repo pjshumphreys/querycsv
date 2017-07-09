@@ -9,7 +9,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
   struct resultColumnParam matchParams;
   int recordHasColumn;
   int doLeftRecord = FALSE;
-  long templong = 0;
 
   MAC_YIELD
 
@@ -52,14 +51,13 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
 
         if(recordHasColumn == TRUE && !doLeftRecord) {
           columnOffsetData.value = NULL;
-          templong = columnOffsetData.startOffset;
           recordHasColumn = getCsvColumn(
               &(currentInputTable->fileStream),
               currentInputTable->fileEncoding,
               &(columnOffsetData.value),
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
-              &(templong),
+              NULL,
               (query->params & PRM_TRIM) == 0
             );
 
