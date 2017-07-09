@@ -1,5 +1,44 @@
 #include "querycsv.h"
 
+void initMatch(
+    struct qryData *query,
+    struct resultColumnValue** match
+) {
+  int i = 0;
+
+  reallocMsg(
+    (void**)match,
+    (query->columnCount)*sizeof(struct resultColumnValue)
+  );
+
+  /* initialise the match values to null to avoid
+  extra checks during the query run */
+  for(i = query->columnCount-1; i >= 0; i--) {
+    (*match)[i].value = NULL;
+  }
+}
+
+void duplicateMatch(
+    struct qryData *query,
+    struct resultColumnValue** match
+) {
+  int i = 0;
+  struct resultColumnValue* newMatch = NULL;
+
+  reallocMsg(
+    (void**)&newMatch,
+    (query->columnCount)*sizeof(struct resultColumnValue)
+  );
+
+  memmove(newMatch, *match, (query->columnCount)*sizeof(struct resultColumnValue));
+
+  for(i = query->columnCount-1; i >= 0; i--) {
+    newMatch[i].value = mystrdup((*match)[i].value);
+  }
+
+  *match = newMatch;
+}
+
 int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
@@ -16,10 +55,7 @@ int runQuery(char *queryFileName) {
   }
 
   /* allocates space for the next record in the record set */
-  reallocMsg(
-    (void**)&match,
-    (query.columnCount)*sizeof(struct resultColumnValue)
-  );
+  initMatch(&query, &match);
 
   /* if there is no sorting of results required and the user didn't */
   /* specify an output file then output the results to the screen as soon as they become available */
@@ -34,18 +70,10 @@ int runQuery(char *queryFileName) {
 
     while(getMatchingRecord(&query, match)) {
       /* print record to stdout */
-      outputResult(&query, match, 0);
-      match = NULL;
-
-      reallocMsg(
-        (void**)&match,
-        (query.columnCount)*sizeof(struct resultColumnValue)
-      );
+      outputResult(&query, match, -1);
     }
 
-    /* the last record wasn't used */
-    free(match);
-    match = NULL;
+    cleanup_matchValues(&query, &match);
   }
   else {
     if(query.groupByClause != NULL) {
@@ -56,17 +84,10 @@ int runQuery(char *queryFileName) {
       /* add another record to the result set. */
       /* The match variable's allocated memory is the responsibility of the tree now */
       tree_insert(&query, match, &(query.resultSet));
-      match = NULL;
-
-      reallocMsg(
-        (void**)&match,
-        (query.columnCount)*sizeof(struct resultColumnValue)
-      );
+      duplicateMatch(&query, &match);
     }
 
-    /* the last record wasn't used */
-    free(match);
-    match = NULL;
+    cleanup_matchValues(&query, &match);
 
     /* perform group by operations if it was specified in the query */
     if(query.groupByClause != NULL) {

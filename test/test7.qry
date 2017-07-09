@@ -1,5 +1,5 @@
 select c, abc, def, b
-from 'test.csv' as test
+from 'test1.csv' as test
 join 'test2.csv' as test2 on c = hij
 where klm= 4+1 or def = concat('th','th')
 order by b, klm

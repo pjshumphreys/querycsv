@@ -9,6 +9,10 @@ void stringGet(
   MAC_YIELD
 
   if(str != NULL) {
+    if(*str != NULL) {
+      free(*str);
+    }
+
     *str = (unsigned char *)(mystrdup((char const *)(field->value)));
   }
 }

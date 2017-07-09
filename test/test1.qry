@@ -1,2 +1,2 @@
 select hij,def,abc,klm
-from 'test.csv' as test
+from 'test1.csv' as test

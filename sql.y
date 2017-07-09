@@ -59,7 +59,7 @@ typedef void* yyscan_t;
 
 %token <intval> AMMSC
 %token <strval> NAME STRING
-%token <intval> INTNUM
+%token <strval> INTNUM
 %token <intval> APPROXNUM /* floatval*/
 %type <strval> optional_as_name literal
 %type <strval> command_types
@@ -123,7 +123,8 @@ command_types:
 
   | NEXT '(' STRING ',' INTNUM ')' {
       queryData->commandMode = 2;
-      queryData->CMD_OFFSET = $5;
+      queryData->CMD_OFFSET = atol($5);
+      free($5);
 
       queryData->CMD_ENCODING = ENC_DEFAULT;
 
@@ -131,10 +132,11 @@ command_types:
     }
   | NEXT '(' STRING ',' STRING ',' INTNUM ')' {
       queryData->commandMode = 2;
-      queryData->CMD_OFFSET = $7;
+      queryData->CMD_OFFSET = atol($7);
+      free($7);
 
       queryData->CMD_ENCODING = parse_encoding(queryData, $5);
-      freeAndZero($5);
+      free($5);
 
       if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
         YYABORT;
@@ -144,8 +146,10 @@ command_types:
     }
   | VALUE '(' STRING ',' INTNUM ',' INTNUM ')' {
       queryData->commandMode = 3;
-      queryData->CMD_OFFSET = $5;
-      queryData->CMD_COLINDEX = $7;
+      queryData->CMD_OFFSET = atol($5);
+      free($5);
+      queryData->CMD_COLINDEX = atol($7);
+      free($7);
 
       queryData->CMD_ENCODING = ENC_DEFAULT;
 
@@ -153,8 +157,10 @@ command_types:
     }
   | VALUE '(' STRING ',' STRING ',' INTNUM ',' INTNUM ')' {
       queryData->commandMode = 3;
-      queryData->CMD_OFFSET = $7;
-      queryData->CMD_COLINDEX = $9;
+      queryData->CMD_OFFSET = atol($7);
+      free($7);
+      queryData->CMD_COLINDEX = atol($9);
+      free($9);
 
       queryData->CMD_ENCODING = parse_encoding(queryData, $5);
       freeAndZero($5);
@@ -211,7 +217,7 @@ scalar_exp:
 
 literal:
                 STRING { $$ = $1; }
-        |       INTNUM { $$ = NULL; }
+        |       INTNUM { $$ = $1; }
         |       APPROXNUM { $$ = NULL; }
         ;
 

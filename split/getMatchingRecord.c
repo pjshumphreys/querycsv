@@ -86,6 +86,8 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
             currentResultColumn = currentResultColumn->nextColumnInstance
           ) {
 
+          free(match[currentResultColumn->resultColumnIndex].value);
+
           memcpy(
               &(match[currentResultColumn->resultColumnIndex]),
               &columnOffsetData,
@@ -161,6 +163,13 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
     /* end of records */
 
     /* rewind the file, but skip the column headers line */
+    fclose(currentInputTable->fileStream);
+
+    if((currentInputTable->fileStream = fopen(currentInputTable->fileName, "rb")) == NULL) {
+      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      exit(EXIT_FAILURE);
+    }
+
     myfseek(currentInputTable->fileStream, currentInputTable->firstRecordOffset, SEEK_SET);
     currentInputTable->noLeftRecord = TRUE;
 

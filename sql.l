@@ -38,11 +38,11 @@
 (?i:CLOSE)		TOK(CLOSE)
 (?i:COLLATE)		TOK(COLLATE)
 (?i:COMMAND)		{ BEGIN(commands); return COMMAND; }
-<defname>(?i:COLUMNS)		{ BEGIN(INITIAL); return COLUMNS; }
-<defname>(?i:NEXT)		{ BEGIN(INITIAL); return NEXT; }
-<defname>(?i:VALUE)		{ BEGIN(INITIAL); return VALUE; }
-<defname>(?i:DATE)		{ BEGIN(INITIAL); return DATE; }
-<defname>[^ \t\r\n]		{ yyless(0); BEGIN(INITIAL); }
+<commands>(?i:COLUMNS)		{ BEGIN(INITIAL); return COLUMNS; }
+<commands>(?i:NEXT)		{ BEGIN(INITIAL); return NEXT; }
+<commands>(?i:VALUE)		{ BEGIN(INITIAL); return VALUE; }
+<commands>(?i:DATE)		{ BEGIN(INITIAL); return DATE; }
+<commands>[^ \t\r\n]		{ yyless(0); BEGIN(INITIAL); }
 
 (?i:COMMIT)		TOK(COMMIT)
 (?i:CONTINUE)		TOK(CONTINUE)
@@ -162,7 +162,7 @@
     return INTNUM;
     */
     yylval->strval = mystrdup(yytext);
-    return STRING;
+    return INTNUM;
 }
 
 [0-9]+"."[0-9]* |

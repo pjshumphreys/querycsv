@@ -66,7 +66,12 @@ void outputResult(
   }
 
   freeAndZero(string);
-  cleanup_matchValues(query, &columns);
+
+  if(currentIndex > -1) {
+    cleanup_matchValues(query, &columns);
+  }
+
+  query->recordCount++;
 
   fputsEncoded(query->newLine, outputFile, query->outputEncoding);
 }

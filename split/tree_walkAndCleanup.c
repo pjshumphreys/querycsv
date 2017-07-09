@@ -34,7 +34,7 @@ void tree_walkAndCleanup(
       );
 
       currentResult->type = TRE_FREED;
-      i+=1;
+      i++;
     }
 
     if(currentResult->right) {

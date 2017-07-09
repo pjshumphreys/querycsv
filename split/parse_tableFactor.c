@@ -14,7 +14,6 @@ void parse_tableFactor(
   struct columnReference *newReference;
   struct inputColumn *newColumn;
   char *columnText = NULL;
-  char *columnText2 = NULL;
   size_t columnLength = 0;
   int recordContinues = TRUE;
   long headerByteLength = 0;
@@ -28,28 +27,10 @@ void parse_tableFactor(
     return;
   }
 
-  /* try to prevent heap fragmentation by shuffing the */
-  csvFile = fopen(fileName, "rb");
-  columnText = mystrdup(tableName);
-  columnText2 = mystrdup(fileName);
-
-  if(csvFile == NULL || columnText == NULL || columnText2 == NULL) {
-    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    exit(EXIT_FAILURE);
-  }
-
-  free(fileName);
-  free(tableName);
-  fclose(csvFile);
-
   /* try opening the file specified in the query */
-  csvFile = skipBom(columnText2, &headerByteLength, &fileEncoding);
-  tableName = mystrdup(columnText);
-  fileName = mystrdup(columnText2);
-  freeAndZero(columnText);
-  free(columnText2);  /* free the filename string data as we don't need it any more */
+  csvFile = skipBom(fileName, &headerByteLength, &fileEncoding);
 
-  if(csvFile == NULL || tableName == NULL || fileName == NULL) {
+  if(csvFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     exit(EXIT_FAILURE);
   }
@@ -59,6 +40,7 @@ void parse_tableFactor(
 
   /* start populating our newly created table record */
   newTable->queryTableName = tableName;
+  newTable->fileName = fileName;
   newTable->fileStream = csvFile;
   newTable->fileEncoding = fileEncoding;
 

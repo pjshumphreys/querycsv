@@ -264,6 +264,7 @@ struct inputTable {
   int noLeftRecord;
   long firstRecordOffset;  /* where in the file the beginning of the first record is located */
   char *queryTableName;  /* according to the query */
+  char *fileName;
   FILE *fileStream;
   struct inputTable *nextInputTable;
   struct inputColumn *firstInputColumn;

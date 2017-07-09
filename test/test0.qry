@@ -1,9 +1,9 @@
 select
   yum.abc as [name has spaces]
 from
-  './test.csv' as yum
-left join './test.csv' as mao on yum.abc = mao.abc
-join './test.csv' as hob on yum.abc = hob.abc
+  './test1.csv' as yum
+left join './test1.csv' as mao on yum.abc = mao.abc
+join './test1.csv' as hob on yum.abc = hob.abc
 where
   yum.def collate sensitive = 'ah-ha' or 1.0=1.0
 into
