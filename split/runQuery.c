@@ -1,44 +1,5 @@
 #include "querycsv.h"
 
-void initMatch(
-    struct qryData *query,
-    struct resultColumnValue** match
-) {
-  int i = 0;
-
-  reallocMsg(
-    (void**)match,
-    (query->columnCount)*sizeof(struct resultColumnValue)
-  );
-
-  /* initialise the match values to null to avoid
-  extra checks during the query run */
-  for(i = query->columnCount-1; i >= 0; i--) {
-    (*match)[i].value = NULL;
-  }
-}
-
-void duplicateMatch(
-    struct qryData *query,
-    struct resultColumnValue** match
-) {
-  int i = 0;
-  struct resultColumnValue* newMatch = NULL;
-
-  reallocMsg(
-    (void**)&newMatch,
-    (query->columnCount)*sizeof(struct resultColumnValue)
-  );
-
-  memmove(newMatch, *match, (query->columnCount)*sizeof(struct resultColumnValue));
-
-  for(i = query->columnCount-1; i >= 0; i--) {
-    newMatch[i].value = mystrdup((*match)[i].value);
-  }
-
-  *match = newMatch;
-}
-
 int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
