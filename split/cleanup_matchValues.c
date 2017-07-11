@@ -14,6 +14,5 @@ void cleanup_matchValues(
     free((*match)[i].value);
   }
 
-  free(*match);
-  *match = NULL;
+  freeAndZero(*match);
 }

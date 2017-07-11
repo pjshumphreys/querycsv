@@ -16,6 +16,8 @@ struct expression *parse_functionRef(
     return NULL;
   }
 
+  queryData->hasGrouping = TRUE;
+
   if(isDistinct) {
     aggregationType+=GRP_STAR;
   }

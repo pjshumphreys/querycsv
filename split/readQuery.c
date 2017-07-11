@@ -35,6 +35,7 @@ void readQuery(
   query->getCodepoints = chooseGetter(initialEncoding);
   query->inputEncoding = ENC_UNKNOWN;
   query->parseMode = 0;   /* specify we want to just read the file data for now */
+  query->hasGrouping = FALSE;
   query->commandMode = 0;
   query->useGroupBy = FALSE;
   query->columnCount = 0;

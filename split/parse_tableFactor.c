@@ -98,7 +98,7 @@ void parse_tableFactor(
     /* test whether a column with this name already exists in the hashtable */
     currentReference = hash_lookupString(queryData->columnReferenceHashTable, columnText);
 
-    /* if a column with this name is already in the hash table */
+    /* if a column with this name is not already in the hash table */
     if(currentReference == NULL) {
       /* create the new column record */
       reallocMsg((void**)(&newReference), sizeof(struct columnReference));

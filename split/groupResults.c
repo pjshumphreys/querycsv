@@ -10,15 +10,8 @@ void groupResults(struct qryData *query) {
   resultsOrig = query->resultSet;
   query->resultSet = NULL;
 
-  /* keep a reference to the current record */
-  query->match = getFirstRecord(
-    resultsOrig,
-    query
-  );
-
-  /* store a copy of the first record and initialise the running totals */
-  updateRunningCounts(query, query->match);
-
+  /* populate query->resultSet with the grouped results,
+    while clearing up to memory of the original result set */
   tree_walkAndCleanup(
     query,
     &(resultsOrig),

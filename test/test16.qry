@@ -1,4 +1,5 @@
-select Place, surname
-from 'output2.csv' as test
+select Place as firstName, surname
+from 'poles.csv' as test
 order by surname, Place
+into 'output.txt'
 

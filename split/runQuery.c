@@ -62,7 +62,7 @@ int runQuery(char *queryFileName) {
   if(
       query.orderByClause == NULL &&
       query.outputFileName == NULL &&
-      query.groupByClause == NULL
+      !query.hasGrouping
     ) {
 
     /* output the header */
@@ -83,6 +83,7 @@ int runQuery(char *queryFileName) {
     while(getMatchingRecord(&query, match)) {
       /* add another record to the result set. */
       /* The match variable's allocated memory is the responsibility of the tree now */
+      query.recordCount++;
       tree_insert(&query, match, &(query.resultSet));
       duplicateMatch(&query, &match);
     }
@@ -90,9 +91,10 @@ int runQuery(char *queryFileName) {
     cleanup_matchValues(&query, &match);
 
     /* perform group by operations if it was specified in the query */
-    if(query.groupByClause != NULL) {
+    if(query.hasGrouping) {
       groupResults(&query);
       query.useGroupBy = FALSE;
+      query.recordCount = query.groupCount;
     }
 
     /* output the results to the specified file */

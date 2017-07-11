@@ -11,41 +11,53 @@ void groupResultsInner(
 
   MAC_YIELD
 
-  /* loop over each record in the result set, other than the first one */
-  if(i) {
-    previousMatch = query->match;
+  if(i == 0) {
+    updateRunningCounts(query, columns, TRUE);
+
     query->match = columns;
 
-    /* if the current record to look at is identical to the previous one */
-    if(
-        (query->groupByClause != NULL &&   /* if no group by clause then every record is part of one group */
-        recordCompare(
-          (void *)previousMatch,
-          (void *)query->match,
-          (void *)query
-        ) != 0) ||
-        i == query->recordCount
-      ) {
-      /* fix up the calculated columns that need it */
-      getGroupedColumns(query);
+    return;
+  }
 
-      /* calculate remaining columns that make use of aggregation */
-      getCalculatedColumns(query, previousMatch, TRUE);
+  previousMatch = query->match;
 
-      query->useGroupBy = FALSE;
+  /* if the current record to look at is identical to the previous one */
+  if(
+      query->groupByClause == NULL ||   /* if no group by clause then every record is part of one group */
+      recordCompare(
+        (void *)previousMatch,
+        (void *)columns,
+        (void *)query
+      ) != 0 ||
+      i == query->recordCount - 1
+    ) {
+    /* fix up the calculated columns that need it */
+    getGroupedColumns(query);
 
-      /* append the record to the new result set */
-      tree_insert(query, previousMatch, &(query->resultSet));
+    /* calculate remaining columns that make use of aggregation */
+    getCalculatedColumns(query, previousMatch, TRUE);
 
-      query->useGroupBy = TRUE;
+    query->groupCount++;
+
+    /* append the record to the new result set */
+    query->useGroupBy = FALSE;
+
+    tree_insert(query, previousMatch, &(query->resultSet));
+
+    query->useGroupBy = TRUE;
+
+    if(i != query->recordCount - 1) {
+      updateRunningCounts(query, columns, TRUE);
+
+      query->match = columns;
     }
     else {
-      cleanup_matchValues(query, &previousMatch);
-      free(previousMatch);
+      cleanup_matchValues(query, &columns);
     }
+  }
+  else {
+    updateRunningCounts(query, columns, FALSE);
 
-    if(i < query->recordCount) {
-      updateRunningCounts(query, query->match);
-    }
+    cleanup_matchValues(query, &columns);
   }
 }
