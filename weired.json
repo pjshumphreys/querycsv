@@ -18,6 +18,13 @@
 ["01C6", "0064 007A 030C", "ǆ"],
 ["017F", "0073", "ſ"],
 
+/* these are not strictly true, but make collation work a bit more consistently to IMHO */
+["0141", "004C 0337", "Ł"],
+["0142", "006C 0337", "ł"],
+["1D0C", "029F 0337", "ᴌ"],
+["00D8", "004F 0337", "Ø"],
+["00F8", "006F 0337", "ø"],
+
 ["1F150", "0041", "NEGATIVE CIRCLED LATIN CAPITAL LETTER A"],
 ["1F170", "0041", "NEGATIVE SQUARED LATIN CAPITAL LETTER A"],
 ["A79A", "0041 0045", "LATIN CAPITAL LETTER VOLAPUK AE"],

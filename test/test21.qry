@@ -1,4 +1,4 @@
 select town, municipality, county
 from 'norway.csv' as test
---county, municipality, town
-into 'output4.csv'
+order by town, municipality, county
+--into 'output4.csv'

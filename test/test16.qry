@@ -1,5 +1,5 @@
 select Place as firstName, surname
 from 'poles.csv' as test
 order by surname, Place
-into 'output.txt'
+--into 'output.txt'
 

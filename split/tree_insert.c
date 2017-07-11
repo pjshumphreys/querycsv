@@ -43,7 +43,7 @@ int tree_insert(
     for( ; ; ) {
       comparison = recordCompare(currentResult->columns, columns, query);
 
-      if(comparison < 1) {
+      if(comparison < 0) {
         if(currentResult->left == NULL) {
           newResult->parent = currentResult;
           currentResult->left = newResult;

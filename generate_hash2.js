@@ -60,6 +60,7 @@ var execSync = child_process.execSync;
 var exec = child_process.exec;
 var spawn = child_process.spawn;
 var fs = require('graceful-fs');
+var stripJsonComments = require('strip-json-comments');
 var readline = require('readline');
 
 var array1 = [];
@@ -91,7 +92,7 @@ function weiredRead(err, data) {
     return;
   }
 
-  array4 = JSON.parse(data);
+  array4 = JSON.parse(stripJsonComments(data));
   var e = 0;
   do {
     array5 = JSON.stringify(array3);
