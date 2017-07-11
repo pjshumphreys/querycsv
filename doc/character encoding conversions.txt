@@ -1,11 +1,17 @@
-initially only 2 character encodings are supported:
+these character encodings are supported:
+utf-8
+utf-16le
+utf-16be
+utf-32le
+utf-32be
+cp437
+cp850
+cp1252
+cp1047
+petscii
+macroman
 
-* 8bit (It is always available but is specific to each build environment.)
-
-* utf8 (default encoding. Invalid or overlong bytes are interpreted as windows1252)
-
-
-8bit codepage for each build:
+default 8bit codepage for each build:
 
 c64=petscii
 atarist=atari

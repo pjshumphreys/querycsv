@@ -1,0 +1,15 @@
+what is hatari (emulator of the atari st hardware)
+what is emutos (open source clone of everything on the original atari rom)
+
+what is line-a (low level atari specific graphics functions?)
+what is mint (unix compatability layer like unixlib on riscos? non rom enhanced xbios/gemdos?)
+
+
+what is gemdos (set of msdos api like generic syscalls)
+what is bios/xbios (syscalls for atari specific hardware control that suppliment gemdos)
+what is VDI (Virtual Device Interface) (like mswindows gdi?)
+what is AES (Application Environment Services) (window creation and widget set? multitasking?)
+gem desktop (an application that uses aes to present windows to manage files)
+
+
+osbind.h (contains all the macros that each trigger a gemdos/bios/xbios syscall to be called)
