@@ -83,7 +83,7 @@ From that, I realised that I have several other old computer systems that could 
 
 Lastly, another problem with programs such as lotus 123 that were contemporary to MS-DOS is that they only really work with ASCII text, and I'd always wondered how unicode collation and sorting worked. So finally I added the ability to convert the text data between unicode and the various character sets that each retro system used natively.
 
-##Coding style
+## Coding style
 
 As my day job is as a web developer, my C coding style is quite JavaScript-like with verbose function and variable names. I also indent with 2 spaces and mostly follow the Stroustrup variant of Kernighan and Ritchie style, so I code like this:
 
