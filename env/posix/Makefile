@@ -20,6 +20,12 @@ querycsv: $(OBJECTS)
 .c.o :
 	$(CC) -o $@ -c $(CFLAGS) $< $(INCFLAGS)
 
+musl:
+	rm -f $(OBJECTS) querycsv
+	/usr/local/musl/bin/musl-gcc -o querycsv -static -Os -O2 $(SOURCES)
+	strip querycsv
+	upx querycsv
+
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
