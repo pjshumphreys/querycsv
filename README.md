@@ -106,13 +106,13 @@ int main(int argc, char *argv[]) {
 
 I also avoid global and static variables when I can as I feel it eases testing for me. 
 
-##Contributing
+## Contributing
 
 I'd love it if you appreciate this program and would like to help in developing it. Like all projects, there are some bugs that need working on and also some new features I'd like to add.
 
 I can be reached at [querycsv@gmail.com](mailto:querycsv@gmail.com)
 
-##License
+## License
 
 QueryCSV is MIT licenced and is copyright (c) 2016-2017 Paul Humphreys
 
