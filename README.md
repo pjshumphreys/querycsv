@@ -55,10 +55,10 @@ Heisenberg, Engineering
 
 ## Why?
 
-My hobby is retro computing and I recently came across and bought a Toshiba T1100 plus:
+My hobby is retro computing and I recently came across and bought a Toshiba T1100 plus, which looks like this:
 
 <p align="center">
-  <img alt="Toshiba T1100 Plus" src="https://raw.githubusercontent.com/pjshumphreys/files/master/t1100plus.jpg" width="400" height="308" />
+  <img alt="Toshiba T1100 Plus" src="https://raw.githubusercontent.com/pjshumphreys/files/master/t1100plus.png" width="400" />
 </p>
 
 This was one of the first mass market laptop PCs to be released by Toshiba in 1986. It has an Intel 80C86 processor \(a low power version of the 8086\), 640Kb of RAM and dual double density floppy drives but no hard disk.
