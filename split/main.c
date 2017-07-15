@@ -25,6 +25,10 @@ int main(int argc, char *argv[]) {
       /* timezone data to the date functions) */
       setlocale(LC_ALL, TDB_LOCALE);
     #endif
+  #else
+    #ifdef __WATCOMC__
+      devNull = "/dev/null";
+    #endif
   #endif
 
   #ifdef __CC_NORCROFT

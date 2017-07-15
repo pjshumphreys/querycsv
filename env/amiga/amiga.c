@@ -75,7 +75,7 @@ void shutdownfoo(void) {
     olddir = (BPTR)-1;
   }
 
-  printf("\nPRESS ENTER TO QUIT\n");
+  fputs("\nPRESS ENTER TO QUIT\n", stdout);
   setvbuf(stdout, NULL, _IONBF, 0);
   while(fgetc(stdout) != 10) { /* Do nothing */}
   fclose(stdout);

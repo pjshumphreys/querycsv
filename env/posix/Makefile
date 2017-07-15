@@ -3,11 +3,13 @@
 
 CC = gcc
 CFLAGS = -O2 -g -Wall
-SOURCES = lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c
+SOURCES = querycsv.c lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c
 OBJECTS = $(SOURCES:%.c=%.o)
 INCFLAGS = -I/home/user/Projects/querycsv
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = 
+LIBS =
+
+WATCOM = ~/.wine/drive_c/WATCOM
 
 all: querycsv
 
@@ -24,13 +26,19 @@ musl:
 	rm -f $(OBJECTS) querycsv
 	/usr/local/musl/bin/musl-gcc -o querycsv -static -Os -O2 $(SOURCES)
 	strip querycsv
-	upx querycsv
+
+watcom:
+	rm -f $(OBJECTS) querycsv querycsv.i386
+	sed -i -e 's/MAC_YIELD//g' querycsv.c
+	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 $(SOURCES)
+	strip querycsv
+	mv querycsv querycsv.i386
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f $(OBJECTS) querycsv
+	rm -f $(OBJECTS) querycsv querycsv.i386
 
 .PHONY: all
 .PHONY: count

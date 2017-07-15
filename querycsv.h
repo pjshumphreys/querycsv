@@ -131,7 +131,7 @@
   #define ENC_PRINT ENC_PETSCII
 #endif
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__LINUX__)
   #ifdef EMSCRIPTEN
     #define main realmain
   #else
@@ -139,7 +139,9 @@
   #endif
 
   #define MAC_YIELD
-  #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+  #ifndef __WATCOMC__
+    #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+  #endif
 
   /* used as posix doesn't have stricmp */
   #include <strings.h>
