@@ -52,9 +52,6 @@ int parse_columnRefUnsuccessful(
     currentReference = NULL;
   }
 
-  free(tableName);
-  free(columnName);
-
   /* if the name refers to a column which hasn't yet been put */
   /* into the output result set then stick it in there now */
   if(
@@ -74,5 +71,13 @@ int parse_columnRefUnsuccessful(
   }
 
   *result = currentReference;
-  return currentReference == NULL;
+
+  if(currentReference == NULL) {
+    return TRUE;
+  }
+
+  free(tableName);
+  free(columnName);
+
+  return FALSE;
 }

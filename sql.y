@@ -224,13 +224,16 @@ literal:
 column_ref:
                 NAME {
       if(parse_columnRefUnsuccessful(queryData, &($$), NULL, $1)) {
-        fprintf(stderr, "unknown or ambiguous column name (%s)\n", $1);
+        fprintf(stderr, "unknown or ambiguous column name (%s)\n", $1+1);
+        free($1);
         YYERROR;
       }
     }
         |       NAME '.' NAME {
       if(parse_columnRefUnsuccessful(queryData, &($$), $1, $3)) {
-        fprintf(stderr, "unknown or ambiguous column name (%s.%s)\n", $1, $3);
+        fprintf(stderr, "unknown or ambiguous column name (%s.%s)\n", $1+1, $3+1);
+        free($1);
+        free($3);
         YYERROR;
       }
     }
