@@ -34,6 +34,7 @@ hash4c.c: hash4c.gperf
 	gperf hash4c.gperf > hash4c.c
 
 hash2.c: UnicodeData.txt weired.json hash2iT.h hash2outT.h hash2T.h
+	npm install graceful-fs strip-json-comments
 	node ./generate_hash2.js
 	cp hash2T.h hash2.c
 
@@ -53,7 +54,6 @@ sql.o: lexer.c gen.h en_gb.h querycsv.h
 lexer.o: gen.h en_gb.h querycsv.h
 
 querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
-	npm install graceful-fs strip-json-comments
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/posix/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/html5/ \;
 	find . -maxdepth 1 -type f -iname \*.o ! -exec mv {} env/posix/ \;
