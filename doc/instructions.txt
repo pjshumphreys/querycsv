@@ -1,0 +1,126 @@
+https://inkscape.org/gallery/item/10686/Inkscape-0.92.1.7z
+
+https://waterlan.home.xs4all.nl/dos2unix/dos2unix-7.3.5-win32.zip
+
+https://github.com/open-watcom/travis-ci-ow-builds/archive/master.zip
+
+https://github.com/FrankBuss/kerberos/tree/master/skoe-easyflash/EasySDK/tools
+
+https://github.com/upx/upx/releases/download/v3.94/upx394w.zip
+
+git clone git://git.musl-libc.org/musl
+
+jsdav fileserver.js example derived server
+
+----------------------
+
+
+new vm
+
+boot tiny core
+
+enter with no options
+
+tce-load -wi tc-install
+
+sudo tc-install.sh
+
+  cdrom
+
+  frugal
+
+  1/whole disk
+
+  2/sda
+
+  y/install bootloader
+
+  enter/""/no tce install
+
+  3/ext4
+
+  "vga=789" option (also setup home folder to be on /dev/sda1)
+
+  y/continue
+
+reboot
+
+xvesa
+  13
+  1
+
+reboot
+  
+terminal
+  tce-load -wi compiletc gperf autoconf automake git node openjdk-8-jdk dosbox wine p7zip
+
+  sudo ln -s /usr/local/etc/ssl /etc/ssl
+
+  npm install graceful-fs strip-json-comments jsdav
+
+  (create shell script wrappers for wine programs)
+
+  cd .wine/drive_c
+
+  wget https://inkscape.org/gallery/item/10686/Inkscape-0.92.1.7z
+
+  7z x Inkscape-0.92.1.7z
+
+  wget https://waterlan.home.xs4all.nl/dos2unix/dos2unix-7.3.5-win32.zip
+
+  (extract)
+
+  wget https://github.com/open-watcom/travis-ci-ow-builds/archive/master.zip
+
+  (extract)
+
+  (create win32.bat)
+
+  wget https://github.com/upx/upx/releases/download/v3.94/upx394w.zip
+
+  (extract)
+
+  cd ~
+
+  git clone git://git.musl-libc.org/musl
+
+  cd musl; ./configure && make && sudo make install
+
+  (install enscripten)
+
+  (install vbcc. Can /opt folder be mounted from sda1?)
+
+  (install cc65. probly win32 build)
+  
+  (install basiliskII)
+
+  (install sheepshaver)
+
+  (download mac install files)
+
+  (install rpcemu)
+
+  (install winuae)
+
+
+reboot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -29,7 +29,7 @@ int parse_columnRefUnsuccessful(
   if(tableName != NULL) {
     while(currentReference != NULL) {
       if(
-          currentReference->referenceType == 1 &&
+          currentReference->referenceType == REF_COLUMN &&
           strcmp(tableName, ((struct inputTable*)(currentReference->reference.columnPtr->inputTablePtr))->queryTableName) == 0
         ) {
         break;

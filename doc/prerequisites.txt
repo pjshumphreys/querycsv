@@ -1,0 +1,43 @@
+gcc (autoconf automake make cp find sort tar gzip cat mkdir sed rm wc dd bc echo xargs pushd popd)
+zip make bc bash
+git
+bison flex gperf
+node (graceful-fs strip-json-comments)
+upx
+
+musl
+
+enscripten
+java
+inkscape
+
+wine
+win32 upx
+dosbox
+open watcom 2
+
+sdl
+gtk
+basilisk
+Quadra rom
+system 7.5 disk images
+mpw-gm
+carbonclib
+stuffit expander 5.5 disk
+disk copy disk
+resedit
+
+vbcc
+amiga libs
+
+cc65 (cc65 ca65 ld65)
+binefcrt (easysdk)
+
+sheepshaver
+newworld rom
+mac os 8.1 cdrom
+mac os 8.6 cdrom
+
+rpcemu - allegro
+emulate usb key
+develop usb key

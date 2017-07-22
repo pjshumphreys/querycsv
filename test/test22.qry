@@ -1,4 +1,4 @@
 select a.lastName as surname, b.DepartmentName as [department name]
 from 'test22a.csv' as a
 join 'test22b.csv' as b on b.DepartmentID = a.DepartmentID
-order by surname
+where a.DepartmentID = 33

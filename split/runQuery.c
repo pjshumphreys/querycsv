@@ -5,7 +5,9 @@ int runQuery(char *queryFileName) {
   struct resultColumnValue* match = NULL;
   MAC_YIELD
 
-  readQuery(queryFileName, &query);
+  if(readQuery(queryFileName, &query) == EXIT_FAILURE) {
+    return EXIT_FAILURE;
+  }
 
   /* if a command was run, just return the result */
   if(query.commandMode) {

@@ -123,16 +123,13 @@ void parse_tableFactor(
       /* store the column name */
       newReference->referenceName = currentReference->referenceName;
 
+      newReference->nextReferenceWithName = NULL;
       /* if there's only been 1 column with this name up until now */
-      if(currentReference->nextReferenceWithName == NULL) {
-        newReference->nextReferenceWithName = newReference;
-        currentReference->nextReferenceWithName = newReference;
+      while(currentReference->nextReferenceWithName != NULL) {
+        currentReference = currentReference->nextReferenceWithName;
       }
-      else {
-        newReference->nextReferenceWithName = currentReference->nextReferenceWithName->nextReferenceWithName;
-        currentReference->nextReferenceWithName->nextReferenceWithName = newReference;
-        currentReference->nextReferenceWithName = newReference;
-      }
+
+      currentReference->nextReferenceWithName = newReference;
     }
 
     newReference->referenceType = REF_COLUMN;

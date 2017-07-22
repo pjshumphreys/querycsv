@@ -2,7 +2,7 @@
 #include "sql.h"
 #include "lexer.h"
 
-void readQuery(
+int readQuery(
     char *queryFileName,
     struct qryData *query
   ) {
@@ -28,7 +28,7 @@ void readQuery(
   queryFile = skipBom(queryFileName, NULL, &initialEncoding);
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   /* setup the initial values in the queryData structure */
@@ -77,7 +77,7 @@ void readQuery(
 
     if(queryFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     }
 
     /*specify the getter to use*/
@@ -105,7 +105,7 @@ void readQuery(
         /* clean up the re-entrant flex scanner */
         yylex_destroy(scanner);
 
-        return;
+        return EXIT_SUCCESS;
       }
 
       /* otherwise continue processing */
@@ -114,20 +114,20 @@ void readQuery(
     case 1: {
       /* the input script contained a syntax error. show message and exit */
       fputs(TDB_PARSER_SYNTAX, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     } break;
 
     case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs(TDB_PARSER_USED_ALL_RAM, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     } break;
 
     default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs(TDB_PARSER_UNKNOWN, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     } break;
   }
 
@@ -154,21 +154,6 @@ void readQuery(
   /* to store the current input table when getting matching records */
   query->secondaryInputTable = NULL;
 
-  /* for every column reference in the hash table, fix up the nextReferenceWithName fields */
-  for(i=0; i<query->columnReferenceHashTable->size; i++) {
-    currentHashEntry = query->columnReferenceHashTable->table[i];
-
-    while(currentHashEntry != NULL) {
-      if(currentHashEntry->content->nextReferenceWithName) {
-        currentReferenceWithName = currentHashEntry->content->nextReferenceWithName->nextReferenceWithName;
-        currentHashEntry->content->nextReferenceWithName->nextReferenceWithName = NULL;
-        currentHashEntry->content->nextReferenceWithName = currentReferenceWithName;
-      }
-
-      currentHashEntry = currentHashEntry->nextReferenceInHash;
-    }
-  }
-
   /* clean up the re-entrant flex scanner */
   yylex_destroy(scanner);
 
@@ -183,7 +168,7 @@ void readQuery(
   queryFile = fopen(queryFileName, "r");
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    exit(EXIT_FAILURE);
+    return EXIT_FAILURE;
   }
 
   /* setup reentrant flex scanner data structure */
@@ -203,20 +188,20 @@ void readQuery(
     case 1: {
       /* the input script contained a syntax error. show message and exit */
       fputs(TDB_PARSER_SYNTAX, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     } break;
 
     case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs(TDB_PARSER_USED_ALL_RAM, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     } break;
 
     default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs(TDB_PARSER_UNKNOWN, stderr);
-      exit(EXIT_FAILURE);
+      return EXIT_FAILURE;
     } break;
   }
 
@@ -248,4 +233,6 @@ void readQuery(
 
   /* close the query file */
   fclose(queryFile);
+
+  return EXIT_SUCCESS;
 }
