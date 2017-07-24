@@ -74,33 +74,33 @@ void updateRunningCounts(
             }*/
 
             switch(currentResultColumn->groupType) {
-              case GRP_DIS_COUNT:
+              case GRP_DIS_COUNT: {
                 if(j == query->groupCount) {
                   currentResultColumn->groupCount++;
                 }
-              break;
+              } break;
 
-              case GRP_COUNT:
+              case GRP_COUNT: {
                 currentResultColumn->groupCount++;
-              break;
+              } break;
 
               case GRP_DIS_AVG:
-              case GRP_DIS_SUM:
+              case GRP_DIS_SUM: {
                 if(j == query->groupCount) {
                   currentResultColumn->groupCount++;
                   tempFloat = strtod(tempString, NULL);
                   currentResultColumn->groupNum = fadd(currentResultColumn->groupNum, tempFloat);
                 }
-              break;
+              } break;
 
               case GRP_AVG:
-              case GRP_SUM:
+              case GRP_SUM: {
                 currentResultColumn->groupCount++;
                 tempFloat = strtod(tempString, NULL);
                 currentResultColumn->groupNum = fadd(currentResultColumn->groupNum, tempFloat);
-              break;
+              } break;
 
-              case GRP_DIS_CONCAT:
+              case GRP_DIS_CONCAT: {
                 if(j == query->groupCount) {
                   d_sprintf(
                       &(currentResultColumn->groupText),
@@ -109,19 +109,19 @@ void updateRunningCounts(
                       tempString
                     );
                 }
-              break;
+              } break;
 
-              case GRP_CONCAT:
+              case GRP_CONCAT: {
                 d_sprintf(
                     &(currentResultColumn->groupText),
                     "%s%s",
                     currentResultColumn->groupText,
                     tempString
                   );
-              break;
+              } break;
 
               case GRP_MIN:
-              case GRP_DIS_MIN:
+              case GRP_DIS_MIN: {
                 if(currentResultColumn->groupText == NULL || strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
@@ -136,10 +136,10 @@ void updateRunningCounts(
                   currentReference = currentReference->nextReferenceWithName;
                   continue;
                 }
-              break;
+              } break;
 
               case GRP_MAX:
-              case GRP_DIS_MAX:
+              case GRP_DIS_MAX: {
                 if(currentResultColumn->groupText == NULL || strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
@@ -154,7 +154,7 @@ void updateRunningCounts(
                   currentReference = currentReference->nextReferenceWithName;
                   continue;
                 }
-              break;
+              } break;
             }
 
             freeAndZero(tempString);

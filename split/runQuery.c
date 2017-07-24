@@ -3,6 +3,7 @@
 int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
+
   MAC_YIELD
 
   if(readQuery(queryFileName, &query) == EXIT_FAILURE) {
@@ -39,7 +40,7 @@ int runQuery(char *queryFileName) {
     cleanup_matchValues(&query, &match);
   }
   else {
-    if(query.groupByClause != NULL) {
+    if(query.hasGrouping) {
       query.useGroupBy = TRUE;
     }
 
