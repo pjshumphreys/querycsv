@@ -1,0 +1,3 @@
+Dir <Obey$Dir>
+amu clean_all
+stripdepnd

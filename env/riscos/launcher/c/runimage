@@ -1,0 +1,411 @@
+/* BBC Basic to Acorn ANSI C Conversion © Martin Carradus 2017 */
+/* Converted on Tue Oct 17 2017 03:08 from file HostFS::HostFS.$.querycsv.!QueryCSV.!RunImage */
+/* One Syntax Error Detected in Program */
+/* Floating point rendered as double precision */
+/* Keeping separate list of local variables */
+/* #includes follow */
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <signal.h>
+#include <errno.h>
+#include <kernel.h>
+#include <swis.h>
+
+/* #defines follow */
+/* Warning: In ANSI C, TRUE is +1. whereas in BBC BASIC, TRUE is -1 */
+#define _TRUE -1
+#define _FALSE 0
+#define TRUE 1
+#define FALSE 0
+#define ERL 0
+
+ /*            >!RunImage */
+ /*  Program   IBarShell */
+ /*  Version   1.3 */
+ /*  Author    Ben Avison */
+ /*  With      Save box */
+ /*  By        Lee Calcraft */
+ /*  RISC User December 1991 */
+ /*  Program   Subject to Copyright */
+ 
+char * applicationName = "QueryCSV";
+ /*  This is the name displayed */
+ /*  on the menu */
+ /*  and in the Task Window */
+ /*  It should be 12 characters */
+ /*  or less */
+
+char * spriteName = "!querycsv";
+ /*  This is the name of the sprite */
+ /*  to use (from !Sprites) */
+ 
+int windowPosition = -1;
+ /*  This should be -1 for the */
+ /*  right side of the icon bar */
+ /*  or -2 for the left */
+
+char *_erreport = (char *)"";
+
+int _sig = 0;
+int *block_i = NULL;/* Indirected */
+int *menu_i = NULL;/* Indirected */
+char *sbtext_s = NULL;/* Indirected */
+int exit_i = FALSE;
+
+int ftype_i = 0;  /* Warning: Not assigned value via ' = ' , INPUT or READ */
+int taskHandle = 0;
+int iconHandle = 0;
+int length_i = 0;  /* Warning: Not assigned value via ' = ' , INPUT or READ */
+int menuchars_i = 0;
+int sbokicon_i = 0;
+int sbsprite_i = 0;
+
+_kernel_swi_regs regs;
+
+char *getLeaf(char *namearg_s);
+
+void action(
+  int clickarg_i,
+  int dirarg_i,
+  int applarg_i,
+  int filetypearg_i,
+  char *pathName
+);
+
+int d_sprintf(char **str, char *format, ...) {
+  size_t newSize;
+  char *newStr = NULL;
+  va_list args;
+
+  /* Check sanity of inputs */
+  if(str == NULL || format == NULL) {
+    return FALSE;
+  }
+
+  /* get the space needed for the new string */
+  va_start(args, format);
+  newSize = (size_t)(vsnprintf(NULL, 0, format, args)+1); /* plus '\0' */
+  va_end(args);
+
+  /* Create a new block of memory with the correct size rather than using realloc */
+  /* as any old values could overlap with the format string. quit on failure */
+  if((newStr = (char*)malloc(newSize)) == NULL) {
+    return FALSE;
+  }
+
+  /* do the string formatting for real. vsnprintf doesn't seem to be available on Lattice C */
+  va_start(args, format);
+  vsprintf(newStr, format, args);
+  va_end(args);
+
+  /* ensure null termination of the string */
+  newStr[newSize] = '\0';
+
+  /* free the old contents of the output if present */
+  free(*str);
+
+  /* set the output pointer to the new pointer location */
+  *str = newStr;
+
+  /* everything occurred successfully */
+  return newSize;
+}
+
+void _handle_error0(int sig) {
+  int __sig = 0;
+  char * text = NULL;
+
+  if(sig == 4) {
+    errno = 17;
+  }
+
+  __sig = sig;
+
+  regs.r[1] = -1;
+  _kernel_swi(Wimp_DragBox, &regs, &regs);
+
+  /* show an error dialog box */
+  d_sprintf(&text, "xxxx%s (Error code %d)", _erreport, __sig); 
+  ((int *)text)[0] = errno;
+
+  regs.r[0] = (int)(text);
+  regs.r[1] = 3;
+  regs.r[2] = (int)(applicationName);
+  _kernel_swi(Wimp_ReportError, &regs, &regs);
+  free(text);
+
+  /* should we quit? */
+  if(regs.r[1] == 2) {
+    regs.r[0] = taskHandle;
+    regs.r[1] = 0x4b534154; /* 'TASK' */
+    _kernel_swi(Wimp_CloseDown, &regs, &regs);
+    
+    free(block_i);
+    free(menu_i);
+    free(sbtext_s);
+
+    exit(0);
+  }
+
+  _sig = 1;
+}
+
+void mouseClick(void) {
+  switch(block_i[2]) {
+
+    /* right click? show a menu */
+    case 2: { 
+      regs.r[1] = (int)(menu_i);
+      regs.r[2] = block_i[0] - 68;
+      regs.r[3] = 140;
+      _kernel_swi(Wimp_CreateMenu, &regs, &regs);
+    } break; 
+
+    /* just clicking? show some help text*/
+    case 4: {
+      action(_TRUE, _FALSE, _FALSE, 0, "");
+    } break; 
+  }
+}
+
+void message(void) {
+  int type_i = 0;
+  char * pathname_s = NULL;
+
+  switch(block_i[4]) {
+    case 0: {
+      exit_i = TRUE;
+    } break; 
+
+    case 2: {
+      if(block_i[9] > -1) {
+        d_sprintf(&sbtext_s, "%s", (char *)(block_i+44));
+      }
+
+      block_i[3] = block_i[2];
+      block_i[4] = 3;
+      block_i[0] = 256;
+      regs.r[0] = 18;
+      regs.r[1] = (int)(block_i);
+      regs.r[2] = block_i[5];
+      regs.r[3] = block_i[6];
+      _kernel_swi(Wimp_SendMessage, &regs, &regs);
+    } break; 
+
+    case 3: {
+      d_sprintf(&pathname_s, "%s", (char *)(block_i+44));
+
+      type_i = block_i[10];
+      action(_FALSE, (-(type_i == 0x1000)), (-(type_i == 0x2000)), type_i, pathname_s);
+
+      free(pathname_s);
+    } break; 
+  }
+}
+
+void initialise(void) {
+  block_i = (int *)malloc(0x301);
+  menu_i = (int *)malloc(52);
+
+  /* Initialise the Wimp environment */
+  regs.r[0] = 200;    /* Risc OS 2.0 and up */
+  regs.r[1] = 0x4b534154; /* 'TASK' */
+  regs.r[2] = (int)applicationName;
+  _kernel_swi(Wimp_Initialise, &regs, &regs);
+  taskHandle = regs.r[1];
+
+  /* create the icon */
+  block_i[0] = windowPosition;
+  block_i[1] = 0;
+  block_i[2] = 0;
+  block_i[3] = 68;
+  block_i[4] = 68;
+  block_i[5] = 0x301a;
+  memcpy((void *)(block_i+24), (void *)spriteName, 10); 
+  regs.r[1] = (int)(block_i);
+  _kernel_swi(Wimp_CreateIcon, &regs, &regs);
+  iconHandle = regs.r[0];
+
+  /* create the menu (for usage later) */
+  memcpy((void *)menu_i, (void *)applicationName, 11);
+  ((char *)menu_i)[11] = 0;
+  ((char *)menu_i)[12] = 7;
+  ((char *)menu_i)[13] = 2;
+  ((char *)menu_i)[14] = 7;
+  ((char *)menu_i)[15] = 0;
+
+  menuchars_i = strlen(applicationName);
+
+  if(menuchars_i < 4) {
+    menuchars_i = 4;
+  }
+
+  menu_i[4] = 12+16*menuchars_i;
+  menu_i[5] = 44; /* width? */
+  menu_i[6] = 0;  /* height? */
+  menu_i[7] = 128;
+  menu_i[8] = -1;
+  menu_i[9] = 0x7009031;
+
+  memcpy((void *)(menu_i+40), (void *)"Quit", 5);
+
+  _sig = 0;
+
+  signal(SIGFPE, _handle_error0);
+
+  if(_sig == 0) {
+    signal(SIGILL, _handle_error0);
+  }
+
+  if(_sig == 0) {
+    signal(SIGINT, _handle_error0);
+  }
+
+  if(_sig == 0) {
+    signal(SIGSEGV, _handle_error0);
+  }
+
+  if(_sig == 0) {
+    signal(SIGSTAK, _handle_error0);
+  }
+
+  if(_sig == 0) {
+    signal(SIGUSR1, _handle_error0);
+  }
+
+  if(_sig == 0) {
+    signal(SIGOSERROR, _handle_error0);
+  }
+}
+
+void poll(void) {
+  regs.r[0] = 0x1831;
+  regs.r[1] = (int)(block_i);
+  _kernel_swi(Wimp_Poll, &regs, &regs);
+
+  switch (regs.r[0]) {
+    case 2: { 
+      regs.r[1] = (int)(block_i);
+      _kernel_swi(Wimp_OpenWindow, &regs, &regs);
+    } break; 
+
+    case 3: {
+      regs.r[1] = (int)(block_i);
+      _kernel_swi(Wimp_CloseWindow, &regs, &regs);
+    } break; 
+
+    case 6: {
+      mouseClick();
+    } break; 
+
+    case 7: {
+      regs.r[1] = (int)(block_i);
+      _kernel_swi(Wimp_GetPointerInfo, &regs, &regs);
+
+      /* send datasave message to destination task */;
+      block_i[5] = block_i[3];
+      block_i[6] = block_i[4];
+      block_i[7] = block_i[0];
+      block_i[8] = block_i[1];
+      block_i[9] = length_i;
+      block_i[0] = 64;
+      block_i[3] = 0;
+      block_i[4] = 1;
+      block_i[10] = ftype_i;
+      block_i[11] = (int)(getLeaf((char *)(sbtext_s)));
+      regs.r[0] = 17;
+      regs.r[1] = (int)(block_i);
+      regs.r[2] = block_i[5];
+      regs.r[3] = block_i[6];
+      _kernel_swi(Wimp_SendMessage, &regs, &regs);
+      /*  send DataSave message */
+    } break; 
+
+    case 8: {
+      regs.r[0] = block_i[6];
+      _kernel_swi(Wimp_ProcessKey, &regs, &regs);
+    } break; 
+
+    case 9: {
+      exit_i = TRUE;
+    } break; 
+
+    case 17: 
+    case 18: {
+      message();
+    } break; 
+
+    case 19: { 
+      regs.r[0] = 6;
+      regs.r[1] = (int)(block_i)+44;
+      _kernel_swi(OS_File, &regs, &regs);
+      errno = 255;
+      _erreport = "Data transfer failed: Receiver died";
+      raise(SIGUSR1);
+    } break; 
+  }
+}
+
+/* main program follows:- */
+int main(void) {
+  initialise();
+
+  do {
+    poll();
+  } while (exit_i == FALSE);
+  
+  /* tidy up */
+  regs.r[0] = taskHandle;
+  regs.r[1] = 0x4b534154; /* 'TASK' */
+  _kernel_swi(Wimp_CloseDown, &regs, &regs);
+
+  free(block_i);
+  free(menu_i);
+  free(sbtext_s);
+
+  return 0;
+}
+
+void action(
+    int clickarg_i,
+    int dirarg_i,
+    int applarg_i,
+    int filetypearg_i,
+    char *pathName
+) {
+  char *text = NULL;
+
+  if(!clickarg_i) {
+    if(!dirarg_i && !applarg_i) {
+      d_sprintf(&text, "TaskWindow \"<QueryCSV$Dir>.querycsv %s\" -quit -name QueryCSV", pathName);
+
+      regs.r[0] = (int)text;
+      _kernel_swi(Wimp_StartTask, &regs, &regs);      
+    }
+  }
+  else {
+    d_sprintf(&text, "xxxxDrag a query file onto this icon to run it with QueryCSV");
+
+    /* overwrite text with reason code */
+    ((int *)text)[0] = 1;
+    
+    regs.r[0] = (int)text;
+    regs.r[1] = 1;
+    regs.r[2] = (int)applicationName;
+    _kernel_swi(Wimp_ReportError, &regs, &regs);
+  }
+
+  free(text);
+}
+
+char *getLeaf(char *name) {
+  char * temp = strrchr(name, '.');
+
+  if(temp) {
+    return temp + 1;
+  }
+
+  return name;
+}

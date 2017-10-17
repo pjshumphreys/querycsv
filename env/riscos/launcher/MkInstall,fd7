@@ -1,0 +1,5 @@
+Dir <Obey$Dir>
+WimpSlot -min 1024k
+amu install INSTTYPE=app
+Echo Installed to <Install$Dir>
+Filer_OpenDir <Install$Dir>
