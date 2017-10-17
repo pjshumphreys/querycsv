@@ -40,17 +40,22 @@ int fputs_w32(const char *str, FILE *stream) {
   char* output = NULL;
 
   if(
-      (stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
-      (stream == stderr && usingError && ((hnd = std_err) || TRUE))
+      ((stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
+      (stream == stderr && usingError && ((hnd = std_err) || TRUE))) &&
+      (len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0))
     ) {
-    wide = (wchar_t *)d_charsetEncode((char *)str, ENC_UTF16LE, &len);
+    if(
+        (wide = (wchar_t *)malloc(len * sizeof(wchar_t))) != NULL &&
+        MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len)
+      ) {
+      WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
 
-    len/=2;
-    WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
+      free(wide);
+
+      return (int)len;
+    }
 
     free(wide);
-
-    return (int)len;
   }
 
   output = d_charsetEncode((char *)str, ENC_CP437, NULL);
@@ -123,25 +128,25 @@ void setupWin32(int *argc, char ***argv) {
   int maybeNewField = TRUE;
   int argc_w32 = 0;
 
-
   ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
   osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 
   GetVersionEx(&osvi);
 
   /*
-    test if the program is being run using the HXRT DPMI server.
-    If it is, don't use WriteConsoleW
+    test if the program is not being run using the HXRT DPMI server
+    and supports the UTF-8 codepage.
+    Otherwise, don't use WriteConsoleW
   */
-  if((osvi.dwBuildNumber & 0xFFFF) == 2222 && osvi.szCSDVersion[0] == 0) {
-    return;
-  }
-
-  if(IsValidCodePage(CP_UTF8)) {
+  if(
+      ((osvi.dwBuildNumber & 0xFFFF) != 2222 || osvi.szCSDVersion[0] != 0) &&
+      IsValidCodePage(CP_UTF8)
+    ) {
     hasUtf8 = TRUE;
 
     std_out = GetStdHandle(STD_OUTPUT_HANDLE);
     std_err = GetStdHandle(STD_ERROR_HANDLE);
+
     usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
     usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
 
@@ -161,7 +166,7 @@ void setupWin32(int *argc, char ***argv) {
 
     WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, test, sizeNeeded, NULL, NULL);
 
-    //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32 or dos when using HXRT. behaviour should be as described on "the old new thing"
+    //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32. behaviour should be as described on "the old new thing"
     for(i = 0, j = 0; i < sizeNeeded; ) {
       switch(test[i]) {
         case '\\':
