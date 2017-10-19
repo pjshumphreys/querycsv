@@ -5,7 +5,6 @@
 IconSprites <Obey$Dir>.!Sprites
 |
 |
-WimpSlot -min 332K -max 332K
 |
 |
 RMEnsure UtilityModule 3.10 Error This application only runs on RISC OS 3.10 or later
@@ -15,7 +14,7 @@ RMEnsure TaskWindow 0.47 Error This application requires the Task Window module 
 |
 |
 Set QueryCSV$Dir <Obey$Dir>
-Set Alias$@RunType_090 TaskWindow "<QueryCSV$Dir>.querycsv %%*0" -wimpslot 300K -name QueryCSV
+Set Alias$@RunType_090 TaskWindow "<QueryCSV$Dir>.querycsv %%*0" -quit -name QueryCSV
 Set File$Type_090 CSVQuery
 |
 |
