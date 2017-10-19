@@ -201,11 +201,11 @@ void poll(void) {
       case 17:
       case 18: { /* user message */
         switch(block[4]) {
-          case 0: {
+          case 0: { /* Message_Quit */
             shouldQuit = TRUE;
           } break;
 
-          case 3: {
+          case 3: { /* Message_DataLoad */
             openFile((char *)(block)+44);
           } break;
         }
