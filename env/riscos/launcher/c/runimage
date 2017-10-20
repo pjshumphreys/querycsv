@@ -32,14 +32,6 @@ int windowPosition = -1;
  /*  right side of the icon bar */
  /*  or -2 for the left */
 
-/* global variables to easily handle the ugliness of Risc OS */
-_kernel_swi_regs regs;
-int *block = NULL;
-int *menuBlock = NULL;
-
-/* so we know which task to wimp_close */
-int taskHandle = 0;
-
 /* handy utility function to allocate and write memory strings */
 int d_sprintf(char **str, char *format, ...) {
   size_t newSize;
@@ -80,14 +72,17 @@ int d_sprintf(char **str, char *format, ...) {
   return newSize;
 }
 
-void showMenu(void) {
+void showMenu(int yOrigin, int *menuBlock) {
+  _kernel_swi_regs regs;
+
   regs.r[1] = (int)(menuBlock);
-  regs.r[2] = block[0] - 68;
+  regs.r[2] = yOrigin - 68;
   regs.r[3] = 140;
   _kernel_swi(Wimp_CreateMenu, &regs, &regs);
 }
 
 void showMessage(void) {
+  _kernel_swi_regs regs;
   char * text = NULL;
 
   d_sprintf(
@@ -107,6 +102,7 @@ void showMessage(void) {
 }
 
 void openFile(char *pathName) {
+  _kernel_swi_regs regs;
   char *text = NULL;
 
   d_sprintf(
@@ -121,45 +117,31 @@ void openFile(char *pathName) {
   free(text);
 }
 
-void initialise(void) {
-  int menuCharacterPixelWidth = 0;
+/* Initialise the Wimp environment */
+int wimpInitialise(void) {
+  _kernel_swi_regs regs;
 
-  block = (int *)calloc(0x301, 1);
-  menuBlock = (int *)calloc(52, 1);
-
-  /* Initialise the Wimp environment */
   regs.r[0] = 200;    /* Risc OS 2.0 and up */
   regs.r[1] = 0x4b534154; /* 'TASK' */
   regs.r[2] = (int)applicationName;
   _kernel_swi(Wimp_Initialise, &regs, &regs);
-  taskHandle = regs.r[1];
 
-  /* create the icon */
-  block[0] = windowPosition;
-  block[1] = 0;
-  block[2] = 0;
-  block[3] = 68;
-  block[4] = 68;
-  block[5] = 0x301a;
-  memcpy((void *)(((char *)block)+24), (void *)spriteName, 10);
-  regs.r[1] = (int)(block);
-  _kernel_swi(Wimp_CreateIcon, &regs, &regs);
+  return regs.r[1];
+}
+
+int * createMenu(void) {
+  int * menuBlock = (int *)calloc(52, 1);
+  int applicationNameLength = 9;
 
   /* create the menu (for usage later) */
-  memcpy((void *)menuBlock, (void *)applicationName, 9);
-  ((char *)menuBlock)[11] = 0; //null terminate the string
+  memcpy((void *)menuBlock, (void *)applicationName, applicationNameLength);
+  ((char *)menuBlock)[11] = 0; /* null terminate the string */
   ((char *)menuBlock)[12] = 7;
   ((char *)menuBlock)[13] = 2;
   ((char *)menuBlock)[14] = 7;
   ((char *)menuBlock)[15] = 0;
 
-  menuCharacterPixelWidth = strlen(applicationName);
-
-  if(menuCharacterPixelWidth < 4) {
-    menuCharacterPixelWidth = 4;
-  }
-
-  menuBlock[4] = 12+16*menuCharacterPixelWidth; /*characters are each 16 pixels wide, plus a border */
+  menuBlock[4] = 12+16*applicationNameLength; /*characters are each 16 pixels wide, plus a border */
   menuBlock[5] = 44; /* height of menu items */
   menuBlock[6] = 0;  /* vertical gap between menu items */
 
@@ -169,9 +151,26 @@ void initialise(void) {
   menuBlock[9] = 0x7009031; /*flags from the last menu item */
 
   memcpy((void *)(((char *)menuBlock)+40), (void *)"Quit", 5);
+
+  return menuBlock;
 }
 
-void poll(void) {
+void wimpCreateIcon(int *block) {
+  _kernel_swi_regs regs;
+
+  block[0] = windowPosition;
+  block[1] = 0;
+  block[2] = 0;
+  block[3] = 68;
+  block[4] = 68;
+  block[5] = 0x301a;
+  memcpy((void *)(((char *)block)+24), (void *)spriteName, 10);
+  regs.r[1] = (int)(block);
+  _kernel_swi(Wimp_CreateIcon, &regs, &regs);
+}
+
+void poll(int *block, int *menuBlock) {
+  _kernel_swi_regs regs;
   int shouldQuit = FALSE;
 
   do {
@@ -184,7 +183,7 @@ void poll(void) {
         switch(block[2]) {
           /* middle click? show a menu */
           case 2: {
-            showMenu();
+            showMenu(block[0], menuBlock);
           } break;
 
           /* just clicking? show some help text */
@@ -214,21 +213,30 @@ void poll(void) {
   } while (shouldQuit == FALSE);
 }
 
-void cleanUp(void) {
+void wimpCloseDown(int taskHandle) {
+  _kernel_swi_regs regs;
+
   regs.r[0] = taskHandle;
   regs.r[1] = 0x4b534154; /* 'TASK' */
   _kernel_swi(Wimp_CloseDown, &regs, &regs);
-
-  free(block);
-  free(menuBlock);
 }
 
 int main(void) {
-  initialise();
+  int taskHandle = wimpInitialise();
 
-  poll();
+  int * menuBlock = createMenu();
 
-  cleanUp();
+  int * block = (int *)calloc(0x301, 1);
 
-  return 0;
+  wimpCreateIcon(block);
+
+  poll(block, menuBlock);
+
+  free(block);
+
+  free(menuBlock);
+
+  wimpCloseDown(taskHandle);
+
+  return EXIT_SUCCESS;
 }
