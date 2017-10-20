@@ -4,7 +4,7 @@ IconSprites <Obey$Dir>.!Sprites
 |
 |
 Set QueryCSV$Dir <Obey$Dir>
-Set Alias$@RunType_090 TaskWindow "<QueryCSV$Dir>.querycsv %%*0" -wimpslot 300K -name QueryCSV
+Set Alias$@RunType_090 TaskWindow "<QueryCSV$Dir>.querycsv %%*0" -quit -name QueryCSV
 Set File$Type_090 CSVQuery
 |
 |
