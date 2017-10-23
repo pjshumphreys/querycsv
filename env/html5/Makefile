@@ -28,7 +28,7 @@ build/fonts/icomoon.svg: fonts/icomoon.svg
 
 build/index.html.gz: build/index.html
 	mkdir -p build
-	gzip -9 < build/index.html > build/index.html.gz
+	zopfli --gzip -c build/index.html > build/index.html.gz
 
 build/index.html: index-debug.html output.min.js style.min.css
 	mkdir -p build
@@ -36,7 +36,7 @@ build/index.html: index-debug.html output.min.js style.min.css
 
 build/worker.min.js.gz: build/worker.min.js
 	mkdir -p build
-	gzip -9 < build/worker.min.js > build/worker.min.js.gz
+	zopfli --gzip -c build/worker.min.js > build/worker.min.js.gz
 
 style.min.css: style.css animations.css
 	cat style.css animations.css | java -jar yuicompressor-2.4.8.jar --type css > style.min.css
