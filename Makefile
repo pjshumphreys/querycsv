@@ -73,7 +73,7 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;
 	cd env/riscos/c; find . -name "*.c" | sed -e "p;s/\.c$$//" | xargs -n2 mv
 	cd env/riscos/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv
-	mv env/riscos/launcher/c/runimage.c env/riscos/launcher/c/runimage
+	find ./env/riscos/launcher/c -name "runimage.c" -exec mv {} env/riscos/launcher/c/runimage \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash4*.c' ! -name 'hash2*.c' -exec cp {} env/c64/ \;
 	cp UnicodeData.txt env/c64/
 	cp generate_hash2.js env/c64/
@@ -95,8 +95,8 @@ clean:
 	cd env/riscos; rm -rf o od \!QueryCSV/querycsv,ff8 \!QueryCSV/\!RunImage,ff8
 	cd env/riscos/launcher; rm -rf o od
 	cd env/riscos/c; find . -maxdepth 1 ! -path './riscos' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	mv env/riscos/c/riscos env/riscos/c/riscos.c
-	mv env/riscos/launcher/c/runimage env/riscos/launcher/c/runimage.c
+	find ./env/riscos/c -name "riscos" -exec mv {} env/riscos/c/riscos.c \;
+	find ./env/riscos/launcher/c -name "runimage" -exec mv {} env/riscos/launcher/c/runimage.c \;
 	cd env/riscos/h; find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/amiga; rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
 

@@ -66,7 +66,7 @@ void activateWindow(WindowPtr window, Boolean becomingActive);
 void contentClick( WindowPtr window, EventRecord *event);
 void idleWindow(void);
 void setupMenus(void);
-void adjustMenus(void);
+void adjustMenus(int setStyles);
 void menuSelect(long menuResult);
 int openWindow(void);
 void closeWindow(WindowPtr window);
@@ -91,6 +91,9 @@ pascal OSErr appleEventQuit(
     const AppleEvent *theAppleEvent,
     AEDescList *reply,
     long handlerRefCon);
+void openFileDialog(void);
+void setFont(SInt16 menuItem);
+void setFontSize(SInt16 menuItem);
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
 #if TARGET_API_MAC_TOOLBOX
@@ -100,8 +103,24 @@ QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 
 #include "powermac.h"
 
+/* how to treat filenames that are fopened */
+CFURLRef baseFolder;
+CFStringEncoding enc;
+int mallocedFileName;
+
+NavDialogRef gOpenFileDialog = NULL;
+NavEventUPP gEventUPP = NULL;
+
 #undef main
 int realmain(int argc, char **argv);
+
+#define TRUE 1
+#define FALSE 0
+
+#define ENC_MAC 4
+#define ENC_UTF16BE 9
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+extern char * devNull;
 
 /*
   A DocumentRecord contains the WindowRecord for one of our document windows,
@@ -109,12 +128,7 @@ int realmain(int argc, char **argv);
   can be added to this record as needed. For a similar example, see how the
   Window Manager and Dialog Manager add fields after the GrafPort.
 */
-#if TARGET_API_MAC_CARBON
-typedef struct {
-  TXNObject     docMLTEObject;
-  TXNFrameID    docMLTEFrameID;
-} DocumentRecord, *DocumentPeek;
-#else
+#if TARGET_API_MAC_TOOLBOX
 typedef struct {
   WindowRecord  docWindow;
   TEHandle      docTE;
@@ -132,57 +146,23 @@ struct lineOffsets {
 struct lineOffsets *firstLine = NULL;
 struct lineOffsets *lastLine = NULL;
 SInt32 textUsed = 0;
-int lineHeight2 = 10;
-
-NavDialogRef gOpenFileDialog = NULL;
-NavEventUPP gEventUPP = NULL;
-
-#define TRUE 1
-#define FALSE 0
-
-/*
-  Define TopLeft and BotRight macros for convenience. Notice the implicit
-  dependency on the ordering of fields within a Rect
-*/
-#define TopLeft(aRect) (* (Point *) &(aRect).top)
-#define BotRight(aRect) (* (Point *) &(aRect).bottom)
-
-/* TODO: do something about these ugly global variables. What are they even for anyway? */
-const short appleM = 0;
-const short fileM = 1;
-const short editM = 2;
-const short fontM = 3;
-const short sizeM = 4;
 
 Boolean quit = FALSE;
 Boolean windowNotOpen = TRUE;
+int windowZoomed = 0;
 char *progArg = NULL;
+
 Str255 fontName;
 int fontSizeIndex = 2;
-int windowZoomed = 0;
-extern char * devNull;
 
-/*
-  gMac is used to hold the result of a SysEnvirons call. This makes
-  it convenient for any routine to check the environment. It is
-  global information, anyway.
-  It is set up by Initialize
-*/
-SysEnvRec gMac;
+WindowPtr mainWindowPtr = NULL;
+SInt32 macOSVersion;
 
-/*
-  gHasWaitNextEvent is set at startup, and tells whether the WaitNextEvent
-  trap is available. If it is false, we know that we must call GetNextEvent.
-  It is set up by Initialize
-*/
-Boolean gHasWaitNextEvent;
-
-/*
-  gInBackground is maintained by our OSEvent handling routines. Any part of
-  the program can check it to find out if it is currently in the background.
-  It is maintained by Initialize and DoEvent
-*/
-Boolean gInBackground;
+int const appleM = 0;
+int const fileM  = 1;
+int const editM  = 2;
+int const fontM  = 3;
+int const sizeM  = 4;
 
 /*  kMaxDocWidth is an arbitrary number used to specify the width of the TERec's
   destination rectangle so that word wrap and horizontal scrolling can be
@@ -194,10 +174,8 @@ Boolean gInBackground;
 #define kMinDocDim        64
 
 /*  kCrChar is used to match with a carriage return when calculating the
-  number of lines in the TextEdit record. kDelChar is used to check for
-  delete in keyDowns. */
+  number of lines in the TextEdit record. */
 #define kCrChar         13
-#define kDelChar        8
 
 /*  kControlInvisible is used to 'turn off' controls (i.e., cause the control not
   to be redrawn as a result of some Control Manager call such as SetCtlValue)
@@ -240,27 +218,6 @@ Boolean gInBackground;
 /*  kButtonScroll is how many pixels to scroll horizontally when the button part
   of the horizontal scrollbar is pressed. */
 #define kButtonScroll     4
-
-/*
-  gNumDocuments is used to keep track of how many open documents there are
-  at any time. It is maintained by the routines that open and close documents.
-  It is maintained by Initialize, DoNew, and DoCloseWindow
-*/
-short gNumDocuments;
-
-WindowPtr mainWindowPtr = NULL;
-DocumentRecord mainWindowDoc;
-
-#define ENC_UTF16BE 9
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
-
-void openFileDialog(void);
-
-/* how to treat filenames that are fopened */
-CFURLRef baseFolder;
-SInt32 macOSVersion;
-CFStringEncoding enc;
-int mallocedFileName;
 
 // ---------------------------------------------------------------------------
 //      € stricmp
@@ -323,7 +280,7 @@ Boolean trapAvailable(short tNumber) {
 #else
   TrapType tType = tNumber & 0x800 ? ToolTrap : OSTrap;
 
-  if (
+  if(
       tType == (unsigned char)ToolTrap &&
       gMac.machineType > envMachUnknown &&
       gMac.machineType < envMacII
@@ -331,7 +288,7 @@ Boolean trapAvailable(short tNumber) {
     /* it's a 512KE, Plus, or SE. As a consequence, the tool traps only go to 0x01FF */
     tNumber = tNumber & 0x03FF;
 
-    if (tNumber > 0x01FF) {
+    if(tNumber > 0x01FF) {
       tNumber = _Unimplemented;
     }
   }
@@ -356,7 +313,7 @@ TXNObject *getTXNObject(WindowPtr window, TXNObject *object) {
 }
 #else
 TEHandle getTEHandle(WindowPtr window) {
-  return (((DocumentPeek) window)->docTE);
+  return ((DocumentPeek)window)->docTE;
 }
 #endif
 
@@ -642,32 +599,6 @@ void setupAppleEvents(void) {
   }
 }
 
-void setupMLTE(void) {
-  OSStatus status;
-  TXNMacOSPreferredFontDescription defaults;
-
-  if(TXNVersionInformation == (void*)kUnresolvedCFragSymbolAddress) {
-    BigBadError(eWrongSystem);
-  }
-
-  defaults.fontID = kTXNDefaultFontName;
-  defaults.pointSize = kTXNDefaultFontSize;
-
-  defaults.encoding = CreateTextEncoding(
-    kTextEncodingUnicodeV3_2,
-    kTextEncodingDefaultVariant,
-    kTextEncodingDefaultFormat
-  );
-
-  defaults.fontStyle = kTXNDefaultFontStyle;
-
-  status = TXNInitTextension(&defaults, 1, 0L);
-
-  if(status != noErr) {
-    BigBadError(eNoMLTE);
-  }
-}
-
 void setupMenus(void) {
   MenuRef menu;
   MenuHandle myMenus[5];
@@ -779,36 +710,25 @@ void saveSettings(void) {
   }
 }
 
-void adjustCursor(Point mouse, RgnHandle region) {
-  WindowPtr window = FrontWindow();
-  TXNObject object = NULL;
-
-  if(isApplicationWindow(window)) {
-    TXNAdjustCursor(*getTXNObject(window, &object), region);
-  }
-}
-
-void adjustMenus(void) {
+void adjustMenus(int setStyles) {
   MenuHandle menu;
-  int i, len;
+  int len;
+  SInt16 i;
   Boolean found = FALSE;
   Str255 currentFontName;
-  TXNObject object = NULL;
 
   menu = GetMenuHandle(mFile);
-  if(!windowNotOpen) {
+  if(mainWindowPtr) {
     DisableMenuItem(menu, mFileOpen);
 
     menu = GetMenuHandle(mEdit);
     EnableMenuItem(menu, mEditSelectAll);
 
-    if(mainWindowPtr) {
-      if(!TXNIsSelectionEmpty(*getTXNObject(mainWindowPtr, &object))) {
-        EnableMenuItem(menu, mEditCopy);
-      }
-      else {
-        DisableMenuItem(menu, mEditCopy);
-      }
+    if(isSelectionEmpty()) {
+      DisableMenuItem(menu, mEditCopy);
+    }
+    else {
+      EnableMenuItem(menu, mEditCopy);
     }
   }
 
@@ -818,6 +738,11 @@ void adjustMenus(void) {
 
     if(!found && EqualString(fontName, currentFontName, TRUE, TRUE)) {
       SetItemMark(menu, i, checkMark);
+
+      if(setStyles) {
+        setFont(i);
+      }
+
       found = TRUE;
     }
     else {
@@ -828,13 +753,19 @@ void adjustMenus(void) {
   if(!found) {
     GetMenuItemText(menu, 1, fontName);
     SetItemMark(menu, 1, checkMark);
+
+    if(setStyles) {
+      setFont(1);
+    }
   }
 
   found = FALSE;
   menu = GetMenuHandle(mSize);
+
   for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
       SetItemMark(menu, i, checkMark);
+
       found = TRUE;
     }
     else {
@@ -846,9 +777,12 @@ void adjustMenus(void) {
     fontSizeIndex = 1;
     SetItemMark(menu, 1, checkMark);
   }
+
+  if(setStyles) {
+    setFontSize(fontSizeIndex);
+  }
 }
 
-/* resync diffs */
 void saveWindow(WindowPtr window) {
   Rect *rptr;
   Rect windRect;
@@ -876,40 +810,61 @@ void saveWindow(WindowPtr window) {
   WriteResource(wind);
 }
 
+void adjustCursor(Point mouse, RgnHandle region) {
+  WindowPtr window = FrontWindow();
+  TXNObject object;
+
+  if(isApplicationWindow(window)) {
+    TXNAdjustCursor(*getTXNObject(window, &object), region);
+  }
+}
+
+int isSelectionEmpty(void) {
+  TXNObject object;
+
+  return TXNIsSelectionEmpty(*getTXNObject(mainWindowPtr, &object));
+}
+
+void contentClick(WindowPtr window, EventRecord *event) {
+  TXNObject object;
+
+  if(isApplicationWindow(window)) {
+    TXNClick(*getTXNObject(window, &object), event);
+  }
+}
+
 void closeWindow(WindowPtr window) {
-  TXNObject object = NULL;
+  TXNObject object;
 
   if(isApplicationWindow(window)) {
     TXNDeleteObject(*getTXNObject(window, &object));
     DisposeWindow(window);
-    gNumDocuments -= 1;
   }
 }
 
 void growWindow(WindowPtr window, EventRecord *event) {
-  TXNObject object = NULL;
+  TXNObject object;
 
   if(isApplicationWindow(window)) {
     TXNGrowWindow(*getTXNObject(window, &object), event);
   }
 }
 
-/* resync */
 void zoomWindow(WindowPtr window, short part) {
-  TXNObject object = NULL;
+  TXNObject object;
 
   if(isApplicationWindow(window)) {
     TXNZoomWindow(*getTXNObject(window, &object), part);
   }
+
   windowZoomed = (part == inZoomOut);
 }
 
 int openWindow(void) {
   WindowPtr window;
-  DocumentPeek doc;
-  TXNObject object;
-  TXNFrameID frameID;
   Rect frame;
+  TXNObject object = NULL;
+  TXNFrameID frameID = 0;
   OSStatus status = noErr;
 
   window = GetNewCWindow(rDocWindow, NULL, (WindowPtr)-1L);
@@ -920,14 +875,10 @@ int openWindow(void) {
     return FALSE;
   }
 
-  object = NULL;
-  frameID = 0;
-
-  GetWindowPortBounds(window, &frame);
-
   /* TEXTEDIT STUFF begins here
   ******************************/
 
+  GetWindowPortBounds(window, &frame);
   status = TXNNewObject(
     NULL, /* can be NULL */
     window,
@@ -976,18 +927,23 @@ int openWindow(void) {
       zoomWindow(window, inZoomOut);
     }
 
-    adjustMenus();
-    gNumDocuments++;
+    mainWindowPtr = window;
+    adjustMenus(TRUE);
+
+    return TRUE;
   }
 
-  mainWindowPtr = window;
+  //Something failed in the window creation process.
+  //Clean up then tell the user what happened
+  closeWindow(window);
+  alertUser(eNoWindow);
 
-  return TRUE;
+  return FALSE;
 }
 
 void idleWindow(void) {
   WindowPtr window = FrontWindow();
-  TXNObject object = NULL;
+  TXNObject object;
 
   if(isApplicationWindow(window)) {
     TXNIdle(*getTXNObject(window, &object));
@@ -995,8 +951,8 @@ void idleWindow(void) {
 }
 
 void repaintWindow(WindowPtr window) {
-  TXNObject object = NULL;
   GrafPtr savePort;
+  TXNObject object;
 
   GetPort(&savePort);
 
@@ -1008,8 +964,8 @@ void repaintWindow(WindowPtr window) {
 }
 
 void activateWindow(WindowPtr window, Boolean becomingActive) {
-  TXNObject object = NULL;
   TXNFrameID frameID = 0;
+  TXNObject object;
 
   if(isApplicationWindow(window)) {
     getTXNObject(window, &object);
@@ -1017,8 +973,10 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
     GetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), NULL, &frameID);
 
     if(becomingActive) {
+      mainWindowPtr = window;
+
       TXNActivate(object, frameID, kScrollBarsAlwaysActive);
-      adjustMenus();
+      adjustMenus(FALSE);
     }
     else {
       TXNActivate(object, frameID, kScrollBarsSyncWithFocus);
@@ -1028,31 +986,44 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
   }
 }
 
-void setFont(SInt16 menuItem) {
-  TXNObject object = NULL;
-  TXNTypeAttributes typeAttr[1];
-  OSStatus status = noErr;
-  short res;
+void editCopy(void) {
+  TXNObject object;
 
-  if(!mainWindowPtr) {
-    return;
+  if(mainWindowPtr && TXNCopy(*getTXNObject(mainWindowPtr, &object)) != noErr) {
+    alertUser(eNoCopy);
   }
+}
+
+void editSelectAll(void) {
+  TXNObject object;
+
+  if(mainWindowPtr) {
+    TXNSelectAll(*getTXNObject(mainWindowPtr, &object));
+  }
+}
+
+void setFont(SInt16 menuItem) {
+  TXNTypeAttributes typeAttr[1];
+  TXNObject object;
+  short res;
 
   GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
 
-  GetFNum(fontName, &res);
+  if(mainWindowPtr) {
+    GetFNum(fontName, &res);
 
-  typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
-  typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
-  typeAttr[0].data.dataValue = res;
+    typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
+    typeAttr[0].size = kTXNQDFontFamilyIDAttributeSize;
+    typeAttr[0].data.dataValue = res;
 
-  TXNSetTypeAttributes(
-    *getTXNObject(mainWindowPtr, &object),
-    1,
-    typeAttr,
-    kTXNStartOffset,
-    kTXNEndOffset
-  );
+    TXNSetTypeAttributes(
+      *getTXNObject(mainWindowPtr, &object),
+      1,
+      typeAttr,
+      kTXNStartOffset,
+      kTXNEndOffset
+    );
+  }
 }
 
 UInt32 doGetSize(SInt16 menuItem) {
@@ -1077,26 +1048,24 @@ UInt32 doGetSize(SInt16 menuItem) {
 }
 
 void setFontSize(SInt16 menuItem) {
-  TXNObject object = NULL;
   TXNTypeAttributes typeAttr[1];
-
-  if(!mainWindowPtr) {
-    return;
-  }
+  TXNObject object;
 
   fontSizeIndex = menuItem;
 
-  typeAttr[0].tag = kTXNQDFontSizeAttribute;
-  typeAttr[0].size = kTXNQDFontSizeAttributeSize;
-  typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
+  if(mainWindowPtr) {
+    typeAttr[0].tag = kTXNQDFontSizeAttribute;
+    typeAttr[0].size = kTXNQDFontSizeAttributeSize;
+    typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
-  TXNSetTypeAttributes(
-    *getTXNObject(mainWindowPtr, &object),
-    1,
-    typeAttr,
-    kTXNStartOffset,
-    kTXNEndOffset
-  );
+    TXNSetTypeAttributes(
+      *getTXNObject(mainWindowPtr, &object),
+      1,
+      typeAttr,
+      kTXNStartOffset,
+      kTXNEndOffset
+    );
+  }
 }
 
 /* Handles clicking on menus or keyboard shortcuts */
@@ -1105,7 +1074,6 @@ void menuSelect(long mResult) {
   short theMenu;
   Str255 daName;
   short itemHit;
-  TXNObject object = NULL;
 
   theItem = LoWord(mResult);
   theMenu = HiWord(mResult);
@@ -1142,18 +1110,14 @@ void menuSelect(long mResult) {
     } break;
 
     case mEdit: {
-      if(mainWindowPtr) {
-        switch(theItem) {
-          case mEditCopy: {
-            if(TXNCopy(*getTXNObject(mainWindowPtr, &object)) != noErr) {
-              alertUser(eNoCopy);
-            }
-          } break;
+      switch(theItem) {
+        case mEditCopy: {
+          editCopy();
+        } break;
 
-          case mEditSelectAll: {
-            TXNSelectAll(*getTXNObject(mainWindowPtr, &object));
-          } break;
-        }
+        case mEditSelectAll: {
+          editSelectAll();
+        } break;
       }
     } break;
 
@@ -1167,18 +1131,7 @@ void menuSelect(long mResult) {
   }
 
   HiliteMenu(0);
-  adjustMenus();
-}
-
-/*
-  comment to re sync the diffs
-*/
-void contentClick(WindowPtr window, EventRecord *event) {
-  TXNObject object = NULL;
-
-  if(isApplicationWindow(window)) {
-    TXNClick(*getTXNObject(window, &object), event);
-  }
+  adjustMenus(FALSE);
 }
 
 /* Handles mouse down events */
@@ -1190,16 +1143,19 @@ void mouseClick(EventRecord *event) {
   switch(part) {
     case inContent: {
       if(window != FrontWindow()) {
+        if(isApplicationWindow(window)) {
+          mainWindowPtr = window;
+        }
         SelectWindow(window);
       }
       else {
         contentClick(window, event);
-        adjustMenus();
+        adjustMenus(FALSE);
       }
     } break;
 
     case inMenuBar: {
-      adjustMenus();
+      adjustMenus(FALSE);
       menuSelect(MenuSelect(event->where));
     } break;
 
@@ -1267,8 +1223,7 @@ void handleEvent(EventRecord *event) {
         } break;
 
         case kSuspendResumeMessage: {
-          gInBackground = (event->message & kResumeMask) == 0;
-          activateWindow(FrontWindow(), !gInBackground);
+          activateWindow(FrontWindow(), (event->message & kResumeMask) != 0);
         } break;
       }
     } break;
@@ -1283,7 +1238,7 @@ void handleEvent(EventRecord *event) {
 
     case keyDown: {
       if(event->modifiers & cmdKey) {
-        adjustMenus();
+        adjustMenus(FALSE);
         menuSelect(MenuKey(event->message & charCodeMask));
       }
     } break;
@@ -1310,7 +1265,8 @@ void handleEvent(EventRecord *event) {
     }
 
     saveSettings();
-  }*/
+  }
+  */
 }
 
 RgnHandle cursorRgn;
@@ -1533,14 +1489,14 @@ void openFileDialog(void) {
 #endif
 
 void output(char *buffer, size_t nChars, Boolean isBold) {
-  char* startPoint = buffer;
+  char* startPoint;
   size_t lineChars = 0;
   size_t charsLeft = nChars;
   long temp;
   struct lineOffsets *temp2;
-  TXNTypeAttributes iAttributes[1];
-  TXNObject fMLTEObject = NULL;  // our text
   int skipByte;
+  TXNTypeAttributes iAttributes[1];
+  TXNObject object;  // our text
   size_t len;
   wchar_t *wide = NULL;
 
@@ -1548,11 +1504,13 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     return;
   }
 
-  getTXNObject(mainWindowPtr, &fMLTEObject);
+  getTXNObject(mainWindowPtr, &object);
 
   iAttributes[0].tag=kTXNQDFontStyleAttribute;
   iAttributes[0].size=kTXNQDFontStyleAttributeSize;
   iAttributes[0].data.dataValue=isBold?bold:normal;
+
+  startPoint = buffer;
 
   //first run initialization
   if(firstLine == NULL) {
@@ -1609,8 +1567,8 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     //While the line length plus the total length used is greater than 32767 and
     //there are lines to be removed (not the last line) then remove the first line
     while((temp = textUsed+lineChars) > 32767 && firstLine != lastLine) {
-      TXNSetSelection(fMLTEObject, 0, firstLine->lineLength);
-      TXNClear(fMLTEObject);
+      TXNSetSelection(object, 0, firstLine->lineLength);
+      TXNClear(object);
 
       textUsed -= firstLine->lineLength;
 
@@ -1623,15 +1581,15 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     //If the line length greater than 32767 then remove the last line of text.
     //Otherwise insert the text gathered.
     if((temp = lineChars+(lastLine->lineLength)) > 32767) {
-      TXNSetSelection(fMLTEObject, 0, lastLine->lineLength);
-      TXNClear(fMLTEObject);
+      TXNSetSelection(object, 0, lastLine->lineLength);
+      TXNClear(object);
       lastLine->lineLength = 0;
       textUsed = 0;
     }
     else {
-      TXNSetSelection(fMLTEObject, kTXNEndOffset, kTXNEndOffset);
+      TXNSetSelection(object, kTXNEndOffset, kTXNEndOffset);
       TXNSetTypeAttributes(
-        fMLTEObject,
+        object,
         1,
         iAttributes,
         kTXNUseCurrentSelection,
@@ -1642,7 +1600,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
       wide = (wchar_t *)d_charsetEncode(startPoint, ENC_UTF16BE, &len);
 
       TXNSetData(
-        fMLTEObject,
+        object,
         kTXNUnicodeTextData,
         (void *)wide,
         len,
@@ -1853,6 +1811,32 @@ FILE *fopen_mac(const char *filename, const char *mode) {
   return retval;
 }
 
+void setupMLTE(void) {
+  OSStatus status;
+  TXNMacOSPreferredFontDescription defaults;
+
+  if(TXNVersionInformation == (void*)kUnresolvedCFragSymbolAddress) {
+    BigBadError(eWrongSystem);
+  }
+
+  defaults.fontID = kTXNDefaultFontName;
+  defaults.pointSize = kTXNDefaultFontSize;
+
+  defaults.encoding = CreateTextEncoding(
+    kTextEncodingUnicodeV3_2,
+    kTextEncodingDefaultVariant,
+    kTextEncodingDefaultFormat
+  );
+
+  defaults.fontStyle = kTXNDefaultFontStyle;
+
+  status = TXNInitTextension(&defaults, 1, 0L);
+
+  if(status != noErr) {
+    BigBadError(eNoMLTE);
+  }
+}
+
 void terminate() {
   WindowPtr window = FrontWindow();
 
@@ -1862,7 +1846,10 @@ void terminate() {
     window = FrontWindow();
   }
 
-  TXNTerminateTextension();
+  #if TARGET_API_MAC_CARBON
+    TXNTerminateTextension();
+  #endif
+
   ExitToShell();
 }
 
@@ -1886,28 +1873,25 @@ int main(void) {
 
   SysEnvirons(kSysEnvironsVersion, &gMac);
 
-  if (gMac.machineType < 0) {
+  if(gMac.machineType < 0) {
     BigBadError(eWrongSystem);
   }
 
   gHasWaitNextEvent = trapAvailable(_WaitNextEvent);
 #else
   InitCursor();
-#endif
-
-  setupAppleEvents();
 
   /* get the system default encoding. used by the fopen wrapper */
   enc = CFStringGetSystemEncoding();
 
   setupMLTE();
+#endif
+
+  setupAppleEvents();
 
   setupMenus();
 
   restoreSettings();
-
-  gInBackground = FALSE;
-  gNumDocuments = 0;
 
   cursorRgn = NewRgn();
 
@@ -1925,9 +1909,9 @@ int main(void) {
     while(!quit) {
       loopTick();
     }
+
+    terminate();
   }
 
-  terminate();
-
-  return 0; //macs don't do anything with the return value
+  return EXIT_SUCCESS; //macs don't do anything with the return value
 }
