@@ -36,6 +36,10 @@
 #define eNoJustification            21
 #define eNoDisposeFontMenuObject    22
 #define eNoWordWrap                 23
+#define eApplicationName            24
+
+#define kFileType 'TEXT'
+#define kFileTypeUTXT 'utxt'
 
 #define kMBarDisplayed 128       /* application's menu bar */
 

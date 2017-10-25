@@ -109,7 +109,7 @@ CFStringEncoding enc;
 int mallocedFileName;
 
 NavDialogRef gOpenFileDialog = NULL;
-NavEventUPP gEventUPP = NULL;
+NavEventUPP gEventProc = NULL;
 
 #undef main
 int realmain(int argc, char **argv);
@@ -1314,176 +1314,245 @@ void macYield(void) {
 #if TARGET_API_MAC_CARBON
 #include <Navigation.h>
 
-static OSStatus SendOpenAE(AEDescList list) {
-  OSStatus err;
-  AEAddressDesc theAddress;
-  AppleEvent dummyReply;
-  AppleEvent theEvent;
+OSStatus GetFSSpecInfo(AEDesc* fileObject, FSSpec* returnSpec) {
+  OSStatus theErr = noErr;
+  AEDesc theDesc;
 
-  theAddress.descriptorType = typeNull;
-  theAddress.dataHandle = NULL;
+  if((theErr = AECoerceDesc(fileObject, typeFSS, &theDesc)) == noErr) {
+    theErr = AEGetDescData(&theDesc, returnSpec, sizeof(FSSpec));
+    AEDisposeDesc(&theDesc);
+  }
+  else if((theErr = AECoerceDesc(fileObject, typeFSRef, &theDesc)) == noErr) {
+    FSRef ref;
 
-  dummyReply.descriptorType = typeNull;
-  dummyReply.dataHandle = NULL;
-
-  theEvent.descriptorType = typeNull;
-  theEvent.dataHandle = NULL;
-
-  for(;;) {
-    ProcessSerialNumber psn;
-
-    err = GetCurrentProcess(&psn);
-    if(err != noErr) {
-      break;
+    if((theErr = AEGetDescData(&theDesc, &ref, sizeof(FSRef))) == noErr) {
+      theErr = FSGetCatalogInfo(
+          &ref,
+          kFSCatInfoGettableInfo,
+          NULL,
+          NULL,
+          returnSpec,
+          NULL
+        );
     }
 
-    err = AECreateDesc(
-      typeProcessSerialNumber,
-      &psn,
-      sizeof(ProcessSerialNumber),
-      &theAddress
-    );
-    if(err != noErr) {
-      break;
-    }
-
-    err = AECreateAppleEvent(
-      kCoreEventClass,
-      kAEOpenDocuments,
-      &theAddress,
-      kAutoGenerateReturnID,
-      kAnyTransactionID,
-      &theEvent
-    );
-    if(err != noErr) {
-      break;
-    }
-
-    err = AEPutParamDesc(&theEvent, keyDirectObject, &list);
-    if(err != noErr) {
-      break;
-    }
-
-    err = AESend(
-      &theEvent,
-      &dummyReply,
-      kAENoReply,
-      kAENormalPriority,
-      kAEDefaultTimeout,
-      NULL,
-      NULL
-    );
-    if(err != noErr) {
-      break;
-    }
+    AEDisposeDesc(&theDesc);
   }
 
-  if(theAddress.dataHandle != NULL) {
-    AEDisposeDesc(&theAddress);
-  }
-
-  if(dummyReply.dataHandle != NULL) {
-    AEDisposeDesc(&dummyReply);
-  }
-
-  if(theEvent.dataHandle != NULL) {
-    AEDisposeDesc(&theEvent);
-  }
-
-  return err;
+  return theErr;
 }
 
-static pascal void MyPrivateEventProc(
-    NavEventCallbackMessage callbackSelector,
-    NavCBRecPtr callbackParms,
-    NavCallBackUserData callbackUD
+pascal Boolean filterProc(
+    AEDesc* theItem,
+    void* info,
+    NavCallBackUserData callBackUD,
+    NavFilterModes filterMode
+) {
+#pragma unused(theItem, callBackUD, filterMode)
+
+  NavFileOrFolderInfo* theInfo = (NavFileOrFolderInfo*)info;
+
+  if(
+      theInfo != NULL &&
+      !theInfo->isFolder &&
+      theInfo->fileAndFolder.fileInfo.finderInfo.fdType != kFileType &&
+      theInfo->fileAndFolder.fileInfo.finderInfo.fdType != kFileTypeUTXT
   ) {
+    return false;
+  }
 
-#pragma unused (callbackUD)
+  return true;
+}
 
-  switch(callbackSelector) {
-    case kNavCBEvent: {
-      switch(callbackParms->eventData.eventDataParms.event->what) {
-        case updateEvt:
-        case activateEvt: {
-          handleEvent(callbackParms->eventData.eventDataParms.event);
-        } break;
-      }
-    } break;
+pascal void eventProc(
+    NavEventCallbackMessage callBackSelector,
+    NavCBRecPtr callBackParms,
+    void* callBackUD
+) {
+#pragma unused(callBackUD)
+  char *text = NULL;
+  char *text2 = NULL;
+  char* fileName = NULL;
+  OSStatus err = noErr;
 
+  switch(callBackSelector) {
     case kNavCBUserAction: {
-      if(callbackParms->userAction == kNavUserActionOpen) {
-        // This is an open files action, send an AppleEvent
-        NavReplyRecord reply;
-        OSStatus theErr = noErr;
+      NavReplyRecord reply;
+      NavUserAction userAction;
 
-        theErr = NavDialogGetReply(callbackParms->context, &reply);
+      if((err = NavDialogGetReply(callBackParms->context, &reply)) == noErr) {
+        userAction = NavDialogGetUserAction(callBackParms->context);
 
-        if(theErr == noErr) {
-          SendOpenAE(reply.selection);
+        switch(userAction) {
+          case kNavUserActionOpen: {
+            if(gOpenFileDialog != NULL) {
+              long count = 0;
+              short index;
 
-          NavDisposeReply(&reply);
+              err = AECountItems(&reply.selection, &count);
+
+              for(index = 1; index <= count; index++) {
+                AEKeyword keyWord;
+                AEDesc theDesc;
+
+                if((err = AEGetNthDesc(
+                    &reply.selection,
+                    index,
+                    typeWildCard,
+                    &keyWord,
+                    &theDesc
+                )) == noErr) {
+                  FSSpec theFSSpec;
+                  FInfo fileInfo;
+
+                  if((err = GetFSSpecInfo(&theDesc, &theFSSpec)) == noErr) {
+                    if((err = FSpGetFInfo(&theFSSpec, &fileInfo)) == noErr) {
+
+                      err = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID);
+
+                      text = malloc(64); //SFReply.fName is a STR63, plus 1 for the null character
+
+                      if(text != NULL) {
+                        p2cstrcpy(text, theFSSpec.name);
+                        text2 = realloc(text, strlen(text)+1);
+
+                        if(text2 != NULL) {
+                          progArg = text2;
+
+                          windowNotOpen = FALSE;
+                        }
+                        else {
+                          free(text);
+                        }
+                      }
+
+                      if(!windowNotOpen && count > 1) {
+                        alertUser(eFileOpen);
+                      }
+                    }
+
+                    AEDisposeDesc(&theDesc);
+                  }
+                }
+              }
+            }
+          } break;
+
+          case kNavUserActionChoose: {
+            if(gOpenFileDialog != NULL) {
+              long count = 0;
+              short index;
+
+              err = AECountItems(&reply.selection, &count);
+
+              for (index = 1; index <= count; index++) {
+                AEKeyword keyWord;
+                DescType typeCode;
+                Size actualSize = 0;
+                FSRef fileRef;
+                FSSpec fileSpec;
+
+                // for Mac OS X, the returned selection is FSRef-based,
+                // if this yields a coercion error, then get the selection as FSSpec-based:
+                if((err = AEGetNthPtr(
+                    &reply.selection,
+                    index,
+                    typeFSRef,
+                    &keyWord,
+                    &typeCode,
+                    &fileRef,
+                    sizeof(FSRef),
+                    &actualSize
+                )) == errAECoercionFail) {
+                  err = AEGetNthPtr(
+                      &reply.selection,
+                      index,
+                      typeFSS,
+                      &keyWord,
+                      &typeCode,
+                      &fileSpec,
+                      sizeof(FSRef),
+                      &actualSize
+                    );
+                }
+              }
+            }
+          } break;
+
+          case kNavUserActionSaveAs: {
+            /* do nothing */
+          } break;
+
+          case kNavUserActionCancel: {
+            /* do nothing */
+          } break;
+
+          case kNavUserActionNewFolder: {
+            /* do nothing */
+          } break;
         }
+
+        err = NavDisposeReply(&reply);
       }
     } break;
 
     case kNavCBTerminate: {
-      if(callbackParms->context == gOpenFileDialog) {
+      if(gOpenFileDialog != NULL) {
         NavDialogDispose(gOpenFileDialog);
-        gOpenFileDialog = NULL;
       }
-    } break;
+
+      gOpenFileDialog = NULL;
+    }
   }
 }
 
 void openFileDialog(void) {
   OSStatus theErr = noErr;
   NavDialogCreationOptions dialogOptions;
-  NavTypeListHandle openList = NULL;
 
-  if(gOpenFileDialog == NULL) {
-    NavGetDefaultDialogCreationOptions(&dialogOptions);
+  if(
+      gOpenFileDialog != NULL &&
+      NavDialogGetWindow(gOpenFileDialog) != NULL
+  ) {
+    SelectWindow(NavDialogGetWindow(gOpenFileDialog));
+    return;
+  }
 
-    /*
-      YUCK! NavTypeList works by using the 'struct hack'!
-    */
-    openList = (NavTypeListHandle)NewHandle(sizeof(NavTypeList) + sizeof(OSType));
-    if(openList != NULL) {
-      (*openList)->componentSignature = kNavGenericSignature;
-      (*openList)->osTypeCount        = 2;
-      (*openList)->osType[0]          = 'TEXT';
-      (*openList)->osType[1]          = 'utxt';
+  if((theErr = NavGetDefaultDialogCreationOptions(&dialogOptions)) == noErr) {
+    Str255 pStr;
+
+    GetIndString(pStr, kErrStrings, eApplicationName);
+
+    dialogOptions.clientName = CFStringCreateWithPascalString(NULL, pStr, enc);
+
+    dialogOptions.modality = kWindowModalityNone; // make it modeless
+
+    if(gEventProc == NULL) {
+      gEventProc = NewNavEventUPP(eventProc);
     }
 
-    if(gEventUPP == NULL) {
-      gEventUPP = NewNavEventUPP(MyPrivateEventProc);
-    }
-
-    theErr = NavCreateGetFileDialog(
+    if((theErr = NavCreateGetFileDialog(
         &dialogOptions,
-        openList,
-        gEventUPP,
+        NULL,
+        gEventProc,
         NULL,
         NULL,
         NULL,
         &gOpenFileDialog
-      );
+      )) == noErr) {
 
-    if(theErr == noErr) {
-      theErr = NavDialogRun(gOpenFileDialog);
+      if((theErr = NavDialogRun(gOpenFileDialog)) != noErr) {
+        if(gOpenFileDialog != NULL) {
+          NavDialogDispose(gOpenFileDialog);
+        }
 
-      if(theErr != noErr) {
-        NavDialogDispose(gOpenFileDialog);
         gOpenFileDialog = NULL;
       }
     }
 
-    if(openList != NULL) {
-      DisposeHandle((Handle)openList);
+    if(dialogOptions.clientName != NULL) {
+      CFRelease(dialogOptions.clientName);
     }
-  }
-  else if(NavDialogGetWindow(gOpenFileDialog) != NULL) {
-    SelectWindow(NavDialogGetWindow(gOpenFileDialog));
   }
 }
 #endif
