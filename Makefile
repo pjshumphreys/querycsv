@@ -94,7 +94,7 @@ clean:
 	cd env/powermac; find . -type f ! -path './.finf/Makefile' ! -path './Makefile' ! -path './powermac.h' ! -path './powermac.c' ! -path './powermac.r' ! -path './size.r' ! -path './carbon.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;; mac2unix *
 	cd env/riscos; rm -rf o od \!QueryCSV/querycsv,ff8 \!QueryCSV/\!RunImage,ff8
 	cd env/riscos/launcher; rm -rf o od
-	cd env/riscos/c; find . -maxdepth 1 ! -path './riscos' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/riscos/c; find . -maxdepth 1 ! -path './riscos' ! -path './riscos.c' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	find ./env/riscos/c -name "riscos" -exec mv {} env/riscos/c/riscos.c \;
 	find ./env/riscos/launcher/c -name "runimage" -exec mv {} env/riscos/launcher/c/runimage.c \;
 	cd env/riscos/h; find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;

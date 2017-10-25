@@ -721,10 +721,10 @@ void adjustMenus(int setStyles) {
   if(!found) {
     fontSizeIndex = 1;
     SetItemMark(menu, 1, checkMark);
+  }
 
-    if(setStyles) {
-      setFontSize(1);
-    }
+  if(setStyles) {
+    setFontSize(fontSizeIndex);
   }
 }
 
