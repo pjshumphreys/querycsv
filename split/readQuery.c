@@ -9,13 +9,11 @@ int readQuery(
   FILE *queryFile = NULL;
   void *scanner;
   struct inputTable *currentInputTable;
-  struct columnReference *currentReferenceWithName;
   struct resultColumn *currentResultColumn;
   struct sortingList *currentSortingList;
-  struct columnRefHashEntry *currentHashEntry;
 
   int initialEncoding = ENC_UNKNOWN;
-  int inputTableIndex = 2, i;
+  int inputTableIndex = 2;
   int parserReturn = 0;
 
   MAC_YIELD
