@@ -101,6 +101,20 @@ void setFontSize(SInt16 menuItem);
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
 
+#undef main
+int realmain(int argc, char **argv);
+
+#define TRUE 1
+#define FALSE 0
+
+#define ENC_MAC 4
+#define ENC_UTF16BE 9
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char* mystrdup(const char* s);
+void reallocMsg(void **mem, size_t size);
+
+extern char * devNull;
+
 #include "mac.h"
 
 /*
@@ -123,17 +137,6 @@ SysEnvRec gMac;
 Boolean gHasWaitNextEvent;
 
 int lineHeight = 10;
-
-#undef main
-int realmain(int argc, char **argv);
-
-#define TRUE 1
-#define FALSE 0
-
-#define ENC_MAC 4
-#define ENC_UTF16BE 9
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
-extern char * devNull;
 
 /*
   A DocumentRecord contains the WindowRecord for one of our document windows,
@@ -417,6 +420,50 @@ pascal OSErr appleEventPrintDoc(
   return errAEEventNotHandled;
 }
 
+pascal OSErr openItems(AEDescList * docList) {
+  OSErr       result;
+  long        itemsInList;
+
+  AEKeyword   keyword;
+  DescType    returnedType;
+
+  FSSpec      theFSSpec;
+  Size        actualSize;
+
+  if(
+      (result = AECountItems(docList, &itemsInList)) != noErr ||
+      itemsInList == 0
+  ) {
+    return result;
+  }
+
+  if(
+    (result = AEGetNthPtr(
+      docList,
+      1,
+      typeFSS,
+      &keyword,
+      &returnedType,
+      (Ptr)&theFSSpec,
+      sizeof(FSSpec),
+      &actualSize
+    )) == noErr &&
+    (result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID)) == noErr
+  ) {
+    reallocMsg((void**)&progArg, 64);  //SFReply.fName is a STR63, plus 1 for the null character
+    p2cstrcpy(progArg, theFSSpec.name);
+    reallocMsg((void**)&progArg, strlen(progArg)+1);
+
+    windowNotOpen = FALSE;
+  }
+
+  if(!windowNotOpen && itemsInList > 1) {
+    alertUser(eFileOpen);
+  }
+
+  return result;
+}
+
 pascal OSErr appleEventOpenDoc(
     const AppleEvent *theAppleEvent,
     AEDescList *reply,
@@ -424,69 +471,24 @@ pascal OSErr appleEventOpenDoc(
 ) {
 #pragma unused (reply, handlerRefCon)
   AEDescList  docList;
-  AEKeyword   keyword;
-  DescType    returnedType;
-  FSSpec      theFSSpec;
-  Size        actualSize;
-  long        itemsInList;
   OSErr       result;
-  Boolean     showMessage = FALSE;
-  char *text = NULL;
-  char *text2 = NULL;
 
   if(!windowNotOpen) {
     alertUser(eFileOpen);
-  }
-  else {
-    if(
-        (result = AEGetParamDesc(
-          theAppleEvent,
-          keyDirectObject,
-          typeAEList,
-          &docList
-        ) != 0) ||
-        (result = AECountItems(&docList, &itemsInList)) != 0
-    ) {
-      return result;
-    }
 
-    if((result = AEGetNthPtr(
-        &docList,
-        1,
-        typeFSS,
-        &keyword,
-        &returnedType,
-        (Ptr)&theFSSpec,
-        sizeof(FSSpec),
-        &actualSize
-    )) != 0) {
-      return result;
-    }
-
-    result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID);
-
-    text = malloc(64); //SFReply.fName is a STR63, plus 1 for the null character
-
-    if(text != NULL) {
-      p2cstrcpy(text, theFSSpec.name);
-      text2 = realloc(text, strlen(text)+1);
-
-      if(text2 != NULL) {
-        progArg = text2;
-
-        windowNotOpen = FALSE;
-      }
-      else {
-        free(text);
-      }
-    }
-
-    if(!windowNotOpen && itemsInList > 1) {
-      alertUser(eFileOpen);
-    }
+    return noErr;
   }
 
-  return noErr;
+  if((result = AEGetParamDesc(
+    theAppleEvent,
+    keyDirectObject,
+    typeAEList,
+    &docList
+  )) != noErr) {
+    return result;
+  }
+
+  return openItems(&docList);
 }
 
 pascal OSErr appleEventQuit(
@@ -1739,37 +1741,18 @@ void openFileDialog(void) {
   unsigned const char prompt = '\0';
   OSType typeList = 'TEXT';
   SFReply reply;
-  OSErr result;
-  char *text = NULL;
-  char *text2 = NULL;
 
   where.h = where.v = 70;
 
   SFGetFile(where, &prompt, NULL, 1, &typeList, NULL, &reply);
 
-  if(reply.good) {
-    result = SetVol(NULL, reply.vRefNum);
+  if(reply.good && SetVol(NULL, reply.vRefNum) == noErr) {
+    //SFReply.fName is a STR63, plus 1 for the null character
+    reallocMsg(&progArg, 64);
+    p2cstrcpy(progArg, reply.fName);
+    reallocMsg(&progArg, strlen(progArg)+1);
 
-    /* error check */
-    if(result != 0) {
-
-    }
-
-    text = malloc(256); //SFReply.fName is a STR63, plus 1 for the null character
-
-    if(text != NULL) {
-      p2cstrcpy(text, reply.fName);
-      text2 = realloc(text, strlen(text)+1);
-
-      if(text2 != NULL) {
-        progArg = text2;
-
-        windowNotOpen = FALSE;
-      }
-      else {
-        free(text);
-      }
-    }
+    windowNotOpen = FALSE;
   }
 }
 #endif

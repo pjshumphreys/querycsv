@@ -101,16 +101,6 @@ void setFontSize(SInt16 menuItem);
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
 
-#include "powermac.h"
-
-/* how to treat filenames that are fopened */
-CFURLRef baseFolder;
-CFStringEncoding enc;
-int mallocedFileName;
-
-NavDialogRef gOpenFileDialog = NULL;
-NavEventUPP gEventProc = NULL;
-
 #undef main
 int realmain(int argc, char **argv);
 
@@ -120,7 +110,19 @@ int realmain(int argc, char **argv);
 #define ENC_MAC 4
 #define ENC_UTF16BE 9
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char* mystrdup(const char* s);
+void reallocMsg(void **mem, size_t size);
+
 extern char * devNull;
+
+#include "powermac.h"
+
+/* how to treat filenames that are fopened */
+CFURLRef baseFolder;
+CFStringEncoding enc;
+
+NavDialogRef gOpenFileDialog = NULL;
+NavEventUPP gEventProc = NULL;
 
 /*
   A DocumentRecord contains the WindowRecord for one of our document windows,
@@ -404,23 +406,17 @@ pascal OSErr appleEventPrintDoc(
   return errAEEventNotHandled;
 }
 
-pascal OSErr appleEventOpenDoc(
-    const AppleEvent *theAppleEvent,
-    AEDescList *reply,
-    long handlerRefCon
-) {
-#pragma unused (reply, handlerRefCon)
-  AEDescList  docList;
+pascal OSErr openItems(AEDescList * docList) {
+  OSErr       result;
+  long        itemsInList;
+
   AEKeyword   keyword;
   DescType    returnedType;
+
   FSSpec      theFSSpec;
-  FSRef       theFSRef;
   Size        actualSize;
-  long        itemsInList;
-  OSErr       result;
-  Boolean     showMessage = FALSE;
-  char *text = NULL;
-  char *text2 = NULL;
+
+  FSRef       theFSRef;
   char* fileName = NULL;
   CFURLRef cfUrl;
   CFStringRef cfFilename;
@@ -428,120 +424,121 @@ pascal OSErr appleEventOpenDoc(
   CFIndex usedLen;
   CFRange range;
 
-  if(!windowNotOpen) {
-    alertUser(eFileOpen);
+  if(
+      (result = AECountItems(docList, &itemsInList)) != noErr ||
+      itemsInList == 0
+  ) {
+    return result;
   }
-  else {
-    if(
-        (result = AEGetParamDesc(
-          theAppleEvent,
-          keyDirectObject,
-          typeAEList,
-          &docList
-        ) != 0) ||
-        (result = AECountItems(&docList, &itemsInList)) != 0
-    ) {
-      return result;
-    }
 
-    if((result = AEGetNthPtr(
-        &docList,
-        1,
-        typeFSRef,
-        &keyword,
-        &returnedType,
-        (Ptr)&theFSRef,
-        sizeof(FSRef),
-        &actualSize
-    )) == 0) {
-      cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef);
+  if((result = AEGetNthPtr(
+      docList,
+      1,
+      typeFSRef,
+      &keyword,
+      &returnedType,
+      (Ptr)&theFSRef,
+      sizeof(FSRef),
+      &actualSize
+  )) == noErr) {
+    if((cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef)) != NULL) {
+      baseFolder = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, cfUrl);
+      cfFilename = CFURLCopyLastPathComponent(cfUrl);
 
-      if(cfUrl != NULL) {
-        baseFolder = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, cfUrl);
-
-        cfFilename = CFURLCopyLastPathComponent(cfUrl);
-
-        if((fileName = (char *)CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) == NULL) {
-          neededLen = 0;
-          usedLen = 0;
-          range = CFRangeMake(0, CFStringGetLength(cfFilename));
-          mallocedFileName = TRUE;
-
-          CFStringGetBytes(
-            cfFilename,
-            range,
-            kCFStringEncodingUTF8,
-            '?',
-            FALSE,
-            NULL,
-            0,
-            &neededLen
-          );
-
-          reallocMsg((void**)&fileName, neededLen + 1);
-
-          CFStringGetBytes(
-            cfFilename,
-            range,
-            kCFStringEncodingUTF8,
-            '?',
-            FALSE,
-            (UInt8 *)fileName,
-            neededLen,
-            &usedLen
-          );
-
-          fileName[usedLen] = 0;
-        }
-
-        CFRelease(cfFilename);
-        CFRelease(cfUrl);
-
-        progArg = fileName;
-
-        windowNotOpen = FALSE;
-      }
-
-      return noErr;
-    }
-
-    else if((result = AEGetNthPtr(
-        &docList,
-        1,
-        typeFSS,
-        &keyword,
-        &returnedType,
-        (Ptr)&theFSSpec,
-        sizeof(FSSpec),
-        &actualSize
-    )) != 0) {
-      return result;
-    }
-
-    result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID);
-
-    text = malloc(64); //SFReply.fName is a STR63, plus 1 for the null character
-
-    if(text != NULL) {
-      p2cstrcpy(text, theFSSpec.name);
-      text2 = realloc(text, strlen(text)+1);
-
-      if(text2 != NULL) {
-        progArg = text2;
-
-        windowNotOpen = FALSE;
+      if(fileName = (char *)CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) {
+        progArg = mystrdup(fileName);
       }
       else {
-        free(text);
-      }
-    }
+        neededLen = 0;
+        usedLen = 0;
+        range = CFRangeMake(0, CFStringGetLength(cfFilename));
 
-    if(!windowNotOpen && itemsInList > 1) {
-      alertUser(eFileOpen);
+        CFStringGetBytes(
+          cfFilename,
+          range,
+          kCFStringEncodingUTF8,
+          '?',
+          FALSE,
+          NULL,
+          0,
+          &neededLen
+        );
+
+        reallocMsg((void**)&progArg, neededLen + 1);
+
+        CFStringGetBytes(
+          cfFilename,
+          range,
+          kCFStringEncodingUTF8,
+          '?',
+          FALSE,
+          (UInt8 *)progArg,
+          neededLen,
+          &usedLen
+        );
+
+        progArg[usedLen] = 0;
+      }
+
+      CFRelease(cfFilename);
+      CFRelease(cfUrl);
+
+      windowNotOpen = FALSE;
     }
   }
 
-  return noErr;
+  else if(
+    (result = AEGetNthPtr(
+      docList,
+      1,
+      typeFSS,
+      &keyword,
+      &returnedType,
+      (Ptr)&theFSSpec,
+      sizeof(FSSpec),
+      &actualSize
+    )) == noErr &&
+    (result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID)) == noErr
+  ) {
+    reallocMsg((void**)&progArg, 64);  //SFReply.fName is a STR63, plus 1 for the null character
+    p2cstrcpy(progArg, theFSSpec.name);
+    reallocMsg((void**)&progArg, strlen(progArg)+1);
+
+    windowNotOpen = FALSE;
+  }
+
+  if(!windowNotOpen && itemsInList > 1) {
+    alertUser(eFileOpen);
+  }
+
+  return result;
+}
+
+pascal OSErr appleEventOpenDoc(
+    const AppleEvent *theAppleEvent,
+    AEDescList *reply,
+    long handlerRefCon
+) {
+#pragma unused (reply, handlerRefCon)
+  AEDescList  docList;
+  OSErr       result;
+
+  if(!windowNotOpen) {
+    alertUser(eFileOpen);
+
+    return noErr;
+  }
+
+  if((result = AEGetParamDesc(
+    theAppleEvent,
+    keyDirectObject,
+    typeAEList,
+    &docList
+  )) != noErr) {
+    return result;
+  }
+
+  return openItems(&docList);
 }
 
 pascal OSErr appleEventQuit(
@@ -1351,182 +1348,29 @@ void macYield(void) {
 #if TARGET_API_MAC_CARBON
 #include <Navigation.h>
 
-OSStatus GetFSSpecInfo(AEDesc* fileObject, FSSpec* returnSpec) {
-  OSStatus theErr = noErr;
-  AEDesc theDesc;
-
-  if((theErr = AECoerceDesc(fileObject, typeFSS, &theDesc)) == noErr) {
-    theErr = AEGetDescData(&theDesc, returnSpec, sizeof(FSSpec));
-    AEDisposeDesc(&theDesc);
-  }
-  else if((theErr = AECoerceDesc(fileObject, typeFSRef, &theDesc)) == noErr) {
-    FSRef ref;
-
-    if((theErr = AEGetDescData(&theDesc, &ref, sizeof(FSRef))) == noErr) {
-      theErr = FSGetCatalogInfo(
-          &ref,
-          kFSCatInfoGettableInfo,
-          NULL,
-          NULL,
-          returnSpec,
-          NULL
-        );
-    }
-
-    AEDisposeDesc(&theDesc);
-  }
-
-  return theErr;
-}
-
-pascal Boolean filterProc(
-    AEDesc* theItem,
-    void* info,
-    NavCallBackUserData callBackUD,
-    NavFilterModes filterMode
-) {
-#pragma unused(theItem, callBackUD, filterMode)
-
-  NavFileOrFolderInfo* theInfo = (NavFileOrFolderInfo*)info;
-
-  if(
-      theInfo != NULL &&
-      !theInfo->isFolder &&
-      theInfo->fileAndFolder.fileInfo.finderInfo.fdType != kFileType &&
-      theInfo->fileAndFolder.fileInfo.finderInfo.fdType != kFileTypeUTXT
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
 pascal void eventProc(
     NavEventCallbackMessage callBackSelector,
     NavCBRecPtr callBackParms,
     void* callBackUD
 ) {
 #pragma unused(callBackUD)
-  char *text = NULL;
-  char *text2 = NULL;
-  char* fileName = NULL;
   OSStatus err = noErr;
+  NavReplyRecord reply;
 
   switch(callBackSelector) {
     case kNavCBUserAction: {
-      NavReplyRecord reply;
-      NavUserAction userAction;
-
       if((err = NavDialogGetReply(callBackParms->context, &reply)) == noErr) {
-        userAction = NavDialogGetUserAction(callBackParms->context);
-
-        switch(userAction) {
-          case kNavUserActionOpen: {
-            if(gOpenFileDialog != NULL) {
-              long count = 0;
-              short index;
-
-              err = AECountItems(&reply.selection, &count);
-
-              for(index = 1; index <= count; index++) {
-                AEKeyword keyWord;
-                AEDesc theDesc;
-
-                if((err = AEGetNthDesc(
-                    &reply.selection,
-                    index,
-                    typeWildCard,
-                    &keyWord,
-                    &theDesc
-                )) == noErr) {
-                  FSSpec theFSSpec;
-                  FInfo fileInfo;
-
-                  if((err = GetFSSpecInfo(&theDesc, &theFSSpec)) == noErr) {
-                    if((err = FSpGetFInfo(&theFSSpec, &fileInfo)) == noErr) {
-
-                      err = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID);
-
-                      text = malloc(64); //SFReply.fName is a STR63, plus 1 for the null character
-
-                      if(text != NULL) {
-                        p2cstrcpy(text, theFSSpec.name);
-                        text2 = realloc(text, strlen(text)+1);
-
-                        if(text2 != NULL) {
-                          progArg = text2;
-
-                          windowNotOpen = FALSE;
-                        }
-                        else {
-                          free(text);
-                        }
-                      }
-
-                      if(!windowNotOpen && count > 1) {
-                        alertUser(eFileOpen);
-                      }
-                    }
-
-                    AEDisposeDesc(&theDesc);
-                  }
-                }
-              }
-            }
-          } break;
-
-          case kNavUserActionChoose: {
-            if(gOpenFileDialog != NULL) {
-              long count = 0;
-              short index;
-
-              err = AECountItems(&reply.selection, &count);
-
-              for (index = 1; index <= count; index++) {
-                AEKeyword keyWord;
-                DescType typeCode;
-                Size actualSize = 0;
-                FSRef fileRef;
-                FSSpec fileSpec;
-
-                // for Mac OS X, the returned selection is FSRef-based,
-                // if this yields a coercion error, then get the selection as FSSpec-based:
-                if((err = AEGetNthPtr(
-                    &reply.selection,
-                    index,
-                    typeFSRef,
-                    &keyWord,
-                    &typeCode,
-                    &fileRef,
-                    sizeof(FSRef),
-                    &actualSize
-                )) == errAECoercionFail) {
-                  err = AEGetNthPtr(
-                      &reply.selection,
-                      index,
-                      typeFSS,
-                      &keyWord,
-                      &typeCode,
-                      &fileSpec,
-                      sizeof(FSRef),
-                      &actualSize
-                    );
-                }
-              }
-            }
-          } break;
-
-          case kNavUserActionSaveAs: {
-            /* do nothing */
-          } break;
-
-          case kNavUserActionCancel: {
-            /* do nothing */
-          } break;
-
-          case kNavUserActionNewFolder: {
-            /* do nothing */
-          } break;
+        if(
+            gOpenFileDialog != NULL &&
+            NavDialogGetUserAction(callBackParms->context) ==
+              kNavUserActionOpen
+        ) {
+          if(windowNotOpen) {
+            openItems(&reply.selection);
+          }
+          else {
+            alertUser(eFileOpen);
+          }
         }
 
         err = NavDisposeReply(&reply);
@@ -1556,13 +1400,13 @@ void openFileDialog(void) {
   }
 
   if((theErr = NavGetDefaultDialogCreationOptions(&dialogOptions)) == noErr) {
-    Str255 pStr;
-
-    GetIndString(pStr, kErrStrings, eApplicationName);
-
-    dialogOptions.clientName = CFStringCreateWithPascalString(NULL, pStr, enc);
-
-    dialogOptions.modality = kWindowModalityNone; // make it modeless
+    dialogOptions.clientName = CFStringCreateWithCStringNoCopy(
+        NULL,
+        "QueryCSV",
+        kCFStringEncodingUTF8,
+        kCFAllocatorNull
+      );
+    dialogOptions.modality = kWindowModalityNone;
 
     if(gEventProc == NULL) {
       gEventProc = NewNavEventUPP(eventProc);
@@ -1813,9 +1657,9 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   return retval;
 }
 
-FILE *fopen_mac(const char *filename, const char *mode) {
+char* makeAbsolute(const char *filename) {
   char* absolutePath = NULL;
-  FILE * retval;
+  char* retval = NULL;
   CFIndex neededLen;
   CFIndex usedLen;
   CFRange range;
@@ -1830,9 +1674,6 @@ FILE *fopen_mac(const char *filename, const char *mode) {
     kCFAllocatorNull
   );
 
-/*
-* the function "fsetfileinfo" can be used to change the creator and type code for a file
-*/
   if(text1 == NULL) {
     text1 = CFStringCreateWithCString(
       NULL,
@@ -1841,7 +1682,7 @@ FILE *fopen_mac(const char *filename, const char *mode) {
     );
 
     if(text1 == NULL) {
-      exit(EXIT_FAILURE);
+      return NULL;
     }
   }
 
@@ -1859,7 +1700,7 @@ FILE *fopen_mac(const char *filename, const char *mode) {
   );
 
   if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
-    retval = fopen(absolutePath, mode);
+    retval = mystrdup(absolutePath);
   }
   else {
     neededLen = 0;
@@ -1877,7 +1718,7 @@ FILE *fopen_mac(const char *filename, const char *mode) {
       &neededLen
     );
 
-    reallocMsg((void**)&absolutePath, neededLen + 1);
+    reallocMsg((void**)&retval, neededLen + 1);
 
     CFStringGetBytes(
       text2,
@@ -1885,16 +1726,12 @@ FILE *fopen_mac(const char *filename, const char *mode) {
       enc,
       '?',
       FALSE,
-      (UInt8 *)absolutePath,
+      (UInt8 *)retval,
       neededLen,
       &usedLen
     );
 
-    absolutePath[usedLen] = 0;
-
-    retval = fopen(absolutePath, mode);
-
-    free(absolutePath);
+    retval[usedLen] = 0;
   }
 
   CFRelease(text2);
@@ -1902,6 +1739,26 @@ FILE *fopen_mac(const char *filename, const char *mode) {
   CFRelease(text1);
 
   return retval;
+}
+
+
+FILE *fopen_mac(const char *filename, const char *mode) {
+  char* temp = makeAbsolute(filename);
+  FILE * retval = fopen(temp, mode);
+
+  free(temp);
+
+  return retval;
+}
+
+void fsetfileinfo_absolute(
+  const char *filename,
+  unsigned long newcreator,
+  unsigned long newtype
+) {
+  char* temp = makeAbsolute(filename);
+  fsetfileinfo(temp, newcreator, newtype);
+  free(temp);
 }
 
 void terminate() {

@@ -195,12 +195,18 @@
   #undef ENC_OUTPUT
   #if TARGET_API_MAC_CARBON
     FILE *fopen_mac(const char *filename, const char *mode);
+    void fsetfileinfo_absolute(
+      const char *filename,
+      unsigned long newcreator,
+      unsigned long newtype
+    );
     #define fopen fopen_mac
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_UTF16BE
   #else
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_MAC
+    #define fsetfileinfo_absolute fsetfileinfo
   #endif
 #endif
 

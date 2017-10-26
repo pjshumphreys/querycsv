@@ -155,8 +155,7 @@ resource 'STR#' (kErrStrings, purgeable) {
     "Cannot set the style you specified";
     "Cannot set the justification you specified";
     "Cannot dispose the Textension font menu object";
-    "Cannot set the word wrap option you specified";
-    "QueryCSV"
+    "Cannot set the word wrap option you specified"
   }
 };
 
