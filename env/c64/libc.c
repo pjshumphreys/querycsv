@@ -89,7 +89,7 @@ int foobar(char *string, char* format, ...) {
 }
 
 int main(int argc, char**argv) {
-  char *string;
+  char *string = NULL;
   foobar(string, fmt);
   return 0;
 }

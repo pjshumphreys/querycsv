@@ -1,7 +1,7 @@
 #include "querycsv.h"
 
 char *strReplace(char *search, char *replace, char *subject) {
-  char *replaced = (char*)calloc(1, 1), *temp = NULL;
+  char *replaced, *temp = NULL;
   char *p = subject, *p3 = subject, *p2;
   int found = 0;
 
@@ -17,6 +17,8 @@ char *strReplace(char *search, char *replace, char *subject) {
     ) {
     return NULL;
   }
+
+  replaced = (char*)calloc(1, 1);
 
   while((p = strstr(p, search)) != NULL) {
     found = 1;
