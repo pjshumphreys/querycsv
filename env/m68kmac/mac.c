@@ -1748,9 +1748,9 @@ void openFileDialog(void) {
 
   if(reply.good && SetVol(NULL, reply.vRefNum) == noErr) {
     //SFReply.fName is a STR63, plus 1 for the null character
-    reallocMsg(&progArg, 64);
+    reallocMsg((void **)&progArg, 64);
     p2cstrcpy(progArg, reply.fName);
-    reallocMsg(&progArg, strlen(progArg)+1);
+    reallocMsg((void **)&progArg, strlen(progArg)+1);
 
     windowNotOpen = FALSE;
   }

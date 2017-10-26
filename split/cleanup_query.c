@@ -32,11 +32,11 @@ void cleanup_query(struct qryData *query) {
             TODO: the filenames need to be transformed to absolute
             one in the same way as fopen_mac
           */
-          fsetfileinfo_absolute(query->outputFile, 'SUE ', 'utxt');
+          fsetfileinfo_absolute(query->outputFileName, 'SUE ', 'utxt');
         } break;
 
         default: {
-          fsetfileinfo_absolute(query->outputFile, 'SUE ', 'TEXT');
+          fsetfileinfo_absolute(query->outputFileName, 'SUE ', 'TEXT');
         }
       }
     #endif
