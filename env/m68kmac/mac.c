@@ -755,60 +755,6 @@ void saveWindow(WindowPtr window) {
   WriteResource(wind);
 }
 
-void adjustCursor(Point mouse, RgnHandle region) {
-  WindowPtr window = FrontWindow();
-  RgnHandle arrowRgn;
-  RgnHandle iBeamRgn;
-  Rect      iBeamRect;
-
-  if(isApplicationWindow(window)) {
-    //calculate regions for different cursor shapes
-    arrowRgn = NewRgn();
-    iBeamRgn = NewRgn();
-
-    //start arrowRgn wide open
-    SetRectRgn(arrowRgn, kExtremeNeg, kExtremeNeg, kExtremePos, kExtremePos);
-
-    //calculate iBeamRgn
-    if(isApplicationWindow(window)) {
-      iBeamRect = (*getTEHandle(window))->viewRect;
-
-      SetPort(window);        //make a global version of the viewRect
-
-      LocalToGlobal(&(*(Point *)&(iBeamRect).top));
-      LocalToGlobal(&(*(Point *)&(iBeamRect).bottom));
-      RectRgn(iBeamRgn, &iBeamRect);
-
-      //we temporarily change the port's origin to 'globalfy' the visRgn
-      SetOrigin(-window->portBits.bounds.left, -window->portBits.bounds.top);
-      SectRgn(iBeamRgn, window->visRgn, iBeamRgn);
-      SetOrigin(0, 0);
-    }
-
-    //subtract other regions from arrowRgn
-    DiffRgn(arrowRgn, iBeamRgn, arrowRgn);
-
-    //change the cursor and the region parameter
-    if(PtInRgn(mouse, iBeamRgn)) {
-      SetCursor(*GetCursor(iBeamCursor));
-      CopyRgn(iBeamRgn, region);
-    }
-    else {
-      SetCursor(&qd.arrow);
-      CopyRgn(arrowRgn, region);
-    }
-
-    DisposeRgn(arrowRgn);
-    DisposeRgn(iBeamRgn);
-  }
-}
-
-int isSelectionEmpty(void) {
-  TEHandle te = getTEHandle(mainWindowPtr);
-
-  return (*te)->selStart >= (*te)->selEnd;
-}
-
 void adjustTE(WindowPtr window) {
   TEHandle handle = getTEHandle(window);
   TEPtr te = *handle;
@@ -1087,6 +1033,61 @@ pascal void HActionProc(ControlHandle control, short part) {
   }
 }
 
+
+void adjustCursor(Point mouse, RgnHandle region) {
+  WindowPtr window = FrontWindow();
+  RgnHandle arrowRgn;
+  RgnHandle iBeamRgn;
+  Rect      iBeamRect;
+
+  if(isApplicationWindow(window)) {
+    //calculate regions for different cursor shapes
+    arrowRgn = NewRgn();
+    iBeamRgn = NewRgn();
+
+    //start arrowRgn wide open
+    SetRectRgn(arrowRgn, kExtremeNeg, kExtremeNeg, kExtremePos, kExtremePos);
+
+    //calculate iBeamRgn
+    if(isApplicationWindow(window)) {
+      iBeamRect = (*getTEHandle(window))->viewRect;
+
+      SetPort(window);        //make a global version of the viewRect
+
+      LocalToGlobal(&(*(Point *)&(iBeamRect).top));
+      LocalToGlobal(&(*(Point *)&(iBeamRect).bottom));
+      RectRgn(iBeamRgn, &iBeamRect);
+
+      //we temporarily change the port's origin to 'globalfy' the visRgn
+      SetOrigin(-window->portBits.bounds.left, -window->portBits.bounds.top);
+      SectRgn(iBeamRgn, window->visRgn, iBeamRgn);
+      SetOrigin(0, 0);
+    }
+
+    //subtract other regions from arrowRgn
+    DiffRgn(arrowRgn, iBeamRgn, arrowRgn);
+
+    //change the cursor and the region parameter
+    if(PtInRgn(mouse, iBeamRgn)) {
+      SetCursor(*GetCursor(iBeamCursor));
+      CopyRgn(iBeamRgn, region);
+    }
+    else {
+      SetCursor(&qd.arrow);
+      CopyRgn(arrowRgn, region);
+    }
+
+    DisposeRgn(arrowRgn);
+    DisposeRgn(iBeamRgn);
+  }
+}
+
+int isSelectionEmpty(void) {
+  TEHandle te = getTEHandle(mainWindowPtr);
+
+  return (*te)->selStart >= (*te)->selEnd;
+}
+
 void contentClick(WindowPtr window, EventRecord *event) {
   Point           mouse;
   ControlHandle   control;
@@ -1237,6 +1238,8 @@ int openWindow(void) {
 
   //Attempt to allocate some memory to bind the generic window to TextEdit functionality
   if((storage = NewPtr(sizeof(DocumentRecord))) == NULL) {
+    alertUser(eNoWindow);
+
     return FALSE;
   }
 
@@ -1723,6 +1726,8 @@ void macYield(void) {
 
   if(quit) {
     terminate();
+
+    ExitToShell();
   }
 }
 
@@ -1917,11 +1922,7 @@ int fputs_mac(const char *str, FILE *stream) {
     len = fputs(str, stream);
   }
 
-  loopTick();
-
-  if(quit) {
-    terminate();
-  }
+  macYield();
 
   return len;
 }
@@ -1964,24 +1965,15 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
 
     free(newStr);
 
-    loopTick(); // get one event
-
-    if(quit) {
-      terminate();
-    }
-
-    return newSize-1;
+    retval = newSize-1;
+  }
+  else {
+    va_start(args, format);
+    retval = vfprintf(stream, format, args);
+    va_end(args);
   }
 
-  va_start(args, format);
-  retval = vfprintf(stream, format, args);
-  va_end(args);
-
-  loopTick(); // get one event
-
-  if(quit) {
-    terminate();
-  }
+  macYield();
 
   return retval;
 }
@@ -1998,8 +1990,6 @@ void terminate() {
   #if TARGET_API_MAC_CARBON
     TXNTerminateTextension();
   #endif
-
-  ExitToShell();
 }
 
 int main(void) {

@@ -809,6 +809,31 @@ void saveWindow(WindowPtr window) {
 
   WriteResource(wind);
 }
+void setupMLTE(void) {
+  OSStatus status;
+  TXNMacOSPreferredFontDescription defaults;
+
+  if(TXNVersionInformation == (void*)kUnresolvedCFragSymbolAddress) {
+    BigBadError(eWrongSystem);
+  }
+
+  defaults.fontID = kTXNDefaultFontName;
+  defaults.pointSize = kTXNDefaultFontSize;
+
+  defaults.encoding = CreateTextEncoding(
+    kTextEncodingUnicodeV3_2,
+    kTextEncodingDefaultVariant,
+    kTextEncodingDefaultFormat
+  );
+
+  defaults.fontStyle = kTXNDefaultFontStyle;
+
+  status = TXNInitTextension(&defaults, 1, 0L);
+
+  if(status != noErr) {
+    BigBadError(eNoMLTE);
+  }
+}
 
 void adjustCursor(Point mouse, RgnHandle region) {
   WindowPtr window = FrontWindow();
@@ -838,6 +863,7 @@ void closeWindow(WindowPtr window) {
 
   if(isApplicationWindow(window)) {
     TXNDeleteObject(*getTXNObject(window, &object));
+
     DisposeWindow(window);
   }
 }
@@ -895,34 +921,36 @@ int openWindow(void) {
     NULL
   );
 
+  if(object == NULL) {
+    status = notEnoughMemoryErr;
+  }
+
   if(status == noErr) {
     status = TXNAttachObjectToWindow(object, (GWorldPtr)window, TRUE);
+  }
+
+  if(status != noErr) {
+    alertUser(eNoAttachObjectToWindow);
+  }
+
+  if(status == noErr) {
+    status = TXNActivate(object, frameID, kScrollBarsAlwaysActive);
 
     if(status != noErr) {
-      alertUser(eNoAttachObjectToWindow);
+      alertUser(eNoActivate);
     }
   }
 
   if(status == noErr) {
-    if(object != NULL) {
-      Boolean isAttached;
+    status = SetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), &frameID);
+    status = SetWindowProperty(window, 'GRIT', 'tObj', sizeof(TXNObject), &object);
 
-      status = TXNActivate(object, frameID, kScrollBarsAlwaysActive);
-
-      if(status != noErr) {
-        alertUser(eNoActivate);
-      }
-
-      status = SetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), &frameID);
-      status = SetWindowProperty(window, 'GRIT', 'tObj', sizeof(TXNObject), &object);
-
-      isAttached = TXNIsObjectAttachedToWindow(object);
-
-      if(!isAttached) {
-        alertUser(eObjectNotAttachedToWindow);
-      }
+    if(status != noErr || !TXNIsObjectAttachedToWindow(object)) {
+      alertUser(eObjectNotAttachedToWindow);
     }
+  }
 
+  if(status == noErr) {
     if(windowZoomed) {
       zoomWindow(window, inZoomOut);
     }
@@ -935,7 +963,12 @@ int openWindow(void) {
 
   //Something failed in the window creation process.
   //Clean up then tell the user what happened
-  closeWindow(window);
+  DisposeWindow(window);
+
+  if(object) {
+    TXNDeleteObject(object);
+  }
+
   alertUser(eNoWindow);
 
   return FALSE;
@@ -968,18 +1001,16 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
   TXNObject object;
 
   if(isApplicationWindow(window)) {
-    getTXNObject(window, &object);
-
     GetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), NULL, &frameID);
 
     if(becomingActive) {
       mainWindowPtr = window;
 
-      TXNActivate(object, frameID, kScrollBarsAlwaysActive);
+      TXNActivate(*getTXNObject(window, &object), frameID, kScrollBarsAlwaysActive);
       adjustMenus(FALSE);
     }
     else {
-      TXNActivate(object, frameID, kScrollBarsSyncWithFocus);
+      TXNActivate(*getTXNObject(window, &object), frameID, kScrollBarsSyncWithFocus);
     }
 
     TXNFocus(object, becomingActive);
@@ -1010,6 +1041,8 @@ void setFont(SInt16 menuItem) {
   GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
 
   if(mainWindowPtr) {
+    getTXNObject(mainWindowPtr, &object);
+
     GetFNum(fontName, &res);
 
     typeAttr[0].tag = kTXNQDFontFamilyIDAttribute;
@@ -1017,7 +1050,7 @@ void setFont(SInt16 menuItem) {
     typeAttr[0].data.dataValue = res;
 
     TXNSetTypeAttributes(
-      *getTXNObject(mainWindowPtr, &object),
+      object,
       1,
       typeAttr,
       kTXNStartOffset,
@@ -1054,12 +1087,14 @@ void setFontSize(SInt16 menuItem) {
   fontSizeIndex = menuItem;
 
   if(mainWindowPtr) {
+    getTXNObject(mainWindowPtr, &object);
+
     typeAttr[0].tag = kTXNQDFontSizeAttribute;
     typeAttr[0].size = kTXNQDFontSizeAttributeSize;
     typeAttr[0].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
     TXNSetTypeAttributes(
-      *getTXNObject(mainWindowPtr, &object),
+      object,
       1,
       typeAttr,
       kTXNStartOffset,
@@ -1308,6 +1343,8 @@ void macYield(void) {
 
   if(quit) {
     terminate();
+
+    ExitToShell();
   }
 }
 
@@ -1720,11 +1757,7 @@ int fputs_mac(const char *str, FILE *stream) {
     len = fputs(str, stream);
   }
 
-  loopTick();
-
-  if(quit) {
-    terminate();
-  }
+  macYield();
 
   return len;
 }
@@ -1767,24 +1800,15 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
 
     free(newStr);
 
-    loopTick(); // get one event
-
-    if(quit) {
-      terminate();
-    }
-
-    return newSize-1;
+    retval = newSize-1;
+  }
+  else {
+    va_start(args, format);
+    retval = vfprintf(stream, format, args);
+    va_end(args);
   }
 
-  va_start(args, format);
-  retval = vfprintf(stream, format, args);
-  va_end(args);
-
-  loopTick(); // get one event
-
-  if(quit) {
-    terminate();
-  }
+  macYield();
 
   return retval;
 }
@@ -1880,32 +1904,6 @@ FILE *fopen_mac(const char *filename, const char *mode) {
   return retval;
 }
 
-void setupMLTE(void) {
-  OSStatus status;
-  TXNMacOSPreferredFontDescription defaults;
-
-  if(TXNVersionInformation == (void*)kUnresolvedCFragSymbolAddress) {
-    BigBadError(eWrongSystem);
-  }
-
-  defaults.fontID = kTXNDefaultFontName;
-  defaults.pointSize = kTXNDefaultFontSize;
-
-  defaults.encoding = CreateTextEncoding(
-    kTextEncodingUnicodeV3_2,
-    kTextEncodingDefaultVariant,
-    kTextEncodingDefaultFormat
-  );
-
-  defaults.fontStyle = kTXNDefaultFontStyle;
-
-  status = TXNInitTextension(&defaults, 1, 0L);
-
-  if(status != noErr) {
-    BigBadError(eNoMLTE);
-  }
-}
-
 void terminate() {
   WindowPtr window = FrontWindow();
 
@@ -1918,8 +1916,6 @@ void terminate() {
   #if TARGET_API_MAC_CARBON
     TXNTerminateTextension();
   #endif
-
-  ExitToShell();
 }
 
 int main(void) {
