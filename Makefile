@@ -68,6 +68,8 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	cd env/powermac; unix2mac *
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/amiga/ \;
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/amiga/ \;
+	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/atarist/ \;
+	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/atarist/ \;
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/riscos/c/ \;
 	mkdir -p env/riscos/h
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;
@@ -99,6 +101,7 @@ clean:
 	find ./env/riscos/launcher/c -name "runimage" -exec mv {} env/riscos/launcher/c/runimage.c \;
 	cd env/riscos/h; find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/amiga; rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
+	cd env/atarist; rm -rf querycsv.prg; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './atarist.c' -exec rm -rf {} \;
 
 .PHONY: all
 .PHONY: count

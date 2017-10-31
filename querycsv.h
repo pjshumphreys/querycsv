@@ -8,7 +8,6 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
-#include <locale.h>
 #include <time.h>
 
 /* translatable strings */
@@ -90,6 +89,7 @@
 #define ENC_UTF32BE 11
 #define ENC_CP1047 12
 #define ENC_PETSCII 13
+#define ENC_ATARIST 14
 #define ENC_INPUT ENC_UTF8
 #define ENC_OUTPUT ENC_UTF8
 #define ENC_PRINT ENC_UTF8
@@ -97,31 +97,46 @@
 /* macro used to help prevent double freeing of heap data */
 #define freeAndZero(p) { free(p); p = 0; }
 
+/* this macro was intended to facilitate multi tasking on classic mac os,
+but hasn't actually been needed up to now. It's being kept just in case
+it becomes needed */
+#define MAC_YIELD
+
 /* ugly hacks to raise the game of cc65 */
 #ifndef __CC65__
   #define __fastcall__ /* do nothing */
 
-  /* duplicates of the macros in cc65-floatlib that just use the native floating point support */
+  /* duplicates of the macros in cc65-floatlib that just use the
+  native floating point support */
   #define fadd(_f,_a) ((_f)+(_a))
   #define fsub(_f,_a) ((_f)-(_a))
   #define fmul(_f,_a) ((_f)*(_a))
   #define fdiv(_f,_a) ((_f)/(_a))
   #define fcmp(_d,_s) ((_d)!=(_s))
   #define ctof(_s) ((double)(_s))
-  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to convert doubles to strings */
+  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
+  convert doubles to strings */
   #define fneg(_f) ((_f)*(-1))
 
   #define in_word_set_a in_word_set_ai
   #define in_word_set_b in_word_set_bi
   #define in_word_set_c in_word_set_ci
 #else
-  #define MAC_YIELD
-  #define HAS_VSNPRINTF
-  #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii to ascii. We'll convert our output strings ourselves */
-  #include "floatlib/float.h" /* fudges kinda support for floating point into cc65 by utilising functionality in the c64 basic rom */
-  #define ftostr(_d,_a) { reallocMsg((void**)_d, 33); _ftostr(*(_d), _a); reallocMsg((void**)_d, strlen(*(_d)) + 1); } /* the _ftostr function in cc65-floatlib seems to output at most 32 characters */
+  #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii
+  to ascii. We'll convert our output strings ourselves */
+  #include "floatlib/float.h" /* fudges kinda support for floating point
+  into cc65 by utilising functionality in the c64 basic rom */
+  #define ftostr(_d,_a) { \
+    reallocMsg((void**)_d, 33); \
+    _ftostr(*(_d), _a); \
+    reallocMsg((void**)_d, strlen(*(_d)) + 1); \
+    } /* the _ftostr function in cc65-floatlib seems to output at
+    most 32 characters */
   #define fneg(_d) _fneg(_d) 
-  double strtod(const char* str, char** endptr);  /* cc65 doesn't have strtod (as it doesn't have built in floating point number support). We supply our own implementation that provides the same semantics but uses cc65-floatlib */
+  double strtod(const char* str, char** endptr);  /* cc65 doesn't
+  have strtod (as it doesn't have built in floating point number support).
+  We supply our own implementation that provides the same semantics but
+  uses cc65-floatlib */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -138,9 +153,9 @@
     int vsnprintf(char *s, size_t n, const char *format, va_list arg);
   #endif
 
-  #define MAC_YIELD
   #ifndef __WATCOMC__
-    #define HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+    #define HAS_VSNPRINTF   /* this function intentionally never works
+    properly on watcom (for source compatability with the windows version) */
   #endif
 
   /* used as posix doesn't have stricmp */
@@ -149,8 +164,6 @@
 #endif
 
 #ifdef MICROSOFT
-  #define MAC_YIELD
-
   #ifdef WINDOWS
     void setupWin32(int * argc, char *** argv);
     int fputs_w32(const char *str, FILE *stream);
@@ -160,8 +173,11 @@
     #define fputs fputs_w32
     #define fopen fopen_w32
     #define fprintf fprintf_w32
-    #define YYFPRINTF fprintf_w32   //for the bison parser
+    #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
+    #include <locale.h>  /*we need to call setlocale after setting the
+    TZ environment variable for gmtime to work correctly on msdos watcom*/
+
     #undef ENC_INPUT
     #undef ENC_OUTPUT
     #undef ENC_PRINT
@@ -172,24 +188,23 @@
 #endif
 
 #ifdef MPW_C
-  void macYield(void);
-  #define MAC_YIELD /*
-  macYield();
-  */
+  /* void macYield(void);
+  #define MAC_YIELD macYield(); */
   #define YY_NO_UNISTD_H 1
   /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__
-    #undef stricmp   /* this function is available on windows but doesn't work properly there */
-    #undef HAS_VSNPRINTF   /* this function is available on windows but doesn't work properly there */
+    #undef stricmp
+    int stricmp(const char *str1, const char *str2);
   #endif
 
   int fputs_mac(const char *str, FILE *stream);
   int fprintf_mac(FILE *stream, const char *format, ...);
   #define fputs fputs_mac
   #define fprintf fprintf_mac
-  #define YYFPRINTF fprintf_mac   //for the bison parser
+  #define YYFPRINTF fprintf_mac   /* for the bison parser */
 
-  #define main realmain /*macs need to do pre and post handling, but SIO (which I previously used) doesn't seem to work with Carbon */
+  #define main realmain /*macs need to do pre and post handling, but
+  SIO (which I previously used) doesn't seem to work with Carbon */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -211,12 +226,13 @@
 #endif
 
 #ifdef __CC_NORCROFT
-  #define MAC_YIELD
   #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF       /* Norcroft is not a brain dead compiler */
-  #include <errno.h>      /* <errno.h> only has definitions for a small number of error types */
-  #include <unixlib.h>        /* for strcasecmp */
+  #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
+  #include <errno.h>      /* re-include manually to use the tcpip libs errno */
+  #include <unixlib.h>    /* for strcasecmp */
+
   #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+
   void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
   FILE *fopen_ros(const char *filename, const char *mode);
   #define fopen fopen_ros
@@ -228,18 +244,37 @@
 #endif
 
 #ifdef __VBCC__
-  #define MAC_YIELD
-  #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF
-  void setupAmiga(int* argc, char*** argv);
-  #include <clib/utility_protos.h>
+#endif
+
+#ifdef AMIGA
+  #define YY_NO_UNISTD_H 1
+  #include <clib/utility_protos.h> /* for Stricmp */
   #define stricmp Stricmp
-  #define main realmain   /* We need to define our own main function as VBCC seems to be doing something automagical with the main function specifically in regard to WBStartup */
+
+  #define main realmain   /* We need to define our own main function as
+  VBCC seems to be doing something automagical with the main function
+  specifically in regard to WBStartup */
 
   #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252
   #undef ENC_PRINT
   #define ENC_PRINT ENC_CP1252
+#endif
+
+#ifdef ATARI
+  #define YY_NO_UNISTD_H 1
+  int stricmp(const char *str1, const char *str2); /* atari st computers
+  don't have stricmp, so we provide our own implementation */
+
+  #define main realmain   /* as the atari st by default has no command line
+  user interface and can only perform co-operative multitasking via desk
+  accesories, we need to run some code before the "main" function */
+
+  #undef ENC_OUTPUT
+  #define ENC_OUTPUT ENC_ATARIST
+  #undef ENC_PRINT
+  #define ENC_PRINT ENC_ATARIST
 #endif
 
 /* structures */

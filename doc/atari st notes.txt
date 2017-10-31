@@ -2,6 +2,8 @@ what is hatari (emulator of the atari st hardware)
 what is emutos (open source clone of everything on the original atari rom)
 
 what is line-a (low level atari specific graphics functions?)
+so called because it uses the line-a unimplemented m68k instruction exception
+
 what is mint (unix compatability layer like unixlib on riscos? non rom enhanced xbios/gemdos?)
 
 

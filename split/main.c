@@ -27,12 +27,27 @@ int main(int argc, char *argv[]) {
     #endif
   #else
     #ifdef __WATCOMC__
+      /* On the linux version of watcom vsnprintf still
+      works as it does on WIN32/MSDOS (i.e. it's broken). fall back to the
+      fprintf approach */
       devNull = "/dev/null";
     #endif
-  #endif
 
-  #ifdef __CC_NORCROFT
-    setupRiscOS(&argc2, &argv2);
+    #ifndef __VBCC__
+      /* These are't needed when compiling with vbcc as that has vsnprintf */
+
+      #ifdef ATARI
+        devNull = "NUL";  /* null filename on Atari TOS.*/
+      #endif
+
+      #ifdef AMIGA
+        devNull = "Nil:";  /* null filename on Amiga OS.*/
+      #endif
+    #endif
+
+    #ifdef __CC_NORCROFT
+      setupRiscOS(&argc2, &argv2);
+    #endif
   #endif
 
   /* identify whether to run a script or display the usage message */
