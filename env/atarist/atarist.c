@@ -33,6 +33,12 @@ int stricmp(const char *str1, const char *str2) {
 }
 
 int main(int argc, char** argv) {
+  int retval = realmain(argc, argv);
+  int x;
 
-  return realmain(argc, argv);
+  fputs("\nPress any key to continue\n", stdout);
+
+  x = Crawcin();
+
+  return retval;
 }

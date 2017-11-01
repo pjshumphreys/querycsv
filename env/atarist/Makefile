@@ -7,13 +7,13 @@ INCFLAGS =
 LDFLAGS = -DATARI
 LIBS = +tos -lgem -lm
 
-all: querycsv.prg
+all: querycsv.ttp
 
-querycsv.prg: $(SOURCES)
-	$(CC) $(INCFLAGS) $(LDFLAGS) $(LIBS) -o querycsv.prg $(SOURCES)
+querycsv.ttp: $(SOURCES)
+	$(CC) $(INCFLAGS) $(LDFLAGS) $(LIBS) -o querycsv.ttp $(SOURCES)
 
 clean:
-	rm -f querycsv.prg
+	rm -f querycsv.ttp
 
 .PHONY: all
 .PHONY: clean

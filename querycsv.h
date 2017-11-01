@@ -458,6 +458,7 @@ struct codepointToByte {
   unsigned short codepoint;
   char byte;
 };
+
 struct codepointToBytes {
   unsigned short codepoint;
   char cp437;
