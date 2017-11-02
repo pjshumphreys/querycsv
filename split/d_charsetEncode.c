@@ -37,6 +37,10 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       getBytes = getBytesCP1047;
     } break;
 
+    case ENC_ATARIST: {
+      getBytes = getBytesAtariST;
+    } break;
+
     case ENC_UTF16LE: {
       getBytes = getBytesUtf16Le;
       bytes = (char *)utf16Bytes;

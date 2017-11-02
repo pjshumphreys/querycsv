@@ -87,6 +87,10 @@ int parse_encoding2(
     return ENC_PETSCII;
   }
 
+  else if(stricmp("atarist", encoding) == 0) {
+    return ENC_ATARIST;
+  }
+
   fprintf(stderr, "unsupported encoding %s\n", encoding);
 
   return ENC_UNSUPPORTED;

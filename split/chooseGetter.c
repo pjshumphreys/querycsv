@@ -48,6 +48,10 @@ void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
     case ENC_MAC: {
       return &getCodepointsMac;
     } break;
+
+    case ENC_ATARIST: {
+      return &getCodepointsAtariST;
+    } break;
   }
 
   /* if all else fails, just try using
