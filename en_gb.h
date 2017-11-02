@@ -15,4 +15,4 @@
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
 #define TDB_UNTITLED_COLUMN "_Column %d", queryData->columnCount
 #define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename]"
-
+#define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"

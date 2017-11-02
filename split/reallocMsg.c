@@ -6,15 +6,17 @@ void reallocMsg(void **mem, size_t size) {
   MAC_YIELD
 
   if(mem != NULL) {
-    if(
-        (*mem == NULL && (temp = calloc(1, size)) == NULL) ||
-        (temp = realloc(*mem, size)) == NULL
-    ) {
+    temp = realloc(*mem, size);
+
+    if(temp == NULL) {
       fputs(TDB_MALLOC_FAILED, stderr);
       exit(EXIT_FAILURE);
     }
 
     *mem = temp;
+  }
+  else {
+    fputs(TDB_INVALID_REALLOC, stderr);
   }
 }
 

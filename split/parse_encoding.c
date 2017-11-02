@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-int parse_encoding(
+int parse_encoding2(
     struct qryData *queryData,
     char *encoding
   ) {
@@ -90,4 +90,15 @@ int parse_encoding(
   fprintf(stderr, "unsupported encoding %s\n", encoding);
 
   return ENC_UNSUPPORTED;
+}
+
+int parse_encoding(
+    struct qryData *queryData,
+    char *encoding
+  ) {
+  int retval = parse_encoding2(queryData, encoding);
+
+  free(encoding);
+
+  return retval;
 }
