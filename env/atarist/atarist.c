@@ -33,8 +33,12 @@ int stricmp(const char *str1, const char *str2) {
 }
 
 int main(int argc, char** argv) {
-  int retval = realmain(argc, argv);
+  int retval;
   int x;
+
+  devNull = "NUL";  /* null filename on Atari TOS */
+
+  retval = realmain(argc, argv);
 
   fputs("\nPress any key to continue\n", stdout);
 

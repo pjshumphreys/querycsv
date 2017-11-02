@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   int idx;
   FILE* fp;
 
-  devNull = "Nil:";  /* null filename on DOS/Windows */
+  devNull = "Nil:";  /* null filename on Amiga OS */
 
   if(argc != 0) {
     return realmain(argc, argv);

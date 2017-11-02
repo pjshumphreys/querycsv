@@ -33,18 +33,6 @@ int main(int argc, char *argv[]) {
       devNull = "/dev/null";
     #endif
 
-    #ifndef __VBCC__
-      /* These are't needed when compiling with vbcc as that has vsnprintf */
-
-      #ifdef ATARI
-        devNull = "NUL";  /* null filename on Atari TOS.*/
-      #endif
-
-      #ifdef AMIGA
-        devNull = "Nil:";  /* null filename on Amiga OS.*/
-      #endif
-    #endif
-
     #ifdef __CC_NORCROFT
       setupRiscOS(&argc2, &argv2);
     #endif
