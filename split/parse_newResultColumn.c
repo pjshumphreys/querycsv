@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-struct resultColumn *parse_newOutputColumn(
+struct resultColumn *parse_newResultColumn(
     struct qryData *queryData,
     int isHidden2,
     int isCalculated2,

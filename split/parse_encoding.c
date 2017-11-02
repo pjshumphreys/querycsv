@@ -10,7 +10,6 @@ int parse_encoding(
 
   if(mystrnicmp("utf", encoding, 3) == 0) {
     matcher = encoding + 3;
-    encoding += 3;
 
     if(mystrnicmp("-", matcher, 1) == 0) {
       matcher += 1;

@@ -61,7 +61,7 @@ int parse_columnRefUnsuccessful(
     ) {
     /* attach this output column reference to the input table column, so we'll */
     /* know where to output it when running the query */
-    currentReference->reference.columnPtr->firstResultColumn = parse_newOutputColumn(
+    currentReference->reference.columnPtr->firstResultColumn = parse_newResultColumn(
         queryData,
         /*isHidden = */TRUE,
         /*isCalculated = */FALSE,

@@ -9,6 +9,7 @@ void cleanup_inputTables(struct inputTable *currentInputTable) {
     next = currentInputTable->nextInputTable;
 
     free(currentInputTable->queryTableName);
+    free(currentInputTable->fileName);
     fclose(currentInputTable->fileStream);
     free(currentInputTable);
 

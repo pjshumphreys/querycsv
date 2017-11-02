@@ -61,8 +61,7 @@ typedef void* yyscan_t;
 %token <strval> NAME STRING
 %token <strval> INTNUM
 %token <intval> APPROXNUM /* floatval*/
-%type <strval> optional_as_name literal
-%type <strval> command_types
+%type <strval> optional_as_name literal command_types
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding
 %type <expressionPtr> scalar_exp search_condition predicate function_ref

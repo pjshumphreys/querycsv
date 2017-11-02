@@ -129,11 +129,12 @@ struct resultColumn *parse_expCommaList(
           return queryData->firstResultColumn;
         }
 
-        /* if the next column instance is null then this input column is not yet in the result set */
-        /* or we may need to output the same input column multiple times, */
-        /* so create a new output column copy then break the loop */
+        /* if the next column instance is null then this input column is
+        not yet in the result set or we may need to output the same input
+        column multiple times, so create a new output column copy then
+        break the loop */
         if(newResultColumn->nextColumnInstance == NULL) {
-          newResultColumn->nextColumnInstance = parse_newOutputColumn(
+          newResultColumn->nextColumnInstance = parse_newResultColumn(
               queryData,
               /*isHidden = */FALSE,
               /*isCalculated = */FALSE,
@@ -157,7 +158,7 @@ struct resultColumn *parse_expCommaList(
     /* add another column to the result set, marking it as being calculated if it refers to an expression */
     /* make it hidden if makeHidden is true (e.g. when the expression will be used in an aggregation) */
     else {
-      newReference->reference.calculatedPtr.firstResultColumn = parse_newOutputColumn(
+      newReference->reference.calculatedPtr.firstResultColumn = parse_newResultColumn(
           queryData,
           /*isHidden = */aggregationType != GRP_NONE,
           /*isCalculated = */TRUE,
