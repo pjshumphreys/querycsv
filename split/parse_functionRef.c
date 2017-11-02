@@ -5,8 +5,7 @@ struct expression *parse_functionRef(
     long aggregationType,
     struct expression *expressionPtr,
     int isDistinct
-  ) {
-
+) {
   struct expression *expressionPtr2 = NULL;
   struct resultColumn *columnPtr = NULL;
 

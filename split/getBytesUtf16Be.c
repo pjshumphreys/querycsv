@@ -1,15 +1,15 @@
 #include "querycsv.h"
 
 void getBytesUtf16Be(
-  long codepoint,
-  char **bytes,
-  int *byteLength
+    long codepoint,
+    char **bytes,
+    int *byteLength
 ) {
   short highSurrogate;
   short lowSurrogate;
 
   if(byteLength != NULL && bytes != NULL) {
-    if (codepoint < 0x10000) {
+    if(codepoint < 0x10000) {
       *byteLength = 2;
 
       (*bytes)[1] = codepoint & 0xFF;

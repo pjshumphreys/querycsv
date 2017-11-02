@@ -7,7 +7,7 @@ void getCodepointsCP1252(
     long *codepoints,
     int *arrLength,
     int *byteLength
-  ) {
+) {
   getCodepoints8Bit(
     stream,
     codepoints,

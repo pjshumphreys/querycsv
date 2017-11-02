@@ -27,11 +27,6 @@ void cleanup_query(struct qryData *query) {
           * SUE (the carbon version) is the only editor I know
           * that can read unicode text on macos 8.6 in practice.
           */
-
-          /*
-            TODO: the filenames need to be transformed to absolute
-            one in the same way as fopen_mac
-          */
           fsetfileinfo_absolute(query->outputFileName, 'SUE ', 'utxt');
         } break;
 

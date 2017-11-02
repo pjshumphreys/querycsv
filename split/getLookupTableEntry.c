@@ -8,7 +8,7 @@ struct hash4Entry *getLookupTableEntry(
     int *lastMatchedBytes,
     void (*get)(void),
     int firstChar
-  ) {
+) {
   struct hash4Entry *temp = NULL, *temp2 = NULL;
   int totalBytes = 0;
   int totalBytes2 = 0;

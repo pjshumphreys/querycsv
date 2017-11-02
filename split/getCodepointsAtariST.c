@@ -5,7 +5,7 @@ void getCodepointsAtariST(
     long *codepoints,
     int *arrLength,
     int *byteLength
-  ) {
+) {
   int c;
 
   long const atari[32] = {

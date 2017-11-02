@@ -4,7 +4,6 @@ void getGroupedColumns(struct qryData *query) {
   struct columnRefHashEntry *currentHashEntry;
   struct columnReference *currentReference;
   struct resultColumn *currentResultColumn;
-
   int i;
 
   MAC_YIELD

@@ -5,13 +5,12 @@ void outputResult(
     struct qryData *query,
     struct resultColumnValue *columns,
     int currentIndex
-  ) {
+) {
   struct resultColumn *currentResultColumn;
   struct resultColumnValue *field;
   int firstColumn = TRUE, j = 0;
   FILE *outputFile = query->outputFile;
   char *separator = (((query->params) & PRM_SPACE) != 0) ? "," : ", ";
-
   char *string = NULL;
   char *string2 = NULL;
 

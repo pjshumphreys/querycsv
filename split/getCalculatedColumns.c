@@ -4,8 +4,7 @@ void getCalculatedColumns(
     struct qryData *query,
     struct resultColumnValue *match,
     int runAggregates
-  ) {
-
+) {
   int i, j;
   struct columnReference *currentReference;
   struct resultColumn *currentResultColumn;

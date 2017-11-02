@@ -6,8 +6,7 @@ int strCompare(
     int caseSensitive,
     void (*get1)(void),
     void (*get2)(void)
-  ) {
-
+) {
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
   struct hash4Entry *entry1 = NULL, *entry2 = NULL;

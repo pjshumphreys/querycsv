@@ -5,8 +5,7 @@ void groupResultsInner(
     struct qryData *query,
     struct resultColumnValue *columns,
     int i
-  ) {
-
+) {
   struct resultColumnValue *previousMatch;
 
   MAC_YIELD

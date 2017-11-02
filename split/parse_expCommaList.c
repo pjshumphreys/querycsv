@@ -5,8 +5,7 @@ struct resultColumn *parse_expCommaList(
     struct expression *expressionPtr,
     char *resultColumnName,
     int aggregationType
-  ) {
-
+) {
   struct columnReference *currentReference = NULL;
   struct columnReference *newReference = NULL;
   struct columnReference *newReference2 = NULL;

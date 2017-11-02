@@ -216,10 +216,10 @@ const struct codepointToBytes codepointBytes[212] = {
 };
 
 void getBytesCP437(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
+    long codepoint,
+    char **bytes,
+    int *byteLength
+) {
   struct codepointToBytes *lookup;
   const char plAscii = 0x3f;
 
@@ -247,10 +247,10 @@ void getBytesCP437(
 }
 
 void getBytesCP850(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
+    long codepoint,
+    char **bytes,
+    int *byteLength
+) {
   struct codepointToBytes *lookup;
   const char plAscii = 0x3F;
 
@@ -278,10 +278,10 @@ void getBytesCP850(
 }
 
 void getBytesMac(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
+    long codepoint,
+    char **bytes,
+    int *byteLength
+) {
   struct codepointToBytes *lookup;
   const char plAscii = 0x3f;
 
@@ -309,10 +309,10 @@ void getBytesMac(
 }
 
 void getBytesCP1047(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
+    long codepoint,
+    char **bytes,
+    int *byteLength
+) {
   struct codepointToBytes *lookup;
   const char plEbcdic = 0x6f;
 

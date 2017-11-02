@@ -5,8 +5,7 @@ int walkRejectRecord(
     int currentTable,
     struct expression *expressionPtr,
     struct resultColumnParam *match
-  ) {
-
+) {
   int retval, i;
   struct atomEntry *currentAtom;
 

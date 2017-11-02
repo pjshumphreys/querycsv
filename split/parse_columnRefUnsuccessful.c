@@ -6,8 +6,7 @@ int parse_columnRefUnsuccessful(
     struct columnReference **result,
     char *tableName,
     char *columnName
-  ) {
-
+) {
   struct columnReference *currentReference = NULL;
 
   MAC_YIELD

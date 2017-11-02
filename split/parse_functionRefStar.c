@@ -3,8 +3,7 @@
 struct expression *parse_functionRefStar(
     struct qryData *queryData,
     long aggregationType
-  ) {
-
+) {
   MAC_YIELD
 
   if(queryData->parseMode != 1) {

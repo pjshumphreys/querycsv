@@ -12,8 +12,7 @@ void getCodepointsUTF8(
     long *codepoints,
     int *arrLength,
     int *byteLength
-  ) {
-
+) {
   int byteIndex = -1;
   int c;
 

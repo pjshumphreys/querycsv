@@ -1,7 +1,6 @@
 #include "querycsv.h"
 
-int getMatchingRecord(struct qryData *query, struct resultColumnValue *match)
-{
+int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   struct inputTable *currentInputTable;
   struct inputColumn *currentInputColumn;
   struct resultColumn *currentResultColumn;

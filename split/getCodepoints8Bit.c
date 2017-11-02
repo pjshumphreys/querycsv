@@ -6,7 +6,7 @@ void getCodepoints8Bit(
     int *arrLength,
     int *byteLength,
     long const *map
-  ) {
+) {
   int c;
 
   MAC_YIELD

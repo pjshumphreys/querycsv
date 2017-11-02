@@ -6,8 +6,7 @@ struct resultColumn *parse_newResultColumn(
     int isCalculated2,
     char *resultColumnName2,
     int aggregationType
-  ) {
-
+) {
   struct resultColumn *newResultColumn = NULL;
 
   MAC_YIELD

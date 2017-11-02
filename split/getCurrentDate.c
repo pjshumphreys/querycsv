@@ -3,7 +3,6 @@
 int getCurrentDate(struct qryData *query) {
   time_t now;
   struct tm local;
-
   char *output = NULL;
 
   MAC_YIELD

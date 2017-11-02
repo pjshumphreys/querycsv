@@ -9,8 +9,7 @@ long getUnicodeChar(
     int plusBytes,
     int *bytesMatched,
     void (*get)(void)
-  ) {
-
+) {
   struct hash2Entry* entry = NULL;
   int bytesread = 0;
   long codepoint;

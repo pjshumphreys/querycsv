@@ -8,17 +8,15 @@ int getCsvColumn(
     int *quotedValue,
     long *startPosition,
     int doTrim
-  ) {
+) {
   long codepoints[4];
   void (*getCodepoints)(FILE *, long *, int *, int *);
   int arrLength;
   int byteLength;
-
   int i;
   int c2;
   long c;
   int state = 0;
-
   char *tempString = NULL;
   size_t tempSize;
   int canEnd = TRUE;

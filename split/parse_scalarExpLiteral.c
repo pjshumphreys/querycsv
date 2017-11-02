@@ -3,8 +3,7 @@
 struct expression *parse_scalarExpLiteral(
     struct qryData *queryData,
     char *literal
-  ) {
-
+) {
   struct expression *expressionPtr = NULL;
 
   MAC_YIELD

@@ -3,8 +3,7 @@
 void cleanup_matchValues(
     struct qryData *query,
     struct resultColumnValue **match
-  ) {
-
+) {
   int i, len;
 
   MAC_YIELD

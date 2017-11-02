@@ -4,8 +4,7 @@ struct atomEntry *parse_atomCommaList(
     struct qryData *queryData,
     struct atomEntry *lastEntryPtr,
     char *newEntry
-  ) {
-
+) {
   struct atomEntry *newEntryPtr;
 
   MAC_YIELD

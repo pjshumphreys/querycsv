@@ -1,9 +1,6 @@
 #include "querycsv.h"
 
-int parse_encoding2(
-    struct qryData *queryData,
-    char *encoding
-  ) {
+int parse_encoding2(struct qryData *queryData, char *encoding) {
   char *matcher;
     
   MAC_YIELD

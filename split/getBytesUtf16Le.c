@@ -1,9 +1,9 @@
 #include "querycsv.h"
 
 void getBytesUtf16Le(
-  long codepoint,
-  char **bytes,
-  int *byteLength
+    long codepoint,
+    char **bytes,
+    int *byteLength
 ) {
   short highSurrogate;
   short lowSurrogate;

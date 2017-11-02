@@ -6,8 +6,7 @@ void parse_tableFactor(
     char *fileName,
     char *tableName,
     int fileEncoding
-  ) {
-
+) {
   FILE *csvFile;
   struct inputTable *newTable = NULL;
   struct columnReference *currentReference = NULL;

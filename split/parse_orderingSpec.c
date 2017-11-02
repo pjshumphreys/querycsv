@@ -4,8 +4,7 @@ void parse_orderingSpec(
     struct qryData *queryData,
     struct expression *expressionPtr,
     int isDescending
-  ) {
-
+) {
   struct sortingList *sortingListPtr = NULL;
 
   MAC_YIELD

@@ -5,7 +5,7 @@ void getCodepointsPetscii(
     long *codepoints,
     int *arrLength,
     int *byteLength
-  ) {
+) {
   int c;
 
   long const petscii[128] = {

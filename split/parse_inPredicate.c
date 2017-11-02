@@ -5,8 +5,7 @@ struct expression *parse_inPredicate(
     struct expression *leftPtr,
     int isNotIn,
     struct atomEntry *lastEntryPtr
-  ) {
-
+) {
   struct expression *expressionPtr = NULL;
 
   MAC_YIELD

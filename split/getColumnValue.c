@@ -5,8 +5,7 @@ int getColumnValue(
     char *inputFileName,
     long offset,
     int columnIndex
-  ) {
-
+) {
   FILE *inputFile = NULL;
   char *output = NULL;
   size_t strSize = 0;

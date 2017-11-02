@@ -4,8 +4,7 @@
 struct expression *parse_scalarExpColumnRef(
     struct qryData *queryData,
     struct columnReference *referencePtr
-  ) {
-
+) {
   struct expression *expressionPtr = NULL, *expressionColumnPtr;
   struct inputColumn *columnPtr = NULL;
 

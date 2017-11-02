@@ -5,7 +5,7 @@ void getCodepointsCP1047(
     long *codepoints,
     int *arrLength,
     int *byteLength
-  ) {
+) {
   int c;
 
   long const cp1047[256] = {

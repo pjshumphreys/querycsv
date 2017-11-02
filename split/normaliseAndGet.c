@@ -7,15 +7,12 @@ int normaliseAndGet(
     int *bytesMatched,
     int bytesRead,
     struct hash2Entry* entry
-  ) {
-
+) {
   int offsetInt = *offset - *str;
   unsigned char * nfdString = NULL;
   int nfdLength = offsetInt, i = 0, j;
-
   long * codepointBuffer = NULL;
   int bufferLength;
-
   long codepoint;
 
   /* if the allocation failed, print an error messge and exit */

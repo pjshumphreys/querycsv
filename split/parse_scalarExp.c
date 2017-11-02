@@ -5,8 +5,7 @@ struct expression *parse_scalarExp(
     struct expression *leftPtr,
     int operator,
     struct expression *rightPtr
-  ) {
-
+) {
   struct expression *expressionPtr = NULL;
 
   MAC_YIELD

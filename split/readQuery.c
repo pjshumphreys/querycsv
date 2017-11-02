@@ -2,16 +2,12 @@
 #include "sql.h"
 #include "lexer.h"
 
-int readQuery(
-    char *queryFileName,
-    struct qryData *query
-  ) {
+int readQuery(char *queryFileName, struct qryData *query) {
   FILE *queryFile = NULL;
   void *scanner;
   struct inputTable *currentInputTable;
   struct resultColumn *currentResultColumn;
   struct sortingList *currentSortingList;
-
   int initialEncoding = ENC_UNKNOWN;
   int inputTableIndex = 2;
   int parserReturn = 0;

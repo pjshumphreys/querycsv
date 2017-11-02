@@ -1,9 +1,7 @@
 
 #include "querycsv.h"
 
-void outputHeader(
-    struct qryData *query
-  ) {
+void outputHeader(struct qryData *query) {
   int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
   FILE *outputFile;

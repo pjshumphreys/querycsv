@@ -3,8 +3,7 @@
 void parse_groupingSpec(
     struct qryData *queryData,
     struct expression *expressionPtr
-  ) {
-
+) {
   struct sortingList *sortingListPtr = NULL;
 
   MAC_YIELD

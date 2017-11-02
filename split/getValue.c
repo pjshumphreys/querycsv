@@ -6,8 +6,7 @@
 void getValue(
     struct expression *expressionPtr,
     struct resultColumnParam *match
-  ) {
-
+) {
   struct expression *calculatedField;
   struct resultColumn *column;
   struct resultColumnValue *field;

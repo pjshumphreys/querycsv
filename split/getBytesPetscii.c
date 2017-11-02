@@ -1,10 +1,10 @@
 #include "querycsv.h"
 
 void getBytesPetscii(
-  long codepoint,
-  char **bytes,
-  int *byteLength
-  ) {
+    long codepoint,
+    char **bytes,
+    int *byteLength
+) {
   struct codepointToByte *lookup;
   const char plAscii = 0x3f;
 

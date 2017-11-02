@@ -4,8 +4,7 @@ int tree_insert(
     struct qryData *query,
     struct resultColumnValue *columns,
     struct resultTree **root
-  ) {
-
+) {
   struct resultTree *currentResult;
   struct resultTree *newResult;
   int comparison;
