@@ -2,7 +2,7 @@
 
 QueryCSV is a command line application to query files containing comma separated values \([csv files](https://en.wikipedia.org/wiki/Comma-separated_values)\) using files containing [sql](https://en.wikipedia.org/wiki/SQL)-like query syntax that supports unicode text data.
 
-Versions are available for posix based computer operating systems \(such as linux and Mac OS X\), HTML5 devices, Microsoft Windows, DOS, Classic Mac OS, Commodore Amigas, Arari STs and RISC OS. A version for the Commodore 64 is also in development.
+Versions are available for posix based computer operating systems \(such as linux and Mac OS X\), HTML5 devices, Microsoft Windows, DOS, Classic Mac OS, Commodore Amigas, Atari STs and RISC OS. A version for the Commodore 64 is also in development.
 
 ## Example usage
 
