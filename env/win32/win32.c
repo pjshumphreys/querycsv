@@ -84,7 +84,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
 
     //get the space needed for the new string
     va_start(args, format);
-    newSize = (size_t)(vfprintf(pFile, format, args)+1); //plus L'\0'
+    newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
     va_end(args);
 
     //close the file. We don't need to look at the return code as we were writing to /dev/null
@@ -92,7 +92,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
-    if((newStr = (char*)malloc(newSize*sizeof(char))) == NULL) {
+    if((newStr = (char*)malloc(newSize+1)) == NULL) {
       return FALSE;
     }
 

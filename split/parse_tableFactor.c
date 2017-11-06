@@ -10,8 +10,8 @@ void parse_tableFactor(
   FILE *csvFile;
   struct inputTable *newTable = NULL;
   struct columnReference *currentReference = NULL;
-  struct columnReference *newReference;
-  struct inputColumn *newColumn;
+  struct columnReference *newReference = NULL;
+  struct inputColumn *newColumn = NULL;
   char *columnText = NULL;
   size_t columnLength = 0;
   int recordContinues = TRUE;

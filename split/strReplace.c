@@ -22,7 +22,7 @@ char *strReplace(char *search, char *replace, char *subject) {
 
   while((p = strstr(p, search)) != NULL) {
     found = 1;
-    temp = realloc(replaced, strlen(replaced) + (p - p3) + strlen(replace));
+    temp = realloc(replaced, strlen(replaced) + (p - p3) + strlen(replace) + 1);
 
     if(temp == NULL) {
       free(replaced);

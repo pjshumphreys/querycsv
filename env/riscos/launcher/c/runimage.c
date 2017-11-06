@@ -45,12 +45,12 @@ int d_sprintf(char **str, char *format, ...) {
 
   /* get the space needed for the new string */
   va_start(args, format);
-  newSize = (size_t)(vsnprintf(NULL, 0, format, args)+1); /* plus '\0' */
+  newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
   va_end(args);
 
   /* Create a new block of memory with the correct size rather than using realloc */
   /* as any old values could overlap with the format string. quit on failure */
-  if((newStr = (char*)malloc(newSize)) == NULL) {
+  if((newStr = (char*)malloc(newSize+1)) == NULL) {
     return FALSE;
   }
 

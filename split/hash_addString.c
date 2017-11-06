@@ -5,8 +5,8 @@ int hash_addString(
     char *str,
     struct columnReference *new_list
 ) {
-  struct columnReference *current_list;
-  struct columnRefHashEntry *new_list2;
+  struct columnReference *current_list = NULL;
+  struct columnRefHashEntry *new_list2 = NULL;
   unsigned int hashval = hash_compare(hashtable, str);
 
   MAC_YIELD
@@ -19,9 +19,7 @@ int hash_addString(
     return 2;
   }
 
-  if((new_list2 = malloc(sizeof(struct columnRefHashEntry))) == NULL) {
-    return 1;
-  }
+  reallocMsg((void*)&new_list2, sizeof(struct columnRefHashEntry));
 
   /* Insert into list */
   new_list2->referenceName = str;

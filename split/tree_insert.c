@@ -5,8 +5,8 @@ int tree_insert(
     struct resultColumnValue *columns,
     struct resultTree **root
 ) {
-  struct resultTree *currentResult;
-  struct resultTree *newResult;
+  struct resultTree *currentResult = NULL;
+  struct resultTree *newResult = NULL;
   int comparison;
 
   MAC_YIELD
@@ -17,9 +17,7 @@ int tree_insert(
     return FALSE;
   }
 
-  if((newResult = malloc(sizeof(struct resultTree))) == NULL) {
-    return FALSE;
-  }
+  reallocMsg((void**)&newResult, sizeof(struct resultTree));
 
   newResult->parent = NULL;
   newResult->left = NULL;
