@@ -81,7 +81,7 @@ After starting work on this program, It became tedious to transfer each compiled
 
 From that, I realised that I have several other old computer systems that could each benefit from a version of this program. I could also gain more knowledge of how to produce cross platform, embedded code from the endeavour. So more versions targeting different operating systems were produced.
 
-Lastly, another problem with programs such as lotus 123 that were contemporary to MS-DOS is that they only really work with ASCII text, and I'd always wondered how Unicode collation and sorting worked. So finally I added the ability to convert the text data between Unicode and the various character sets that each retro system used natively.
+Lastly, another problem with programs that were contemporary to MS-DOS such as lotus 123 is that they only really work with the ASCII character set, and I'd always wondered how Unicode collation and sorting worked. So finally I added the ability to convert the text data between Unicode and the various character sets that each supported target system uses natively.
 
 ## Coding style
 
