@@ -77,7 +77,7 @@ So, I decided to write my own...
 
 ### Additional aims
 
-After starting work on this program, It became tedious to transfer each compiled executable from my modern, Linux based laptop that I was using for development to the Toshiba. So as I had been attempting to use just the C language and its standard library I produced a Linux version of the program to ease testing.
+After starting work on this program, It became tedious to transfer each compiled executable from my modern, Linux based laptop that I was using for development to the Toshiba. So as I had been attempting to use just the C language and its standard library, I produced a Linux version of the program to ease testing.
 
 From that, I realised that I have several other old computer systems that could each benefit from a version of this program. I could also gain more knowledge of how to produce cross platform, embedded code from the endeavour. So more versions targeting different operating systems were produced.
 
