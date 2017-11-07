@@ -1,7 +1,7 @@
 #include "querycsv.h"
 
 void reallocMsg(void **mem, size_t size) {
-  void *temp = NULL;
+  void *temp;
 
   MAC_YIELD
 

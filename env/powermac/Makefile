@@ -9,8 +9,10 @@ MAKEFILE        = Makefile
 ObjDir          = :
 Includes        = 
 
+Sym-68K         = -sym on
 Sym-PPC         = -sym on
 
+COptions        = {Includes} {Sym-68K} -model far -opt space
 PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON
 
 
@@ -34,6 +36,9 @@ RezFiles        =  ¶
 
 ### Object Files ###
 
+ObjFiles-68K    =  ¶
+				  "{ObjDir}mac.c.o"
+
 ObjFiles-PPC    =  ¶
 				  "{ObjDir}lexer.c.x" ¶
 				  "{ObjDir}sql.c.x" ¶
@@ -45,8 +50,13 @@ ObjFiles-PPC    =  ¶
 				  "{ObjDir}querycsv.c.x" ¶
 				  "{ObjDir}powermac.c.x"
 
-
 ### Libraries ###
+LibFiles-68K    =  ¶
+				  "{Libraries}MathLib.o" ¶
+				  "{CLibraries}StdCLib.o" ¶
+				  "{Libraries}MacRuntime.o" ¶
+				  "{Libraries}ToolLibs.o" ¶
+				  "{Libraries}Interface.o"
 
 LibFiles-PPC    =  ¶
 				  "{PPCLibraries}CarbonStdCLib.o" ¶
@@ -60,14 +70,39 @@ LibFiles-PPC    =  ¶
 
 ### Default Rules ###
 
+.c.o  Ä  .c  {¥MondoBuild¥}
+	{C} {depDir}{default}.c -o {targDir}{default}.c.o {COptions}
+
 .c.x  Ä  .c  {¥MondoBuild¥}
 	{PPCC} {depDir}{default}.c -o {targDir}{default}.c.x {PPCCOptions}
 
 
 ### Build Rules ###
-all Ä QueryCSV
+all Ä QueryCSV.PPC ¶
+		QueryCSV.68k ¶
+		QueryCSV
 
-QueryCSV  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
+QueryCSV.68k  ÄÄ  {ObjFiles-68K} {LibFiles-68K} {¥MondoBuild¥}
+	ILink ¶
+		-o {Targ} ¶
+		{ObjFiles-68K} ¶
+		{LibFiles-68K} ¶
+		{Sym-68K} ¶
+		-mf -d ¶
+		-t 'APPL' ¶
+		-c 'qcsv' ¶
+		-model far ¶
+		-state rewrite ¶
+		-compact -pad 0
+	If "{Sym-68K}" =~ /-sym Å[nNuU]Å/
+		ILinkToSYM {Targ}.NJ -mf -sym 3.2 -c 'sade'
+	End
+
+QueryCSV.68k  ÄÄ  {¥MondoBuild¥}
+	Rez -rd {RezFiles} -o {Targ} -append
+
+
+QueryCSV.PPC  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
 	PPCLink ¶
 		-o {Targ} ¶
 		{ObjFiles-PPC} ¶
@@ -77,12 +112,16 @@ QueryCSV  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
 		-t APPL ¶
 		-c qcsv
 
-QueryCSV  ÄÄ  {¥MondoBuild¥}
+QueryCSV.PPC  ÄÄ  {¥MondoBuild¥}
 	Rez -rd {RezFiles} -o {Targ} -append
 
+QueryCSV  ÄÄ  QueryCSV.PPC QueryCSV.68k
+	Duplicate -y QueryCSV.68k QueryCSV
+	Mergefragment QueryCSV.PPC QueryCSV
 
 ### Required Dependencies ###
 
+"{ObjDir}mac.c.o"  Ä  mac.c
 "{ObjDir}lexer.c.x"  Ä  lexer.c
 "{ObjDir}sql.c.x"  Ä  sql.c
 "{ObjDir}hash2.c.x"  Ä  hash2.c

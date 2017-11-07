@@ -52,7 +52,6 @@ LibFiles-68K    =  ¶
 				  "{Libraries}MathLib.o" ¶
 				  "{CLibraries}StdCLib.o" ¶
 				  "{Libraries}MacRuntime.o" ¶
-				  "{Libraries}IntEnv.o" ¶
 				  "{Libraries}ToolLibs.o" ¶
 				  "{Libraries}Interface.o" ¶
 				  "{Libraries}AEObjectSupportLib.o"

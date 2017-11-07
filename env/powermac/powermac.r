@@ -133,7 +133,7 @@ resource 'MENU' (mSize, preload)
 
 resource 'STR#' (kErrStrings, purgeable) {
   {
-    "Multilingual Text Editor is unavailable on this system";
+    "The application QueryCSV could not be opened. \"CarbonLib 1.2\" could not be found";
     "Application Memory Size is too small";
     "Not enough memory to run QueryCSV";
     "Not enough memory to do Cut";
@@ -198,7 +198,7 @@ resource 'DITL' (rAboutAlert, purgeable) {
 };
 
 resource 'ALRT' (rUserAlert, purgeable) {
-  {40, 20, 150, 260},
+  {65, 70, 166, 426},
   rUserAlert,
   { /* array: 4 elements */
     /* [1] */
@@ -216,19 +216,19 @@ resource 'ALRT' (rUserAlert, purgeable) {
 resource 'DITL' (rUserAlert, purgeable) {
   { /* array DITLarray: 3 elements */
     /* [1] */
-    {80, 150, 100, 230},
+    {70, 280, 90, 344},
     Button {
       enabled,
       "OK"
     },
     /* [2] */
-    {10, 60, 60, 230},
+    {10, 60, 65, 344},
     StaticText {
       disabled,
       "Error. ^0."
     },
     /* [3] */
-    {8, 8, 40, 40},
+    {8, 13, 40, 45},
     Icon {
       disabled,
       2
