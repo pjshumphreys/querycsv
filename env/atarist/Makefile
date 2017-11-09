@@ -11,6 +11,7 @@ all: querycsv.ttp
 
 querycsv.ttp: $(SOURCES)
 	$(CC) $(INCFLAGS) $(LDFLAGS) $(LIBS) -o querycsv.ttp $(SOURCES)
+	upx querycsv.ttp
 
 clean:
 	rm -f querycsv.ttp

@@ -67,7 +67,7 @@ struct IntuiText ok_text = {
 BPTR olddir = (BPTR)-1;
 char **myargv = NULL;
 
-void shutdownfoo(void) {
+void onShutdown(void) {
   free(myargv);
 
   if(olddir != (BPTR)-1) {
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  atexit(shutdownfoo);
+  atexit(onShutdown);
 
   for(idx = 0, wbarg = argmsg->sm_ArgList; idx < argmsg->sm_NumArgs; idx++, wbarg++) {
     if(olddir != (BPTR)-1) {
