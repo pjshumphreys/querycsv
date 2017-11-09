@@ -15,7 +15,7 @@ void outputHeader(struct qryData *query) {
     query->outputFile = fopen(query->outputFileName, "wb");
 
     if(query->outputFile == NULL) {
-      fputs("opening output file failed", stderr);
+      fputs(TDB_OUTPUT_FAILED, stderr);
       return;
     }
   }

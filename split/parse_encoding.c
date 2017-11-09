@@ -88,7 +88,7 @@ int parse_encoding2(struct qryData *queryData, char *encoding) {
     return ENC_ATARIST;
   }
 
-  fprintf(stderr, "unsupported encoding %s\n", encoding);
+  fprintf(stderr, TDB_INVALID_ENCODING);
 
   return ENC_UNSUPPORTED;
 }

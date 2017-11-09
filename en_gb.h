@@ -16,3 +16,8 @@
 #define TDB_UNTITLED_COLUMN "_Column %d", queryData->columnCount
 #define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename]"
 #define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"
+#define TDB_INVALID_UTF8 "Invalid utf-8 bytes stored in memory\n"
+#define TDB_INVALID_COUNT_STAR "only count(*) is valid\n"
+#define TDB_OUTPUT_FAILED "opening output file failed\n"
+#define TDB_AGGREG_AGGREG "can't aggregate an aggregate\n"
+#define TDB_INVALID_ENCODING "unsupported encoding %s\n", encoding

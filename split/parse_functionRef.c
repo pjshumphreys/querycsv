@@ -24,7 +24,7 @@ struct expression *parse_functionRef(
   if(expressionPtr->containsAggregates) {
     /* I don't think in sql you can aggregate an aggregate. */
     /* therefore we should error out if we get to this point */
-    fputs("can't aggregate an aggregate", stderr);
+    fputs(TDB_AGGREG_AGGREG, stderr);
     exit(EXIT_FAILURE);
   }
 

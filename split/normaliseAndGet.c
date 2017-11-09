@@ -104,7 +104,7 @@ int normaliseAndGet(
     if(bytesRead == 0) {
       /* as getCodepoints now pre converts invalid bytes, this should
         never happen now. If it does, should a message an quit */
-      fputs("invalid utf-8 bytes stored in memory", stderr);
+      fputs(TDB_INVALID_UTF8, stderr);
       exit(EXIT_FAILURE);
     }
     else if((entry = isInHash2(codepoint)) == NULL) {

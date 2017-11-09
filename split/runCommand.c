@@ -11,7 +11,7 @@ void runCommand(struct qryData *query, char *inputText) {
     query->outputFile = fopen(query->outputFileName, "wb");
 
     if(query->outputFile == NULL) {
-      fputs("opening output file failed", stderr);
+      fputs(TDB_OUTPUT_FAILED, stderr);
       query->CMD_RETVAL = EXIT_FAILURE;
     }
   }
