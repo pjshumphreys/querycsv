@@ -138,6 +138,7 @@ entry:
   ;jsr $ff87     ; Initialise System Constants
   lda #$00
   tay
+
 lp2:
   sta $0002,Y
   sta $0200,Y
@@ -173,6 +174,7 @@ lp2:
   txs
   bne E386     ; BASIC Warm start [RUNSTOP-RESTORE]
   jmp $E3A2
+
 E386:
   jmp $E386
 
@@ -240,10 +242,13 @@ A7ED:
   lda A00C,Y    ; BASIC Command Vectors - 1
   pha
   jmp $0073     ; CHRGET: Get next Byte of BASIC Text
+
 A804:
   jmp $A9A5     ; Perform [let]
+
 A80E:
   jmp $A80E
+
 A82B:
   jmp $A82B
 
@@ -275,6 +280,7 @@ A940:
   ;Jump from $A943:
 A948:
   jmp A7ED      ; Perform BASIC Keyword
+
 A8FB:
   jmp $A8FB     ; Perform [data]
 
@@ -322,6 +328,7 @@ movedown:
   ldy #0
   ldx #>datSize
   beq MD2
+
 MD1:
   lda (ptr1),Y ; move a page at a time
   sta (ptr2),Y
@@ -331,17 +338,19 @@ MD1:
   inc ptr2+1
   dex
   bne MD1
+
 MD2:
   ldx #<datSize
   beq MD4
+
 MD3:
   lda (ptr1),Y ; move the remaining bytes
   sta (ptr2),Y
   iny
   dex
   bne MD3
-MD4:
 
+MD4:
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   and #$FE
@@ -386,6 +395,7 @@ farcall2:   ;backup the original return address then swap it for our paging out 
   lda #<(farret2-1)
   pha
   lda aRegBackup
+
 farcall:
   sta aRegBackup
   lda highAddressTable, x
@@ -510,6 +520,7 @@ __basicon:
         ldx #$37
         stx $01
         rts ; non local jmp to the real function
+
 __basicoff:
         ldx #EASYFLASH_16K
         stx EASYFLASH_CONTROL
@@ -517,6 +528,7 @@ __basicoff:
         stx $01
         cli
         rts
+
 __basicoff2:
         ldx #EASYFLASH_16K
         stx EASYFLASH_CONTROL

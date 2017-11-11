@@ -10,17 +10,9 @@
 #pragma data-name ("FAKEDATA")
 #pragma bss-name ("FAKEDATA")
 #pragma code-name ("FOO")
-  char* c = "C";
-  char* pe = "C=C";
-  char* fmt = "%d";
+  char* c = "%d";
 
-/*
-int compar(const void * a, const void * b) {
-  return 0;
-}
-*/
-
-int foobar(char *string, char* format, ...) {
+void foobar(char *string, char* format, ...) {
   va_list args;
   va_list args2;
 
@@ -30,13 +22,9 @@ int foobar(char *string, char* format, ...) {
   time_t timer;
   struct tm * datetime;
 
-  setlocale(1, c);
-  putenv(pe);
-  string = getenv(c);
-
   string = malloc(1);
   free(string);
-  string = calloc(1,2);
+  string = calloc(1,3);
   string = realloc(string,5);
   strcpy(string, c);
   num = strcmp(c, string);
@@ -48,7 +36,7 @@ int foobar(char *string, char* format, ...) {
   /* fraction = strtod("C", &string); */
   memset(string, 0, 4);
   strcat(string, c);
-  strncat(string, c, 2);
+  strncat(string, c, 3);
   /* memcpy(string+1, string, 2); */
   memmove(string+1, string, 2);
   /*bsearch (string, string, 2, 2, compar);*/
@@ -64,10 +52,10 @@ int foobar(char *string, char* format, ...) {
   fwrite(string, 1, 1, stdout);
   fputc(num, stderr);
   fputs(string, stdout);
-  fprintf(stdout, fmt, num);
-  printf(fmt, num);
+  fprintf(stdout, c, num);
+  printf(c, num);
   fflush(stdout);
-  sprintf(string,fmt, num);
+  sprintf(string, c, num);
 
   va_start(args, format);
   vsprintf(string, format, args);
@@ -77,21 +65,16 @@ int foobar(char *string, char* format, ...) {
   vsnprintf(string, 2, format, args2);
   va_end(args2);
   
-  /*
   time(&timer);
   datetime = gmtime(&timer);
   datetime = localtime(&timer);
-  strftime(string, 2, "%d", datetime);
-  */
+  strftime(string, 2, c, datetime);
   
   free(string);
-  exit(0);  
+  exit(0);
 }
 
 int main(int argc, char**argv) {
-  char *string = NULL;
-  foobar(string, fmt);
+  foobar(NULL, c);
   return 0;
 }
-
-/*strdup*/

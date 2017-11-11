@@ -122,6 +122,10 @@ it becomes needed */
   #define in_word_set_b in_word_set_bi
   #define in_word_set_c in_word_set_ci
 #else
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
+  at least it has vsnprintf*/
+
   #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii
   to ascii. We'll convert our output strings ourselves */
   #include "floatlib/float.h" /* fudges kinda support for floating point

@@ -11,19 +11,17 @@ double strtod(const char* str, char** endptr) {
    
   for(;;) {
     y2 = *y;
-    if(y2 <= '9' && y2 >= '0') {
-test:
+
+    if(
+        (y2 <= '9' && y2 >= '0') ||
+        y2 == '-' ||
+        y2 == ' ' ||
+        y2 == '+' ||
+        y2 == 'E' ||
+        y2 == '.'
+    ) {
       ++y;
       continue;
-    }
-    else switch(y2) {
-      case ' ':
-      case '-':
-      case '+':
-      case 'E':
-      case '.':
-        goto test;
-      break;
     }
     
     break;
