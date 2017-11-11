@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <time.h>
 #include <string.h>
-#include <locale.h>
 
 #pragma rodata-name ("FAKERODATA")
 #pragma data-name ("FAKEDATA")
