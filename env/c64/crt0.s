@@ -28,7 +28,7 @@ EASYFLASH_KILL    = $04
 __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
 
 .segment "DATA"
-.incbin "padded.bin"
+.incbin "libcdata.bin"
 
 .segment "LIBC"
 .incbin "libc.bin"
@@ -291,8 +291,35 @@ E12A:
   bmi AA9A      ; Print String From Memory
   jmp $E12D     ; continue where sys left off
 
+;copy string into buffer above $C000 as everything in the BASIC memory
+;area will be erased
+AB21:
+  jsr $B6A6
+  tax
+  ldy #$00
+  inx
+
+AB28:
+  dex
+  beq AAE7
+  lda ($22),Y
+
+  ;jsr $AB47  ;print a char
+  sta strbuf, Y
+
+  iny
+  cmp #$0D
+  bne AB28
+  jsr $AAE5
+  jmp AB28
+
+AAE7:
+  lda #0
+  sta strbuf, Y
+  rts
+
 AA9A:
-  ;jsr $AB21     ; Output String
+  jsr AB21
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
@@ -514,35 +541,39 @@ FUNC3:
 ;---------------------------------------------------------------------------------------------
 
 __basicon:
-        sei
-        ldx #EASYFLASH_KILL
-        stx EASYFLASH_CONTROL
-        ldx #$37
-        stx $01
-        rts ; non local jmp to the real function
+  sei
+  ldx #EASYFLASH_KILL
+  stx EASYFLASH_CONTROL
+  ldx #$37
+  stx $01
+  rts ; non local jmp to the real function
 
 __basicoff:
-        ldx #EASYFLASH_16K
-        stx EASYFLASH_CONTROL
-        ldx #$36
-        stx $01
-        cli
-        rts
+  ldx #EASYFLASH_16K
+  stx EASYFLASH_CONTROL
+  ldx #$36
+  stx $01
+  cli
+  rts
 
 __basicoff2:
-        ldx #EASYFLASH_16K
-        stx EASYFLASH_CONTROL
-        ldx #$36
-        stx $01
-        cli
-        jsr ___float_fac_to_float
-        sta aRegBackup
-        lda currentBank
-        sta EASYFLASH_BANK
-        lda aRegBackup
-        rts
+  ldx #EASYFLASH_16K
+  stx EASYFLASH_CONTROL
+  ldx #$36
+  stx $01
+  cli
+  jsr ___float_fac_to_float
+  sta aRegBackup
+  lda currentBank
+  sta EASYFLASH_BANK
+  lda aRegBackup
+  rts
+
+strbuf: ;stores the argument string for main
+  .res 256
 
 .segment "BSS"
+
 currentBank:
   .byte $00
 stackBackup:

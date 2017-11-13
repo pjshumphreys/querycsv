@@ -114,7 +114,7 @@ var clibFunctionsList = [
   //["_getenv",             2, 0x0001, "farcall2"],
   ["_ltoa",               2, 0x0001, "farcall2"],
   ["_malloc",             2, 0x0001, "farcall2"],
-  //["_memcpy",             2, 0x0001, "farcall2"],
+  ["_memcpy",             2, 0x0001, "farcall2"],
   ["_memmove",            2, 0x0001, "farcall2"],
   ["_memset",             2, 0x0001, "farcall2"],
   ["_open",               2, 0x0001, "farcall2"],
@@ -176,7 +176,6 @@ function createFloatLibInclude() {
   var tables = fs.createWriteStream('floatlib/floatlib.inc');
 
   for(i = 0; i < functionsList.length; i++) {
-    /* TODO: what is the hashmap for? */
     hashMap[functionsList[i][0]] = i;
 
     tables.write(
@@ -220,7 +219,7 @@ function compileFloatLib() {
   console.log('compileFloatLib');
 
   /* compile the floatlib portion written in C (strtod) */
-  execSync("cc65 -T -t c64 -I ./floatlib floatlib.c");
+  execSync("mkdir -p s;mkdir -p obj;mkdir -p obj2;cc65 -T -t c64 -I ./floatlib floatlib.c");
 
   /* link into a binary */
   execSync(
@@ -233,17 +232,23 @@ function compileFloatLib() {
 
   /*create an zeroed binary the same size as the total ram used */
   execSync(
-      "(("+
-        "echo -n \"ibase=16; \" && "+
-        "grep __RAM2_TOTAL__ floatlib.lbl | "+
-        "sed -n \"s/al \([^ ]*\).*/\1/p\""+
-      ")|bc)|"+
-      "xargs -I {} dd if=/dev/zero bs=1 count={} of=floatlibdata2.bin"
+      "("+
+        "echo -n \"ibase=16;scale=16;\" && "+
+        "((grep __RAM2_LAST__ floatlib.lbl|"+
+        "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\n')"+
+        " && echo -n \"-\" && "+
+        "grep __RAM2_START__ floatlib.lbl|"+
+        "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
+      ")|bc|"+
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=floatlibdata.bin"
     );
 
   /*TODO: confirm this: Create a combined binary of the ram and read
   only data so that they can be copied as one blob? */
-  execSync("dd if=floatlibdata.bin of=floatlibdata2.bin conv=notrunc");
+  execSync(
+      "dd if=floatlibdata2.bin of=floatlibdata.bin conv=notrunc;"+
+      "rm floatlibdata2.bin"
+    );
 
   /* add the float lib functions to the hashmap */
   floatlibFunctionsList.forEach(function(v) {
@@ -283,17 +288,20 @@ function compileLibC() {
 
   /*create an zeroed binary the same size as the total ram used */
   execSync(
-      "(("+
-        "echo -n \"ibase=16; \" && "+
-        "grep __RAM2_TOTAL__ libc.lbl | "+
-        "sed -n \"s/al \([^ ]*\).*"+"/\1/p\""+
-      ")|bc)|"+
-      "xargs -I {} dd if=/dev/zero bs=1 count={} of=padded.bin"
+      "("+
+        "echo -n \"ibase=16;scale=16;\" && "+
+        "((grep __RAM2_LAST__ libc.lbl|"+
+        "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\n')"+
+        " && echo -n \"-\" && "+
+        "grep __RAM2_START__ libc.lbl|"+
+        "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
+      ")|bc|"+
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=libcdata.bin"
     );
 
   /*TODO: confirm this: Create a combined binary of the ram and read
   only data so that they can be copied as one blob? */
-  execSync("dd if=libcdata.bin of=padded.bin conv=notrunc");
+  execSync("dd if=libcdata2.bin of=libcdata.bin conv=notrunc;rm libcdata2.bin");
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
@@ -676,7 +684,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 9205;
+  var maxSize = 8600;//9205;
 
   files = [];
   var totalSizes = [];
@@ -719,7 +727,8 @@ function compilePages() {
   for(i = 0; i< files.length;i++) {
     var regexes = files[i].
       map(x => x.replace(/\.bin$/g, "")).
-      reduce((a,b) => a + (a === "(" ? "" : "|") +
+      reduce((a,b) => a +
+        (a === "(" ? "" : "|") +
         "(\\b"+b.replace(matchOperatorsRe, '\\$&')+"\\b)"
       , "(")+")";
 
@@ -754,7 +763,7 @@ function compileHash2() {
 
   var i;
   
-  execSync("node ./generate_hash2.js 390");
+  execSync("node ./generate_hash2.js 386");
 
   for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
     execSync(

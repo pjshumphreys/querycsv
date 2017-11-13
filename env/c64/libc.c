@@ -17,7 +17,6 @@ void foobar(char *string, char* format, ...) {
 
   FILE* test;
   int num;
-  double fraction;
   time_t timer;
   struct tm * datetime;
 
@@ -36,7 +35,7 @@ void foobar(char *string, char* format, ...) {
   memset(string, 0, 4);
   strcat(string, c);
   strncat(string, c, 3);
-  /* memcpy(string+1, string, 2); */
+  memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
   /*bsearch (string, string, 2, 2, compar);*/
 
@@ -59,21 +58,22 @@ void foobar(char *string, char* format, ...) {
   va_start(args, format);
   vsprintf(string, format, args);
   va_end(args);
-  
+
   va_start(args2, format);
   vsnprintf(string, 2, format, args2);
   va_end(args2);
-  
+
   time(&timer);
   datetime = gmtime(&timer);
   datetime = localtime(&timer);
-  strftime(string, 2, c, datetime);
-  
+  /*strftime(string, 2, c, datetime);
+  */
+
   free(string);
   exit(0);
 }
 
-int main(int argc, char**argv) {
+int main(void) {
   foobar(NULL, c);
   return 0;
 }
