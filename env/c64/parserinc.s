@@ -1,0 +1,23 @@
+.export _parse_atomCommaList,_parse_columnRefUnsuccessful,_parse_encoding,_parse_expCommaList,_parse_functionRef,_parse_functionRefStar,_parse_groupingSpec,_parse_inPredicate,_parse_orderingSpec,_parse_scalarExp,_parse_scalarExpColumnRef,_parse_scalarExpLiteral,_parse_tableFactor,_parse_whereClause,_readParams,_runCommand,_yyerror,_yylex,farret
+
+_parse_atomCommaList:
+_parse_columnRefUnsuccessful:
+_parse_encoding:
+_parse_expCommaList:
+_parse_functionRef:
+_parse_functionRefStar:
+_parse_groupingSpec:
+_parse_inPredicate:
+_parse_orderingSpec:
+_parse_scalarExp:
+_parse_scalarExpColumnRef:
+_parse_scalarExpLiteral:
+_parse_tableFactor:
+_parse_whereClause:
+_readParams:
+_runCommand:
+_yyerror:
+_yylex:
+farret:
+  .byte $00
+  

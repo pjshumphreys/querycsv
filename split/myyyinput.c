@@ -1,4 +1,4 @@
-#include <querycsv.h>
+#include "querycsv.h"
 
 void myyyinput(FILE * stream, void* extra, char * buf, size_t *result, size_t max_size) {
   long c = 0x0065;

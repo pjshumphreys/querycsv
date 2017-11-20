@@ -172,7 +172,7 @@ createFloatLibInclude();
 /* create the cc65-floatlib include */
 function createFloatLibInclude() {
   console.log('createFloatLibInclude');
-  
+
   var tables = fs.createWriteStream('floatlib/floatlib.inc');
 
   for(i = 0; i < functionsList.length; i++) {
@@ -219,7 +219,7 @@ function compileFloatLib() {
   console.log('compileFloatLib');
 
   /* compile the floatlib portion written in C (strtod) */
-  execSync("mkdir -p s;mkdir -p obj;mkdir -p obj2;cc65 -T -t c64 -I ./floatlib floatlib.c");
+  execSync("mkdir -p bin;mkdir -p s;mkdir -p obj;mkdir -p obj2;cc65 -T -t c64 -I ./floatlib floatlib.c");
 
   /* link into a binary */
   execSync(
@@ -260,7 +260,7 @@ function compileFloatLib() {
   clibFunctionsList.forEach(function(v) {
     hashMap[v[0]] = this.length;
     this.push(v);
-  }, functionsList); 
+  }, functionsList);
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
@@ -345,7 +345,7 @@ function splitUpFunctions() {
 
     if(/^\.segment	"[_0-9A-Z]+"/.test(line)) {
       name = line.replace(/\.segment	"/, "").match(/[_0-9A-Z]+/)[0];
-      
+
       if(name == "CODE") {
         if(functionOutputStreams.length) {
           activeStream = functionOutputStreams[functionOutputStreams.length-1];
@@ -365,7 +365,7 @@ function splitUpFunctions() {
     else if (/^\.proc\s+/.test(line)) {
       name = (line.replace(/^\.proc\s+/, "")).match(/[^:]+/)[0];
       functionOutputStreams.push(fs.createWriteStream('s/'+name+'.s'));
-      
+
       activeStream = functionOutputStreams[functionOutputStreams.length-1];
 
       if(name == '_main') {
@@ -484,7 +484,7 @@ function splitUpFunctions() {
       stream.on('drain', () => {
         lineReader.resume();
       });
-    } 
+    }
   }
 }
 
@@ -508,7 +508,7 @@ function compileData() {
 
     if(name.match(/l[0-9a-f]{4}/)) {
       var address = parseInt(line.match(/[0-9A-F]+/), 16);
-     
+
       code.write(
           name+" = $"+
           ("0000"+address.toString(16).toUpperCase()).substr(-4)+
@@ -554,8 +554,8 @@ function createAddressInclude() {
         "\n"
       );
   }
-  
-  for(i = 0; i < functionsList.length; i++) {    
+
+  for(i = 0; i < functionsList.length; i++) {
     tables.write(
         ".export "+functionsList[i][0]+"\n"+
 
@@ -620,20 +620,20 @@ function compileMain() {
 
   labels.write(".export _main\n_main = $0100\n");
   labels.write(".import pushl0\n");
-  
+
   lineReader.on('line', function(line) {
     var name = line.replace(/^al [0-9A-F]+ \./, "");
     var address = parseInt(line.match(/[0-9A-F]+/), 16);
-     
-    if(name == "farret") {  
+
+    if(name == "farret") {
       labels.write(
           "farret = $"+
           ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
           "\n"
         );
     }
-    
-    if(hashMap.hasOwnProperty(name)) {  
+
+    if(hashMap.hasOwnProperty(name)) {
       labels.write(
           name+" = $"+
           ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
@@ -641,7 +641,7 @@ function compileMain() {
         );
     }
   });
-  
+
   lineReader.on('close', function() {
     labels.end(packPages);
   });
@@ -679,7 +679,7 @@ function packPages() {
         "popd > /dev/null"+
       "'"
     );
-  
+
   var lineReader = readline.createInterface({
     input: list.stdout
   });
@@ -697,7 +697,7 @@ function packPages() {
     if(size > maxSize) {
       throw "file too big";
     }
-    
+
     for(i=0;;i++) {
       if(i==files.length) {
         files.push([]);
@@ -762,7 +762,7 @@ function compileHash2() {
   console.log("compileHash2");
 
   var i;
-  
+
   execSync("node ./generate_hash2.js 386");
 
   for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
@@ -825,6 +825,66 @@ function compileHash4() {
 
 
   /* what to do about lexer and parser? they're both too big to fit in 8k */
+
+  /*lexer compile:
+   ./cc65_2 -T -t c64 -O -Os lexer.c
+
+    fix function parameter mismatch. replace:
+
+    static void yy_fatal_error (yyconst char msg[] ,yyscan_t yyscanner );
+
+    (line 354?) with:
+
+    static void yy_fatal_error (yyconst char* msg ,yyscan_t yyscanner );
+
+
+    convert tables to uint_8 where possible
+
+      static yyconst flex_int16_t yy_accept[487] =
+
+    (line 375?) with:
+
+      static yyconst flex_int8_t yy_accept[487] =
+
+
+    static yyconst flex_int32_t yy_rule_can_match_eol[121] =
+
+
+    replace:
+
+    static yyconst flex_int32_t yy_rule_can_match_eol[121] =
+
+
+    (line 868?) with:
+
+    static yyconst flex_int8_t yy_rule_can_match_eol[121] =
+
+#define YY_USE_CONST 1
+
+
+
+    write wrapper function for retrieving values from thhe table and copying to a global var
+
+    split the code into functions
+
+    cl65 -C lexer.cfg lexer.s lexerinc.s
+
+   */
+
+  /*
+    parser compile:
+    ./cc65_2 -T -t c64 -O -Os sql.c --static-locals
+
+    replace lines:
+
+    with just:
+      YYSTYPE yylval;
+      static YYSTYPE yylval;
+
+    cl65 -C parser.cfg sql.s parserinc.s
+
+
+  */
 }
 
 /*compile the main page again, using our updated table */
@@ -854,12 +914,12 @@ function updateFunctionAddress(line) {
   else if(defines.hasOwnProperty(name)) {
     defines[name] = address;
   }
-   
+
   if(
       hashMap.hasOwnProperty(name) &&
       functionsList[hashMap[name]][2] == 1 /*address 1 means it we don't yet
       have the real value*/
-  ) {  
+  ) {
     functionsList[hashMap[name]][2] = address;
   }
 }
