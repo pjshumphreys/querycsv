@@ -823,6 +823,12 @@ function compileHash4() {
       "rm *.o"
     );
 
+  /*
+    ^(.*?)([a-z0-9A-Z]*)\(.*
+
+    export _\2\n_\2:
+
+  */
 
   /* what to do about lexer and parser? they're both too big to fit in 8k */
 

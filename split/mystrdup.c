@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-char* __fastcall__ mystrdup(const char* s) {
+char* mystrdup(const char* s) {
   char *res = NULL;
 
   if(s != NULL) {
