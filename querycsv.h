@@ -13,6 +13,9 @@
 /* translatable strings */
 #include "en_gb.h"
 
+/* macro for c64 benefit */
+#include "getCodepoints8Bit.h"
+
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
 #define FALSE 0
