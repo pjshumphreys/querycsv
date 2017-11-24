@@ -15,3 +15,7 @@ struct hash2Entry* retval;
 char hash4letter[7];
 struct hash4Entry hash4export = {(char *)(&hash4letter), 0, 0, 0};
 char * devNull = NULL;
+
+/*dedup string literals */
+const char* TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
+const char* TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;

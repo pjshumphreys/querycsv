@@ -7,40 +7,11 @@ int getNextRecordOffset(
 ) {
   FILE *inputFile = NULL;
   char* outText = NULL;
-  long temp = 0;
 
   MAC_YIELD
 
-  /* attempt to open the input file */
-  inputFile = skipBom(inputFileName, &temp, &(query->CMD_ENCODING));
-
-  if(inputFile == NULL) {
-    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+  if(inputSeek(query, inputFileName, offset, &inputFile) == EXIT_FAILURE) {
     return EXIT_FAILURE;
-  }
-
-  if(offset == 0) {
-    offset = temp;
-  }
-  else {
-    fclose(inputFile);
-
-    /* go directly to the specified offset if it's non zero */
-    inputFile = fopen(inputFileName, "rb");
-
-    if(inputFile == NULL) {
-      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-      return EXIT_FAILURE;
-    }
-
-    /* seek to offset */
-    if(myfseek(inputFile, offset, SEEK_SET) != 0) {
-      fputs(TDB_COULDNT_SEEK, stderr);
-
-      fclose(inputFile);
-
-      return EXIT_FAILURE;
-    }
   }
 
   /* read csv columns until end of line occurs */

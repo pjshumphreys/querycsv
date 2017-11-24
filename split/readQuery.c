@@ -11,6 +11,9 @@ int readQuery(char *queryFileName, struct qryData *query) {
   int initialEncoding = ENC_UNKNOWN;
   int inputTableIndex = 2;
   int parserReturn = 0;
+  char* errSyntax = TDB_PARSER_SYNTAX;
+  char* errRam = TDB_PARSER_USED_ALL_RAM;
+  char* errUnknown = TDB_PARSER_UNKNOWN;
 
   MAC_YIELD
 
@@ -107,20 +110,20 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     case 1: {
       /* the input script contained a syntax error. show message and exit */
-      fputs(TDB_PARSER_SYNTAX, stderr);
+      fputs(errSyntax, stderr);
       return EXIT_FAILURE;
     } break;
 
     case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
-      fputs(TDB_PARSER_USED_ALL_RAM, stderr);
+      fputs(errRam, stderr);
       return EXIT_FAILURE;
     } break;
 
     default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
-      fputs(TDB_PARSER_UNKNOWN, stderr);
+      fputs(errUnknown, stderr);
       return EXIT_FAILURE;
     } break;
   }
@@ -181,20 +184,20 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     case 1: {
       /* the input script contained a syntax error. show message and exit */
-      fputs(TDB_PARSER_SYNTAX, stderr);
+      fputs(errSyntax, stderr);
       return EXIT_FAILURE;
     } break;
 
     case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
-      fputs(TDB_PARSER_USED_ALL_RAM, stderr);
+      fputs(errRam, stderr);
       return EXIT_FAILURE;
     } break;
 
     default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
-      fputs(TDB_PARSER_UNKNOWN, stderr);
+      fputs(errUnknown, stderr);
       return EXIT_FAILURE;
     } break;
   }
