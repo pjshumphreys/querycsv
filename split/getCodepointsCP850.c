@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-static const long cp850[128] = {
+static const unsigned short cp850[128] = {
   0x00C7, 0x00FC, 0x00E9, 0x00E2, 0x00E4, 0x00E0, 0x00E5, 0x00E7,
   0x00EA, 0x00EB, 0x00E8, 0x00EF, 0x00EE, 0x00EC, 0x00C4, 0x00C5,
   0x00C9, 0x00E6, 0x00C6, 0x00F4, 0x00F6, 0x00F2, 0x00FB, 0x00F9,
@@ -25,11 +25,5 @@ void getCodepointsCP850(
     int *arrLength,
     int *byteLength
 ) {
-  getCodepoints8Bit(
-    stream,
-    codepoints,
-    arrLength,
-    byteLength,
-    cp850
-  );
+  getCodepoints8Bit(cp850);
 }
