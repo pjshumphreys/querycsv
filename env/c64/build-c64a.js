@@ -8,6 +8,8 @@ var i;
 var code;
 var labels;
 var files;
+var walk = require('walk');
+var shellescape = require('shell-escape');
 
 var hashMap = {};
 
@@ -166,6 +168,8 @@ var defines = {
   "xRegBackup": 0
 };
 
+var rodataLabels = [];
+
 /* The first action to initiate */
 createFloatLibInclude();
 //compileLexer();
@@ -322,7 +326,7 @@ function compileQueryCSV() {
 
   execSync("./cc65_2 -T -t c64 -O -Os querycsv.c --writable-strings");
 
-  splitUpFunctions("querycsv", compileHash2, true);
+  splitUpFunctions("querycsv", compileData, true);
 }
 
 function compileHash2() {
@@ -449,24 +453,70 @@ function compileData() {
 
 /* pack most function code into a set of 8k memory pages */
 function packPages() {
+  var walker;
+
   console.log("packPages");
 
-  /*compile each function separately to identify all their sizes. */
-  /*create an include file that defines all functions except the one
-  being compiled */
+  walker = walk.walk('./s', {});
 
+  var list = [];
+
+  walker.on("file", function (root, fileStats, next) {
+    list.push([fileStats.name, fs.readFileSync("s/"+fileStats.name)]);
+
+    next();
+  });
+ 
+  walker.on("errors", function (root, nodeStatsArray, next) {
+    next();
+  });
+ 
+  walker.on("end", function() {
+    list.forEach(updateName);
+
+    packPages2();
+  });
+
+  function updateName(elem) {
+    var text = elem[1];
+
+    var name = elem[0].replace(/\.s$/, "");
+
+    console.log(name+"\n");
+    var hasMatches = false;
+
+    rodataLabels.forEach(function(element) {
+      if(element[1] = element[2].test(text)) {
+        console.log("foo: "+element[0]);
+
+        hasMatches = true;
+      }
+    });
+
+    if(hasMatches) {
+      execSync(
+        'echo ".segment	\\"RODATA\\"" >> s/'+elem[0] +
+        "&& cat "+
+        shellescape(rodataLabels.filter(label => label[1]).map(label => "ro_"+label[0]+".s")) +
+        ">> s/"+elem[0]
+      ); 
+    }
+  }
+}
+
+function packPages2() {
   execSync(
-      "pushd s;"+
-        "find * -name \"*.s\" -print0|"+
-        "sed -z \"s/\\.s$//g\"|"+
-        "xargs -0 -I {} sh -c '"+
-          "rm ../code2.s;"+
-          "egrep -v \"\\b'{}'\\b\" ../labels.s > ../code2.s;"+
-          "cl65 -T -t c64 -o ../obj/'{}'.bin -C ../function.cfg '{}'.s;"+
-          "rm '{}'.o;"+
-        "';"+
-      "popd"
-    );
+    "pushd s;"+
+      "find * -name \"*.s\" -print0|"+
+      "sed -z \"s/\\.s$//g\"|"+
+      "xargs -0 -I {} sh -c '"+
+        "rm ../code2.s;"+
+        "egrep -v \"\\b'{}'\\b\" ../labels.s > ../code2.s;"+
+        "cl65 -T -t c64 -o ../obj/'{}'.bin -C ../function.cfg '{}'.s;"+
+        "rm '{}'.o;"+
+      "';"+
+    "popd"
+  );
 
   /* use a bin packing algorithm to group the functions and
   produce a binary of each 8k page */
@@ -516,11 +566,12 @@ function packPages() {
   lineReader.on('close', compilePages);
 }
 
+var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
+
 function compilePages() {
   console.log("compilePages");
 
   var i = 0;
-  var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
 
   /*compile each page and then update the addresses and
   page numbers of each function in the table*/
@@ -549,7 +600,7 @@ function compilePages() {
       );
   }
 
-  compileHash1();
+  compileHash2();
 }
 
 function glueTogetherBinary() {
@@ -575,6 +626,9 @@ function splitUpFunctions(filename, callback, append) {
     flags: append?'a':'w'
   });
 
+  var rodataType = 0;
+  var rodataOutputStreams = [];
+
   code = fs.createWriteStream(filename+'_code.s');
   labels = fs.createWriteStream(filename+'_labels.s');
 
@@ -588,6 +642,8 @@ function splitUpFunctions(filename, callback, append) {
       name = line.replace(/\.segment	"/, "").match(/[_0-9A-Z]+/)[0];
 
       if(name == "CODE") {
+        rodataType = 0;
+
         if(functionOutputStreams.length) {
           activeStream = functionOutputStreams[functionOutputStreams.length-1];
         }
@@ -595,7 +651,15 @@ function splitUpFunctions(filename, callback, append) {
           activeStream = code;
         }
       }
+      else if(name == "RODATA") {
+        rodataType = 1;
+        activeStream = data;
+
+        //don't output this line
+      }
       else {
+        rodataType = 2;
+
         activeStream = data;
         writePause(activeStream, line+"\n");
       }
@@ -632,27 +696,56 @@ function splitUpFunctions(filename, callback, append) {
         functionsList.push([name, 0, 0x0001, "farcall"]);
       }
     }
-    else if (activeStream === data && /^[a-z0-9A-Z]+:/.test(line)) {
+    else if (rodataType && /^[a-z0-9A-Z]+:/.test(line)) {
       if(activeStream) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
 
-        writePause(activeStream, ".export "+name.toLowerCase()+"\n");
+        if(rodataType == 1 || rodataType == 3) {
+          rodataType = 3;
+
+          rodataOutputStreams.push(fs.createWriteStream("ro_"+name+'.s'));
+          rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
+          activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
+        }
+        else {
+          writePause(activeStream, ".export "+name.toLowerCase()+"\n");
+        }
+
         writePause(activeStream, line.replace(name, name.toLowerCase())+"\n");
       }
     }
-    else if (activeStream === data && /^_[a-z0-9A-Z]+\s*:/.test(line)) {
+    else if (rodataType && /^[_a-z0-9A-Z]+\s*:/.test(line)) {
       if(activeStream) {
-        name = line.match(/^_[a-z0-9A-Z]+/)[0];
+        name = line.match(/^[_a-z0-9A-Z]+/)[0];
 
-        writePause(activeStream, ".export "+name+"\n");
+        if(rodataType == 1 || rodataType == 3) {
+          rodataType = 3;
+
+          rodataOutputStreams.push(fs.createWriteStream("ro_"+name+'.s'));
+          rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
+          activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
+        }
+        else {
+          writePause(activeStream, ".export "+name+"\n");
+        }
+
         writePause(activeStream, line+"\n");
       }
     }
-    else if (activeStream === data && /^[a-z0-9A-Z]+\s+:=/.test(line)) {
+    else if (rodataType && /^[a-z0-9A-Z]+\s+:=/.test(line)) {
       if(activeStream) {
         name = line.match(/^[a-z0-9A-Z]+/)[0];
 
-        writePause(activeStream, ".export "+name.toLowerCase()+"\n");
+        if(rodataType == 1 || rodataType == 3) {
+          rodataType = 3;
+
+          rodataOutputStreams.push(fs.createWriteStream("ro_"+name+'.s'));
+          rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
+          activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
+        }
+        else {
+          writePause(activeStream, ".export "+name.toLowerCase()+"\n");
+        }
 
         line = line.replace(name, name.toLowerCase())
         var name2 = line.match(/L[0-9A-F]+/);
@@ -671,7 +764,8 @@ function splitUpFunctions(filename, callback, append) {
     else {
       //if(activeStream) {
         name = line.match(/L[0-9A-F]+[^:]/);
-        if(name && activeStream === data) {
+
+        if(name && rodataType) {
           writePause(
               activeStream,
               line.replace(name[0], name[0].toLowerCase())+
@@ -698,12 +792,17 @@ function splitUpFunctions(filename, callback, append) {
     );
     */
 
-    j = functionOutputStreams.length;
+    j = functionOutputStreams.length + rodataOutputStreams.length;
 
     data.end(writeFunctionPostfixes);
   });
 
   function writeFunctionPostfixes() {
+    for(i = 0; i < rodataOutputStreams.length; i++) {
+      /* close current stream */
+      rodataOutputStreams[i].end(allStreamsClosed);
+    }
+
     for(i = 0; i < functionOutputStreams.length; i++) {
       writePause(functionOutputStreams[i], ".endproc\n");
 
@@ -860,9 +959,9 @@ function updateFunctionAddress(line) {
   }
 }
 
-/*function compileMain() {
+function compileMain() {
   console.log("compileMain");
-
+/*
   execSync("cl65 -T -t c64 -Ln main.lbl --config main.cfg crt0.s s/_main.s");
 
   /*read the label file and update each function address * /
@@ -905,9 +1004,10 @@ function updateFunctionAddress(line) {
   lineReader.on('close', function() {
     labels.end(packPages);
   });
+*/
+  packPages();
 }
 
-*/
 
 //add all functions found to the jump table. generate the jump table as a binary file, including the trampoline code to compute the offsets the code will use
 
