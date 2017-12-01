@@ -27,11 +27,11 @@ EASYFLASH_KILL    = $04
 
 __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
 
-.segment "DATA"
-.incbin "libcdata.bin"
+;.segment "DATA"
+;.incbin "libcdata.bin"
 
-.segment "LIBC"
-.incbin "libc.bin"
+;.segment "LIBC"
+;.incbin "libc.bin"
 
 ; This code runs in Ultimax mode after reset, so this memory becomes
 ; visible at $E000..$FFFF first and must contain a reset vector
@@ -411,6 +411,15 @@ jumpback:
   sta EASYFLASH_CONTROL
   rts
 
+farcall3:
+  sta aRegBackup
+  lda highAddressTable2, x
+  pha
+  lda lowAddressTable2, x
+  pha
+  lda bankTable2, x
+  jmp farcall4
+
 farcall2:   ;backup the original return address then swap it for our paging out return code. This should hopefully work as all of the c standard library is in 1 page and doesn't call non stdlib c functions, so more than 1 backup return address shouldn't be needed
   sta aRegBackup
   pla 
@@ -430,6 +439,8 @@ farcall:
   lda lowAddressTable, x
   pha
   lda bankTable, x
+
+farcall4:
   php
   pha
   lda currentBank

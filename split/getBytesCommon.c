@@ -215,14 +215,53 @@ static const struct codepointToBytes codepointBytes[212] = {
   {0xFB02, 0x00, 0x00, 0x00, 0xDF}
 };
 
+char returnByte;
+
+char* getBytesCommon(long codepoint, int key) {
+  struct codepointToBytes *lookup;
+
+  if((lookup = (struct codepointToBytes*)bsearch(
+      (void *)&codepoint,
+      (void *)codepointBytes,
+      212,
+      sizeof(struct codepointToBytes),
+      compareCodepoints
+    )) == NULL) {
+    returnByte = 0;
+  }
+  else switch(key) {
+    case 0:
+      returnByte = lookup->cp437;
+    break;
+
+    case 1:
+      returnByte = lookup->cp850;
+    break;
+
+    case 2:
+      returnByte = lookup->cp1047;
+
+      return &returnByte; /* don't do the if statement below for cp1047 */
+    break;
+
+    case 3:
+      returnByte = lookup->mac;
+    break;
+  }
+
+  if(!returnByte) {
+    returnByte = 0x3f;  /* ascii question mark */
+    return &returnByte;
+  }
+
+  return &returnByte;
+}
+
 void getBytesCP437(
     long codepoint,
     char **bytes,
     int *byteLength
 ) {
-  struct codepointToBytes *lookup;
-  const char plAscii = 0x3f;
-
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 
@@ -231,18 +270,7 @@ void getBytesCP437(
       return;
     }
 
-    if((lookup = (struct codepointToBytes*)bsearch(
-      (void *)&codepoint,
-      (void *)codepointBytes,
-      212,
-      sizeof(struct codepointToBytes),
-      compareCodepoints
-    )) == NULL || lookup->cp437 == 0) {
-      *bytes = (char*)(&plAscii);
-      return;
-    }
-
-    *bytes = (char*)(&(lookup->cp437));
+    *bytes = getBytesCommon(codepoint, 0);
   }
 }
 
@@ -251,9 +279,6 @@ void getBytesCP850(
     char **bytes,
     int *byteLength
 ) {
-  struct codepointToBytes *lookup;
-  const char plAscii = 0x3F;
-
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 
@@ -262,18 +287,7 @@ void getBytesCP850(
       return;
     }
 
-    if((lookup = (struct codepointToBytes*)bsearch(
-      (void *)&codepoint,
-      (void *)codepointBytes,
-      212,
-      sizeof(struct codepointToBytes),
-      compareCodepoints
-    )) == NULL || lookup->cp850 == 0) {
-      *bytes = (char*)(&plAscii);
-      return;
-    }
-
-    *bytes = (char*)(&(lookup->cp850));
+    *bytes = getBytesCommon(codepoint, 1);
   }
 }
 
@@ -282,9 +296,6 @@ void getBytesMac(
     char **bytes,
     int *byteLength
 ) {
-  struct codepointToBytes *lookup;
-  const char plAscii = 0x3f;
-
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 
@@ -293,18 +304,7 @@ void getBytesMac(
       return;
     }
 
-    if((lookup = (struct codepointToBytes*)bsearch(
-      (void *)&codepoint,
-      (void *)codepointBytes,
-      212,
-      sizeof(struct codepointToBytes),
-      compareCodepoints
-    )) == NULL || lookup->mac == 0) {
-      *bytes = (char*)(&plAscii);
-      return;
-    }
-
-    *bytes = (char*)(&(lookup->mac));
+    *bytes = getBytesCommon(codepoint, 3);
   }
 }
 
@@ -336,28 +336,18 @@ void getBytesCP1047(
     char **bytes,
     int *byteLength
 ) {
-  struct codepointToBytes *lookup;
-  const char plEbcdic = 0x6f;
-
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 
     if(codepoint < 0xA0) {
-      *bytes = (char*)(&(cp1047LowBytes[codepoint]));
+      returnByte = cp1047LowBytes[codepoint];
+      *bytes = &returnByte;
       return;
     }
 
-    if(codepoint > 0xFF || (lookup = (struct codepointToBytes*)bsearch(
-      (void *)&codepoint,
-      (void *)codepointBytes,
-      212,
-      sizeof(struct codepointToBytes),
-      compareCodepoints
-    )) == NULL || lookup->cp1047 == 0) {
-      *bytes = (char*)(&plEbcdic);
-      return;
-    }
-
-    *bytes = (char*)(&(lookup->cp1047));
+    if(codepoint > 0xFF || !(*bytes = getBytesCommon(codepoint, 2))) {
+      returnByte = 0x6f;  /* ebcidic question mark */
+      *bytes = &returnByte;
+    } 
   }
 }
