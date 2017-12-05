@@ -13,3 +13,7 @@ flex_uint16_t yy_nxt2(unsigned int offset) {
 flex_int16_t yy_chk2(unsigned int offset) {
   return yy_chk[offset];
 }
+
+YY_CHAR yy_ec2(unsigned int offset) {
+  return yy_ec[offset];
+}

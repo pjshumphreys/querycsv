@@ -109,10 +109,7 @@ command_types:
   | COLUMNS '(' STRING ',' STRING ')' {
       queryData->commandMode = 1;
 
-      queryData->CMD_ENCODING = parse_encoding(queryData, $5);
-      free($5);
-
-      if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
+      if((queryData->CMD_ENCODING = parse_encoding(queryData, $5)) == ENC_UNSUPPORTED) {
         YYABORT;
       }
 
@@ -135,10 +132,7 @@ command_types:
       queryData->CMD_OFFSET = atol($7);
       free($7);
 
-      queryData->CMD_ENCODING = parse_encoding(queryData, $5);
-      free($5);
-
-      if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
+      if((queryData->CMD_ENCODING = parse_encoding(queryData, $5)) == ENC_UNSUPPORTED) {
         YYABORT;
       }
 
@@ -149,6 +143,7 @@ command_types:
 
       queryData->CMD_COLINDEX = atol($7);
       free($7);
+
       queryData->CMD_OFFSET = atol($5);
       free($5);
 
@@ -161,13 +156,11 @@ command_types:
 
       queryData->CMD_COLINDEX = atol($9);
       free($9);
+
       queryData->CMD_OFFSET = atol($7);
       free($7);
 
-      queryData->CMD_ENCODING = parse_encoding(queryData, $5);
-      free($5);
-
-      if(queryData->CMD_ENCODING == ENC_UNSUPPORTED) {
+      if((queryData->CMD_ENCODING = parse_encoding(queryData, $5)) == ENC_UNSUPPORTED) {
         YYABORT;
       }
 
@@ -182,19 +175,23 @@ command_types:
 
 opt_params:
   | PARAMS STRING ';' {
-      if(queryData->parseMode != 1) {
-        readParams($2, &(queryData->params));
-      }
+      readParams(queryData, $2);
     }
   ;
 
 scalar_exp_commalist:
-    scalar_exp optional_as_name { parse_expCommaList(queryData, $1, $2, GRP_NONE); }
-  | scalar_exp_commalist ',' scalar_exp optional_as_name { parse_expCommaList(queryData, $3, $4, GRP_NONE); }
+    scalar_exp optional_as_name {
+      parse_expCommaList(queryData, $1, $2, GRP_NONE);
+    }
+  | scalar_exp_commalist ',' scalar_exp optional_as_name {
+      parse_expCommaList(queryData, $3, $4, GRP_NONE);
+    }
   ;
 
 optional_as_name:
-    { $$ = NULL; }
+    /* empty */ {
+      $$ = NULL;
+    }
   | AS NAME {
       if(queryData->parseMode != 1) {
         free($2);
@@ -214,23 +211,52 @@ scalar_exp:
 
       free($3);
     }
-  | scalar_exp '+' scalar_exp { $$ = parse_scalarExp(queryData, $1, EXP_PLUS, $3); }
-  | scalar_exp '-' scalar_exp { $$ = parse_scalarExp(queryData, $1, EXP_MINUS, $3); }
-  | scalar_exp '*' scalar_exp { $$ = parse_scalarExp(queryData, $1, EXP_MULTIPLY, $3); }
-  | scalar_exp '/' scalar_exp { $$ = parse_scalarExp(queryData, $1, EXP_DIVIDE, $3); }
-  | CONCAT '(' scalar_exp ',' scalar_exp ')' { $$ = parse_scalarExp(queryData, $3, EXP_CONCAT, $5); }
-  | '+' scalar_exp %prec UMINUS { $$ = parse_scalarExp(queryData, $2, EXP_UPLUS, NULL); }
-  | '-' scalar_exp %prec UMINUS { $$ = parse_scalarExp(queryData, $2, EXP_UMINUS, NULL); }
-  | literal { $$ = parse_scalarExpLiteral(queryData, $1); free($1); }
-  | column_ref { $$ = parse_scalarExpColumnRef(queryData, $1); }
-  | function_ref { $$ = $1; }
-  | '(' scalar_exp ')' { $$ = $2; }
+  | scalar_exp '+' scalar_exp {
+      $$ = parse_scalarExp(queryData, $1, EXP_PLUS, $3);
+    }
+  | scalar_exp '-' scalar_exp {
+      $$ = parse_scalarExp(queryData, $1, EXP_MINUS, $3);
+    }
+  | scalar_exp '*' scalar_exp {
+      $$ = parse_scalarExp(queryData, $1, EXP_MULTIPLY, $3);
+    }
+  | scalar_exp '/' scalar_exp {
+      $$ = parse_scalarExp(queryData, $1, EXP_DIVIDE, $3);
+    }
+  | CONCAT '(' scalar_exp ',' scalar_exp ')' {
+      $$ = parse_scalarExp(queryData, $3, EXP_CONCAT, $5);
+    }
+  | '+' scalar_exp %prec UMINUS {
+      $$ = parse_scalarExp(queryData, $2, EXP_UPLUS, NULL);
+    }
+  | '-' scalar_exp %prec UMINUS {
+      $$ = parse_scalarExp(queryData, $2, EXP_UMINUS, NULL);
+    }
+  | literal {
+      $$ = parse_scalarExpLiteral(queryData, $1);
+      free($1);
+    }
+  | column_ref {
+      $$ = parse_scalarExpColumnRef(queryData, $1);
+    }
+  | function_ref {
+      $$ = $1;
+    }
+  | '(' scalar_exp ')' {
+      $$ = $2;
+    }
   ;
 
 literal:
-    STRING { $$ = $1; }
-  | INTNUM { $$ = $1; }
-  | APPROXNUM { $$ = NULL; }
+    STRING {
+      $$ = $1;
+    }
+  | INTNUM {
+      $$ = $1;
+    }
+  | APPROXNUM {
+      $$ = NULL;
+    }
   ;
 
 column_ref:
@@ -262,24 +288,40 @@ column_ref:
   ;
 
 function_ref:
-    AMMSC '(' '*' ')' { $$ = parse_functionRefStar(queryData, $1); }
-  | AMMSC '(' DISTINCT scalar_exp ')' { $$ = parse_functionRef(queryData, $1, $4, TRUE); }
-  | AMMSC '(' ALL scalar_exp ')' { $$ = parse_functionRef(queryData, $1, $4, FALSE); }
-  | AMMSC '(' scalar_exp ')' { $$ = parse_functionRef(queryData, $1, $3, FALSE); }
+    AMMSC '(' '*' ')' {
+      $$ = parse_functionRefStar(queryData, $1);
+    }
+  | AMMSC '(' DISTINCT scalar_exp ')' {
+      $$ = parse_functionRef(queryData, $1, $4, TRUE);
+    }
+  | AMMSC '(' ALL scalar_exp ')' {
+      $$ = parse_functionRef(queryData, $1, $4, FALSE);
+    }
+  | AMMSC '(' scalar_exp ')' {
+      $$ = parse_functionRef(queryData, $1, $3, FALSE);
+    }
   ;
 
 table_references:
-    STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $1, $3, $4); }
+    STRING AS NAME optional_encoding {
+      parse_tableFactor(queryData, FALSE, $1, $3, $4);
+    }
   | join_table
   ;
 
 join_table:
-    table_references JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, FALSE, $3, $5, $6); } optional_join_condition
-  | table_references LEFT JOIN STRING AS NAME optional_encoding { parse_tableFactor(queryData, TRUE, $4, $6, $7); } join_condition
+    table_references JOIN STRING AS NAME optional_encoding {
+      parse_tableFactor(queryData, FALSE, $3, $5, $6);
+    } optional_join_condition
+  | table_references LEFT JOIN STRING AS NAME optional_encoding {
+      parse_tableFactor(queryData, TRUE, $4, $6, $7);
+    } join_condition
   ;
 
 optional_encoding:
-    /* empty */ { $$ = ENC_DEFAULT; }
+    /* empty */ {
+      $$ = ENC_DEFAULT;
+    }
   | ENCODING STRING {
       if(($$ = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
         YYABORT;
@@ -293,7 +335,9 @@ optional_join_condition:
   ;
 
 join_condition:
-    ON search_condition { parse_whereClause(queryData, $2); }
+    ON search_condition {
+      parse_whereClause(queryData, $2);
+    }
   ;
 
 opt_where_clause:
@@ -302,35 +346,61 @@ opt_where_clause:
   ;
 
 where_clause:
-    WHERE search_condition { parse_whereClause(queryData, $2); }
+    WHERE search_condition {
+      parse_whereClause(queryData, $2);
+    }
   ;
 
 search_condition:
-    search_condition AND search_condition { $$ = parse_scalarExp(queryData, $1, EXP_AND, $3); }
-  | search_condition OR search_condition { $$ = parse_scalarExp(queryData, $1, EXP_OR, $3); }
-  | NOT search_condition { $$ = parse_scalarExp(queryData, $2, EXP_NOT, NULL); }
-  | '(' search_condition ')' { $$ = $2; }
-  | predicate { $$ = $1; }
+    search_condition AND search_condition {
+      $$ = parse_scalarExp(queryData, $1, EXP_AND, $3);
+    }
+  | search_condition OR search_condition {
+      $$ = parse_scalarExp(queryData, $1, EXP_OR, $3);
+    }
+  | NOT search_condition {
+      $$ = parse_scalarExp(queryData, $2, EXP_NOT, NULL);
+    }
+  | '(' search_condition ')' {
+      $$ = $2;
+    }
+  | predicate {
+      $$ = $1;
+    }
   ;
 
 predicate:
-    comparison_predicate { $$ = $1; }
-  | in_predicate { $$ = $1; }
+    comparison_predicate {
+      $$ = $1;
+    }
+  | in_predicate {
+      $$ = $1;
+    }
   ;
 
 comparison_predicate:
-    scalar_exp COMPARISON scalar_exp { $$ = parse_scalarExp(queryData, $1, $2+EXP_EQ, $3); }
+    scalar_exp COMPARISON scalar_exp {
+      $$ = parse_scalarExp(queryData, $1, $2+EXP_EQ, $3);
+    }
   ;
 
 in_predicate:
-    scalar_exp INN '(' atom_commalist ')' { $$ = parse_inPredicate(queryData, $1, FALSE, $4); }
-  | scalar_exp NOT INN '(' atom_commalist ')' { $$ = parse_inPredicate(queryData, $1, TRUE, $5); }
+    scalar_exp INN '(' atom_commalist ')' {
+      $$ = parse_inPredicate(queryData, $1, FALSE, $4);
+    }
+  | scalar_exp NOT INN '(' atom_commalist ')' {
+      $$ = parse_inPredicate(queryData, $1, TRUE, $5);
+    }
   ;
 
 atom_commalist:
-    literal { $$ = parse_atomCommaList(queryData, NULL, $1); }
-  | atom_commalist ',' literal { $$ = parse_atomCommaList(queryData, $1, $3); }
-        ;
+    literal {
+      $$ = parse_atomCommaList(queryData, NULL, $1);
+    }
+  | atom_commalist ',' literal {
+      $$ = parse_atomCommaList(queryData, $1, $3);
+    }
+  ;
 
 opt_group_by_clause:
     /* empty */
@@ -338,8 +408,12 @@ opt_group_by_clause:
   ;
 
 column_ref_commalist:
-    column_ref { parse_groupingSpec(queryData, parse_scalarExpColumnRef(queryData, $1)); }
-  | column_ref_commalist ',' column_ref { parse_groupingSpec(queryData, parse_scalarExpColumnRef(queryData, $3)); }
+    column_ref {
+      parse_groupingSpec(queryData, parse_scalarExpColumnRef(queryData, $1));
+    }
+  | column_ref_commalist ',' column_ref {
+      parse_groupingSpec(queryData, parse_scalarExpColumnRef(queryData, $3));
+    }
   ;
 
 opt_having_clause:
@@ -353,14 +427,24 @@ opt_order_by_clause:
   ;
 
 ordering_spec:
-    scalar_exp opt_asc_desc { parse_orderingSpec(queryData, $1, $2); }
-  | ordering_spec ',' scalar_exp opt_asc_desc { parse_orderingSpec(queryData, $3, $4); }
+    scalar_exp opt_asc_desc {
+      parse_orderingSpec(queryData, $1, $2);
+    }
+  | ordering_spec ',' scalar_exp opt_asc_desc {
+      parse_orderingSpec(queryData, $3, $4);
+    }
   ;
 
 opt_asc_desc:
-    /* empty */ { $$ = 0; }
-  | ASC { $$ = 0; }
-  | DESC { $$ = 1; }
+    /* empty */ {
+      $$ = 0;
+    }
+  | ASC {
+      $$ = 0;
+    }
+  | DESC {
+      $$ = 1;
+    }
   ;
 
 opt_into_clause:

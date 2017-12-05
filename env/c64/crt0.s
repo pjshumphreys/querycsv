@@ -11,7 +11,7 @@ EASYFLASH_KILL    = $04
 ;.export _exit
 ;.export __STARTUP__ : absolute = 1      ; Mark as startup
 
-.import _main
+;.import _main
 
 .importzp       ptr1, ptr2, tmp1
 .import donelib

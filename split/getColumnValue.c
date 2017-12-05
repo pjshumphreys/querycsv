@@ -10,7 +10,6 @@ int getColumnValue(
   char *output = NULL;
   size_t strSize = 0;
   int currentColumn = 0;
-  long temp = 0;
 
   MAC_YIELD
 

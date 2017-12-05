@@ -37,7 +37,7 @@ void foobar(char *string, char* format, ...) {
   strncat(string, c, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
-  /*bsearch (string, string, 2, 2, compar);*/
+  /* bsearch (string, string, 2, 2, compar); */
 
   test = fopen(c,"rb");
   num = ferror(test);
@@ -66,8 +66,7 @@ void foobar(char *string, char* format, ...) {
   time(&timer);
   datetime = gmtime(&timer);
   datetime = localtime(&timer);
-  /*strftime(string, 2, c, datetime);
-  */
+  /* strftime(string, 2, c, datetime); */
 
   free(string);
   exit(0);
