@@ -482,7 +482,7 @@ function compileHash2() {
   
 
   if(passPostfix === "") {
-    //execSync("node ./generate_hash2.js 398");
+    execSync("node ./generate_hash2.js 398");
   }
 
   for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
