@@ -198,7 +198,6 @@ function start() {
 /* create the cc65-floatlib include */
 function createFloatLibInclude() {
   console.log('createFloatLibInclude');
-  
 
   var tables = fs.createWriteStream('floatlib/floatlib.inc');
 
@@ -288,7 +287,26 @@ function compileFloatLib() {
       hashMap[v[0]] = this.length;
       this.push(v);
     }, functionsList);
+
+    var hash2ChunkCount = parseInt(execSync("node ./generate_hash2.js 398").toString(), 10);
+
+    for(i = 0; i < hash2ChunkCount; i++) {
+      /*
+      put an entry in the functions list for each file.
+      as the code in each of them doesn't need to call any other page
+      we can probably use farret2
+      */
+      var name = '_isInHash2_'+i;
+      hashMap[name] = functionsList.length;
+      functionsList.push([
+          name,
+          0,
+          0,
+          "farcall2"
+        ]);
+    }
   }
+
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
@@ -353,7 +371,6 @@ function compileLibC() {
 function compileLexer() {
   console.log('compileLexer');
   
-
   execSync(
       'sed "'+
         's/struct yy_trans_info/flex_int8_t yy_accept2\(unsigned int offset\);'+
@@ -479,11 +496,6 @@ function compileHash2() {
   var i, name;
 
   console.log("compileHash2");
-  
-
-  if(passPostfix === "") {
-    execSync("node ./generate_hash2.js 398");
-  }
 
   for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
     execSync(
@@ -495,32 +507,24 @@ function compileHash2() {
         "rm *.o"
       );
 
-    if(passPostfix === "") {
-      /*
+    /*
       put an entry in the functions list for each file.
       as the code in each of them doesn't need to call any other page
       we can probably use farret2
-      */
-      name = '_isInHash2_'+i;
-      hashMap[name] = functionsList.length;
-      functionsList.push([
-          name,
-          0,
-          parseInt(execSync(
-            'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isInHash2_'+
-            i+
-            ' obj2/hash2in'+
-            i+
-            '.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
-          ).toString(), 10),
-          "farcall2"
-        ]);
-    }
+    */
+    name = '_isInHash2_'+i;
+    functionsList[hashMap[name]][2] = parseInt(execSync(
+      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isInHash2_'+
+      i+
+      ' obj2/hash2in'+
+      i+
+      '.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+    ).toString(), 10);
   }
 
   if(passPostfix === "") {
     /* allow the hash2 function to be packed also */
-    execSync('./cc65_2 -T -t c64 -O -Os hash2out.h');
+    execSync('./cc65_2 -T -t c64 -O -Os hash2out.c');
     splitUpFunctions("hash2out", compileHash4, true);
   }
   else {

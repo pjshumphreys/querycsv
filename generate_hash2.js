@@ -229,4 +229,6 @@ function innerRead(err, contents) {
   }
 
   fs.writeFile('./hash2out.'+(process.argv.length > 2?'c':'h'), outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
+
+  console.log(arrays.length);
 }
