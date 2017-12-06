@@ -1,8 +1,12 @@
 %{
 #include "querycsv.h"
 #include "sql.h"
-#include "yyinput.h"
-	/* macro to save the text and return a token */
+
+#define YY_INPUT(buf,result,max_size) { \
+  myyyinput(yyin, yyextra, buf, &(result), max_size); \
+}
+
+/* macro to save the text and return a token */
 #define TOK(name) { return name; }
 #define LEX_WORKAROUND strReplace("]]", "]", yytext)
 %}

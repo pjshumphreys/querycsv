@@ -41,7 +41,7 @@ hash2.c: UnicodeData.txt weired.json hash2iT.h hash2outT.h hash2T.h
 sql.c: sql.y lexer.c querycsv.h
 	bison sql.y
 
-lexer.c: sql.l querycsv.h yyinput.h
+lexer.c: sql.l querycsv.h
 	flex sql.l
 	gcc -fpreprocessed -dD -E lexer.c > lexer2.c
 	sed '/^[#] [0-9]*/d' lexer2.c > lexer.c
