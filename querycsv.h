@@ -13,9 +13,6 @@
 /* translatable strings */
 #include "en_gb.h"
 
-/* macro for c64 benefit */
-#include "getCodepoints8Bit.h"
-
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
 #define FALSE 0
@@ -479,10 +476,26 @@ struct hash4Entry *in_word_set_a(register const char *str, register unsigned int
 struct hash4Entry *in_word_set_b(register const char *str, register unsigned int len);
 struct hash4Entry *in_word_set_c(register const char *str, register unsigned int len);
 
-/* void getHash1(char byte); */
-
 int isCombiningChar(long codepoint);
 
 struct hash2Entry* isInHash2(long codepoint);
+
+/* macro for the benefit of the c64 build */
+#define getCodepoints8Bit(map) int c; \
+  if(stream == NULL) { \
+    *arrLength = *byteLength = 0; \
+    return; \
+  } \
+  *arrLength = *byteLength = 1; \
+  if((c = fgetc(stream)) == EOF) { \
+    codepoints[0] = MYEOF; \
+    return; \
+  } \
+  if(c < 0x80) { \
+    codepoints[0] = (long)c; \
+    return; \
+  } \
+  codepoints[0] = (long)(map[c-0x80])
+
 #include "gen.h"
 #endif
