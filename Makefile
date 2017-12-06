@@ -33,7 +33,7 @@ hash4b.c: hash4b.gperf
 hash4c.c: hash4c.gperf
 	gperf hash4c.gperf > hash4c.c
 
-hash2.c: UnicodeData.txt weired.json hash2iT.h hash2outT.h hash2T.h
+hash2.c: UnicodeData.txt dcompose.json hash2iT.h hash2outT.h hash2T.h
 	npm install graceful-fs strip-json-comments readline walk shell-escape
 	node ./generate_hash2.js
 	cp hash2T.h hash2.c
@@ -79,7 +79,7 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash4*.c' ! -name 'hash2*.c' -exec cp {} env/c64/ \;
 	cp UnicodeData.txt env/c64/
 	cp generate_hash2.js env/c64/
-	cp weired.json env/c64/
+	cp dcompose.json env/c64/
 	cp hash4a.c env/c64/hash4a.h
 	cp hash4b.c env/c64/hash4b.h
 	cp hash4c.c env/c64/hash4c.h

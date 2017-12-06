@@ -81,10 +81,10 @@ lineReader.on('line', function(line){
 });
 
 lineReader.on('close', function(){
-  fs.readFile("./weired.json", 'utf8', weiredRead);
+  fs.readFile("./dcompose.json", 'utf8', decomposeRead);
 });
 
-function weiredRead(err, data) {
+function decomposeRead(err, data) {
   var array4;
   var array5;
   if(err) {
@@ -103,25 +103,25 @@ function weiredRead(err, data) {
   fs.readFile("./hash2outT.h", 'utf8', outerRead);
 }
 
-function expand(hash2, weired) {
+function expand(hash2, decompose) {
   var i, len1;
   var j, len2;
 
-  // find occurances of an entry in weired in the replacements column of hash2 and replace it with the corresponding weired replacement
+  // find occurances of an entry in decomposed in the replacements column of hash2 and replace it with the corresponding decomposed replacement
 
-  for(i = 0, len1 = weired.length; i< len1;i++) {
+  for(i = 0, len1 = decompose.length; i< len1;i++) {
     for(j = 0, len2 = hash2.length; j< len2;j++) {
-      if(hash2[j][1].indexOf(weired[i][0]) !== -1) {
-        hash2[j][1] = hash2[j][1].replace(new RegExp("\\b" + weired[i][0] + "\\b", 'g'), weired[i][1]);
+      if(hash2[j][1].indexOf(decompose[i][0]) !== -1) {
+        hash2[j][1] = hash2[j][1].replace(new RegExp("\\b" + decompose[i][0] + "\\b", 'g'), decompose[i][1]);
       }
     }
   }
 
   var hash = {};
 
-  // append the weired to hash 2, sort by the first column and output
+  // append the decomposed codes to hash 2, sort by the first column and output
   return hash2.
-    concat(weired).
+    concat(decompose).
     sort(function(a, b) {
       var len1 = a[1].split(" ").length, len2 = b[1].split(" ").length;
 
