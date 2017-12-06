@@ -157,7 +157,7 @@ var clibFunctionsList = [
   ["_write",              2, 0x0001, "farcall2"],
 
   //other special functions we'll need
-  ["_isCombiningChar",    0, 0x0001, "farcall"],
+  ["_isCombiningChar",    0, 0x0001, "farcall2"],
   ["_in_word_set_a",      0, 0x0001, "farcall2"],
   ["_in_word_set_b",      0, 0x0001, "farcall2"],
   ["_in_word_set_c",      0, 0x0001, "farcall2"]
@@ -526,16 +526,15 @@ function compileHash2() {
   if(passPostfix === "") {
     /* allow the hash2 function to be packed also */
     execSync('./cc65_2 -T -t c64 -O -Os hash2out.c');
-    splitUpFunctions("hash2out", compileHash4, true);
+    splitUpFunctions("hash2out", compileHash3And4, true);
   }
   else {
-      compileHash4();
+      compileHash3And4();
   }
 }
 
-function compileHash4() {
+function compileHash3And4() {
   console.log("compileHash4");
-  
 
   execSync(
       "cl65 -T -t c64 "+
@@ -569,12 +568,17 @@ function compileHash4() {
       "-o obj2/hash4c.bin "+
       "-Ln obj2/hash4c.lbl "+
       "-C rodata-page.cfg "+
-      "hash4c.c labels.s;"+
+      "hash4c.c hash3.c labels.s;"+
       "rm *.o"
     );
 
   functionsList[hashMap['_in_word_set_c']][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_c'+
+      ' obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+    ).toString(), 10);
+
+  functionsList[hashMap['_isCombiningChar']][2] = parseInt(execSync(
+      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isCombiningChar'+
       ' obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
 
@@ -995,6 +999,7 @@ function updatePageFunctionAddresses(pageNumber) {
 
       functionsList[hashMap["_in_word_set_a"]][1] = pageNumber++;
       functionsList[hashMap["_in_word_set_b"]][1] = pageNumber++;
+      functionsList[hashMap["_isCombiningChar"]][1] = pageNumber;
       functionsList[hashMap["_in_word_set_c"]][1] = pageNumber++;
 
       for (i = 0; i < hash2ChunkCount; i++) {
