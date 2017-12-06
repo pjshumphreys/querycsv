@@ -10,6 +10,8 @@ var shellescape = require('shell-escape');
 var i;
 var files;
 
+var hash2ChunkCount;
+
 var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
 var replaceAll = (str, mapObj) => str.replace(
     new RegExp(
@@ -155,7 +157,6 @@ var clibFunctionsList = [
   ["_write",              2, 0x0001, "farcall2"],
 
   //other special functions we'll need
-  ["_getHash1",           0, 0x0001, "farcall"],
   ["_isCombiningChar",    0, 0x0001, "farcall"],
   ["_in_word_set_a",      0, 0x0001, "farcall2"],
   ["_in_word_set_b",      0, 0x0001, "farcall2"],
@@ -288,7 +289,7 @@ function compileFloatLib() {
       this.push(v);
     }, functionsList);
 
-    var hash2ChunkCount = parseInt(execSync("node ./generate_hash2.js 398").toString(), 10);
+    hash2ChunkCount = parseInt(execSync("node ./generate_hash2.js 398").toString(), 10);
 
     for(i = 0; i < hash2ChunkCount; i++) {
       /*
@@ -975,6 +976,15 @@ function updatePageFunctionAddresses(pageNumber) {
   stream.on('error', err => {
     if(err.code == 'ENOENT') {
       passPostfix = "b";
+
+      functionsList[hashMap["_in_word_set_a"]][1] = pageNumber++;
+      functionsList[hashMap["_in_word_set_b"]][1] = pageNumber++;
+      functionsList[hashMap["_in_word_set_c"]][1] = pageNumber++;
+
+      for (i = 0; i < hash2ChunkCount; i++) {
+        let name = '_isInHash2_'+i;
+        functionsList[hashMap[name]][1] = pageNumber+i;
+      }
 
       createTrampolinesInclude();
     }
