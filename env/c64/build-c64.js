@@ -6,7 +6,7 @@ var spawnSync = child_process.spawnSync;
 var fs = require('graceful-fs');
 var readline = require('readline');
 var walk = require('walk');
-var shellescape = require('shell-escape');
+var shellEscape = require('shell-escape');
 var i;
 var files;
 
@@ -545,6 +545,11 @@ function compileHash4() {
       "hash4a.c labels.s;"+
       "rm *.o");
 
+  functionsList[hashMap['_in_word_set_a']][2] = parseInt(execSync(
+      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_a'+
+      ' obj2/hash4a.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+    ).toString(), 10);
+
   execSync(
       "cl65 -T -t c64 "+
       "-o obj2/hash4b.bin "+
@@ -554,6 +559,11 @@ function compileHash4() {
       "rm *.o"
     );
 
+  functionsList[hashMap['_in_word_set_b']][2] = parseInt(execSync(
+      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_b'+
+      ' obj2/hash4b.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+    ).toString(), 10);
+
   execSync(
       "cl65 -T -t c64 "+
       "-o obj2/hash4c.bin "+
@@ -562,6 +572,12 @@ function compileHash4() {
       "hash4c.c labels.s;"+
       "rm *.o"
     );
+
+  functionsList[hashMap['_in_word_set_c']][2] = parseInt(execSync(
+      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_c'+
+      ' obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+    ).toString(), 10);
+
 
   createTrampolinesInclude();
 }
@@ -1282,7 +1298,7 @@ function updateName(elem) {
     'echo ".segment \\"ONCE\\"" >> s/'+elem[0] + (!hasMatches?'':(" &&" +
     'echo ".segment \\"RODATA\\"" >> s/'+elem[0] + " &&" +
     "cat "+
-    shellescape(rodataLabels.filter(label => label[1]).map(label => "ro/"+label[0]+".s")) +
+    shellEscape(rodataLabels.filter(label => label[1]).map(label => "ro/"+label[0]+".s")) +
     ">> s/"+elem[0]))
   );
 }
