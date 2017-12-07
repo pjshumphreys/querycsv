@@ -12,6 +12,8 @@ var files;
 
 var hash2ChunkCount;
 
+var remainder = 16384;
+
 var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
 var replaceAll = (str, mapObj) => str.replace(
     new RegExp(
@@ -31,58 +33,58 @@ var passPostfix = "";
 contains them, the address within that page and which trampoline function
 in the $C000 range to call to set them up correctly*/
 var functionsList = [
-  ["BASIC_FAC_to_string", 0, 0xBDDD, "FUNC0"],   /* in: FAC value   out: str at $0100 a/y ptr to str */
-  ["BASIC_string_to_FAC", 0, 0xB7B5, "FUNC0"],   /* in: $22/$23 ptr to str,a=strlen out: FAC value */
+  ["BASIC_FAC_to_string", 1, 0xBDDD, "FUNC0"],   /* in: FAC value   out: str at $0100 a/y ptr to str */
+  ["BASIC_string_to_FAC", 1, 0xB7B5, "FUNC0"],   /* in: $22/$23 ptr to str,a=strlen out: FAC value */
 
-  ["BASIC_s8_to_FAC",     0, 0xBC3C, "FUNC0"],    /* a: value */
-  ["BASIC_u8_to_FAC",     0, 0xB3A2, "FUNC0"],    /* y: value */
+  ["BASIC_s8_to_FAC",     1, 0xBC3C, "FUNC0"],    /* a: value */
+  ["BASIC_u8_to_FAC",     1, 0xB3A2, "FUNC0"],    /* y: value */
 
-  ["BASIC_u16_to_FAC",    0, 0xBC49, "FUNC0"],   /* a/y:lo/hi value (sta $62 sty $63 sec ldx#$90 jsr...) */
-  ["BASIC_s16_to_FAC",    0, 0xB395, "FUNC0"],   /* a/y:lo/hi value */
-  ["BASIC_FAC_to_u16",    0, 0xBC9B, "FUNC0"],   /* in:FAC out: y/a:lo/hi value */
+  ["BASIC_u16_to_FAC",    1, 0xBC49, "FUNC0"],   /* a/y:lo/hi value (sta $62 sty $63 sec ldx#$90 jsr...) */
+  ["BASIC_s16_to_FAC",    1, 0xB395, "FUNC0"],   /* a/y:lo/hi value */
+  ["BASIC_FAC_to_u16",    1, 0xBC9B, "FUNC0"],   /* in:FAC out: y/a:lo/hi value */
 
 /*------------------------------------------------------------------------- */
 /* these functions take one arg (in FAC) and return result (in FAC) as well */
 /*------------------------------------------------------------------------- */
 
-  ["__fabs",              0, 0xBC58, "FUNC1"],   /* in/out: FAC */
-  ["__fatn",              0, 0xE30E, "FUNC1"],   /* in/out: FAC */
-  ["__fcos",              0, 0xE264, "FUNC1"],   /* in/out: FAC */
-  ["__fexp",              0, 0xBFED, "FUNC1"],   /* in/out: FAC */
+  ["__fabs",              1, 0xBC58, "FUNC1"],   /* in/out: FAC */
+  ["__fatn",              1, 0xE30E, "FUNC1"],   /* in/out: FAC */
+  ["__fcos",              1, 0xE264, "FUNC1"],   /* in/out: FAC */
+  ["__fexp",              1, 0xBFED, "FUNC1"],   /* in/out: FAC */
 /* __ffre:    FUNC1 BASIC_FAC_Fre */
-  ["__fint",              0, 0xBCCC, "FUNC1"],   /* in/out: FAC */
-  ["__flog",              0, 0xB9EA, "FUNC1"],   /* in/out: FAC */
+  ["__fint",              1, 0xBCCC, "FUNC1"],   /* in/out: FAC */
+  ["__flog",              1, 0xB9EA, "FUNC1"],   /* in/out: FAC */
 /* __fpos:    FUNC1 BASIC_FAC_Pos */
-  ["__frnd",              0, 0xE097, "FUNC1"],   /* in/out: FAC */
-  ["__fsgn",              0, 0xBC39, "FUNC1"],   /* in/out: FAC */
-  ["__fsin",              0, 0xE26B, "FUNC1"],   /* in/out: FAC */
-  ["__fsqr",              0, 0xBF71, "FUNC1"],   /* in/out: FAC */
-  ["__ftan",              0, 0xE2B4, "FUNC1"],   /* in/out: FAC */
-  ["__fnot",              0, 0xAED4, "FUNC1"],   /* in/out: FAC */
-  ["__fround",            0, 0xBC1B, "FUNC1"],   /* in/out: FAC */
+  ["__frnd",              1, 0xE097, "FUNC1"],   /* in/out: FAC */
+  ["__fsgn",              1, 0xBC39, "FUNC1"],   /* in/out: FAC */
+  ["__fsin",              1, 0xE26B, "FUNC1"],   /* in/out: FAC */
+  ["__fsqr",              1, 0xBF71, "FUNC1"],   /* in/out: FAC */
+  ["__ftan",              1, 0xE2B4, "FUNC1"],   /* in/out: FAC */
+  ["__fnot",              1, 0xAED4, "FUNC1"],   /* in/out: FAC */
+  ["__fround",            1, 0xBC1B, "FUNC1"],   /* in/out: FAC */
 
 /*-------------------------------------------------------------------------- */
 /* these functions take two args (in FAC and ARG) and return result (in FAC) */
 /*-------------------------------------------------------------------------- */
 
-  ["__fadd",              0, 0xB86A, "FUNC2"],   /* in: ARG,FAC out:FAC */
-  ["__fsub",              0, 0xB853, "FUNC2"],   /* in: ARG,FAC out:FAC */
-  ["__fmul",              0, 0xBA2B, "FUNC2"],   /* in: ARG,FAC out:FAC */
-  ["__fdiv",              0, 0xBB12, "FUNC2"],   /* in: ARG,FAC out:FAC */
-  ["__fpow",              0, 0xBF7B, "FUNC2"],   /* in: ARG,FAC out:FAC */
+  ["__fadd",              1, 0xB86A, "FUNC2"],   /* in: ARG,FAC out:FAC */
+  ["__fsub",              1, 0xB853, "FUNC2"],   /* in: ARG,FAC out:FAC */
+  ["__fmul",              1, 0xBA2B, "FUNC2"],   /* in: ARG,FAC out:FAC */
+  ["__fdiv",              1, 0xBB12, "FUNC2"],   /* in: ARG,FAC out:FAC */
+  ["__fpow",              1, 0xBF7B, "FUNC2"],   /* in: ARG,FAC out:FAC */
 
-  ["__fand",              0, 0xAFE9, "FUNC3"],   /* in: ARG,FAC out:FAC */
-  ["__for",               0, 0xAFE6, "FUNC3"],   /* in: ARG,FAC out:FAC */
+  ["__fand",              1, 0xAFE9, "FUNC3"],   /* in: ARG,FAC out:FAC */
+  ["__for",               1, 0xAFE6, "FUNC3"],   /* in: ARG,FAC out:FAC */
 
-  ["BASIC_FAC_cmp",       0, 0xBC5B, "FUNC0"],   /* in: FAC(x1) a/y ptr lo/hi to x2 out: a=0 (x1=x2) a=1 (x1>x2) a=255 (x1<x2) */
-  ["BASIC_FAC_testsgn",   0, 0xBC2B, "FUNC0"],   /* in: FAC(x1) out: a=0 (x1=0) a=1 (x1>0) a=255 (x1<0) */
-  ["BASIC_FAC_Poly1",     0, 0xE059, "FUNC0"],   /* in: FAC x  a/y ptr to poly (1byte grade,5bytes per coefficient) */
+  ["BASIC_FAC_cmp",       1, 0xBC5B, "FUNC0"],   /* in: FAC(x1) a/y ptr lo/hi to x2 out: a=0 (x1=x2) a=1 (x1>x2) a=255 (x1<x2) */
+  ["BASIC_FAC_testsgn",   1, 0xBC2B, "FUNC0"],   /* in: FAC(x1) out: a=0 (x1=0) a=1 (x1>0) a=255 (x1<0) */
+  ["BASIC_FAC_Poly1",     1, 0xE059, "FUNC0"],   /* in: FAC x  a/y ptr to poly (1byte grade,5bytes per coefficient) */
 
   /*normally these functions are wrapped by more code, but we need to be able
   to call them in a raw form */
-  ["BASIC_FAC_Atn",       0, 0xE30E, "FUNC0"],   /* in/out: FAC */
-  ["BASIC_ARG_FAC_Div",   0, 0xBB12, "FUNC0"],   /* in: ARG,FAC out:FAC */
-  ["BASIC_ARG_FAC_Add",   0, 0xB86A, "FUNC0"],    /* in: ARG,FAC out:FAC */
+  ["BASIC_FAC_Atn",       1, 0xE30E, "FUNC0"],   /* in/out: FAC */
+  ["BASIC_ARG_FAC_Div",   1, 0xBB12, "FUNC0"],   /* in: ARG,FAC out:FAC */
+  ["BASIC_ARG_FAC_Add",   1, 0xB86A, "FUNC0"],    /* in: ARG,FAC out:FAC */
 ];
 
 /* these are unused */
@@ -92,24 +94,24 @@ var functionsList = [
 /*BASIC_LoadFAC   = $bba2     ; a/y:lo/hi ptr to 5-byte float */
 
 var floatlibFunctionsList = [
-  ["__ftostr",            2, 0x0001, "farcall"],
-  ["__strtof",            2, 0x0001, "farcall"],
-  ["__ctof",              2, 0x0001, "farcall"],
-  ["__utof",              2, 0x0001, "farcall"],
-  ["__stof",              2, 0x0001, "farcall"],
-  ["__itof",              2, 0x0001, "farcall"],
-  ["__ftoi",              2, 0x0001, "farcall"],
-  ["__fcmp",              2, 0x0001, "farcall"],
-  ["__ftestsgn",          2, 0x0001, "farcall"],
-  ["__fneg",              2, 0x0001, "farcall"],
-  ["__fpoly1",            2, 0x0001, "farcall"],
-  ["__fpoly2",            2, 0x0001, "farcall"],
-  ["__fatan2",            2, 0x0001, "farcall"],
+  ["__ftostr",            1, 0x0001, "farcall"],
+  ["__strtof",            1, 0x0001, "farcall"],
+  ["__ctof",              1, 0x0001, "farcall"],
+  ["__utof",              1, 0x0001, "farcall"],
+  ["__stof",              1, 0x0001, "farcall"],
+  ["__itof",              1, 0x0001, "farcall"],
+  ["__ftoi",              1, 0x0001, "farcall"],
+  ["__fcmp",              1, 0x0001, "farcall"],
+  ["__ftestsgn",          1, 0x0001, "farcall"],
+  ["__fneg",              1, 0x0001, "farcall"],
+  ["__fpoly1",            1, 0x0001, "farcall"],
+  ["__fpoly2",            1, 0x0001, "farcall"],
+  ["__fatan2",            1, 0x0001, "farcall"],
 ];
 
 var clibFunctionsList = [
   /* standard C library functions */
-  ["_strtod",             2, 0x0001, "farcall"], /*this'll be provided by my
+  ["_strtod",             1, 0x0001, "farcall"], /*this'll be provided by my
   floatib wrapper */
   ["_calloc",             2, 0x0001, "farcall2"],
   ["_clearerr",           2, 0x0001, "farcall2"],
@@ -244,7 +246,7 @@ function createFloatLibInclude() {
 /* compile cc65-floatlib. */
 function compileFloatLib() {
   console.log('compileFloatLib');
-  
+
 
   /* compile the floatlib portion written in C (strtod) */
   execSync("cc65 -T -t c64 -I ./floatlib floatlib.c");
@@ -315,7 +317,7 @@ function compileFloatLib() {
       input: fs.createReadStream('floatlib.lbl')
     });
 
-  lineReader.on('line', updateFunctionAddress.bind(0));
+  lineReader.on('line', updateFunctionAddress.bind(1));
 
   /* when finished, start the next step (compiling libc) */
   lineReader.on('close', compileLibC);
@@ -324,7 +326,7 @@ function compileFloatLib() {
 /* compile cc65 standard library */
 function compileLibC() {
   console.log('compileLibC');
-  
+
 
   /* compile a fake program that uses c library */
   execSync(
@@ -361,7 +363,7 @@ function compileLibC() {
     input: fs.createReadStream('libc.lbl')
   });
 
-  lineReader.on('line', updateFunctionAddress.bind(1));
+  lineReader.on('line', updateFunctionAddress.bind(2));
 
   /* when finished, start the next step (compiling the functions that
   make up my program) */
@@ -371,7 +373,7 @@ function compileLibC() {
 //compile and split up lexer
 function compileLexer() {
   console.log('compileLexer');
-  
+
   execSync(
       'sed "'+
         's/struct yy_trans_info/flex_int8_t yy_accept2\(unsigned int offset\);'+
@@ -398,7 +400,7 @@ function compileLexer() {
 
 function compileParser() {
   console.log('compileParser');
-  
+
 
   execSync(
     'sed "'+
@@ -415,7 +417,7 @@ function compileParser() {
 
 function compileQueryCSV() {
   console.log('compileQueryCSV');
-  
+
 
   execSync("./cc65_2 -T -t c64 -O -Os querycsv.c --writable-strings");
 
@@ -426,7 +428,7 @@ function compileQueryCSV() {
 (this will be copied to ram on startup) */
 function compileData() {
   console.log('compileData');
-  
+
 
   /* compile data and bss segments. generate an assembly
   language include of all the labels */
@@ -684,16 +686,23 @@ function createTrampolinesInclude() {
 
 function compileMain() {
   console.log("compileMain");
-  
 
-  if(passPostfix === "") {
-    //execSync("mv s/_main.s g/_main.s");
-  }
+  execSync("cl65 -T -t c64 -Ln main.lbl --config main"+(passPostfix===""?"":"a")+".cfg crt0.s");
 
-  execSync("cl65 -T -t c64 -Ln main.lbl --config main.cfg crt0.s");
+  execSync(
+      "("+
+        "echo -n \"ibase=16;scale=16;\" && "+
+        "((grep __RAM2_LAST__ main.lbl|"+
+        "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\\n')"+
+        " && echo -n \"-\" && "+
+        "grep __RAM2_START__ main.lbl|"+
+        "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
+      ")|bc|"+
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=maindata.bin"
+    );
 
   /*read the label file and update each function address */
-  if(passPostfix === "") {    
+  if(passPostfix === "") {
     var lineReader = readline.createInterface({
       input: fs.createReadStream('main.lbl')
     });
@@ -749,7 +758,6 @@ function compileMain() {
 /* compile yyparse twice, first to get its size, then to locate it in the proper place */
 function calculateSizes() {
   console.log("calculateSizes");
-  
 
   updateName(["_yyparse.s", fs.readFileSync("s/_yyparse.s", {encoding: 'utf8'})]);
 
@@ -781,7 +789,13 @@ function calculateSizes() {
 
   var floatlib_start = libc_start - floatlib_size;
 
-  var heap_size = floatlib_start - 0x081A; /* 0x1a bytes are taken up by working variables */
+  var main_size = fs.statSync("maindata.bin").size;
+
+  var main_start = floatlib_start - main_size;
+
+  var heap_size = main_start - 0x081A; /* 0x1a bytes are taken up by working variables */
+
+  remainder -= (yyparse_size+data_size+libc_size+floatlib_size+main_size);
 
   execSync(
       "sed 's/ROMH:    file = %O, start = $8000, size = $4000/"+
@@ -789,7 +803,11 @@ function calculateSizes() {
       (yyparse_start.toString(16).toUpperCase())+
       ", size = $"+
       (yyparse_size.toString(16).toUpperCase())+
-      "/g;' function.cfg > yyparse.cfg"
+      "/g;"+
+      's/RAM5:    file = "", start = $081A, size = $97E6/'+
+      'RAM5:    file = "", start = $081A, size = $'+
+      (heap_size.toString(16).toUpperCase())+"/g;"+
+      "' function.cfg > yyparse.cfg"
     );
 
   execSync(
@@ -798,7 +816,11 @@ function calculateSizes() {
       (data_start.toString(16).toUpperCase())+
       ", size = $"+
       (data_size.toString(16).toUpperCase())+
-      "/g;' data.cfg > dataa.cfg"
+      "/g;"+
+      's/RAM5:    file = "", start = $081A, size = $97E6/'+
+      'RAM5:    file = "", start = $081A, size = $'+
+      (heap_size.toString(16).toUpperCase())+"/g;"+
+      "' data.cfg > dataa.cfg"
     );
 
   execSync(
@@ -807,7 +829,11 @@ function calculateSizes() {
       (floatlib_start.toString(16).toUpperCase())+
       ", size = $"+
       (floatlib_size.toString(16).toUpperCase())+
-      "/g;' floatlib.cfg > floatliba.cfg"
+      "/g;"+
+      's/RAM5:    file = "", start = $081A, size = $97E6/'+
+      'RAM5:    file = "", start = $081A, size = $'+
+      (heap_size.toString(16).toUpperCase())+"/g;"+
+      "' floatlib.cfg > floatliba.cfg"
     );
 
   execSync(
@@ -816,7 +842,32 @@ function calculateSizes() {
       (libc_start.toString(16).toUpperCase())+
       ", size = $"+
       (libc_size.toString(16).toUpperCase())+
-      "/g;' libc.cfg > libca.cfg"
+      "/g;"+
+      's/RAM5:    file = "", start = $081A, size = $97E6/'+
+      'RAM5:    file = "", start = $081A, size = $'+
+      (heap_size.toString(16).toUpperCase())+"/g;"+
+      "' libc.cfg > libca.cfg"
+    );
+
+  execSync(
+      "sed 's/RAM2:     file = \\\"\\\", start = $081A, size = $97E6/"+
+      "RAM2:     file = \\\"\\\", start = $"+
+      (main_start.toString(16).toUpperCase())+
+      ", size = $"+
+      (main_size.toString(16).toUpperCase())+
+      "/g;"+
+      's/RAM5:     file = "", start = $081A, size = $97E6/'+
+      'RAM5:     file = "", start = $081A, size = $'+
+      (heap_size.toString(16).toUpperCase())+"/g;"+
+      "' main.cfg > maina.cfg"
+    );
+
+  execSync(
+      "sed '"+
+      's/RAM5:    file = "", start = $081A, size = $97E6/'+
+      'RAM5:    file = "", start = $081A, size = $'+
+      (heap_size.toString(16).toUpperCase())+"/g;"+
+      "' page.cfg > pagea.cfg"
     );
 
   compileFloatLib();
@@ -824,7 +875,7 @@ function calculateSizes() {
 
 function compileYYParse() {
   console.log("compileYYParse");
-  
+
 
   /*yyparse goes directly into an oversized page of its own */
   execSync(
@@ -842,7 +893,7 @@ function compileYYParse() {
     input: fs.createReadStream('./obj2/yyparse.lbl')
   });
 
-  lineReader.on('line', updateFunctionAddress.bind(2));
+  lineReader.on('line', updateFunctionAddress.bind(3));
 
   /* when finished, start the next step (compiling the functions that
   make up my program) */
@@ -852,7 +903,7 @@ function compileYYParse() {
 /* pack most function code into a set of 8k memory pages */
 function addROData() {
   console.log("addROData");
-  
+
 
   var list = [];
   var walker = walk.walk('./s', {});
@@ -876,7 +927,7 @@ function addROData() {
 
 function packPages() {
   console.log("packPages");
-  
+
 
   execSync(
     "pushd s;"+
@@ -912,7 +963,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 8192;//8277;
+  var maxSize = 8277;//8277;
 
   files = [];
   var totalSizes = [];
@@ -947,7 +998,7 @@ function packPages() {
 
 function compilePages() {
   console.log("compilePages");
-  
+
 
   var i = 0;
 
@@ -975,19 +1026,19 @@ function compilePages() {
           "cl65 -T -t c64 "+
             "-o ../obj2/page"+(i+1)+".bin "+
             "-Ln ../obj2/page"+(i+1)+".lbl "+
-            "-C ../page.cfg ../page"+(i+1)+".s;"+
+            "-C ../pagea.cfg ../page"+(i+1)+".s;"+
           ""+
         "popd"
       );
   }
 
-  updatePageFunctionAddresses(3);
+  updatePageFunctionAddresses(4);
 }
 
 function updatePageFunctionAddresses(pageNumber) {
-  console.log("updatePageFunctionAddresses: ", pageNumber-2);
+  console.log("updatePageFunctionAddresses: ", pageNumber-3);
 
-  var stream = fs.createReadStream("./obj2/page"+(pageNumber-2)+".lbl");
+  var stream = fs.createReadStream("./obj2/page"+(pageNumber-3)+".lbl");
 
   var lineReader = readline.createInterface({
     input: stream
@@ -1024,6 +1075,31 @@ function updatePageFunctionAddresses(pageNumber) {
 
 function glueTogetherBinary() {
   console.log("glueTogetherBinary");
+
+  execSync('dd if=/dev/zero bs=1 count='+remainder+' | tr "\\000" "\\377" >padding.bin');
+
+  execSync("cat padding.bin maindata.bin floatlibdata.bin libcdata.bin data.bin obj2/yyparse.bin > output.bin");
+
+  execSync('dd if=/dev/zero bs=1 count=8192 | tr "\\000" "\\377" >8k.bin');
+
+
+  execSync("cat 8k.bin querycsv.bin >full.bin");
+  execSync("cat 8k.bin floatlib.bin >>full.bin");
+  execSync("cat 8k.bin libc.bin >>full.bin");
+  execSync("cat output.bin >>full.bin");
+
+  for(i = 0; i < files.length; i++) {
+    execSync("cat 8k.bin ./obj2/page"+(i+1)+".bin >>full.bin");
+  }
+
+  for (i = 0; i < hash2ChunkCount; i++) {
+    execSync("cat 8k.bin ./obj2/hash2in"+i+".bin >>full.bin");
+  }
+
+  execSync("cat 8k.bin ./obj2/hash4a.bin >>full.bin");
+  execSync("cat 8k.bin ./obj2/hash4b.bin >>full.bin");
+  execSync("cat 8k.bin ./obj2/hash4c.bin >>full.bin");
+
 
   //all done (hooray!)
 }
@@ -1254,7 +1330,7 @@ function updateFunctionAddress(line) {
   var address = parseInt(line.match(/[0-9A-F]+/), 16);
   var pageNumber = this;
 
-  var name2 = name.replace(/^_/, ""); 
+  var name2 = name.replace(/^_/, "");
 
   if(name == "initlib") {
     defines["initlib2"] = address;
