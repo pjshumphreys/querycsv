@@ -806,8 +806,8 @@ function calculateSizes() {
     );
 
   execSync(
-      "sed 's/data.bin\\\", start = \$081A, size = \$97E6/"+
-      "data.bin\\\", start = $"+
+      "sed 's/data2.bin\\\", start = $081A, size = $97E6/"+
+      "data2.bin\\\", start = $"+
       (data_start.toString(16).toUpperCase())+
       ", size = $"+
       (data_size.toString(16).toUpperCase())+
