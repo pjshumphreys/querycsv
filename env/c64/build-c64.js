@@ -170,6 +170,7 @@ var defines = {
   "_stdin": 0,
   "_stdout": 0,
   "initlib2": 0,
+  "donelib2": 0,
   "___float_fac_to_float": 0,
   "___float_float_to_fac": 0,
   "___float_float_to_fac_arg": 0,
@@ -247,7 +248,6 @@ function createFloatLibInclude() {
 function compileFloatLib() {
   console.log('compileFloatLib');
 
-
   /* compile the floatlib portion written in C (strtod) */
   execSync("cc65 -T -t c64 -I ./floatlib floatlib.c");
 
@@ -310,7 +310,6 @@ function compileFloatLib() {
     }
   }
 
-
   /* read the label file and use its contents to
   update each function address in the hashmap */
   var lineReader = readline.createInterface({
@@ -326,7 +325,6 @@ function compileFloatLib() {
 /* compile cc65 standard library */
 function compileLibC() {
   console.log('compileLibC');
-
 
   /* compile a fake program that uses c library */
   execSync(
@@ -401,7 +399,6 @@ function compileLexer() {
 function compileParser() {
   console.log('compileParser');
 
-
   execSync(
     'sed "'+
       's/YY_INITIAL_VALUE \(static YYSTYPE yyval_default;\)//g;'+
@@ -418,7 +415,6 @@ function compileParser() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-
   execSync("./cc65_2 -T -t c64 -O -Os querycsv.c --writable-strings");
 
   splitUpFunctions("querycsv", compileData, true);
@@ -428,7 +424,6 @@ function compileQueryCSV() {
 (this will be copied to ram on startup) */
 function compileData() {
   console.log('compileData');
-
 
   /* compile data and bss segments. generate an assembly
   language include of all the labels */
@@ -583,7 +578,6 @@ function compileHash3And4() {
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isCombiningChar'+
       ' obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
-
 
   createTrampolinesInclude();
 }
@@ -876,7 +870,6 @@ function calculateSizes() {
 function compileYYParse() {
   console.log("compileYYParse");
 
-
   /*yyparse goes directly into an oversized page of its own */
   execSync(
       "cl65 -T -t c64 "+
@@ -904,7 +897,6 @@ function compileYYParse() {
 function addROData() {
   console.log("addROData");
 
-
   var list = [];
   var walker = walk.walk('./s', {});
 
@@ -927,7 +919,6 @@ function addROData() {
 
 function packPages() {
   console.log("packPages");
-
 
   execSync(
     "pushd s;"+
@@ -998,7 +989,6 @@ function packPages() {
 
 function compilePages() {
   console.log("compilePages");
-
 
   var i = 0;
 
@@ -1082,7 +1072,6 @@ function glueTogetherBinary() {
 
   execSync('dd if=/dev/zero bs=1 count=8192 | tr "\\000" "\\377" >8k.bin');
 
-
   execSync("cat 8k.bin querycsv.bin >full.bin");
   execSync("cat 8k.bin floatlib.bin >>full.bin");
   execSync("cat 8k.bin libc.bin >>full.bin");
@@ -1100,11 +1089,10 @@ function glueTogetherBinary() {
   execSync("cat 8k.bin ./obj2/hash4b.bin >>full.bin");
   execSync("cat 8k.bin ./obj2/hash4c.bin >>full.bin");
 
+  execSync("bin2efcrt full.bin full.crt");
 
   //all done (hooray!)
 }
-
-
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
 
@@ -1332,8 +1320,12 @@ function updateFunctionAddress(line) {
 
   var name2 = name.replace(/^_/, "");
 
-  if(name == "initlib") {
+  //the libc page is page 2
+  if(pageNumber === 2 && name == "initlib") {
     defines["initlib2"] = address;
+  }
+  else if(pageNumber === 2 && name == "donelib") {
+    defines["donelib2"] = address;
   }
   else if(defines.hasOwnProperty(name)) {
     defines[name] = address;
@@ -1384,22 +1376,6 @@ function updateName(elem) {
   );
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //add all functions found to the jump table. generate the jump table as a binary file, including the trampoline code to compute the offsets the code will use
 
 //compute the output size of each c file (code+rodata) and the total size of static vars. use a modified cc65 that adds an underscore to the start of each called function and does "jmp farret" instead of rts
@@ -1413,7 +1389,6 @@ function updateName(elem) {
 //create a binary file that contains the inital values for all static variables and an assembler function that copies the data to the right location
 
 //glue all the binaries together
-
 
 //figure out the total ram used and alter the config file so stack and heap start in a memory area above static variables
 

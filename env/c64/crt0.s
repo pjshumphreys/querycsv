@@ -14,15 +14,15 @@ EASYFLASH_KILL    = $04
 ;.import _main
 
 .importzp       ptr1, ptr2, tmp1
-.import donelib
-.import zerobss
 .import BSOUT
-.import __RAM_START__, __RAM_SIZE__     ; Linker generated
+.import __RAM5_START__, __RAM5_SIZE__     ; Linker generated
 .import __LOADER_LOAD__
 .import __STARTUP_LOAD__
-.import __RAM2_LAST__, __RAM2_START__, __ROML0_START__
 
-.export entry,premain
+.include "zeropage.inc"
+.include "c64.inc"
+
+.export entry
 .export farcall2, farret, farret2
 
 __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
@@ -114,7 +114,7 @@ lp1:
   inc lp1+2
   inc lp1+5
   lda lp1+5
-  eor #$cc
+  eor #$cf
   bne lp1 
   jmp entry
 
@@ -133,8 +133,13 @@ farret:
 ;entry point is here!
 entry:
   ;disable easyflash cartridge as we want to hook into basic
+  ;lda $01       ; 6510 On-chip 8-bit Input/Output Register
+  ;ora #$07
+  ;and #$FB
+  ;sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
+
   ;jsr $ff87     ; Initialise System Constants
   lda #$00
   tay
@@ -173,7 +178,7 @@ lp2:
   ldx #$FB
   txs
   bne E386     ; BASIC Warm start [RUNSTOP-RESTORE]
-  jmp $E3A2
+  jmp $E3A2     ; go to the regular c64 command line code
 
 E386:
   jmp $E386
@@ -319,37 +324,35 @@ AAE7:
   rts
 
 AA9A:
+  ;copy the string parameter to sys into memory above $c000
   jsr AB21
+
+  ; switch to upper/lower case character set (i.e. print chr$(14) )
+  lda #14
+  jsr BSOUT
+
+  ;switch on the easy flash cartridge memory
+  ;read and write from lo-rom. this will copy the data as writes always go to ram
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
-  lda #1
+  lda #3        ;third easyflash bank
   sta EASYFLASH_BANK
   lda #EASYFLASH_16K
   sta EASYFLASH_CONTROL
 
-.include "zeropage.inc"
-.include "c64.inc"
-premain:
-  lda #14
-  jsr BSOUT
-
-  jsr zerobss
-
   ; copydata won't work for us as it needs to do DATA *and* RODATA, so we roll our own memory copying code instead
-  lda #0
-  sta EASYFLASH_BANK
 
-  ldx #<__ROML0_START__
+  ldx #<($8000)
   stx ptr1
-  ldx #>__ROML0_START__
+  ldx #>($8000)
   stx ptr1+1
-  ldx #<__RAM2_START__
+  ldx #<($8000)
   stx ptr2
-  ldx #>__RAM2_START__
+  ldx #>($8000)
   stx ptr2+1
 
-  datSize = __RAM2_LAST__ - __RAM2_START__
+  datSize = $2000
 
 movedown:
   ldy #0
@@ -378,38 +381,38 @@ MD3:
   bne MD3
 
 MD4:
+  ;switch off lo-rom, as we don't need it any longer
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   and #$FE
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
 
-  ; and here
   ; Set argument stack ptr
-  lda #<($A000)
+  lda #<(__RAM5_START__ + __RAM5_SIZE__)
   sta sp
-  lda #>($A000)
+  lda #>(__RAM5_START__ + __RAM5_SIZE__)
   sta sp + 1
 
+  ;initialise cc65 libc then call main
   lda #2
   sta EASYFLASH_BANK
   jsr initlib2
-  lda #1
-  sta currentBank
-  sta EASYFLASH_BANK
-  ;jsr initlib
   jsr _main
 
 _exit:
-  jsr donelib
+  lda #2
+  sta EASYFLASH_BANK
+  jsr donelib2
 
-jumpback:
-  lda $01       ; 6510 On-chip 8-bit Input/Output Register
-  ora #$07
-  and #$FE
-  sta $01       ; 6510 On-chip 8-bit Input/Output Register
+  ;disable the easyflash cartridge
+  ;lda $01       ; 6510 On-chip 8-bit Input/Output Register
+  ;ora #$07
+  ;and #$FB
+  ;sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
-  rts
+
+  jmp $A642 ;run the BASIC "NEW" command then quit back to the command line
 
 farcall3:
   sta aRegBackup
@@ -508,7 +511,7 @@ FUNC1:
   pha
   lda lowAddressTable, x
   pha
-  lda #2
+  lda #1
   sta EASYFLASH_BANK
   lda aRegBackup
   lda xRegBackup
@@ -525,7 +528,7 @@ FUNC2:
   pha
   lda lowAddressTable, x
   pha
-  lda #2
+  lda #1
   sta EASYFLASH_BANK
   lda aRegBackup
   lda xRegBackup
@@ -543,7 +546,7 @@ FUNC3:
   pha
   lda lowAddressTable, x
   pha
-  lda #2
+  lda #1
   sta EASYFLASH_BANK
   lda aRegBackup
   ldx xRegBackup
