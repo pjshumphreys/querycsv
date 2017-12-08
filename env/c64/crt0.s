@@ -400,9 +400,9 @@ MD4:
   jsr _main
 
 _exit:
-  lda #2
-  sta EASYFLASH_BANK
-  jsr donelib2
+  ;lda #2
+  ;sta EASYFLASH_BANK
+  ;jsr donelib2
 
   ;disable the easyflash cartridge
   ;lda $01       ; 6510 On-chip 8-bit Input/Output Register
@@ -412,7 +412,8 @@ _exit:
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
 
-  jmp $A642 ;run the BASIC "NEW" command then quit back to the command line
+  ;jmp $A642 ;run the BASIC "NEW" command then quit back to the command line
+  rts
 
 farcall3:
   sta aRegBackup

@@ -696,57 +696,58 @@ function compileMain() {
     );
 
   /*read the label file and update each function address */
-  if(passPostfix === "") {
-    var lineReader = readline.createInterface({
-      input: fs.createReadStream('main.lbl')
-    });
 
-    execSync("cp labels.s labels2.s");
+  var lineReader = readline.createInterface({
+    input: fs.createReadStream('main.lbl')
+  });
 
-    var labels = fs.createWriteStream('labels2.s', { flags: 'a' });
+  execSync("cat labels.s > labels2.s");
 
-    for(i in defines) {
+  var labels = fs.createWriteStream('labels2.s', { flags: 'a' });
+
+  for(i in defines) {
+    labels.write(
+        i+" = $"+
+        ("0000"+((defines[i]).toString(16).toUpperCase())).substr(-4)+
+        "\n"
+      );
+  }
+
+  labels.write(".export _main\n");
+  labels.write(".import pushl0\n");
+
+  lineReader.on('line', function(line) {
+    var name = line.replace(/^al\s+[0-9A-F]+ \./, "");
+    var address = parseInt(line.match(/[0-9A-F]+/), 16);
+
+    if(name == "farret") {
       labels.write(
-          i+" = $"+
-          ("0000"+((defines[i]).toString(16).toUpperCase())).substr(-4)+
+          "farret = $"+
+          ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
           "\n"
         );
     }
 
-    labels.write(".export _main\n");
-    labels.write(".import pushl0\n");
+    if(hashMap.hasOwnProperty(name)) {
+      labels.write(
+          name+" = $"+
+          ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
+          "\n"
+        );
+    }
+  });
 
-    lineReader.on('line', function(line) {
-      var name = line.replace(/^al\s+[0-9A-F]+ \./, "");
-      var address = parseInt(line.match(/[0-9A-F]+/), 16);
-
-      if(name == "farret") {
-        labels.write(
-            "farret = $"+
-            ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
-            "\n"
-          );
-      }
-
-      if(hashMap.hasOwnProperty(name)) {
-        labels.write(
-            name+" = $"+
-            ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
-            "\n"
-          );
-      }
-    });
-
-    lineReader.on('close', function() {
+  lineReader.on('close', function() {
+    if(passPostfix === "") {
       labels.end(calculateSizes);
-    });
-  }
-  else if(passPostfix === "a") {
-    compileYYParse();
-  }
-  else {
-    glueTogetherBinary();
-  }
+    }
+    else if(passPostfix === "a") {
+      labels.end(compileYYParse);
+    }
+    else {
+      labels.end(glueTogetherBinary);
+    }
+  });
 }
 
 /* compile yyparse twice, first to get its size, then to locate it in the proper place */
@@ -1316,7 +1317,7 @@ function updateFunctionAddress(line) {
   var name = line.replace(/^al\s+[0-9A-F]+ \./, "");
 
   var address = parseInt(line.match(/[0-9A-F]+/), 16);
-  var pageNumber = this;
+  var pageNumber = this+0;
 
   var name2 = name.replace(/^_/, "");
 
@@ -1332,10 +1333,12 @@ function updateFunctionAddress(line) {
   }
 
   if(
+      name !== '_main' &&  // don't use the wrong main
       pageNumber < 3 &&
       hashMap.hasOwnProperty(name) &&
       functionsList[hashMap[name]][2] == 1 /*address 1 means it we don't yet
       have the real value*/
+
   ) {
     functionsList[hashMap[name]][2] = address;
     functionsList[hashMap[name]][1] = pageNumber;
