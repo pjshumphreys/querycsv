@@ -398,6 +398,7 @@ MD4:
   sta EASYFLASH_BANK
   jsr initlib2
   jsr _main
+  jsr _cgetc
 
 _exit:
   ;lda #2
@@ -462,7 +463,7 @@ farcall4:
   ldx xRegBackup
   rts ; non local jmp to the real function
 
-farret2:
+farret2:  ;confirm: is farret2 correct? the bank stack reloading looks wrong
   sta aRegBackup
   stx xRegBackup
   lda stackBackup

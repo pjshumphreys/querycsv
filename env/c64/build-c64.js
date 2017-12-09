@@ -157,6 +157,7 @@ var clibFunctionsList = [
   ["_vsnprintf",          2, 0x0001, "farcall2"],
   ["_vsprintf",           2, 0x0001, "farcall2"],
   ["_write",              2, 0x0001, "farcall2"],
+  ["_cgetc",              2, 0x0001, "farcall2"],
 
   //other special functions we'll need
   ["_isCombiningChar",    0, 0x0001, "farcall2"],
@@ -614,7 +615,7 @@ function createTrampolinesInclude() {
   }
 
   tables.write("\nhighAddressTable:\n");
-  for(i = 0; i < Math.min(255, functionsList.length); i++) {
+  for(i = 0; i < Math.min(256, functionsList.length); i++) {
     tables.write(
         ".byte $"+
         ("0000"+((functionsList[i][2]-1).toString(16).toUpperCase())).
@@ -625,7 +626,7 @@ function createTrampolinesInclude() {
   }
 
   tables.write("\nlowAddressTable:\n");
-  for(i = 0; i < Math.min(255, functionsList.length); i++) {
+  for(i = 0; i < Math.min(256, functionsList.length); i++) {
     tables.write(
         ".byte $"+
         ("00"+((functionsList[i][2]-1).toString(16).toUpperCase())).
@@ -635,7 +636,7 @@ function createTrampolinesInclude() {
   }
 
   tables.write("\nbankTable:\n");
-  for(i = 0; i < Math.min(255, functionsList.length); i++) {
+  for(i = 0; i < Math.min(256, functionsList.length); i++) {
     tables.write(
         ".byte $"+
         ("00"+(functionsList[i][1].toString(16).toUpperCase())).
@@ -1106,6 +1107,7 @@ function splitUpFunctions(filename, callback, append) {
   console.log('splitUpFunctions');
 
   var j;
+  var notAddedJmpVec = true;
 
   var lineReader = readline.createInterface({
     input: fs.createReadStream(filename+'.s')
@@ -1149,7 +1151,14 @@ function splitUpFunctions(filename, callback, append) {
         rodataType = 2;
 
         activeStream = data;
+
         writePause(activeStream, line+"\n");
+
+        /*explicitly add jmpvec, so it works with rom paging*/
+        if(name === "DATA" && !append && notAddedJmpVec) {
+          notAddedJmpVec = false;
+          writePause(activeStream, ".export jmpvec\njmpvec: jmp $ffff\n");
+        }
       }
     }
     else if(/\.export/.test(line) || /\.endproc/.test(line)) {

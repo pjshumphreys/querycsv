@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <time.h>
 #include <string.h>
+#include <conio.h>
 
 #pragma rodata-name ("FAKERODATA")
 #pragma data-name ("FAKEDATA")
@@ -19,6 +20,9 @@ void foobar(char *string, char* format, ...) {
   int num;
   time_t timer;
   struct tm * datetime;
+  char temp;
+
+  temp = cgetc();
 
   string = malloc(1);
   free(string);
@@ -63,7 +67,7 @@ void foobar(char *string, char* format, ...) {
   vsnprintf(string, 2, format, args2);
   va_end(args2);
 
-  time(&timer);
+  /*time(&timer);
   datetime = gmtime(&timer);
   datetime = localtime(&timer);
   /* strftime(string, 2, c, datetime); */
