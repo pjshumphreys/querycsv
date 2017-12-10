@@ -35,7 +35,7 @@ int stricmp(const char *str1, const char *str2) {
 void onShutdown(void) {
   int x;
 
-  fputs("\nPress any key to continue\n", stdout);
+  fputs(TDB_PRESS_A_KEY, stdout);
 
   x = Crawcin();
 }

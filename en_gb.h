@@ -23,3 +23,4 @@
 #define TDB_OUTPUT_FAILED "opening output file failed\n"
 #define TDB_AGGREG_AGGREG "can't aggregate an aggregate\n"
 #define TDB_INVALID_ENCODING "unsupported encoding %s\n", encoding
+#define TDB_PRESS_A_KEY "\nPress any key to continue\n"
