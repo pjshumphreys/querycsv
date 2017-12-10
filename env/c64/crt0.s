@@ -399,7 +399,6 @@ MD4:
   jsr initlib2
 
   jsr callmain
-  jsr _cgetc
 
 _exit:
   lda #2

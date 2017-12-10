@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* something else. print an error message and quit */
-  fputsEncoded(TDB_INVALID_COMMAND_LINE, stderr, ENC_PRINT);
+  fputs(TDB_INVALID_COMMAND_LINE, stderr);
 
   return EXIT_FAILURE;
 }

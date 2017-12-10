@@ -416,9 +416,9 @@ function compileParser() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync("./cc65_2 -T -t c64 -O -Os querycsv.c --writable-strings");
+  execSync("./cc65_2 -T -t c64 -O -Os c64.c --writable-strings");
 
-  splitUpFunctions("querycsv", compileData, true);
+  splitUpFunctions("c64", compileData, true);
 }
 
 /* compile the data segment to a memory page.
@@ -621,6 +621,7 @@ function createTrampolinesInclude() {
         ("0000"+((functionsList[i][2]-1).toString(16).toUpperCase())).
         substr(-4).
         substring(0,2)+
+        " ;"+functionsList[i][0]+
         "\n"
       );
   }
@@ -631,6 +632,7 @@ function createTrampolinesInclude() {
         ".byte $"+
         ("00"+((functionsList[i][2]-1).toString(16).toUpperCase())).
         substr(-2)+
+        " ;"+functionsList[i][0]+
         "\n"
       );
   }
@@ -641,6 +643,7 @@ function createTrampolinesInclude() {
         ".byte $"+
         ("00"+(functionsList[i][1].toString(16).toUpperCase())).
         substr(-2)+
+        " ;"+functionsList[i][0]+
         "\n"
       );
   }
@@ -652,6 +655,7 @@ function createTrampolinesInclude() {
         ("0000"+((functionsList[i][2]-1).toString(16).toUpperCase())).
         substr(-4).
         substring(0,2)+
+        " ;"+functionsList[i][0]+
         "\n"
       );
   }
@@ -662,6 +666,7 @@ function createTrampolinesInclude() {
         ".byte $"+
         ("00"+((functionsList[i][2]-1).toString(16).toUpperCase())).
         substr(-2)+
+        " ;"+functionsList[i][0]+
         "\n"
       );
   }
@@ -672,6 +677,7 @@ function createTrampolinesInclude() {
         ".byte $"+
         ("00"+(functionsList[i][1].toString(16).toUpperCase())).
         substr(-2)+
+        " ;"+functionsList[i][0]+
         "\n"
       );
   }
@@ -1184,23 +1190,12 @@ function splitUpFunctions(filename, callback, append) {
 
       activeStream = functionOutputStreams[functionOutputStreams.length-1];
 
-      /*if(name == '_main') {
-        writePause(
-            activeStream,
-            ".include \"../header.inc\"\n"+
-            ".include \"../labels.s\"\n"+
-            ".export "+name+"\n"+
-            line+"\n"
-          );
-      }
-      else */{
-        writePause(
-            activeStream,
-            ".segment \"CODE\"\n"+
-            ".export _"+name+"\n"+
-            line.replace(name, "_"+name)+"\n"
-          );
-      }
+      writePause(
+          activeStream,
+          ".segment \"CODE\"\n"+
+          ".export _"+name+"\n"+
+          line.replace(name, "_"+name)+"\n"
+        );
 
       /* add an entry for each into the mapping table */
       if(name !== "_compareCodepoints") { /* compareCodepoints is a bsearch callback that
@@ -1360,10 +1355,7 @@ function updateFunctionAddress(line) {
   if(
       name !== '_main' &&  // don't use the wrong main
       pageNumber < 3 &&
-      hashMap.hasOwnProperty(name) &&
-      functionsList[hashMap[name]][2] == 1 /*address 1 means it we don't yet
-      have the real value*/
-
+      hashMap.hasOwnProperty(name)
   ) {
     functionsList[hashMap[name]][2] = address;
     functionsList[hashMap[name]][1] = pageNumber;
