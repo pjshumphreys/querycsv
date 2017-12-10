@@ -215,8 +215,6 @@ static const struct codepointToBytes codepointBytes[212] = {
   {0xFB02, 0x00, 0x00, 0x00, 0xDF}
 };
 
-char returnByte;
-
 char* getBytesCommon(long codepoint, int key) {
   struct codepointToBytes *lookup;
 

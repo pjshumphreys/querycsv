@@ -473,7 +473,7 @@ function compileData() {
         );
     }
     //starts with an underscore (name defined by the c source code)
-    else if(name.match(/\b_[0-9a-zA-Z]/)) {// && name !== '_main') {
+    else if(name.match(/\b_[0-9a-zA-Z]/) || name === "jmpvec") {// && name !== '_main') {
       var address = parseInt(line.match(/[0-9A-F]+/), 16);
 
       labels.write(".export "+name+"\n");
@@ -922,6 +922,16 @@ function addROData() {
 function packPages() {
   console.log("packPages");
 
+  /*patch compareCodepoints into the functions that need it (so the table is
+  always in the same page) */
+  execSync("sed -i 's/jmp     farret/rts/g;s/__compareCodepoints/_compareCodepoints/g;' s/_compareCodepoints.s");
+
+  execSync("cat s/_compareCodepoints.s >> s/_getBytesCP1252.s;sed -i 's/_compareCodepoints/_compareCP1252/g;s/querycsv/querycsv1/g;' s/_getBytesCP1252.s");
+  execSync("cat s/_compareCodepoints.s >> s/_getBytesCommon.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv2/g;' s/_getBytesCommon.s");
+  execSync("cat s/_compareCodepoints.s >> s/_getBytesPetscii.s;sed -i 's/_compareCodepoints/_comparePetscii/g;s/querycsv/querycsv3/g;' s/_getBytesPetscii.s");
+  execSync("cat s/_compareCodepoints.s >> s/_getBytesAtariST.s;sed -i 's/_compareCodepoints/_compareAtariST/g;s/querycsv/querycsv4/g;' s/_getBytesAtariST.s");
+  execSync("rm s/_compareCodepoints.s");
+
   execSync(
     "pushd s;"+
       "find * -name \"*.s\" ! -name _yyparse.s -print0|"+
@@ -1152,13 +1162,17 @@ function splitUpFunctions(filename, callback, append) {
 
         activeStream = data;
 
-        writePause(activeStream, line+"\n");
+        if(name !== "BSS") {
+          writePause(activeStream, line+"\n");
+        }
 
         /*explicitly add jmpvec, so it works with rom paging*/
         if(name === "DATA" && !append && notAddedJmpVec) {
           notAddedJmpVec = false;
           writePause(activeStream, ".export jmpvec\njmpvec: jmp $ffff\n");
         }
+
+
       }
     }
     else if(/\.export/.test(line) || /\.endproc/.test(line)) {
@@ -1189,10 +1203,12 @@ function splitUpFunctions(filename, callback, append) {
       }
 
       /* add an entry for each into the mapping table */
-      //if(name !== "_main") {
+      if(name !== "_compareCodepoints") { /* compareCodepoints is a bsearch callback that
+        needs to be in the same page as the function that called bsearch. it doesn't need
+        to be in the jump table */
         hashMap[name] = functionsList.length;
         functionsList.push([name, 0, 0x0001, "farcall"]);
-      //}
+      }
     }
     else if (rodataType && /^[a-z0-9A-Z]+:/.test(line)) {
       if(activeStream) {

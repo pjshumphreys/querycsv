@@ -62,7 +62,6 @@ void getBytesAtariST(
     int *byteLength
 ) {
   struct codepointToByte *lookup;
-  const char plAscii = 0x3f;
 
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
@@ -80,10 +79,12 @@ void getBytesAtariST(
       sizeof(struct codepointToByte),
       compareCodepoints
     )) == NULL) {
-      *bytes = (char*)(&plAscii);
+      returnByte = 0x3f;  /* ascii question mark */
+      *bytes = &returnByte;
       return;
     }
 
-    *bytes = (char*)(&(lookup->byte));
+    returnByte = lookup->byte;  /* whatever the hash table lookup returned */
+    *bytes = &returnByte;
   }
 }
