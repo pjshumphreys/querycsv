@@ -126,6 +126,7 @@ it becomes needed */
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
 
+  #include <conio.h> /* for cgetc */
   #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii
   to ascii. We'll convert our output strings ourselves */
   #include "floatlib/float.h" /* fudges kinda support for floating point
@@ -142,7 +143,7 @@ it becomes needed */
   We supply our own implementation that provides the same semantics but
   uses cc65-floatlib */
 
-  int fputs_c64(const char *str, FILE *stream);
+  int fputs_c64(const char* str, FILE* stream);
   int fprintf_c64(FILE *stream, const char *format, ...);
 
   #define fputs fputs_c64
