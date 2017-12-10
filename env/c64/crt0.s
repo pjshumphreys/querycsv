@@ -38,30 +38,30 @@ __LOADER_LOAD2__  = __LOADER_LOAD__+$4000
 .segment  "ULTIMAX"
 
 coldstart:
-    ; === the reset vector points here ===
-    sei
-    ldx #$ff
-    txs
-    cld
+  ; === the reset vector points here ===
+  sei
+  ldx #$ff
+  txs
+  cld
 
-    ; enable VIC (e.g. RAM refresh)
-    lda #8
-    sta $d016
+  ; enable VIC (e.g. RAM refresh)
+  lda #8
+  sta $d016
 
-    ; write to RAM to make sure it starts up correctly (=> RAM datasheets)
+  ; write to RAM to make sure it starts up correctly (=> RAM datasheets)
 startWait:
-    sta $0100, x
-    dex
-    bne startWait
+  sta $0100, x
+  dex
+  bne startWait
 
-    ; copy the final start-up code to RAM (bottom of CPU stack)
-    ldx #(startUpEnd - startUpBegin)
+  ; copy the final start-up code to RAM (bottom of CPU stack)
+  ldx #(startUpEnd - startUpBegin)
 l1:
-    lda __LOADER_LOAD2__, x
-    sta $0100, x
-    dex
-    bpl l1
-    jmp $0100
+  lda __LOADER_LOAD2__, x
+  sta $0100, x
+  dex
+  bpl l1
+  jmp $0100
 
 .segment  "LOADER"
 
@@ -336,7 +336,7 @@ AA9A:
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
-  lda #3        ;third easyflash bank
+  lda #3        ;third easyflash bank lorom contains the data and rodata values
   sta EASYFLASH_BANK
   lda #EASYFLASH_16K
   sta EASYFLASH_CONTROL
@@ -419,41 +419,31 @@ _exit:
 callmain:
   lda #$02
   ldx #$00
-  jsr pushax          ; Push argc
+  jsr pusharg          ; Push argc
 
   lda #<(__argv)
   ldx #>(__argv)
-  jsr pushax          ; Push argv
+  jsr pusharg          ; Push argv
 
   ldy #4              ; Argument size
   jmp _main
 
-__argv:
-  .addr	progName
-  .addr strbuf
-  .byte $00,$00
-
-progName:
-  .byte $71,$75,$65,$72,$79,$63,$73,$76,$00
-
-strbuf: ;stores the argument string for main
-  .res 256
-
-pushax:
-  pha                     ; (3)
-  lda     sp              ; (6)
-  sec                     ; (8)
-  sbc     #2              ; (10)
-  sta     sp              ; (13)
-  bcs     @L1             ; (17)
-  dec     sp+1            ; (+5)
-@L1:    ldy     #1        ; (19)
-  txa                     ; (21)
-  sta     (sp),y          ; (27)
-  pla                     ; (31)
-  dey                     ; (33)
-  sta     (sp),y          ; (38)
-  rts                     ; (44)
+pusharg:
+  pha
+  lda sp
+  sec
+  sbc #2
+  sta sp
+  bcs @L1
+  dec sp+1
+@L1:
+  ldy #1
+  txa
+  sta (sp),y
+  pla
+  dey
+  sta (sp),y
+  rts
 
 farcall3:
   sta aRegBackup
@@ -623,6 +613,17 @@ __basicoff2:
   sta EASYFLASH_BANK
   lda aRegBackup
   rts
+
+__argv:
+  .addr progName
+  .addr strbuf
+  .byte $00,$00
+
+progName:
+  .byte $71,$75,$65,$72,$79,$63,$73,$76,$00
+
+strbuf: ;stores the argument string for main
+  .res 256
 
 .segment "BSS"
 
