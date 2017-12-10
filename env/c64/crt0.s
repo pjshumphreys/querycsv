@@ -115,7 +115,7 @@ lp1:
   inc lp1+5
   lda lp1+5
   eor #$cf
-  bne lp1 
+  bne lp1
   jmp entry
 
 kill:
@@ -226,7 +226,7 @@ A00C:
   .word $A641
 
   ; Vector: BASIC Character dispatch Routine
-A7E1:    
+A7E1:
   jsr $0073     ; CHRGET: Get next Byte of BASIC Text
   jsr A7ED      ; Perform BASIC Keyword
   jmp $A7AE     ; BASIC Warm start
@@ -290,7 +290,7 @@ A8FB:
   jmp $A8FB     ; Perform [data]
 
   ;$E12A/57642:   Perform [sys]
-E12A: 
+E12A:
   jsr $AD9E     ; Evaluate Expression in Text
   bit $0D       ; Data type Flag
   bmi AA9A      ; Print String From Memory
@@ -397,13 +397,14 @@ MD4:
   lda #2
   sta EASYFLASH_BANK
   jsr initlib2
-  jsr _main
+
+  jsr callmain
   jsr _cgetc
 
 _exit:
-  ;lda #2
-  ;sta EASYFLASH_BANK
-  ;jsr donelib2
+  lda #2
+  sta EASYFLASH_BANK
+  jsr donelib2
 
   ;disable the easyflash cartridge
   ;lda $01       ; 6510 On-chip 8-bit Input/Output Register
@@ -413,8 +414,46 @@ _exit:
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
 
-  ;jmp $A642 ;run the BASIC "NEW" command then quit back to the command line
-  rts
+  jmp $A642 ;run the BASIC "NEW" command then quit back to the command line
+
+callmain:
+  lda #$02
+  ldx #$00
+  jsr pushax          ; Push argc
+
+  lda #<(__argv)
+  ldx #>(__argv)
+  jsr pushax          ; Push argv
+
+  ldy #4              ; Argument size
+  jmp _main
+
+__argv:
+  .addr	progName
+  .addr strbuf
+  .byte $00,$00
+
+progName:
+  .byte $71,$75,$65,$72,$79,$63,$73,$76,$00
+
+strbuf: ;stores the argument string for main
+  .res 256
+
+pushax:
+  pha                     ; (3)
+  lda     sp              ; (6)
+  sec                     ; (8)
+  sbc     #2              ; (10)
+  sta     sp              ; (13)
+  bcs     @L1             ; (17)
+  dec     sp+1            ; (+5)
+@L1:    ldy     #1        ; (19)
+  txa                     ; (21)
+  sta     (sp),y          ; (27)
+  pla                     ; (31)
+  dey                     ; (33)
+  sta     (sp),y          ; (38)
+  rts                     ; (44)
 
 farcall3:
   sta aRegBackup
@@ -427,7 +466,7 @@ farcall3:
 
 farcall2:   ;backup the original return address then swap it for our paging out return code. This should hopefully work as all of the c standard library is in 1 page and doesn't call non stdlib c functions, so more than 1 backup return address shouldn't be needed
   sta aRegBackup
-  pla 
+  pla
   sta stackBackup+1
   pla
   sta stackBackup
@@ -584,9 +623,6 @@ __basicoff2:
   sta EASYFLASH_BANK
   lda aRegBackup
   rts
-
-strbuf: ;stores the argument string for main
-  .res 256
 
 .segment "BSS"
 

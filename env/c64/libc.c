@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <time.h>
 #include <string.h>
 #include <conio.h>
 
@@ -18,8 +17,6 @@ void foobar(char *string, char* format, ...) {
 
   FILE* test;
   int num;
-  time_t timer;
-  struct tm * datetime;
   char temp;
 
   temp = cgetc();
@@ -66,11 +63,6 @@ void foobar(char *string, char* format, ...) {
   va_start(args2, format);
   vsnprintf(string, 2, format, args2);
   va_end(args2);
-
-  /*time(&timer);
-  datetime = gmtime(&timer);
-  datetime = localtime(&timer);
-  /* strftime(string, 2, c, datetime); */
 
   free(string);
   exit(0);
