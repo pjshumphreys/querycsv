@@ -121,7 +121,11 @@ it becomes needed */
   #define in_word_set_a in_word_set_ai
   #define in_word_set_b in_word_set_bi
   #define in_word_set_c in_word_set_ci
+
+  #define FOPEN_READ "rb"
+  #define FOPEN_WRITE "wb"
 #else
+
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
@@ -150,6 +154,9 @@ it becomes needed */
   #define fprintf fprintf_c64
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
   #define main realmain
+
+  #define FOPEN_READ "rb"
+  #define FOPEN_WRITE "wb"
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
