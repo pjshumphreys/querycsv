@@ -336,10 +336,15 @@ AA9A:
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
-  lda #3        ;third easyflash bank lorom contains the data and rodata values
+
+  lda #2        ;second easyflash bank lorom contains clib functionality
   sta EASYFLASH_BANK
   lda #EASYFLASH_16K
   sta EASYFLASH_CONTROL
+  jsr zerobss2
+
+  lda #3        ;third easyflash bank lorom contains the data and rodata values
+  sta EASYFLASH_BANK
 
   ; copydata won't work for us as it needs to do DATA *and* RODATA, so we roll our own memory copying code instead
 

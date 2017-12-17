@@ -170,6 +170,7 @@ var defines = {
   "_stderr": 0,
   "_stdin": 0,
   "_stdout": 0,
+  "zerobss2": 0,
   "initlib2": 0,
   "donelib2": 0,
   "___float_fac_to_float": 0,
@@ -1344,6 +1345,9 @@ function updateFunctionAddress(line) {
   //the libc page is page 2
   if(pageNumber === 2 && name == "initlib") {
     defines["initlib2"] = address;
+  }
+  else if(pageNumber === 2 && name == "zerobss") {
+    defines["zerobss2"] = address;
   }
   else if(pageNumber === 2 && name == "donelib") {
     defines["donelib2"] = address;
