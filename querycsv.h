@@ -155,8 +155,8 @@ it becomes needed */
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
   #define main realmain
 
-  #define FOPEN_READ "rb"
-  #define FOPEN_WRITE "wb"
+  #define FOPEN_READ "RB"
+  #define FOPEN_WRITE "WB"
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
