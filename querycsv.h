@@ -145,14 +145,6 @@ it becomes needed */
   We supply our own implementation that provides the same semantics but
   uses cc65-floatlib */
 
-  int fputs_c64(const char* str, FILE* stream);
-  int fprintf_c64(FILE *stream, const char *format, ...);
-
-  #define fputs fputs_c64
-  #define fprintf fprintf_c64
-  #define YYFPRINTF fprintf_c64   /* for the bison parser */
-  #define main realmain
-
   #define FOPEN_READ fopen_read /* the cc65 c library is still using petscii internally */
   #define FOPEN_WRITE fopen_write
 

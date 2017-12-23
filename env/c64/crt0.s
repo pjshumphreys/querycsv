@@ -133,14 +133,12 @@ farret:
 ;entry point is here!
 entry:
   ;disable easyflash cartridge as we want to hook into basic
-  ;lda $01       ; 6510 On-chip 8-bit Input/Output Register
-  ;ora #$07
-  ;and #$FB
-  ;sta $01       ; 6510 On-chip 8-bit Input/Output Register
+  lda $01       ; 6510 On-chip 8-bit Input/Output Register
+  ora #$07
+  sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
 
-  ;jsr $ff87     ; Initialise System Constants
   lda #$00
   tay
 
@@ -328,9 +326,16 @@ AA9A:
   jsr AB21
 
   ; switch to upper/lower case character set (i.e. print chr$(14) )
+
+  lda $D018
+  and #$02
+  cmp #0
+  bne skip
   lda #14
   jsr BSOUT
+  jsr $E544 ; clear screen
 
+skip:
   ;switch on the easy flash cartridge memory
   ;read and write from lo-rom. this will copy the data as writes always go to ram
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
@@ -402,7 +407,6 @@ MD4:
   lda #2
   sta EASYFLASH_BANK
   jsr initlib2
-
   jsr callmain
 
 _exit:
@@ -411,14 +415,12 @@ _exit:
   jsr donelib2
 
   ;disable the easyflash cartridge
-  ;lda $01       ; 6510 On-chip 8-bit Input/Output Register
-  ;ora #$07
-  ;and #$FB
-  ;sta $01       ; 6510 On-chip 8-bit Input/Output Register
+  lda $01       ; 6510 On-chip 8-bit Input/Output Register
+  ora #$07
+  sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
-
-  jmp $A642 ;run the BASIC "NEW" command then quit back to the command line
+  jmp $A644
 
 callmain:
   lda #$02

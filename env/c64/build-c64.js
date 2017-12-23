@@ -417,9 +417,9 @@ function compileParser() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync("./cc65_2 -T -t c64 -O -Os c64.c --writable-strings");
+  execSync("./cc65_2 -T -t c64 -O -Os querycsv.c --writable-strings");
 
-  splitUpFunctions("c64", compileData, true);
+  splitUpFunctions("querycsv", compileData, true);
 }
 
 /* compile the data segment to a memory page.
