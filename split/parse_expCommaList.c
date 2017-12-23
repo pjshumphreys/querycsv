@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 struct resultColumn *parse_expCommaList(
     struct qryData *queryData,
     struct expression *expressionPtr,
@@ -169,4 +167,3 @@ struct resultColumn *parse_expCommaList(
     }
   }
 }
-

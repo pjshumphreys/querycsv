@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void hash_freeTable(struct columnReferenceHash *hashtable) {
   int i;
   struct columnRefHashEntry *list, *temp;

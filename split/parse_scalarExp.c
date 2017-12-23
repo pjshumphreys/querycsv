@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 struct expression *parse_scalarExp(
     struct qryData *queryData,
     struct expression *leftPtr,

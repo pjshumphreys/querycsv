@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 unsigned int hash_compare(
     struct columnReferenceHash *hashtable,
     char *str

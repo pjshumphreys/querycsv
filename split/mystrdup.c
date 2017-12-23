@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 char* mystrdup(const char* s) {
   char *res = NULL;
 

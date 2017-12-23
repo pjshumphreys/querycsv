@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void reallocMsg(void **mem, size_t size) {
   void *temp;
 

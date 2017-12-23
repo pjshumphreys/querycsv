@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void outputHeader(struct qryData *query) {
   int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;

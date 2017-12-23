@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_resultColumns(struct resultColumn *currentResultColumn) {
   struct resultColumn *next;
 

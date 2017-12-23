@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* getValue can be passed a scalar expression's abstract syntax */
 /* tree and it will evaluate it and turn it into a literal string of text characters. */
 /* the evaluated value must be freed later though. */

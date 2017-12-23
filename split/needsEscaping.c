@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int needsEscaping(char *str, int params) {
   MAC_YIELD
 

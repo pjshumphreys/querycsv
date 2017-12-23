@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int runQuery(char *queryFileName) {
   struct qryData query;
   struct resultColumnValue* match = NULL;

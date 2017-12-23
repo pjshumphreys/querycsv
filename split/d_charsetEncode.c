@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   char * buffer = NULL;
   long codepoint;

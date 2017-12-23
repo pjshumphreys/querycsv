@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_columnReferences(struct columnReferenceHash *table) {
   int i;
   struct columnRefHashEntry *currentHashEntry, *nextHashEntry;
@@ -7,7 +5,7 @@ void cleanup_columnReferences(struct columnReferenceHash *table) {
 
   MAC_YIELD
 
-  for(i=0; i<table->size; i++) {
+  for(i = 0; i < table->size; i++) {
     currentHashEntry = table->table[i];
 
     while(currentHashEntry != NULL) {

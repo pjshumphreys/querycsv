@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void parse_whereClause(
     struct qryData *queryData,
     struct expression *expressionPtr

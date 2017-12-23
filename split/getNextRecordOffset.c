@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int getNextRecordOffset(
     struct qryData *query,
     char *inputFileName,

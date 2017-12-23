@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int getCsvColumn(
     FILE **inputFile,
     int inputEncoding,

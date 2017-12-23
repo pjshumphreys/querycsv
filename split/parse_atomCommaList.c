@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 struct atomEntry *parse_atomCommaList(
     struct qryData *queryData,
     struct atomEntry *lastEntryPtr,

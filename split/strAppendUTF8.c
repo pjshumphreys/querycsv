@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int strAppendUTF8(long codepoint, unsigned char **nfdString, int nfdLength) {
   MAC_YIELD
 

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* compares two whole records to one another. multiple columns can be involved in this comparison. */
 int recordCompare(
     const void *a,

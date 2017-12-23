@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void stringGet(
     unsigned char **str,
     struct resultColumnValue *field,

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void exp_uminus(char **value, double leftVal) {
   double temp;
 

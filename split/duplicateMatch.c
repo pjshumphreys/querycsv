@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void duplicateMatch(
     struct qryData *query,
     struct resultColumnValue** match

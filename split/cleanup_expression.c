@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_expression(struct expression *currentExpression) {
   MAC_YIELD
 

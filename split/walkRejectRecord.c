@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* TRUE means the record was rejected.  FALSE means the record should not yet be rejected */
 int walkRejectRecord(
     int currentTable,

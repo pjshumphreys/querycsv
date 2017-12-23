@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void readParams(struct qryData *queryData, char *string) {
   int params;
   char* i;

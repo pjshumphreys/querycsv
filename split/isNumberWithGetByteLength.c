@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int isNumberWithGetByteLength(
     unsigned char *offset,
     int *lastMatchedBytes,

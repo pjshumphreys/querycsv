@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void groupResults(struct qryData *query) {
   struct resultTree *resultsOrig;
   struct resultColumn *currentResultColumn;

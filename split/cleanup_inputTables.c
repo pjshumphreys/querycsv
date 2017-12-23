@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_inputTables(struct inputTable *currentInputTable) {
   struct inputTable *next;
 

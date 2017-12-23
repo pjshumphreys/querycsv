@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int tree_insert(
     struct qryData *query,
     struct resultColumnValue *columns,

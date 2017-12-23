@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* this version of getUnicodeChar doesn't check for invalid bytes
   or overlong codepoints, as getCodepoints will have already converted
   them to valid utf-8 bytes within main memory */

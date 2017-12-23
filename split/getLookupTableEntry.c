@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 static struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
 
 struct hash4Entry *getLookupTableEntry(

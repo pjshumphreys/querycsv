@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 struct expression *parse_functionRefStar(
     struct qryData *queryData,
     long aggregationType

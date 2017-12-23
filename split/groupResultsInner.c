@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* loop over each record in the result set, other than the first one */
 void groupResultsInner(
     struct qryData *query,

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int strCompare(
     unsigned char **str1,
     unsigned char **str2,

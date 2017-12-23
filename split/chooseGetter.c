@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
   switch(encoding) {
     case ENC_UNKNOWN:

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void exp_divide(char **value, double leftVal, double rightVal) {
   double temp;
 

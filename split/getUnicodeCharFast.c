@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* getUnicodeCharFast does not check for invalid or overlong bytes. */
 /* it also presumes the the entire string is already in nfd form */
 long getUnicodeCharFast(unsigned char *temp, int *bytesMatched) {

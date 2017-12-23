@@ -52,13 +52,16 @@ int fprintf_c64(FILE *stream, const char *format, ...) {
   return retval;
 }
 
-int main(int argc, char ** argv) {
-  int temp;
-  int retval = realmain(argc, argv);
+void onShutdown(void) {
+  int x;
 
   fputsEncoded(TDB_PRESS_A_KEY, stdout, ENC_PRINT);
 
-  temp = cgetc();
+  x = cgetc();
+}
 
-  return retval;
+int main(int argc, char ** argv) {
+  atexit(onShutdown);
+
+  return realmain(argc, argv);
 }

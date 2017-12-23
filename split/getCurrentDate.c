@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int getCurrentDate(struct qryData *query) {
   time_t now;
   struct tm local;

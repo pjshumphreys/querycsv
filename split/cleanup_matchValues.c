@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_matchValues(
     struct qryData *query,
     struct resultColumnValue **match

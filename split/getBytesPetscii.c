@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 static const struct codepointToByte petsciiBytes[95] = {
   {0x0041, 0x61}, {0x0042, 0x62},
   {0x0043, 0x63}, {0x0044, 0x64},

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int hash_addString(
     struct columnReferenceHash *hashtable,
     char *str,

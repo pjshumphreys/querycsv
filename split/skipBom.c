@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* skips the BOM if present from a file. */
 /* Also attempts to detect the file encoding for
   non iso-646 character sets if the encoding parameter is not null */

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 struct resultColumn *parse_newResultColumn(
     struct qryData *queryData,
     int isHidden2,

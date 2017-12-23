@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int fputsEncoded(char * str, FILE * stream, int encoding) {
   size_t bytesStored;
   char *encoded = NULL;

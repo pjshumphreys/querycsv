@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void getGroupedColumns(struct qryData *query) {
   struct columnRefHashEntry *currentHashEntry;
   struct columnReference *currentReference;

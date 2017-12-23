@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* output a record to stdio */
 void outputResult(
     struct qryData *query,

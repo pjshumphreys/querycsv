@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void updateRunningCounts(
     struct qryData *query,
     struct resultColumnValue *match,

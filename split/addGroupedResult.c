@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void addGroupedResult(
     struct qryData *query,
     struct resultColumnValue *match

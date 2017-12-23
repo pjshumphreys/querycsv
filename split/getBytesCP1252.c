@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 static const struct codepointToByte cp1252Bytes[32] = {
   {0x0081, 0x81}, {0x008D, 0x8D},
   {0x008F, 0x8F}, {0x0090, 0x90},

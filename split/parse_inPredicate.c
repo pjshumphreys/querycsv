@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 struct expression *parse_inPredicate(
     struct qryData *queryData,
     struct expression *leftPtr,

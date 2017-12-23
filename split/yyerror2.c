@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void yyerror2(long lineno, char *text) {
   MAC_YIELD
 

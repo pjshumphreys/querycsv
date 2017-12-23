@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int consumeCombiningChars(
     unsigned char **str1,
     unsigned char **str2,

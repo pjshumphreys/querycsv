@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* returns true if the column could not be found or is ambiguious */
 int parse_columnRefUnsuccessful(
     struct qryData *queryData,

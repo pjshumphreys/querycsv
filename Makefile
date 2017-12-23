@@ -22,7 +22,8 @@ gen.h: makeheaders $(SOURCES)
 	./makeheaders $(SOURCES) -h > gen.h
 
 querycsv.c: $(SOURCES)
-	cat $(SOURCES) > querycsv.c
+	echo "#include \"querycsv.h\"" > querycsv.c
+	cat $(SOURCES) >> querycsv.c
 
 hash4a.c: hash4a.gperf
 	gperf hash4a.gperf > hash4a.c

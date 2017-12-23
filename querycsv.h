@@ -131,8 +131,6 @@ it becomes needed */
   at least it has vsnprintf*/
 
   #include <conio.h> /* for cgetc */
-  #include "cc65iso.h"  /* Changes the character set cc65 uses from petscii
-  to ascii. We'll convert our output strings ourselves */
   #include "floatlib/float.h" /* fudges kinda support for floating point
   into cc65 by utilising functionality in the c64 basic rom */
   #define ftostr(_d,_a) { \
@@ -155,8 +153,8 @@ it becomes needed */
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
   #define main realmain
 
-  #define FOPEN_READ "RB"
-  #define FOPEN_WRITE "WB"
+  #define FOPEN_READ fopen_read /* the cc65 c library is still using petscii internally */
+  #define FOPEN_WRITE fopen_write
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT

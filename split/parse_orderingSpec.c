@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void parse_orderingSpec(
     struct qryData *queryData,
     struct expression *expressionPtr,

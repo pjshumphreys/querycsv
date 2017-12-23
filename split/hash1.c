@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /*CP1252 mapping table*/
 static const unsigned short cp1252[128] = {
   0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,

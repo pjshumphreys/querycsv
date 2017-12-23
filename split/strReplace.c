@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 char *strReplace(char *search, char *replace, char *subject) {
   char *replaced, *temp = NULL;
   char *p = subject, *p3 = subject, *p2;

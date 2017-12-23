@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int main(int argc, char *argv[]) {
   int argc2;
   char ** argv2;

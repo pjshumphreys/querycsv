@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_orderByClause(struct sortingList *currentSortingList) {
   struct sortingList *next;
 

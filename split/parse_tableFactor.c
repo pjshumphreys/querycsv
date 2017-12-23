@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void parse_tableFactor(
     struct qryData *queryData,
     int isLeftJoin,

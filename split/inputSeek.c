@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int inputSeek(
     struct qryData *query,
     char *inputFileName,

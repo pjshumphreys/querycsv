@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* get localtime, gmtime and utc offset string from a time_t. allocate/free memory as needed */
 /* any of the last three parameters can be skipped by passing null */
 int d_tztime(

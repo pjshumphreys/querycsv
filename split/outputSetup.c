@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int outputSetup(struct qryData *query) {
   /* set up the output context */
   if(query->outputFileName) {

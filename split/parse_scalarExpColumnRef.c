@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /*produces a different node type depending on whether a csv column is being referered to*/
 struct expression *parse_scalarExpColumnRef(
     struct qryData *queryData,

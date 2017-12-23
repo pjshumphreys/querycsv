@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* append a character into a string with a given length, using realloc */
 int strAppend(char c, char **value, size_t *strSize) {
   char *temp;

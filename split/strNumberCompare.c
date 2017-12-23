@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int strNumberCompare(char *input1, char *input2) {
   char* string1 = input1;
   char* string2 = input2;

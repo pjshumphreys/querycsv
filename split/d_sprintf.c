@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* write a formatted string into a string buffer. allocate/free memory as needed */
 int d_sprintf(char **str, char *format, ...) {
   size_t newSize;

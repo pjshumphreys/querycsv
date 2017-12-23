@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int normaliseAndGet(
     unsigned char **offset,
     unsigned char **str,

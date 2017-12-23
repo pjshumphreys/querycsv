@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void runCommand(struct qryData *query, char *inputText) {
   MAC_YIELD
 

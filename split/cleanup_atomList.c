@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void cleanup_atomList(struct atomEntry *currentAtom) {
   struct atomEntry* next;
 

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int getColumnCount(
     struct qryData *query,
     char *inputFileName

@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void getCalculatedColumns(
     struct qryData *query,
     struct resultColumnValue *match,

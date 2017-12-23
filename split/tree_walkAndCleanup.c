@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 /* Calls a callback function once for every item in the tree, and de-allocates memory used by the tree in the process */
 
 /* This function only de-allocates/frees memory for the tree, ***but not the data items the tree contains*** */

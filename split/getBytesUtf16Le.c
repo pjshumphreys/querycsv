@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 void getBytesUtf16Le(
     long codepoint,
     char **bytes,

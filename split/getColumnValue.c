@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int getColumnValue(
     struct qryData *query,
     char *inputFileName,

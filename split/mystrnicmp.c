@@ -1,5 +1,3 @@
-#include "querycsv.h"
-
 int mystrnicmp(const char *str1, const char *str2, size_t n) {
   int i, retval = 0;
 
