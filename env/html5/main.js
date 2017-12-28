@@ -1066,8 +1066,139 @@
     }
   }
 
+  function loadSettings() {
+    var openRequest = indexedDB.open("querycsv",1);
+    openRequest.onupgradeneeded = dbUpgradeNeeded;
+    openRequest.onsuccess = dbSuccess;
+  }
+
+  function dbUpgradeNeeded(e) {
+    var thisDB = e.target.result;
+
+    if(!thisDB.objectStoreNames.contains("settings")) {
+      thisDB.createObjectStore("settings", {keyPath:"id"});
+    }
+  }
+
+  function dbSuccess(e) {
+    db = e.target.result;
+
+    db.transaction(["settings"]).objectStore("settings").get("settings").onsuccess = getSettings;
+  }
+
+  function changeSortBy() {
+    settings.sortBy = parseInt($(this).val(), 10);
+    if(db) {
+      db.transaction(["settings"],"readwrite").objectStore("settings").put(settings);
+    }
+  }
+
+  function changePicup() {
+    settings.usePicup = $(this).prop("checked")?1:0;
+    if(db) {
+      db.transaction(["settings"],"readwrite").objectStore("settings").put(settings);
+    }
+  }
+
+  function changeAscending() {
+    settings.isDescending = $(this).prop("checked")?1:0;
+    if(db) {
+      db.transaction(["settings"],"readwrite").objectStore("settings").put(settings);
+    }
+  }
+
+  function getSettings(event) {
+    if(event.target.result) {
+      settings = event.target.result;
+    }
+    else {
+      db.transaction(["settings"],"readwrite").objectStore("settings").add(settings);
+    }
+
+    $('#sortBy').on('change', changeSortBy).val(settings.sortBy);
+    $('#ascending').on('change', changeAscending).prop('checked', settings.isDescending).each(toggleCheckbox);
+    $('#usePicup').on('change', changePicup).prop('checked', settings.usePicup).each(toggleCheckbox);
+
+    //if the url is "/", or doesn't begin with "/Documents" doesn't refer to a folder or doesn't exist then set it to "/Documents"
+    var url = decodeURIComponent(History.getState().hash.replace(/\?.*/, "")).replace(/\/(\/)*/g, "/").replace(/\/$/, "");
+
+    if(url.match(/\/Documents\/.+/) && Module.ccall(
+        'folderExists',
+        'number',
+        ['string'],
+        [url]
+    )) {
+      currentPath = url+"/";
+    }
+    else {
+      url = "/Documents"
+    }
+
+    updateBreadCrumb();
+    refreshFolder();
+
+    History.replaceState({
+        type: "folder",
+        path: currentPath,
+        depth: currentPath.split("/").length-1
+      },
+      d.title,
+      url
+    );
+  }
+
+  function sw_success(registration) {
+    // Registration was successful
+    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+
+    if(registration.installing) {
+      console.log('Service worker installing');
+    }
+    else if(registration.waiting) {
+      console.log('Service worker waiting');
+    }
+    else if(registration.active) {
+      console.log('Service worker active');
+    }
+  }
+
+  function sw_controllerChange(event) {
+    navigator.
+      serviceWorker.
+      controller.
+      addEventListener('statechange', sw_stateChange);
+  }
+
+  function sw_stateChange() {
+    if(this.state === 'activated') {
+      window.location.reload(!0);
+    }
+  }
+
   function ready() {
-    //alert(!!(window.Worker && window.File && window.FileReader && window.FileList && window.Blob));
+    if(!(window.Worker && window.File && window.FileReader && window.FileList && window.Blob)) {
+      return;
+    }
+
+    $(d.body).html($('#content').html());
+    $('#content').remove();
+
+    if('serviceWorker' in navigator) {
+      navigator.
+        serviceWorker.
+        register(SVCWORKERFILENAME).
+        then(sw_success);
+
+      // Listen for claiming our ServiceWorker
+      navigator.
+        serviceWorker.
+        addEventListener('controllerchange', sw_controllerChange);
+    }
+
+    // Browsers not using Service Workers
+    else if('applicationCache' in window) {
+      $(d.body).append('<iframe style="display:none" src="'+APPCACHEFILENAME+'"></iframe>');
+    }
 
     currentState = "folder";
 
@@ -1183,87 +1314,6 @@
     // sync from persisted state into memory and then
     // refresh the folder view
     Module.FS.syncfs(true, loadSettings); //indexeddb to local
-  }
-
-  function loadSettings() {
-    var openRequest = indexedDB.open("querycsv",1);
-    openRequest.onupgradeneeded = dbUpgradeNeeded;
-    openRequest.onsuccess = dbSuccess;
-  }
-
-  function dbUpgradeNeeded(e) {
-    var thisDB = e.target.result;
-
-    if(!thisDB.objectStoreNames.contains("settings")) {
-      thisDB.createObjectStore("settings", {keyPath:"id"});
-    }
-  }
-
-  function dbSuccess(e) {
-    db = e.target.result;
-
-    db.transaction(["settings"]).objectStore("settings").get("settings").onsuccess = getSettings;
-  }
-
-  function changeSortBy() {
-    settings.sortBy = parseInt($(this).val(), 10);
-    if(db) {
-      db.transaction(["settings"],"readwrite").objectStore("settings").put(settings);
-    }
-  }
-
-  function changePicup() {
-    settings.usePicup = $(this).prop("checked")?1:0;
-    if(db) {
-      db.transaction(["settings"],"readwrite").objectStore("settings").put(settings);
-    }
-  }
-
-  function changeAscending() {
-    settings.isDescending = $(this).prop("checked")?1:0;
-    if(db) {
-      db.transaction(["settings"],"readwrite").objectStore("settings").put(settings);
-    }
-  }
-
-  function getSettings(event) {
-    if(event.target.result) {
-      settings = event.target.result;
-    }
-    else {
-      db.transaction(["settings"],"readwrite").objectStore("settings").add(settings);
-    }
-
-    $('#sortBy').on('change', changeSortBy).val(settings.sortBy);
-    $('#ascending').on('change', changeAscending).prop('checked', settings.isDescending).each(toggleCheckbox);
-    $('#usePicup').on('change', changePicup).prop('checked', settings.usePicup).each(toggleCheckbox);
-
-    //if the url is "/", or doesn't begin with "/Documents" doesn't refer to a folder or doesn't exist then set it to "/Documents"
-    var url = decodeURIComponent(History.getState().hash.replace(/\?.*/, "")).replace(/\/(\/)*/g, "/").replace(/\/$/, "");
-
-    if(url.match(/\/Documents\/.+/) && Module.ccall(
-        'folderExists',
-        'number',
-        ['string'],
-        [url]
-    )) {
-      currentPath = url+"/";
-    }
-    else {
-      url = "/Documents"
-    }
-
-    updateBreadCrumb();
-    refreshFolder();
-
-    History.replaceState({
-        type: "folder",
-        path: currentPath,
-        depth: currentPath.split("/").length-1
-      },
-      d.title,
-      url
-    );
   }
 
   $(d).ready(ready);

@@ -7,7 +7,7 @@
 # Make the "latest" SDK "active"
 #~/emsdk_portable/emsdk activate latest
 
-querycsv.tar.gz: build/index.html build/index.html.gz build/worker.min.js build/worker.min.js.gz build/apple-touch-icon-114x114-precomposed.png build/apple-touch-icon-120x120-precomposed.png build/apple-touch-icon-144x144-precomposed.png build/apple-touch-icon-152x152-precomposed.png build/apple-touch-icon-180x180-precomposed.png build/apple-touch-icon-72x72-precomposed.png build/apple-touch-icon-76x76-precomposed.png build/apple-touch-icon-precomposed.png build/touch-icon-192x192.png  build/fonts/icomoon.woff build/fonts/icomoon.ttf build/fonts/icomoon.eot build/fonts/icomoon.svg
+querycsv.tar.gz: build/appcache.html.gz build/svcworker.min.js build/index.html build/index.html.gz build/worker.min.js build/worker.min.js.gz build/apple-touch-icon-114x114-precomposed.png build/apple-touch-icon-120x120-precomposed.png build/apple-touch-icon-144x144-precomposed.png build/apple-touch-icon-152x152-precomposed.png build/apple-touch-icon-180x180-precomposed.png build/apple-touch-icon-72x72-precomposed.png build/apple-touch-icon-76x76-precomposed.png build/apple-touch-icon-precomposed.png build/touch-icon-192x192.png  build/fonts/icomoon.woff build/fonts/icomoon.ttf build/fonts/icomoon.eot build/fonts/icomoon.svg
 	cd build;find * -type f -print0|sort -z| tar --null --owner=0 --group=0 -ncvf ../querycsv.tar.gz -T -
 
 build/fonts/icomoon.woff: fonts/icomoon.woff
@@ -30,7 +30,12 @@ build/index.html.gz: build/index.html
 	mkdir -p build
 	zopfli --gzip -c build/index.html > build/index.html.gz
 
-build/index.html: index-debug.html output.min.js style.min.css
+build/appcache.html.gz: appcache.html
+	mkdir -p build
+	cp appcache.html build/appcache.html
+	zopfli --gzip -c build/appcache.html > build/appcache.html.gz
+
+build/index.html: index-debug.html svcworker.js output.min.js style.min.css build/fonts/icomoon.woff build/fonts/icomoon.ttf build/fonts/icomoon.eot build/fonts/icomoon.svg build/worker.min.js build/apple-touch-icon-114x114-precomposed.png build/apple-touch-icon-120x120-precomposed.png build/apple-touch-icon-144x144-precomposed.png build/apple-touch-icon-152x152-precomposed.png build/apple-touch-icon-180x180-precomposed.png build/apple-touch-icon-72x72-precomposed.png build/apple-touch-icon-76x76-precomposed.png build/apple-touch-icon-precomposed.png  build/touch-icon-192x192.png
 	mkdir -p build
 	node build-html.js
 
@@ -93,6 +98,11 @@ build/apple-touch-icon-precomposed.png: icon.svg
 build/touch-icon-192x192.png: icon.svg
 	mkdir -p build
 	inkscape -z -e build/touch-icon-192x192.png -w 192 -h 192 icon.svg
+
+build/svcworker.min.js: build/index.html
+	mkdir -p build
+	java -jar compiler.jar svcworker.temp.js > build/svcworker.min.js
+	zopfli --gzip -c build/svcworker.min.js > build/svcworker.min.js.gz
 
 .PHONY: all
 .PHONY: clean

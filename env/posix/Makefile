@@ -31,7 +31,7 @@ musl:
 watcom:
 	rm -f $(OBJECTS) querycsv querycsv.i386
 	sed -i -e 's/MAC_YIELD//g' querycsv.c
-	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 $(SOURCES)
+	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 -os $(SOURCES)
 	strip querycsv
 	upx querycsv --force-execve
 	mv querycsv querycsv.i386
