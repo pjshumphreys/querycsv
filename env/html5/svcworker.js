@@ -2,7 +2,11 @@
 +function (){
   var version = 'sVERSION';
 
-  var filesToCache = FILESLIST;
+  var base = (function(){
+      var a = self.location.href; return a.substring(0, a.lastIndexOf("/"))
+    })();
+
+  var filesToCache = FILESLIST.map(element => base+element);
 
 function sw_install(event) {
 	console.log('[ServiceWorker] Installing....');
@@ -16,6 +20,7 @@ function sw_install(event) {
 
 function cacheOpen(cache) {
   console.log('[ServiceWorker] Caching files');
+
   cache.addAll(filesToCache);
 }
 
@@ -30,10 +35,10 @@ function sw_fetch(event) {
     catch(() => {
       if(acceptHeader.indexOf('text/html') !== -1) {
         console.log("Service worker serving html");
-        return caches.match(self.location.origin+'/index.html').
+        return caches.match(base+'/index.html').
           then(response => {
             if(!response) {
-              throw Error(`${self.location.origin}/index.html not found in cache`);
+              throw Error(`${base}/index.html not found in cache`);
             }
 
             return response;

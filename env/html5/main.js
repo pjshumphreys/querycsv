@@ -2,6 +2,7 @@
   'use strict';
 
   var
+    base,
     oldclass,
     newclass,
     stateQueue = [],
@@ -119,7 +120,7 @@
             depth: currentPath.split("/").length-1
           },
           d.title,
-          "/Select"
+          base+"/Select"
         );
 
       toggleButtonSelection(e);
@@ -177,7 +178,7 @@
           type: "settings"
         },
         "Settings",
-        "/Settings"
+        base+"Settings"
       );
     }
   }
@@ -213,7 +214,7 @@
               depth: path.split("/").length-1
             },
             d.title,
-            path.slice(0, -1)
+            path.slice(0, -1).replace(/\//, base)
           );
         }
         else {
@@ -223,7 +224,7 @@
               name: btn.find('.filename').text()
             },
             "Actions",
-            "/Actions"
+            base+"Actions"
           );
         }
 
@@ -238,7 +239,7 @@
           type: "editor"
         },
         "Editor",
-        "/Editor"
+        base+"Editor"
       );
     }
   }
@@ -249,7 +250,7 @@
           type: "console"
         },
         "Console",
-        "/Console"
+        base+"Console"
       );
     }
   }
@@ -1122,16 +1123,18 @@
     //if the url is "/", or doesn't begin with "/Documents" doesn't refer to a folder or doesn't exist then set it to "/Documents"
     var url = decodeURIComponent(History.getState().hash.replace(/\?.*/, "")).replace(/\/(\/)*/g, "/").replace(/\/$/, "");
 
-    if(url.match(/\/Documents\/.+/) && Module.ccall(
+    var text = "/Documents"+url.substring((base+'Documents').length);
+
+    if(url.indexOf(base+'Documents') === 0 && Module.ccall(
         'folderExists',
         'number',
         ['string'],
-        [url]
+        [text]
     )) {
-      currentPath = url+"/";
+      currentPath = text+"/";
     }
     else {
-      url = "/Documents"
+      url = base+"Documents"
     }
 
     updateBreadCrumb();
@@ -1182,6 +1185,8 @@
 
     $(d.body).html($('#content').html());
     $('#content').remove();
+
+    base = $('base').attr('href');
 
     if('serviceWorker' in navigator) {
       navigator.
