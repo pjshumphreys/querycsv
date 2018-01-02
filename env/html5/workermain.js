@@ -120,5 +120,7 @@
     Module.FS.syncfs(usingFakeIDB?4:true, doNothing);
   }
 
-  ready();
+  if(this.document === undefined) {
+    ready();
+  }
 }();
