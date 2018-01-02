@@ -31,7 +31,7 @@ function replaceAll(str, mapObj) {
           keys(mapObj).
           map(x => x.replace(matchOperatorsRe, "\\$&")).
           join("|"),
-        "gi"
+        "g"
       ),
     matched => mapObj[matched]
   );
