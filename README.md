@@ -114,4 +114,4 @@ I can be reached at [querycsv@gmail.com](mailto:querycsv@gmail.com)
 
 ## License
 
-QueryCSV is MIT licensed and is copyright (c) 2015-2017 Paul Humphreys
+QueryCSV is MIT licensed and is copyright (c) 2015-2018 Paul Humphreys
