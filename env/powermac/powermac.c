@@ -70,7 +70,6 @@ void adjustMenus(int setStyles);
 void menuSelect(long menuResult);
 int openWindow(void);
 void closeWindow(WindowPtr window);
-void terminate(void);
 void BigBadError(short error);
 int isApplicationWindow(WindowPtr window);
 int isDeskAccessory(WindowPtr window);
@@ -1001,8 +1000,6 @@ void activateWindow(WindowPtr window, Boolean becomingActive) {
     GetWindowProperty(window, 'GRIT', 'tFrm', sizeof(TXNFrameID), NULL, &frameID);
 
     if(becomingActive) {
-      mainWindowPtr = window;
-
       TXNActivate(*getTXNObject(window, &object), frameID, kScrollBarsAlwaysActive);
       adjustMenus(FALSE);
     }
@@ -1175,9 +1172,6 @@ void mouseClick(EventRecord *event) {
   switch(part) {
     case inContent: {
       if(window != FrontWindow()) {
-        if(isApplicationWindow(window)) {
-          mainWindowPtr = window;
-        }
         SelectWindow(window);
       }
       else {
@@ -1293,6 +1287,11 @@ void handleEvent(EventRecord *event) {
   if(quit) {
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
+      closeWindow(mainWindowPtr);
+
+      #if TARGET_API_MAC_CARBON
+        TXNTerminateTextension();
+      #endif
     }
 
     saveSettings();
@@ -1337,8 +1336,6 @@ void macYield(void) {
   loopTick(); // get one event
 
   if(quit) {
-    terminate();
-
     ExitToShell();
   }
 }
@@ -1769,20 +1766,6 @@ void fsetfileinfo_absolute(
   free(temp);
 }
 
-void terminate() {
-  WindowPtr window = FrontWindow();
-
-  while(window) {
-    closeWindow(window);
-
-    window = FrontWindow();
-  }
-
-  #if TARGET_API_MAC_CARBON
-    TXNTerminateTextension();
-  #endif
-}
-
 int main(void) {
   char progName[] = "querycsv";
   char* argv[3];
@@ -1839,8 +1822,6 @@ int main(void) {
     while(!quit) {
       loopTick();
     }
-
-    terminate();
   }
 
   return EXIT_SUCCESS; //macs don't do anything with the return value

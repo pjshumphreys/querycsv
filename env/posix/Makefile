@@ -32,8 +32,11 @@ watcom:
 	rm -f $(OBJECTS) querycsv querycsv.i386
 	sed -i -e 's/MAC_YIELD//g' querycsv.c
 	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 -os $(SOURCES)
+	xxd -l128 -s 84 querycsv | xxd -r -s -32 - querycsv
+	echo "000002c: 02" | xxd -r - querycsv
+	strip querycsv
 	upx querycsv --force-execve
-	mv querycsv querycsv.i386
+	mv querycsv querycsv.386
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
