@@ -1678,7 +1678,6 @@ void handleEvent(EventRecord *event) {
     #endif
   }
 
-  /*
   if(quit) {
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
@@ -1686,7 +1685,6 @@ void handleEvent(EventRecord *event) {
 
     saveSettings();
   }
-  */
 }
 
 RgnHandle cursorRgn;

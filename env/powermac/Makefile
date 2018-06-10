@@ -21,7 +21,22 @@ PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON
 SrcFiles        =  ¶
 				  lexer.c ¶
 				  sql.c ¶
-				  hash2.c ¶
+				  hash2out.c ¶
+				  hash2in0.c ¶
+				  hash2in1.c ¶
+				  hash2in2.c ¶
+				  hash2in3.c ¶
+				  hash2in4.c ¶
+				  hash2in5.c ¶
+				  hash2in6.c ¶
+				  hash2in7.c ¶
+				  hash2in8.c ¶
+				  hash2in9.c ¶
+				  hash2in10.c ¶
+				  hash2in11.c ¶
+				  hash2in12.c ¶
+				  hash2in13.c ¶
+				  hash2in14.c ¶
 				  hash3.c ¶
 				  hash4a.c ¶
 				  hash4b.c ¶
@@ -42,7 +57,22 @@ ObjFiles-68K    =  ¶
 ObjFiles-PPC    =  ¶
 				  "{ObjDir}lexer.c.x" ¶
 				  "{ObjDir}sql.c.x" ¶
-				  "{ObjDir}hash2.c.x" ¶
+				  "{ObjDir}hash2out.c.x" ¶
+				  "{ObjDir}hash2in0.c.x" ¶
+				  "{ObjDir}hash2in1.c.x" ¶
+				  "{ObjDir}hash2in2.c.x" ¶
+				  "{ObjDir}hash2in3.c.x" ¶
+				  "{ObjDir}hash2in4.c.x" ¶
+				  "{ObjDir}hash2in5.c.x" ¶
+				  "{ObjDir}hash2in6.c.x" ¶
+				  "{ObjDir}hash2in7.c.x" ¶
+				  "{ObjDir}hash2in8.c.x" ¶
+				  "{ObjDir}hash2in9.c.x" ¶
+				  "{ObjDir}hash2in10.c.x" ¶
+				  "{ObjDir}hash2in11.c.x" ¶
+				  "{ObjDir}hash2in12.c.x" ¶
+				  "{ObjDir}hash2in13.c.x" ¶
+				  "{ObjDir}hash2in14.c.x" ¶
 				  "{ObjDir}hash3.c.x" ¶
 				  "{ObjDir}hash4a.c.x" ¶
 				  "{ObjDir}hash4b.c.x" ¶
@@ -124,7 +154,22 @@ QueryCSV  ÄÄ  QueryCSV.PPC QueryCSV.68k
 "{ObjDir}mac.c.o"  Ä  mac.c
 "{ObjDir}lexer.c.x"  Ä  lexer.c
 "{ObjDir}sql.c.x"  Ä  sql.c
-"{ObjDir}hash2.c.x"  Ä  hash2.c
+"{ObjDir}hash2out.c.x"  Ä  hash2out.c
+"{ObjDir}hash2in0.c.x"  Ä  hash2in0.c
+"{ObjDir}hash2in1.c.x"  Ä  hash2in1.c
+"{ObjDir}hash2in2.c.x"  Ä  hash2in2.c
+"{ObjDir}hash2in3.c.x"  Ä  hash2in3.c
+"{ObjDir}hash2in4.c.x"  Ä  hash2in4.c
+"{ObjDir}hash2in5.c.x"  Ä  hash2in5.c
+"{ObjDir}hash2in6.c.x"  Ä  hash2in6.c
+"{ObjDir}hash2in7.c.x"  Ä  hash2in7.c
+"{ObjDir}hash2in8.c.x"  Ä  hash2in8.c
+"{ObjDir}hash2in9.c.x"  Ä  hash2in9.c
+"{ObjDir}hash2in10.c.x"  Ä  hash2in10.c
+"{ObjDir}hash2in11.c.x"  Ä  hash2in11.c
+"{ObjDir}hash2in12.c.x"  Ä  hash2in12.c
+"{ObjDir}hash2in13.c.x"  Ä  hash2in13.c
+"{ObjDir}hash2in14.c.x"  Ä  hash2in14.c
 "{ObjDir}hash3.c.x"  Ä  hash3.c
 "{ObjDir}hash4a.c.x"  Ä  hash4a.c
 "{ObjDir}hash4b.c.x"  Ä  hash4b.c

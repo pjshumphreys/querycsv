@@ -1290,7 +1290,6 @@ void handleEvent(EventRecord *event) {
     #endif
   }
 
-  /*
   if(quit) {
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
@@ -1298,7 +1297,6 @@ void handleEvent(EventRecord *event) {
 
     saveSettings();
   }
-  */
 }
 
 RgnHandle cursorRgn;
@@ -1445,9 +1443,10 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   long temp;
   struct lineOffsets *temp2;
   int skipByte;
-  TXNTypeAttributes iAttributes[1];
+  TXNTypeAttributes iAttributes[3];
   TXNObject object;  // our text
   size_t len;
+  short res;
   wchar_t *wide = NULL;
 
   if(!mainWindowPtr) {
@@ -1459,6 +1458,15 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   iAttributes[0].tag=kTXNQDFontStyleAttribute;
   iAttributes[0].size=kTXNQDFontStyleAttributeSize;
   iAttributes[0].data.dataValue=isBold?bold:normal;
+
+  GetFNum(fontName, &res);
+  iAttributes[1].tag = kTXNQDFontFamilyIDAttribute;
+  iAttributes[1].size = kTXNQDFontFamilyIDAttributeSize;
+  iAttributes[1].data.dataValue = res;
+
+  iAttributes[2].tag = kTXNQDFontSizeAttribute;
+  iAttributes[2].size = kTXNQDFontSizeAttributeSize;
+  iAttributes[2].data.dataValue = doGetSize(fontSizeIndex) << 16;
 
   startPoint = buffer;
 
@@ -1540,7 +1548,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
       TXNSetSelection(object, kTXNEndOffset, kTXNEndOffset);
       TXNSetTypeAttributes(
         object,
-        1,
+        3,
         iAttributes,
         kTXNUseCurrentSelection,
         kTXNUseCurrentSelection

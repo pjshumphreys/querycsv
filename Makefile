@@ -5,7 +5,7 @@ SOURCES = $(wildcard split/*.c)
 OBJECTS = $(SOURCES:%.c=%.o)
 INCFLAGS = -I/home/user/Projects/querycsv
 LDFLAGS = -Wl,-rpath,/usr/local/lib
-LIBS = 
+LIBS =
 
 all: querycsv
 
@@ -47,7 +47,7 @@ lexer.c: sql.l querycsv.h
 	gcc -fpreprocessed -dD -E lexer.c > lexer2.c
 	sed '/^[#] [0-9]*/d' lexer2.c > lexer.c
 	rm -rf lexer2.c
-	
+
 hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h
 querycsv.o: gen.h en_gb.h querycsv.h
@@ -67,6 +67,10 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	cd env/m68kmac; unix2mac *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/powermac/ \;
 	cd env/powermac; unix2mac *
+	cp UnicodeData.txt env/powermac/
+	cp generate_hash2.js env/powermac/
+	cp dcompose.json env/powermac/
+	cd env/powermac; node generate_hash2.js 398
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/amiga/ \;
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/amiga/ \;
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/atarist/ \;
