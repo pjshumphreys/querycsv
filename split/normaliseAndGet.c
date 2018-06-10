@@ -85,17 +85,35 @@ int normaliseAndGet(
       if(**offset < 0xE0) {
         /* read 2 bytes */
         bytesRead = 2;
-        codepoint = ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3080;
+        codepoint = (long)(**offset) << 6;
+        (*offset)++;
+        codepoint += **offset;
+        (*offset)++;
+        codepoint -= 0x3080;
       }
       else if(**offset < 0xF0) {
         /* read 3 bytes */
         bytesRead = 3;
-        codepoint = ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0xE2080;
+        codepoint = ((long)(**offset) << 12);
+        (*offset)++;
+        codepoint += ((long)(**offset) << 6);
+        (*offset)++;
+        codepoint += **offset;
+        (*offset)++;
+        codepoint -= 0xE2080;
       }
       else if(**offset < 0xF5) {
         /* read 4 bytes */
         bytesRead = 4;
-        codepoint = ((long)(*((*offset)++)) << 18) + ((long)(*((*offset)++)) << 12) + ((long)(*((*offset)++)) << 6) + (*((*offset)++)) - 0x3C82080;
+        codepoint = ((long)(**offset) << 18);
+        (*offset)++;
+        codepoint += ((long)(**offset) << 12);
+        (*offset)++;
+        codepoint +=  ((long)(**offset) << 6);
+        (*offset)++;
+        codepoint += **offset;
+        (*offset)++;
+        codepoint -= 0x3C82080;
       }
     }
 

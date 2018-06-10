@@ -27,6 +27,8 @@ long getUnicodeChar(
   else if(*temp < 0xE0) {
     /* read 2 bytes */
     codepoint = (long)((*(temp) << 6) + *(temp+1)) - 0x3080;
+
+    /* the codepoint is valid. but is it decomposable? */
     if((entry = isInHash2(codepoint))) {
       bytesread = 2;
     }
