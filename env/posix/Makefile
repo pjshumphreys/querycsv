@@ -24,18 +24,16 @@ querycsv: $(OBJECTS)
 
 musl:
 	rm -f $(OBJECTS) querycsv
-	/usr/local/musl/bin/musl-gcc -o querycsv -static -Os -O2 $(SOURCES)
-	strip querycsv
+	/usr/local/musl/bin/musl-gcc -o querycsv -static -Os -O2 -fmax-errors=20 -Wl,-O,-s,--gc-sections $(SOURCES)
+	strip --remove-section=.eh_frame --remove-section=.comment ./querycsv
 	upx querycsv
 
 watcom:
 	rm -f $(OBJECTS) querycsv querycsv.i386
 	sed -i -e 's/MAC_YIELD//g' querycsv.c
 	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 -os $(SOURCES)
-	strip querycsv
 	upx querycsv --force-execve
 	mv querycsv querycsv.i386
-
 
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
