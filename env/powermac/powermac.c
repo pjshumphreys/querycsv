@@ -1452,14 +1452,14 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
   getTXNObject(mainWindowPtr, &object);
 
-  iAttributes[0].tag=kTXNQDFontStyleAttribute;
-  iAttributes[0].size=kTXNQDFontStyleAttributeSize;
-  iAttributes[0].data.dataValue=isBold?bold:normal;
-
   GetFNum(fontName, &res);
-  iAttributes[1].tag = kTXNQDFontFamilyIDAttribute;
-  iAttributes[1].size = kTXNQDFontFamilyIDAttributeSize;
-  iAttributes[1].data.dataValue = res;
+  iAttributes[0].tag = kTXNQDFontFamilyIDAttribute;
+  iAttributes[0].size = kTXNQDFontFamilyIDAttributeSize;
+  iAttributes[0].data.dataValue = res;
+
+  iAttributes[1].tag=kTXNQDFontStyleAttribute;
+  iAttributes[1].size=kTXNQDFontStyleAttributeSize;
+  iAttributes[1].data.dataValue=isBold?bold:normal;
 
   iAttributes[2].tag = kTXNQDFontSizeAttribute;
   iAttributes[2].size = kTXNQDFontSizeAttributeSize;

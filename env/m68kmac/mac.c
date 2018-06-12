@@ -1762,6 +1762,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   TextStyle theStyle;
   TEHandle handle;
   char *encoded = NULL;
+  short res;
 
   if(!mainWindowPtr) {
     return;
@@ -1769,7 +1770,10 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
   handle = getTEHandle(mainWindowPtr);
 
+  GetFNum(fontName, &res);
+  theStyle.tsFont = res;
   theStyle.tsFace = isBold?bold:normal;
+  theStyle.tsSize = doGetSize(fontSizeIndex);
 
   encoded = d_charsetEncode((char *)buffer, ENC_MAC, &charsLeft);
   startPoint = encoded;
@@ -1854,7 +1858,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     }
     else {
       TESetSelect(32767, 32767, handle);
-      TESetStyle(doFace, &theStyle, FALSE, handle);
+      TESetStyle(doFont + doFace + doSize, &theStyle, FALSE, handle);
       TEInsert(startPoint, lineChars, handle);
       lastLine->lineLength = temp;
       textUsed += lineChars;
