@@ -43,6 +43,7 @@
     addFolderNumber = 1,
     breadCrumbUl,
     oldSelectedCount = 0,
+    newElems = [],
     db,
     settings = {
       id:"settings",
@@ -50,6 +51,14 @@
       isDescending:0, //0 = no, 1 = yes
       usePicup:0
     },
+
+    updateConsole = debounce(function() {
+      consolePre.append(newElems);
+
+      newElems = [];
+
+      consoleRefresh(true);
+    }, 30),
 
     addListEntry = Module.Runtime.addFunction(function(name, type, modified, size) {
       var a, b;
@@ -989,9 +998,9 @@
   }
 
   function output_text(text, isStderr) {
-    consolePre.append($('<span />').text(text).css("font-weight", isStderr?"bold":"normal"), $('<br/>'));
+    newElems.push($('<span />').text(text).css("font-weight", isStderr?"bold":"normal"), $('<br/>'));
 
-    consoleRefresh(true);
+    updateConsole();
   }
 
   function fromEmscripten(create, remove) {
