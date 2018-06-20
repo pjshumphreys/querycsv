@@ -15,6 +15,7 @@ void reallocMsg(void **mem, size_t size) {
   }
   else {
     fputs(TDB_INVALID_REALLOC, stderr);
+    exit(EXIT_FAILURE);
   }
 }
 

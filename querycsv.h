@@ -139,7 +139,7 @@ it becomes needed */
     reallocMsg((void**)_d, strlen(*(_d)) + 1); \
     } /* the _ftostr function in cc65-floatlib seems to output at
     most 32 characters */
-  #define fneg(_d) _fneg(_d) 
+  #define fneg(_d) _fneg(_d)
   double strtod(const char* str, char** endptr);  /* cc65 doesn't
   have strtod (as it doesn't have built in floating point number support).
   We supply our own implementation that provides the same semantics but
@@ -157,13 +157,10 @@ it becomes needed */
 #endif
 
 #if defined(__unix__) || defined(__LINUX__)
-  #ifdef EMSCRIPTEN
+  #if defined(EMSCRIPTEN)
     #define main realmain
-  #else
+  #elif !defined(__WATCOMC__)
     int vsnprintf(char *s, size_t n, const char *format, va_list arg);
-  #endif
-
-  #ifndef __WATCOMC__
     #define HAS_VSNPRINTF   /* this function intentionally never works
     properly on watcom (for source compatability with the windows version) */
   #endif
@@ -218,7 +215,7 @@ it becomes needed */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
-  #if TARGET_API_MAC_CARBON
+  #ifdef TARGET_API_MAC_CARBON
     FILE *fopen_mac(const char *filename, const char *mode);
     void fsetfileinfo_absolute(
       const char *filename,
@@ -237,15 +234,34 @@ it becomes needed */
 
 #ifdef __CC_NORCROFT
   #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
-  #include <errno.h>      /* re-include manually to use the tcpip libs errno */
-  #include <unixlib.h>    /* for strcasecmp */
 
-  #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+  #if __LIB_VERSION < 300
+    #include <kernel.h>
 
-  void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
-  FILE *fopen_ros(const char *filename, const char *mode);
-  #define fopen fopen_ros
+    #define HAS_KERNEL_SWI   /* version 2 of Norcroft is a brain dead compiler (altho it does
+    at least have vfprintf) */
+
+    /* manually define the errno values that lexer uses as errno.h doesn't
+       exist in version 2 but lexer.c uses these defines */
+    #define EINTR  4    /* Interrupted system call */
+    #define ENOMEM 12   /* Cannot allocate memory */
+    #define EINVAL 22   /* Invalid value */
+
+    /* These aren't in norcroft version 2's stdlib.h */
+    #define EXIT_FAILURE -1
+    #define EXIT_SUCCESS 0
+
+    int stricmp(const char *str1, const char *str2); /* brazil os doesn't have
+    stricmp, so we provide our own implementation */
+  #else
+    #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
+    #include <errno.h>      /* re-include manually to use the tcpip libs errno */
+    #include <unixlib.h>    /* for strcasecmp */
+
+    #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+
+    void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
+  #endif
 
   #undef ENC_OUTPUT
   #define ENC_OUTPUT ENC_CP1252

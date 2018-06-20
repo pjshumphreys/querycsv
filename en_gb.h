@@ -3,7 +3,6 @@
 #define TDB_LOCALE "en_GB.UTF8"
 #define TDB_COULDNT_OPEN_INPUT2 "Couldn't open input file\n"
 #define TDB_COULDNT_OPEN_INPUT inputOpenFail
-#define TDB_NOT_YET_IMPLEMENTED "Not yet implemented\n"
 #define TDB_TZTIMED_FAILED "tztime_d failed\n"
 #define TDB_SPRINTFD_FAILED "sprintf_d failed\n"
 #define TDB_STRFTIMED_FAILED "strftime_d failed\n"
@@ -16,7 +15,7 @@
 #define TDB_MALLOC_FAILED mallocFail
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
 #define TDB_UNTITLED_COLUMN "_Column %d", queryData->columnCount
-#define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename]"
+#define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename]\n"
 #define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"
 #define TDB_INVALID_UTF8 "Invalid utf-8 bytes stored in memory\n"
 #define TDB_INVALID_COUNT_STAR "only count(*) is valid\n"

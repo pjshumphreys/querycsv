@@ -3,8 +3,13 @@ int d_sprintf(char **str, char *format, ...) {
   size_t newSize;
   char *newStr = NULL;
   va_list args;
+
   #ifndef HAS_VSNPRINTF
     FILE *pFile;
+  #endif
+
+  #ifdef HAS_KERNEL_SWI
+    int origOutput;
   #endif
 
   MAC_YIELD
@@ -14,11 +19,24 @@ int d_sprintf(char **str, char *format, ...) {
     return FALSE;
   }
 
-  #ifdef HAS_VSNPRINTF
+  #if defined(HAS_VSNPRINTF)
     /* get the space needed for the new string */
     va_start(args, format);
     newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
     va_end(args);
+  #elif defined(HAS_KERNEL_SWI)
+    /* disable output on stdout so that we can get the space needed for the new string without outputting text. */
+    /* turn off stdout printing to simulate printing to /dev/null */
+    origOutput = _kernel_osbyte(236, 0, 0xFF);
+    _kernel_osbyte(3, 6, 0);
+
+    /* get the space needed for the new string */
+    va_start(args, format);
+    newSize = (size_t)(vfprintf(stdout, format, args)); /* plus '\0' */
+    va_end(args);
+
+    /* turn on stdout printing again */
+    _kernel_osbyte(3, origOutput, 0);
   #else
     /* open /dev/null so that we can get the space needed for the new string. */
     if((pFile = fopen(devNull, FOPEN_WRITE)) == NULL) {

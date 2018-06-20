@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     #ifdef WINDOWS
       setupWin32(&argc2, &argv2);
     #else
-      /* Watcom StdClib on MSDOS needs the TZ environment varable set
+      /* Watcom StdClib on MSDOS needs the TZ environment variable set
       then setlocale to be called to properly calculate gmtime */
 
       /* supply some default timezone data if none is present */
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
       devNull = "/dev/null";
     #endif
 
-    #ifdef __CC_NORCROFT
+    #if defined(__CC_NORCROFT) && __LIB_VERSION >= 300
       setupRiscOS(&argc2, &argv2);
     #endif
   #endif

@@ -16,7 +16,7 @@ int getCurrentDate(struct qryData *query) {
 
     freeAndZero(output);
 
-    return -1;
+    return EXIT_FAILURE;
   };
 
   /* place the utc offset in the output string. */
