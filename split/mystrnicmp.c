@@ -1,6 +1,8 @@
 int mystrnicmp(const char *str1, const char *str2, size_t n) {
   int i, retval = 0;
 
+  MAC_YIELD
+
   if(n) {
     for(i = 0; i < n; ++i) {
       retval = tolower(*str1++) - tolower(*str2++);

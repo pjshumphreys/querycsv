@@ -2,6 +2,8 @@ void addGroupedResult(
     struct qryData *query,
     struct resultColumnValue *match
 ) {
+  MAC_YIELD
+
   /* fix up the calculated columns that need it */
   getGroupedColumns(query);
 

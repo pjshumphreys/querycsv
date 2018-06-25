@@ -1,4 +1,6 @@
 int outputSetup(struct qryData *query) {
+  MAC_YIELD
+
   /* set up the output context */
   if(query->outputFileName) {
     query->newLine = "\r\n";

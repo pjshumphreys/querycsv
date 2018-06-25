@@ -13,6 +13,8 @@ int normaliseAndGet(
   int bufferLength;
   long codepoint;
 
+  MAC_YIELD
+
   /* if the allocation failed, print an error messge and exit */
   reallocMsg((void**)&nfdString, strlen((const char *)(*str))+1);
 

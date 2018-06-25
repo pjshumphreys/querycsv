@@ -216,6 +216,8 @@ static const struct codepointToBytes codepointBytes[212] = {
 char* getBytesCommon(long codepoint, int key) {
   struct codepointToBytes *lookup;
 
+  MAC_YIELD
+
   if((lookup = (struct codepointToBytes*)bsearch(
       (void *)&codepoint,
       (void *)codepointBytes,

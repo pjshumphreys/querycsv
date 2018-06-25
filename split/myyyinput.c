@@ -6,6 +6,8 @@ void myyyinput(FILE * stream, void* extra, char * buf, int *result, size_t max_s
   int arrLength;
   int byteLength;
 
+  MAC_YIELD
+
   while (n < max_size - 16 && c != MYEOF) {
     ((struct qryData*)extra)->getCodepoints(stream,
       codepointBuffer,

@@ -4,6 +4,8 @@ void initMatch(
 ) {
   int i = 0;
 
+  MAC_YIELD
+
   reallocMsg(
     (void**)match,
     (query->columnCount)*sizeof(struct resultColumnValue)

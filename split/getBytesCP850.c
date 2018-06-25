@@ -1,8 +1,10 @@
 void getBytesCP850(
     long codepoint,
-    char **bytes,
-    int *byteLength
+    char** bytes,
+    int* byteLength
 ) {
+  MAC_YIELD
+
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 

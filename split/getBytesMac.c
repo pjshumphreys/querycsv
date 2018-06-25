@@ -3,6 +3,8 @@ void getBytesMac(
     char **bytes,
     int *byteLength
 ) {
+  MAC_YIELD
+
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 

@@ -1,4 +1,6 @@
 void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
+  MAC_YIELD
+
   switch(encoding) {
     case ENC_UNKNOWN:
     case ENC_UTF8: {

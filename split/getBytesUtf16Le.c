@@ -6,6 +6,8 @@ void getBytesUtf16Le(
   short highSurrogate;
   short lowSurrogate;
 
+  MAC_YIELD
+
   if(byteLength != NULL && bytes != NULL) {
     if(codepoint < 0x10000) {
       *byteLength = 2;

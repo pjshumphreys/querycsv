@@ -56,6 +56,8 @@ void getBytesPetscii(
 ) {
   struct codepointToByte *lookup;
 
+  MAC_YIELD
+
   if(byteLength != NULL && bytes != NULL) {
     *byteLength = 1;
 
