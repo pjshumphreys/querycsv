@@ -10,6 +10,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   void (*getBytes)(long, char **, int *);
   size_t temp;
 
+  MAC_YIELD
+
   switch(encoding) {
     case ENC_CP1252: {
       getBytes = getBytesCP1252;
