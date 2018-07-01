@@ -4,7 +4,7 @@ int outputSetup(struct qryData *query) {
   /* set up the output context */
   if(query->outputFileName) {
     query->newLine = "\r\n";
-    query->outputFile = fopen(query->outputFileName, FOPEN_WRITE);
+    query->outputFile = fopen(query->outputFileName, fopen_write);
 
     if(query->outputFile == NULL) {
       fputs(TDB_OUTPUT_FAILED, stderr);

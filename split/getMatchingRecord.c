@@ -160,7 +160,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
     /* rewind the file, but skip the column headers line */
     fclose(currentInputTable->fileStream);
 
-    if((currentInputTable->fileStream = fopen(currentInputTable->fileName, FOPEN_READ)) == NULL) {
+    if((currentInputTable->fileStream = fopen(currentInputTable->fileName, fopen_read)) == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
       exit(EXIT_FAILURE);
     }

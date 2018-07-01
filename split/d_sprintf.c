@@ -28,7 +28,7 @@ int d_sprintf(char **str, char *format, ...) {
     /* disable output on stdout so that we can get the space needed for the new string without outputting text. */
     /* turn off stdout printing to simulate printing to /dev/null */
     origOutput = _kernel_osbyte(236, 0, 0xFF);
-    _kernel_osbyte(3, 6, 0);
+    _kernel_osbyte(3, 14, 0);
 
     /* get the space needed for the new string */
     va_start(args, format);
@@ -39,7 +39,7 @@ int d_sprintf(char **str, char *format, ...) {
     _kernel_osbyte(3, origOutput, 0);
   #else
     /* open /dev/null so that we can get the space needed for the new string. */
-    if((pFile = fopen(devNull, FOPEN_WRITE)) == NULL) {
+    if((pFile = fopen(devNull, fopen_write)) == NULL) {
       return FALSE;
     }
 

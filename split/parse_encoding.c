@@ -86,6 +86,10 @@ int parse_encoding2(struct qryData *queryData, char *encoding) {
     return ENC_ATARIST;
   }
 
+  else if(stricmp("bbc", encoding) == 0) {
+    return ENC_BBC;
+  }
+
   fprintf(stderr, TDB_INVALID_ENCODING);
 
   return ENC_UNSUPPORTED;

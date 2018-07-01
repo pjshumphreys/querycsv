@@ -7,7 +7,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
   MAC_YIELD
 
-  file = fopen(filename, FOPEN_READ);
+  file = fopen(filename, fopen_read);
 
   if(file != NULL) {
     /* skip over the bom if present */
@@ -117,7 +117,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
     /* portable (doesn't work on cc65). Therefore we just close and reopen the file */
     fclose(file);
 
-    file = fopen(filename, FOPEN_READ);
+    file = fopen(filename, fopen_read);
   }
 
   return file;

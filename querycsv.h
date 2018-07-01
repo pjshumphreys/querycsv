@@ -90,6 +90,7 @@
 #define ENC_CP1047 12
 #define ENC_PETSCII 13
 #define ENC_ATARIST 14
+#define ENC_BBC 15
 #define ENC_INPUT ENC_UTF8
 #define ENC_OUTPUT ENC_UTF8
 #define ENC_PRINT ENC_UTF8
@@ -106,14 +107,11 @@ it becomes needed */
 Just use long ones for that compiler */
 #define QCSV_SHORT short
 
-/* ugly hacks to raise the game of cc65 */
-#ifndef __CC65__
-  #define __fastcall__ /* do nothing */
+#define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
+convert doubles to strings */
 
-  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
-  convert doubles to strings */
-
-  #if defined(__CC_NORCROFT) && __LIB_VERSION < 300
+#ifdef __CC_NORCROFT
+  #if __LIB_VERSION < 300
     /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
     #define YYTYPE_UINT16 unsigned int
     #define YYTYPE_INT16 int
@@ -125,7 +123,51 @@ Just use long ones for that compiler */
     #define double long
     #undef ftostr
     #define ftostr(_f,_a) d_sprintf((_f), "%d", (_a))
+    #define strtod(_f,_a) strtol((_f), (_a), 10)
+
+    #define YY_NO_UNISTD_H 1
+    #define HAS_KERNEL_SWI   /* version 2 of Norcroft is a brain dead compiler (altho it does
+    at least have vfprintf) */
+    #include <kernel.h> /* for _kernel_osbyte function (used by d_sprintf) */
+
+    int stricmp(const char *str1, const char *str2); /* brazil os doesn't have
+    stricmp, so we provide our own implementation */
+
+    /* manually define the errno values that lexer uses as errno.h doesn't
+       exist in version 2 but lexer.c uses these defines */
+    #define EINTR  4    /* Interrupted system call */
+    #define ENOMEM 12   /* Cannot allocate memory */
+    #define EINVAL 22   /* Invalid value */
+
+    /* These aren't in norcroft version 2's stdlib.h */
+    #define EXIT_FAILURE -1
+    #define EXIT_SUCCESS 0
+
+    #undef ENC_INPUT
+    #define ENC_INPUT ENC_BBC
+    #undef ENC_OUTPUT
+    #define ENC_OUTPUT ENC_BBC
+    #undef ENC_PRINT
+    #define ENC_PRINT ENC_BBC
+  #else
+    #define YY_NO_UNISTD_H 1
+    #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
+    #include <errno.h>      /* re-include manually to use the tcpip libs errno */
+    #include <unixlib.h>    /* for strcasecmp */
+
+    #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+
+    void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
+    #undef ENC_OUTPUT
+    #define ENC_OUTPUT ENC_CP1252
+    #undef ENC_PRINT
+    #define ENC_PRINT ENC_CP1252
   #endif
+#endif
+
+/* ugly hacks to raise the game of cc65 */
+#ifndef __CC65__
+  #define __fastcall__ /* do nothing */
 
   /* duplicates of the macros in cc65-floatlib that just use the
   native floating point support */
@@ -140,11 +182,7 @@ Just use long ones for that compiler */
   #define in_word_set_a in_word_set_ai
   #define in_word_set_b in_word_set_bi
   #define in_word_set_c in_word_set_ci
-
-  #define FOPEN_READ "rb"
-  #define FOPEN_WRITE "wb"
 #else
-
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
@@ -152,6 +190,7 @@ Just use long ones for that compiler */
   #include <conio.h> /* for cgetc */
   #include "floatlib/float.h" /* fudges kinda support for floating point
   into cc65 by utilising functionality in the c64 basic rom */
+  #undef ftostr
   #define ftostr(_d,_a) { \
     reallocMsg((void**)_d, 33); \
     _ftostr(*(_d), _a); \
@@ -163,9 +202,6 @@ Just use long ones for that compiler */
   have strtod (as it doesn't have built in floating point number support).
   We supply our own implementation that provides the same semantics but
   uses cc65-floatlib */
-
-  #define FOPEN_READ fopen_read /* the cc65 c library is still using petscii internally */
-  #define FOPEN_WRITE fopen_write
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -249,43 +285,6 @@ Just use long ones for that compiler */
     #define ENC_OUTPUT ENC_MAC
     #define fsetfileinfo_absolute fsetfileinfo
   #endif
-#endif
-
-#ifdef __CC_NORCROFT
-  #define YY_NO_UNISTD_H 1
-
-  #if __LIB_VERSION < 300
-    #include <kernel.h>
-
-    #define HAS_KERNEL_SWI   /* version 2 of Norcroft is a brain dead compiler (altho it does
-    at least have vfprintf) */
-
-    /* manually define the errno values that lexer uses as errno.h doesn't
-       exist in version 2 but lexer.c uses these defines */
-    #define EINTR  4    /* Interrupted system call */
-    #define ENOMEM 12   /* Cannot allocate memory */
-    #define EINVAL 22   /* Invalid value */
-
-    /* These aren't in norcroft version 2's stdlib.h */
-    #define EXIT_FAILURE -1
-    #define EXIT_SUCCESS 0
-
-    int stricmp(const char *str1, const char *str2); /* brazil os doesn't have
-    stricmp, so we provide our own implementation */
-  #else
-    #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
-    #include <errno.h>      /* re-include manually to use the tcpip libs errno */
-    #include <unixlib.h>    /* for strcasecmp */
-
-    #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
-
-    void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
-  #endif
-
-  #undef ENC_OUTPUT
-  #define ENC_OUTPUT ENC_CP1252
-  #undef ENC_PRINT
-  #define ENC_PRINT ENC_CP1252
 #endif
 
 #ifdef __VBCC__

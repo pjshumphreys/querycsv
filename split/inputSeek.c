@@ -23,7 +23,7 @@ int inputSeek(
     fclose(*inputFile);
 
     /* go directly to the specified offset if it's non zero */
-    *inputFile = fopen(inputFileName, FOPEN_READ);
+    *inputFile = fopen(inputFileName, fopen_read);
 
     if(*inputFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
