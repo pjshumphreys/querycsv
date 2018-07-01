@@ -102,9 +102,30 @@ but hasn't actually been needed up to now. It's being kept just in case
 it becomes needed */
 #define MAC_YIELD
 
+/* Old versions of Norcroft appear to generate incorrect codes with short integers.
+Just use long ones for that compiler */
+#define QCSV_SHORT short
+
 /* ugly hacks to raise the game of cc65 */
 #ifndef __CC65__
   #define __fastcall__ /* do nothing */
+
+  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
+  convert doubles to strings */
+
+  #if defined(__CC_NORCROFT) && __LIB_VERSION < 300
+    /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
+    #define YYTYPE_UINT16 unsigned int
+    #define YYTYPE_INT16 int
+    #undef QCSV_SHORT
+    #define QCSV_SHORT long
+
+    /* I can't get the floating point emulator to work with the output binary,
+    so using integer arithmatic for now */
+    #define double long
+    #undef ftostr
+    #define ftostr(_f,_a) d_sprintf((_f), "%d", (_a))
+  #endif
 
   /* duplicates of the macros in cc65-floatlib that just use the
   native floating point support */
@@ -114,8 +135,6 @@ it becomes needed */
   #define fdiv(_f,_a) ((_f)/(_a))
   #define fcmp(_d,_s) ((_d)!=(_s))
   #define ctof(_s) ((double)(_s))
-  #define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
-  convert doubles to strings */
   #define fneg(_f) ((_f)*(-1))
 
   #define in_word_set_a in_word_set_ai
@@ -309,10 +328,10 @@ struct resultColumn {
   int isHidden;
   int isCalculated;
   int groupType;
-  char *groupText;
-  double groupNum;
   int groupCount;
   int groupingDone;
+  double groupNum;
+  char *groupText;
   char *resultColumnName;
   struct resultColumn *nextColumnInstance;
   struct resultColumn *nextColumnInResults;
@@ -481,12 +500,12 @@ struct hash4Entry {
 };
 
 struct codepointToByte {
-  unsigned short codepoint;
+  unsigned QCSV_SHORT codepoint;
   char byte;
 };
 
 struct codepointToBytes {
-  unsigned short codepoint;
+  unsigned QCSV_SHORT codepoint;
   char cp437;
   char cp850;
   char cp1047;

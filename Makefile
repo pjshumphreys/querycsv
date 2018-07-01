@@ -71,6 +71,7 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	cp generate_hash2.js hash2/
 	cp dcompose.json hash2/
 	find . -maxdepth 1 -type f -iname hash2\* -exec cp {} hash2/ \;
+	rm -rf env/bbcarm/c
 	mkdir -p env/bbcarm/c
 	mkdir -p env/bbcarm/h
 	mkdir -p env/riscos/h
@@ -83,7 +84,7 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	cd env/bbcarm/c; sed -i -E 's/\/\*[^\*]+\*\//\/\* \*\//g' *
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
 	find . -maxdepth 1 -type f -iname \*.h ! -name 'hash2*' -exec cp {} env/bbcarm/h/ \;
-	cd env/bbcarm/c; sed -i -E 's/const char \*p;/char \*p;/g' lexer.c; cp ../bbcarm.c bbcarm; bash -c 'ls | cat -n | while read n f; do mv "$$f" $$(printf "\x$$(printf %x $$(($$n+96)))"); done'; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
+	cd env/bbcarm/c; sed -i -E 's/const char \*p;/char \*p;/g;s/short/long/g' lexer.c; cp ../bbcarm.c bbcarm; bash -c 'ls | cat -n | while read n f; do mv "$$f" $$(printf "\x$$(printf %x $$(($$n+96)))"); done'; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 	cd env/bbcarm/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/riscos/c/ \;
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;

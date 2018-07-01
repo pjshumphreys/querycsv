@@ -3,8 +3,8 @@ void getBytesUtf16Le(
     char **bytes,
     int *byteLength
 ) {
-  short highSurrogate;
-  short lowSurrogate;
+  QCSV_SHORT highSurrogate;
+  QCSV_SHORT lowSurrogate;
 
   MAC_YIELD
 

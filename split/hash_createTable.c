@@ -1,5 +1,6 @@
 struct columnReferenceHash *hash_createTable(int size) {
-  struct columnReferenceHash *new_table;
+  struct columnReferenceHash *new_table = NULL;
+  struct columnRefHashEntry **theTable = NULL;
   int i;
 
   MAC_YIELD
@@ -8,16 +9,13 @@ struct columnReferenceHash *hash_createTable(int size) {
     return NULL; /* invalid size for table */
   }
 
-  /* Attempt to allocate memory for the table structure */
-  if((new_table = malloc(sizeof(struct columnReferenceHash))) == NULL) {
-    return NULL;
-  }
+  /* Allocate memory for the table structure */
+  reallocMsg((void**)&new_table, sizeof(struct columnReferenceHash));
 
-  /* Attempt to allocate memory for the table itself */
-  if((new_table->table = malloc(sizeof(struct columnReference *) * size)) == NULL) {
-    free(new_table);
-    return NULL;
-  }
+  /* Allocate memory for the table itself */
+  reallocMsg((void**)&theTable, sizeof(struct columnRefHashEntry *) * size);
+
+  new_table->table = theTable;
 
   /* Initialize the elements of the table */
   for(i=0; i<size; i++) {
