@@ -134,124 +134,125 @@ void setupWin32(int *argc, char ***argv) {
   GetVersionEx(&osvi);
 
   /*
-    test if the program is not being run using the HXRT DPMI server
-    and supports the UTF-8 codepage.
-    Otherwise, don't use WriteConsoleW
+    If the program is being run using the HXRT DPMI server
+    or doesn't support the UTF-8 codepage then don't use WriteConsoleW
   */
   if(
-      ((osvi.dwBuildNumber & 0xFFFF) != 2222 || osvi.szCSDVersion[0] != 0) &&
-      IsValidCodePage(CP_UTF8)
+      ((osvi.dwBuildNumber & 0xFFFF) == 2222 && osvi.szCSDVersion[0] == 0) ||
+      !IsValidCodePage(CP_UTF8)
     ) {
-    hasUtf8 = TRUE;
-
-    std_out = GetStdHandle(STD_OUTPUT_HANDLE);
-    std_err = GetStdHandle(STD_ERROR_HANDLE);
-
-    usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
-    usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
-
-    szArglist = GetCommandLineW();
-
-    if(szArglist == NULL) {
-      fprintf_w32(stderr, "couldn't get command line\n");
-      exit(EXIT_FAILURE);
-    }
-
-    sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, NULL, 0, NULL, NULL);
-
-    if((test = (char*)malloc(sizeof(char)*sizeNeeded)) == NULL) {
-      fprintf_w32(stderr, "couldn't get command line\n");
-      exit(EXIT_FAILURE);
-    }
-
-    WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, test, sizeNeeded, NULL, NULL);
-
-    //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32. behaviour should be as described on "the old new thing"
-    for(i = 0, j = 0; i < sizeNeeded; ) {
-      switch(test[i]) {
-        case '\\':
-          if(maybeNewField) {
-            argc_w32++;
-            maybeNewField = FALSE;
-          }
-
-          if(i+2 < sizeNeeded && test[i+1] == '\\' && test[i+2] == '"') {
-            test[j] = '\\';
-            i+=2;
-            j++;
-          }
-          else if(i+1 < sizeNeeded && test[i+1] == '"') {
-            test[j] = '"';
-            i+=2;
-            j++;
-          }
-          else {
-            test[j] = '\\';
-            i++;
-            j++;
-          }
-        break;
-
-        case ' ':
-          if(notInQuotes) {
-             test[j] = '\0';
-             maybeNewField = TRUE;
-          }
-          else {
-            if(maybeNewField) {
-              argc_w32++;
-              maybeNewField = FALSE;
-            }
-            test[j] = ' ';
-          }
-          i++;
-          j++;
-        break;
-
-        case '"':
-          notInQuotes = !notInQuotes;
-          i++;
-        break;
-
-        case '\0':
-          i++;
-        break;
-
-        default:
-          if(maybeNewField) {
-            argc_w32++;
-            maybeNewField = FALSE;
-          }
-          test[j] = test[i];
-          i++;
-          j++;
-        break;
-      }
-    }
-
-    if((argv_w32 = (char**)malloc(sizeof(char*)*argc_w32)) == NULL) {
-      free(test);
-      fprintf_w32(stderr, "couldn't get command line\n");
-      exit(EXIT_FAILURE);
-    }
-
-    atexit(cleanup_w32);
-    maybeNewField = TRUE;
-
-    for(i = 0, j = 0; i < sizeNeeded; i++) {
-      if(test[i] == '\0') {
-        maybeNewField = TRUE;
-      }
-      else if(maybeNewField) {
-        argv_w32[j] = &(test[i]);
-        maybeNewField = FALSE;
-        j++;
-      }
-    }
-
-    *argc = argc_w32;
-    *argv = argv_w32;
+    return;
   }
+
+  hasUtf8 = TRUE;
+
+  std_out = GetStdHandle(STD_OUTPUT_HANDLE);
+  std_err = GetStdHandle(STD_ERROR_HANDLE);
+
+  usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
+  usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
+
+  szArglist = GetCommandLineW();
+
+  if(szArglist == NULL) {
+    fprintf_w32(stderr, "couldn't get command line\n");
+    exit(EXIT_FAILURE);
+  }
+
+  sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, NULL, 0, NULL, NULL);
+
+  if((test = (char*)malloc(sizeof(char)*sizeNeeded)) == NULL) {
+    fprintf_w32(stderr, "couldn't get command line\n");
+    exit(EXIT_FAILURE);
+  }
+
+  WideCharToMultiByte(CP_UTF8, 0, szArglist, -1, test, sizeNeeded, NULL, NULL);
+
+  //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32. behaviour should be as described on "the old new thing"
+  for(i = 0, j = 0; i < sizeNeeded; ) {
+    switch(test[i]) {
+      case '\\':
+        if(maybeNewField) {
+          argc_w32++;
+          maybeNewField = FALSE;
+        }
+
+        if(i+2 < sizeNeeded && test[i+1] == '\\' && test[i+2] == '"') {
+          test[j] = '\\';
+          i+=2;
+          j++;
+        }
+        else if(i+1 < sizeNeeded && test[i+1] == '"') {
+          test[j] = '"';
+          i+=2;
+          j++;
+        }
+        else {
+          test[j] = '\\';
+          i++;
+          j++;
+        }
+      break;
+
+      case ' ':
+        if(notInQuotes) {
+           test[j] = '\0';
+           maybeNewField = TRUE;
+        }
+        else {
+          if(maybeNewField) {
+            argc_w32++;
+            maybeNewField = FALSE;
+          }
+          test[j] = ' ';
+        }
+        i++;
+        j++;
+      break;
+
+      case '"':
+        notInQuotes = !notInQuotes;
+        i++;
+      break;
+
+      case '\0':
+        i++;
+      break;
+
+      default:
+        if(maybeNewField) {
+          argc_w32++;
+          maybeNewField = FALSE;
+        }
+        test[j] = test[i];
+        i++;
+        j++;
+      break;
+    }
+  }
+
+  if((argv_w32 = (char**)malloc(sizeof(char*)*argc_w32)) == NULL) {
+    free(test);
+    fprintf_w32(stderr, "couldn't get command line\n");
+    exit(EXIT_FAILURE);
+  }
+
+  atexit(cleanup_w32);
+  maybeNewField = TRUE;
+
+  for(i = 0, j = 0; i < sizeNeeded; i++) {
+    if(test[i] == '\0') {
+      maybeNewField = TRUE;
+    }
+    else if(maybeNewField) {
+      argv_w32[j] = &(test[i]);
+      maybeNewField = FALSE;
+      j++;
+    }
+  }
+
+  *argc = argc_w32;
+  *argv = argv_w32;
 }
 
 FILE *fopen_w32(const char *filename, const char *mode) {
