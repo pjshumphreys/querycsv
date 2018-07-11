@@ -26,7 +26,7 @@ void getGroupedColumns(struct qryData *query) {
             case GRP_AVG:
             case GRP_DIS_AVG:
               currentResultColumn->groupNum = fdiv(currentResultColumn->groupNum,
-                currentResultColumn->groupCount);
+                ctof(currentResultColumn->groupCount));
             case GRP_SUM:
             case GRP_DIS_SUM:
               ftostr(&(currentResultColumn->groupText), currentResultColumn->groupNum);

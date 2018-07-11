@@ -107,82 +107,53 @@ it becomes needed */
 Just use long ones for that compiler */
 #define QCSV_SHORT short
 
-#define ftostr(_f,_a) d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
-convert doubles to strings */
-
-#ifdef __CC_NORCROFT
-  #if __LIB_VERSION < 300
-    /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
-    #define YYTYPE_UINT16 unsigned int
-    #define YYTYPE_INT16 int
-    #undef QCSV_SHORT
-    #define QCSV_SHORT long
-
-    /* I can't get the floating point emulator to work with the output binary,
-    so using integer arithmatic for now */
-    #define double long
-    #undef ftostr
-    #define ftostr(_f,_a) d_sprintf((_f), "%d", (_a))
-    #define strtod(_f,_a) strtol((_f), (_a), 10)
-
-    #define YY_NO_UNISTD_H 1
-    #define HAS_KERNEL_SWI   /* version 2 of Norcroft is a brain dead compiler (altho it does
-    at least have vfprintf) */
-    #include <kernel.h> /* for _kernel_osbyte function (used by d_sprintf) */
-
-    int stricmp(const char *str1, const char *str2); /* brazil os doesn't have
-    stricmp, so we provide our own implementation */
-
-    /* manually define the errno values that lexer uses as errno.h doesn't
-       exist in version 2 but lexer.c uses these defines */
-    #define EINTR  4    /* Interrupted system call */
-    #define ENOMEM 12   /* Cannot allocate memory */
-    #define EINVAL 22   /* Invalid value */
-
-    /* These aren't in norcroft version 2's stdlib.h */
-    #define EXIT_FAILURE -1
-    #define EXIT_SUCCESS 0
-
-    #undef ENC_INPUT
-    #define ENC_INPUT ENC_BBC
-    #undef ENC_OUTPUT
-    #define ENC_OUTPUT ENC_BBC
-    #undef ENC_PRINT
-    #define ENC_PRINT ENC_BBC
-  #else
-    #define YY_NO_UNISTD_H 1
-    #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
-    #include <errno.h>      /* re-include manually to use the tcpip libs errno */
-    #include <unixlib.h>    /* for strcasecmp */
-
-    #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
-
-    void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
-    #undef ENC_OUTPUT
-    #define ENC_OUTPUT ENC_CP1252
-    #undef ENC_PRINT
-    #define ENC_PRINT ENC_CP1252
-  #endif
-#endif
-
-/* ugly hacks to raise the game of cc65 */
-#ifndef __CC65__
+/* ugly hacks to add floating point emulation to Norcroft version 2 */
+#if defined(__CC_NORCROFT) && __LIB_VERSION < 300
   #define __fastcall__ /* do nothing */
 
-  /* duplicates of the macros in cc65-floatlib that just use the
-  native floating point support */
-  #define fadd(_f,_a) ((_f)+(_a))
-  #define fsub(_f,_a) ((_f)-(_a))
-  #define fmul(_f,_a) ((_f)*(_a))
-  #define fdiv(_f,_a) ((_f)/(_a))
-  #define fcmp(_d,_s) ((_d)!=(_s))
-  #define ctof(_s) ((double)(_s))
-  #define fneg(_f) ((_f)*(-1))
+  /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
+  #define YYTYPE_UINT16 unsigned int
+  #define YYTYPE_INT16 int
+  #undef QCSV_SHORT
+  #define QCSV_SHORT long
 
-  #define in_word_set_a in_word_set_ai
-  #define in_word_set_b in_word_set_bi
-  #define in_word_set_c in_word_set_ci
-#else
+  #include "milieu.h"
+  #include "macros.h" /* fudges kinda support for floating point
+  into Norcroft C version 2 by utilising John Hauser's Berkeley SoftFloat package */
+  #include "softfloat.h"
+
+  char* mydtoa(char *s, double n);
+  double mystrtod(const char *str, char **end);
+  extern double fltMinusOne;
+  #define strtod mystrtod /* Norcroft C version 2 does have strtod, but using it causes the program to crash. Hence this macro that swaps it for our own implementation */
+
+  #define YY_NO_UNISTD_H 1
+  #define HAS_KERNEL_SWI   /* version 2 of Norcroft is a brain dead compiler (altho it does
+  at least have vfprintf) */
+  #include <kernel.h> /* for _kernel_osbyte function (used by d_sprintf) */
+
+  int stricmp(const char *str1, const char *str2); /* brazil os doesn't have
+  stricmp, so we provide our own implementation */
+
+  /* manually define the errno values that lexer uses as errno.h doesn't
+     exist in version 2 but lexer.c uses these defines */
+  #define EINTR  4    /* Interrupted system call */
+  #define ENOMEM 12   /* Cannot allocate memory */
+  #define EINVAL 22   /* Invalid value */
+
+  /* These aren't in norcroft version 2's stdlib.h */
+  #define EXIT_FAILURE -1
+  #define EXIT_SUCCESS 0
+
+  #undef ENC_INPUT
+  #define ENC_INPUT ENC_BBC
+  #undef ENC_OUTPUT
+  #define ENC_OUTPUT ENC_BBC
+  #undef ENC_PRINT
+  #define ENC_PRINT ENC_BBC
+
+/* ugly hacks to raise the game of cc65 */
+#elif defined(__CC65__)
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
@@ -190,10 +161,9 @@ convert doubles to strings */
   #include <conio.h> /* for cgetc */
   #include "floatlib/float.h" /* fudges kinda support for floating point
   into cc65 by utilising functionality in the c64 basic rom */
-  #undef ftostr
   #define ftostr(_d,_a) { \
     reallocMsg((void**)_d, 33); \
-    _ftostr(*(_d), _a); \
+    _ftostr(*(_d), (_a)); \
     reallocMsg((void**)_d, strlen(*(_d)) + 1); \
     } /* the _ftostr function in cc65-floatlib seems to output at
     most 32 characters */
@@ -209,6 +179,26 @@ convert doubles to strings */
   #define ENC_INPUT ENC_PETSCII
   #define ENC_OUTPUT ENC_PETSCII
   #define ENC_PRINT ENC_PETSCII
+#else
+  #define __fastcall__ /* do nothing */
+
+  /* duplicates of the macros in cc65-floatlib that just use the
+  native floating point support */
+  #define fadd(_f,_a) ((_f)+(_a))
+  #define fsub(_f,_a) ((_f)-(_a))
+  #define fmul(_f,_a) ((_f)*(_a))
+  #define fdiv(_f,_a) ((_f)/(_a))
+  #define fcmp(_d,_s) ((_d)!=(_s))
+  #define ctof(_s) ((double)(_s))
+  #define fneg(_f) ((_f)*(-1))
+  #define ftostr(_f,_a) (_a) != (_a) ? \
+    d_sprintf((_f), "NaN") : \
+    d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
+    convert doubles to strings */
+
+  #define in_word_set_a in_word_set_ai
+  #define in_word_set_b in_word_set_bi
+  #define in_word_set_c in_word_set_ci
 #endif
 
 #if defined(__unix__) || defined(__LINUX__)
@@ -285,6 +275,21 @@ convert doubles to strings */
     #define ENC_OUTPUT ENC_MAC
     #define fsetfileinfo_absolute fsetfileinfo
   #endif
+#endif
+
+#if defined(__CC_NORCROFT) && __LIB_VERSION >= 300
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF   /* Norcroft is not a brain dead compiler */
+  #include <errno.h>      /* re-include manually to use the tcpip libs errno */
+  #include <unixlib.h>    /* for strcasecmp */
+
+  #define stricmp strcasecmp  /* strcasecmp is defined in unixlib.h */
+
+  void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
+  #undef ENC_OUTPUT
+  #define ENC_OUTPUT ENC_CP1252
+  #undef ENC_PRINT
+  #define ENC_PRINT ENC_CP1252
 #endif
 
 #ifdef __VBCC__

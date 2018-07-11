@@ -1,5 +1,7 @@
+mode
 lib $.archc.library
 dir $.querycsv
-mode
-cc -c a b c d e f g h i j k l m n o p q r s t u v w x
-link -output querycsv o.a o.b o.c o.d o.e o.f o.g o.h o.i o.j o.k o.l o.m o.n o.o o.p o.q o.r o.s o.t o.u o.v o.w o.x $.archc.arm.clib.o.superlib $.archc.arm.clib.o.ansilib
+spool output
+cc -super -o querycsv a b c d e f g h i j k l m n o p q r s t u v w x 0 1 2 3 4 5
+spool
+
