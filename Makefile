@@ -74,6 +74,7 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	rm -rf env/bbcarm/c
 	mkdir -p env/bbcarm/c
 	mkdir -p env/bbcarm/h
+	mkdir -p env/bbcarm/o
 	mkdir -p env/riscos/h
 	cd hash2; node generate_hash2.js 398; rm -f hash2.c; cp *.c ../env/powermac; cp *.c ../env/bbcarm/c; cp *.c ../env/c64
 	cd env/powermac; unix2mac *
@@ -84,7 +85,9 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o
 	cd env/bbcarm/c; sed -i -E 's/\/\*[^\*]+\*\//\/\* \*\//g' *
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
 	find . -maxdepth 1 -type f -iname \*.h ! -name 'hash2*' -exec cp {} env/bbcarm/h/ \;
-	cd env/bbcarm/c; sed -i -E 's/const char \*p;/char \*p;/g;s/short/long/g' lexer.c; cp ../bbcarm.c bbcarm; bash -c 'ls | cat -n | while read n f; do mv "$$f" $$(printf "\x$$(printf %x $$(($$n+96)))"); done'; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
+	cd env/bbcarm/c; sed -i -E 's/const char \*p;/char \*p;/g;s/short/long/g' lexer.c; cp ../bbcarm.c bbcarm; bash -c 'ls | cat -n | while read n f; do mv "$$f" $$(printf "\x$$(printf %x $$(($$n+96)))"); done';
+	cd env/bbcarm/softfloat; bash -c 'ls *.c | cat -n | while read n f; do cp "$$f" ../c/$$(printf "\x$$(printf %x $$(($$n+47)))"); done';find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../h/ \;
+	cd env/bbcarm/c; cp ../mode.c mode; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 	cd env/bbcarm/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/riscos/c/ \;
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;

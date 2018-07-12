@@ -31,8 +31,12 @@ int main(int argc, char *argv[]) {
       devNull = "/dev/null";
     #endif
 
-    #if defined(__CC_NORCROFT) && __LIB_VERSION >= 300
-      setupRiscOS(&argc2, &argv2);
+    #ifdef __CC_NORCROFT
+      #if __LIB_VERSION >= 300
+        setupRiscOS(&argc2, &argv2);
+      #else
+        devNull = "null:";
+      #endif
     #endif
   #endif
 

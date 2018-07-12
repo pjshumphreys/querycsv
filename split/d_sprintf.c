@@ -6,10 +6,10 @@ int d_sprintf(char **str, char *format, ...) {
 
   #ifndef HAS_VSNPRINTF
     FILE *pFile;
-  #endif
 
-  #ifdef HAS_KERNEL_SWI
-    int origOutput;
+    #ifdef HAS_KERNEL_SWI
+      int origOutput;
+    #endif
   #endif
 
   MAC_YIELD
@@ -19,37 +19,42 @@ int d_sprintf(char **str, char *format, ...) {
     return FALSE;
   }
 
-  #if defined(HAS_VSNPRINTF)
+  #ifdef HAS_VSNPRINTF
     /* get the space needed for the new string */
     va_start(args, format);
     newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
     va_end(args);
-  #elif defined(HAS_KERNEL_SWI)
-    /* disable output on stdout so that we can get the space needed for the new string without outputting text. */
-    /* turn off stdout printing to simulate printing to /dev/null */
-    origOutput = _kernel_osbyte(236, 0, 0xFF);
-    _kernel_osbyte(3, 22, 0);
-
-    /* get the space needed for the new string */
-    va_start(args, format);
-    newSize = (size_t)(vfprintf(stdout, format, args)); /* plus '\0' */
-    va_end(args);
-
-    /* turn on stdout printing again */
-    _kernel_osbyte(3, origOutput, 0);
   #else
     /* open /dev/null so that we can get the space needed for the new string. */
     if((pFile = fopen(devNull, fopen_write)) == NULL) {
-      return FALSE;
+      #ifdef HAS_KERNEL_SWI
+        /*
+          disable output on stdout to simulate printing to
+          /dev/null so that we can get the space needed for
+          the new string without outputting text. */
+        origOutput = _kernel_osbyte(236, 0, 0xFF);
+        _kernel_osbyte(3, 22, 0);
+
+        /* get the space needed for the new string */
+        va_start(args, format);
+        newSize = (size_t)(vfprintf(stdout, format, args)); /* plus '\0' */
+        va_end(args);
+
+        /* turn on stdout printing again */
+        _kernel_osbyte(3, origOutput, 0);
+      #else
+        return FALSE;
+      #endif
     }
+    else {
+      /* get the space needed for the new string */
+      va_start(args, format);
+      newSize = (size_t)(vfprintf(pFile, format, args)); /* plus '\0' */
+      va_end(args);
 
-    /* get the space needed for the new string */
-    va_start(args, format);
-    newSize = (size_t)(vfprintf(pFile, format, args)); /* plus '\0' */
-    va_end(args);
-
-    /* close the file. We don't need to look at the return code as we were writing to /dev/null */
-    fclose(pFile);
+      /* close the file. We don't need to look at the return code as we were writing to /dev/null */
+      fclose(pFile);
+    }
   #endif
 
   /* Create a new block of memory with the correct size rather than using realloc */

@@ -152,6 +152,10 @@ Just use long ones for that compiler */
   #undef ENC_PRINT
   #define ENC_PRINT ENC_BBC
 
+  #define in_word_set_a in_word_set_ai
+  #define in_word_set_b in_word_set_bi
+  #define in_word_set_c in_word_set_ci
+
 /* ugly hacks to raise the game of cc65 */
 #elif defined(__CC65__)
   #define YY_NO_UNISTD_H 1
