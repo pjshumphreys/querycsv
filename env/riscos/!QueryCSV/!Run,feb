@@ -9,7 +9,6 @@ IconSprites <Obey$Dir>.!Sprites
 |
 RMEnsure UtilityModule 3.10 Error This application only runs on RISC OS 3.10 or later
 RMEnsure SharedCLibrary 5.34 Error This application requires version 5.34 or later
-RMEnsure FPEmulator 2.87 Error This application requires the FP Emulator module (is it unplugged?)
 RMEnsure TaskWindow 0.47 Error This application requires the Task Window module (is it unplugged?)
 |
 |
