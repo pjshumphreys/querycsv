@@ -32,10 +32,10 @@ int main(int argc, char *argv[]) {
     #endif
 
     #ifdef __CC_NORCROFT
+      devNull = "null:";
+
       #if __LIB_VERSION >= 300
         setupRiscOS(&argc2, &argv2);
-      #else
-        devNull = "null:";
       #endif
     #endif
   #endif
