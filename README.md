@@ -2,11 +2,11 @@
 
 QueryCSV is a command line application to query files containing comma separated values \([csv files](https://en.wikipedia.org/wiki/Comma-separated_values)\) using files containing [sql](https://en.wikipedia.org/wiki/SQL)-like query syntax that supports Unicode text data.
 
-Versions are available for POSIX based computer operating systems \(such as Linux and Mac OS X\), HTML5 devices, Microsoft Windows, DOS, Classic Mac OS, Commodore Amigas, Atari STs and RISC OS. A version for the Commodore 64 is also in development.
+Versions are available for POSIX based computer operating systems \(such as Linux and Mac OS X\), HTML5 devices, Microsoft Windows, DOS, Classic Mac OS, Commodore Amigas, Atari STs, RISC OS and the ARM Evaluation System add-on for the BBC Micro \(or something compatable with it like [BeebEm](http://www.mkw.me.uk/beebem/) or [PiTubeDirect](https://github.com/hoglet67/PiTubeDirect/wiki)\). A version for the Commodore 64 is also in development.
 
 ## Example usage
 
-Firstly, download the pre-built versions from here: [download link](https://github.com/pjshumphreys/files/raw/master/querycsv-latest.zip)
+Firstly, download the pre-built versions from here: [download link](https://github.com/pjshumphreys/files/raw/master/querycsv-latest.zip) or use the HTML5 build available here: [link](https://pjshumphreys.github.io/querycsv/)
 
 Then open up notepad or your favourite text editor and place the following in a file called employees.csv:
 
