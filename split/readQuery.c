@@ -155,13 +155,10 @@ int readQuery(char *queryFileName, struct qryData *query) {
       query->secondaryInputTable != NULL ?
       query->secondaryInputTable :
       query->firstInputTable
-    )->nextInputTable;
+    );
 
   /* set the index columns for every table other than the first */
-  while(currentInputTable->nextInputTable->fileIndex != 1) {
-    currentInputTable = currentInputTable->nextInputTable;
-    currentInputTable->fileIndex = inputTableIndex++;
-
+  do {
     headerByteLength = currentInputTable->firstRecordOffset;
     recordContinues = TRUE;
 
@@ -260,7 +257,12 @@ int readQuery(char *queryFileName, struct qryData *query) {
     newColumn = currentInputTable->firstInputColumn->nextColumnInTable;
     currentInputTable->firstInputColumn->nextColumnInTable = NULL;
     currentInputTable->firstInputColumn = newColumn;
-  }
+
+    currentInputTable->fileIndex = inputTableIndex++;
+  } while (
+      currentInputTable->nextInputTable != query->firstInputTable &&
+      (currentInputTable = currentInputTable->nextInputTable)
+    );
 
   /* cut the circularly linked list */
   currentInputTable->nextInputTable = NULL;
