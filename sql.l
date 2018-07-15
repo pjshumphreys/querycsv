@@ -62,7 +62,7 @@
 (?i:ON)			TOK(ON)
 (?i:OR)			TOK(OR)
 (?i:ORDER)		TOK(ORDER)
-(?i:PARAMS)		TOK(PARAMS)
+(?i:OPTIONS)		TOK(OPTIONS)
 (?i:SELECT)		TOK(SELECT)
 (?i:WHEN)		TOK(WHEN)
 (?i:WHERE)		TOK(WHERE)
@@ -139,7 +139,7 @@
 
 '([^']|'')*$	{	yyerror2(yylineno, yytext); }
 
-[ \t\r\n]+	/* white space */
+[ \t\r\n\205]+	/* white space */
 
 "--"[^\n]*  /* comment */
 

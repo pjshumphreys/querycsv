@@ -64,11 +64,14 @@
 #define GRP_DIS_CONCAT 13
 
 /* output parameters. Now specified as part of the input grammar */
-#define PRM_TRIM 1    /* left trim and right trim whitespace from each column value */
-#define PRM_SPACE 2   /* put a space before each column value tat's not the first */
-#define PRM_IMPORT 4
-#define PRM_EXPORT 8
-#define PRM_BOM 16    /* output a utf-8 byte order mark before the file contents */
+#define PRM_DEFAULT 0 /* no parametters by default */
+#define PRM_BOM 1    /* output a utf-8 byte order mark before the file contents. UTF-16 and 32 always get a BOM */
+#define PRM_UNIX 2    /* output unix newlines in the output file */
+#define PRM_MAC 4    /* output mac newlines in the output file */
+#define PRM_SPACE 8   /* put a space before each column value that's not the first */
+#define PRM_TRIM 16    /* left trim and right trim whitespace from each column value */
+#define PRM_IMPORT 32
+#define PRM_EXPORT 64
 
 #define TRE_BLACK 1
 #define TRE_RED 2
@@ -145,6 +148,11 @@ it becomes needed */
   /* void macYield(void);
   #define MAC_YIELD macYield(); */
   #define YY_NO_UNISTD_H 1
+
+  /* Mac style newlines by default */
+  #undef PRM_DEFAULT
+  #define PRM_DEFAULT PRM_MAC
+
   /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__
     #undef stricmp
@@ -211,6 +219,10 @@ Just use long ones for that compiler */
     #undef QCSV_SHORT
     #define QCSV_SHORT long
 
+    /* Mac style newlines by default */
+    #undef PRM_DEFAULT
+    #define PRM_DEFAULT PRM_MAC
+
     #undef ENC_INPUT
     #define ENC_INPUT ENC_BBC
     #undef ENC_OUTPUT
@@ -218,6 +230,10 @@ Just use long ones for that compiler */
     #undef ENC_PRINT
     #define ENC_PRINT ENC_BBC
   #else
+    /* Unix style newlines by default */
+    #undef PRM_DEFAULT
+    #define PRM_DEFAULT PRM_UNIX
+
     #include <unixlib.h> /*for chdir? */
 
     void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
@@ -234,6 +250,10 @@ Just use long ones for that compiler */
 #endif
 
 #ifdef AMIGA
+  /* Unix style newlines by default */
+  #undef PRM_DEFAULT
+  #define PRM_DEFAULT PRM_UNIX
+
   #define YY_NO_UNISTD_H 1
   #include <clib/utility_protos.h> /* for Stricmp */
   #define stricmp Stricmp
@@ -268,6 +288,10 @@ Just use long ones for that compiler */
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
+
+  /* Mac style newlines by default */
+  #undef PRM_DEFAULT
+  #define PRM_DEFAULT PRM_MAC
 
   #include <conio.h> /* for cgetc */
   #include "floatlib/float.h" /* fudges kinda support for floating point

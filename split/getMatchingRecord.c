@@ -55,7 +55,8 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
               NULL,
-              (query->params & PRM_TRIM) == 0
+              (query->params & PRM_TRIM) == 0,
+              query->newLine
             );
 
           /* these values should actually be set depending on whether the value was quoted or not */
@@ -101,7 +102,8 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             NULL,
             NULL,
             NULL,
-            (query->params & PRM_TRIM) == 0
+            (query->params & PRM_TRIM) == 0,
+            query->newLine
           )) {
           /* do nothing */
         }

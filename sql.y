@@ -51,7 +51,7 @@ typedef void* yyscan_t;
 %token END FROM
 %token GROUP HAVING IN INTO
 %token IS JOIN LEFT LIKE NULLX ON
-%token ORDER PARAMS
+%token ORDER OPTIONS
 %token SELECT
 %token THEN
 %token WHEN WHERE
@@ -174,7 +174,7 @@ command_types:
   ;
 
 opt_params:
-  | PARAMS STRING ';' {
+  | OPTIONS STRING ';' {
       readParams(queryData, $2);
     }
   ;
@@ -450,15 +450,15 @@ opt_asc_desc:
 opt_into_clause:
     /* empty */
   | INTO STRING optional_encoding {
-      if(queryData->parseMode != 1) {
-        free($2);
-      }
-      else {
+      if(queryData->outputFileName == NULL) {
         queryData->outputFileName = $2;
 
         if($3 != ENC_DEFAULT) {
           queryData->outputEncoding = $3;
         }
+      }
+      else {
+        free($2);
       }
     }
   ;

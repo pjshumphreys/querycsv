@@ -8,20 +8,44 @@ void readParams(struct qryData *queryData, char *string) {
     return;
   }
 
-  params = 0;
+  params = PRM_DEFAULT;
   i = string;
 
   while(*i) {
     switch(*i) {
-      case 'p':
-      case 'P':
-        params |= PRM_TRIM;
+      case 'd':
+      case 'D':
+        params &= ~PRM_MAC;
+        params &= ~PRM_UNIX;
+      break;
+
+      case 'u':
+      case 'U':
+        params &= ~PRM_MAC;
+        params |= PRM_UNIX;
+      break;
+
+      case 'm':
+      case 'M':
+        params |= PRM_MAC;
+        params &= ~PRM_UNIX;
+      break;
+
+      case 'b':
+      case 'B':
+        params |= PRM_BOM;
+      break;
+
+      case 's':
+      case 'S':
+        params |= PRM_SPACE;
       break;
 
       case 't':
       case 'T':
-        params |= PRM_SPACE;
+        params |= PRM_TRIM;
       break;
+
       case 'i':
       case 'I':
         params |= PRM_IMPORT;
@@ -30,11 +54,6 @@ void readParams(struct qryData *queryData, char *string) {
       case 'e':
       case 'E':
         params |= PRM_EXPORT;
-      break;
-
-      case 'b':
-      case 'B':
-        params |= PRM_BOM;
       break;
     }
 

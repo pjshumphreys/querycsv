@@ -19,8 +19,8 @@ int getColumnValue(
   /* if it's not available we'll return an empty string */
   while(
         ++currentColumn != columnIndex ?
-        getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE):
-        (getCsvColumn(&inputFile, query->CMD_ENCODING, &output, &strSize, NULL, NULL, TRUE) && FALSE)
+        getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE, query->newLine):
+        (getCsvColumn(&inputFile, query->CMD_ENCODING, &output, &strSize, NULL, NULL, TRUE, query->newLine) && FALSE)
       ) {
     /* get next column */
   }

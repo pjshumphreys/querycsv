@@ -8,11 +8,20 @@ int readQuery(char *queryFileName, struct qryData *query) {
   struct resultColumn *currentResultColumn;
   struct sortingList *currentSortingList;
   int initialEncoding = ENC_UNKNOWN;
-  int inputTableIndex = 2;
+  int inputTableIndex = 1;
   int parserReturn = 0;
   char* errSyntax = TDB_PARSER_SYNTAX;
   char* errRam = TDB_PARSER_USED_ALL_RAM;
   char* errUnknown = TDB_PARSER_UNKNOWN;
+
+  int recordContinues;
+  long headerByteLength;
+
+  struct columnReference *currentReference;
+  struct columnReference *newReference;
+  struct inputColumn *newColumn;
+  char *columnText;
+  size_t columnLength;
 
   MAC_YIELD
 
@@ -127,7 +136,18 @@ int readQuery(char *queryFileName, struct qryData *query) {
     } break;
   }
 
-  query->newLine = query->outputFileName ? "\r\n" : "\n";
+  if(query->outputFileName == NULL || (((query->params) & PRM_UNIX) != 0)) {
+    query->newLine = "\n";
+  }
+  else if((((query->params) & PRM_MAC) != 0)) {
+    query->newLine = "\r";
+  }
+  else if(query->outputEncoding == ENC_CP1047) {
+    query->newLine = "\205";
+  }
+  else {
+    query->newLine = "\r\n";
+  }
 
   /* set query->firstInputTable to actually be the first input table. */
   query->firstInputTable = currentInputTable =
@@ -138,9 +158,108 @@ int readQuery(char *queryFileName, struct qryData *query) {
     )->nextInputTable;
 
   /* set the index columns for every table other than the first */
-  while(currentInputTable->nextInputTable != query->firstInputTable) {
+  while(currentInputTable->nextInputTable->fileIndex != 1) {
     currentInputTable = currentInputTable->nextInputTable;
     currentInputTable->fileIndex = inputTableIndex++;
+
+    headerByteLength = currentInputTable->firstRecordOffset;
+    recordContinues = TRUE;
+
+    /* read csv columns until end of line occurs */
+    do {
+      columnLength = 0;
+      columnText = NULL;
+      newReference = NULL;
+      newColumn = NULL;
+
+      recordContinues = getCsvColumn(
+          &(currentInputTable->fileStream),
+          currentInputTable->fileEncoding,
+          &columnText,
+          &columnLength,
+          NULL,
+          &headerByteLength,
+          (query->params & PRM_TRIM) == 0,
+          query->newLine
+        );
+
+      d_sprintf(&columnText, "_%s", columnText);
+
+      /* test whether a column with this name already exists in the hashtable */
+      currentReference = hash_lookupString(query->columnReferenceHashTable, columnText);
+
+      /* if a column with this name is not already in the hash table */
+      if(currentReference == NULL) {
+        /* create the new column record */
+        reallocMsg((void**)(&newReference), sizeof(struct columnReference));
+
+        /* store the column name */
+        newReference->referenceName = columnText;
+
+        /* no other columns with the same name yet */
+        newReference->nextReferenceWithName = NULL;
+
+        /* insert the column into the hashtable */
+        hash_addString(query->columnReferenceHashTable, columnText, newReference);
+      }
+      /* otherwise, add it to the linked list */
+      else {
+        /* we don't need another copy of this text */
+        free(columnText);
+
+        /* create the new column record */
+        reallocMsg((void**)(&newReference), sizeof(struct columnReference));
+
+        /* store the column name */
+        newReference->referenceName = currentReference->referenceName;
+
+        newReference->nextReferenceWithName = NULL;
+        /* if there's only been 1 column with this name up until now */
+        while(currentReference->nextReferenceWithName != NULL) {
+          currentReference = currentReference->nextReferenceWithName;
+        }
+
+        currentReference->nextReferenceWithName = newReference;
+      }
+
+      newReference->referenceType = REF_COLUMN;
+
+      reallocMsg((void**)(&newColumn), sizeof(struct inputColumn));
+
+      newReference->reference.columnPtr = newColumn;
+
+      newColumn->fileColumnName = newReference->referenceName;
+
+      /* store the column's reference back to it's parent table */
+      newColumn->inputTablePtr = (void*)currentInputTable;
+
+      /* we don't yet know whether this column will actually be used in the output query, so indicate this for stage 2's use */
+      newColumn->firstResultColumn = NULL;
+
+      /* populate the columnIndex and nextColumnInTable fields */
+      if(currentInputTable->firstInputColumn == NULL) {
+        newColumn->columnIndex = 1;
+        newColumn->nextColumnInTable = newColumn;
+        currentInputTable->firstInputColumn = newColumn;
+      }
+      else {
+        newColumn->columnIndex = (currentInputTable->firstInputColumn->columnIndex)+1;
+        newColumn->nextColumnInTable = currentInputTable->firstInputColumn->nextColumnInTable;  /* this is a circularly linked list until we've finished adding records */
+        currentInputTable->firstInputColumn->nextColumnInTable = newColumn;
+        currentInputTable->firstInputColumn = newColumn;
+      }
+    } while(recordContinues);
+
+    /* keep the current offset of the csv file as we'll need it when we're searching for matching results. avoid using ftell as it doesn't work in cc65 */
+    currentInputTable->firstRecordOffset = headerByteLength;
+
+    /* keep an easy to retrieve count of the number of columns in the csv file */
+    currentInputTable->columnCount = currentInputTable->firstInputColumn->columnIndex;
+
+    /* cut the circularly linked list of columns in this table */
+    newColumn = currentInputTable->firstInputColumn->nextColumnInTable;
+    currentInputTable->firstInputColumn->nextColumnInTable = NULL;
+    currentInputTable->firstInputColumn = newColumn;
   }
 
   /* cut the circularly linked list */

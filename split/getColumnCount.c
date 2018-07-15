@@ -17,7 +17,7 @@ int getColumnCount(
   }
 
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE)) {
+  while(getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE, query->newLine)) {
     columnCount++;
   }
 

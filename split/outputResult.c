@@ -8,7 +8,7 @@ void outputResult(
   struct resultColumnValue *field;
   int firstColumn = TRUE, j = 0;
   FILE *outputFile = query->outputFile;
-  char *separator = (((query->params) & PRM_SPACE) != 0) ? "," : ", ";
+  char *separator = (((query->params) & PRM_SPACE) != 0) ? ", " : ",";
   char *string = NULL;
   char *string2 = NULL;
 

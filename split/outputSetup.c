@@ -3,7 +3,6 @@ int outputSetup(struct qryData *query) {
 
   /* set up the output context */
   if(query->outputFileName) {
-    query->newLine = "\r\n";
     query->outputFile = fopen(query->outputFileName, fopen_write);
 
     if(query->outputFile == NULL) {
@@ -13,7 +12,6 @@ int outputSetup(struct qryData *query) {
   }
   else {
     query->outputFile = stdout;
-    query->newLine = "\n";
   }
 
   /* if we aren't writing to stdout we may need or want to write a byte order mark */

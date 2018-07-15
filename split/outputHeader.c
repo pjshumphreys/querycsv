@@ -2,7 +2,7 @@ void outputHeader(struct qryData *query) {
   int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
   FILE *outputFile;
-  char *separator = (((query->params) & PRM_SPACE) != 0) ? "," : ", ";
+  char *separator = (((query->params) & PRM_SPACE) != 0) ? ", " : ",";
 
   MAC_YIELD
 

@@ -5,7 +5,8 @@ int getCsvColumn(
     size_t *strSize,
     int *quotedValue,
     long *startPosition,
-    int doTrim
+    int doTrim,
+    char * newLine
 ) {
   long codepoints[4];
   void (*getCodepoints)(FILE *, long *, int *, int *);
@@ -22,6 +23,7 @@ int getCsvColumn(
   int exitCode = 0;
   char *minSize = NULL;
   long offset = 0;
+  char *nlCurrent = NULL;
 
   MAC_YIELD
 
@@ -72,11 +74,41 @@ int getCsvColumn(
             *quotedValue = TRUE;
           }
 
-          strAppend('\r', value, strSize);
-          strAppend('\n', value, strSize);
+          nlCurrent = newLine;
+          while(*nlCurrent) {
+            strAppend(*nlCurrent, value, strSize);
+            nlCurrent++;
+          }
         }
       }
-      else if(state == 2) {   /* test for double quote literal inside a quoted string state */
+      else if(state == 2) {   /* \r detected state. look for \n */
+        state = 0;
+
+        c2 = fgetc(*inputFile);
+        offset++;
+
+        if(c2 != '\r') {
+          ungetc(c2, *inputFile);
+          offset--;
+        }
+
+        if(canEnd) {
+          exitCode = 2;
+          break;
+        }
+        else {
+          if(quotedValue != NULL) {
+            *quotedValue = TRUE;
+          }
+
+          nlCurrent = newLine;
+          while(*nlCurrent) {
+            strAppend(*nlCurrent, value, strSize);
+            nlCurrent++;
+          }
+        }
+      }
+      else if(state == 3) {   /* test for double quote literal inside a quoted string state */
         state = 0;  /* go back to initial state */
 
         c2 = fgetc(*inputFile);
@@ -134,6 +166,11 @@ int getCsvColumn(
         } break;
 
         case 0x0A: { /* '\n' */
+          state = 2;
+          continue;
+        } break;
+
+        case 0x85: { /* EBCDIC newline */
           if(canEnd) {
             exitCode = 2;
             break;
@@ -143,8 +180,11 @@ int getCsvColumn(
               *quotedValue = TRUE;
             }
 
-            strAppend('\r', value, strSize);
-            strAppend('\n', value, strSize);
+            nlCurrent = newLine;
+            while(*nlCurrent) {
+              strAppend(*nlCurrent, value, strSize);
+              nlCurrent++;
+            }
           }
         } break;
 
@@ -171,7 +211,7 @@ int getCsvColumn(
             quotePossible = FALSE;
           }
           else {
-            state = 2;
+            state = 3;
             continue;
           }
         } break;

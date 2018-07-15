@@ -13,7 +13,7 @@ int getNextRecordOffset(
   }
 
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, &offset, TRUE)) {
+  while(getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, &offset, TRUE, query->newLine)) {
     /* do nothing */
   }
 
