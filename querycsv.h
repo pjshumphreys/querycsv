@@ -162,7 +162,7 @@ it becomes needed */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
-  #ifdef TARGET_API_MAC_CARBON
+  #if TARGET_API_MAC_CARBON
     FILE *fopen_mac(const char *filename, const char *mode);
     void fsetfileinfo_absolute(
       const char *filename,
@@ -184,8 +184,6 @@ Just use long ones for that compiler */
 #define QCSV_SHORT short
 
 #ifdef __CC_NORCROFT
-  #define __fastcall__ /* do nothing */
-
   #define YY_NO_UNISTD_H 1
   #define HAS_KERNEL_SWI   /* Later versions of Norcroft have vsnprintf,
   but the early ones don't. Therefore we use the fprintf approach. */
@@ -202,10 +200,6 @@ Just use long ones for that compiler */
   /* These aren't in norcroft version 2's stdlib.h */
   #define EXIT_FAILURE 1
   #define EXIT_SUCCESS 0
-
-  #define in_word_set_a in_word_set_ai
-  #define in_word_set_b in_word_set_bi
-  #define in_word_set_c in_word_set_ci
 
   #define SOFTFLOAT /* Use John Hauser's softfloat package rather
   than the compiler's built in floating point implementation */
