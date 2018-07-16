@@ -16,7 +16,29 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   /* the query hasn't returned any results yet. */
   /* needed as this function should continue where it left off next time */
   if(query->secondaryInputTable == NULL) {
-    query->secondaryInputTable = query->firstInputTable;
+    if(query->firstInputTable == NULL) {
+      if(query->recordCount != 0) {
+        return FALSE;
+      }
+      else {
+        /* do calculated columns */
+        getCalculatedColumns(query, match, FALSE);
+
+        if(!walkRejectRecord(
+          1, /* 1 means all tables and *CALCULATED* columns */
+          query->joinsAndWhereClause,
+          &matchParams
+        )) {
+          return TRUE;
+        }
+        else {
+          return FALSE;
+        }
+      }
+    }
+    else {
+      query->secondaryInputTable = query->firstInputTable;
+    }
   }
 
   currentInputTable = query->secondaryInputTable;

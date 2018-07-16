@@ -55,7 +55,7 @@ typedef void* yyscan_t;
 %token SELECT
 %token THEN
 %token WHEN WHERE
-%token COLUMNS NEXT VALUE DATE
+%token COLUMNS NEXT VALUE DATE NOW
 
 %token <intval> AMMSC
 %token <strval> NAME STRING
@@ -90,7 +90,7 @@ command_or_select:
   |
     SELECT
     scalar_exp_commalist
-    FROM table_references
+    opt_from_clause
     opt_where_clause
     opt_group_by_clause
     opt_having_clause
@@ -236,6 +236,13 @@ scalar_exp:
       $$ = parse_scalarExpLiteral(queryData, $1);
       free($1);
     }
+  | NOW opt_now_brackets {
+      if(queryData->dateString == NULL) {
+        getCurrentDate(&(queryData->dateString));
+      }
+
+      $$ = parse_scalarExpLiteral(queryData, queryData->dateString);
+    }
   | column_ref {
       $$ = parse_scalarExpColumnRef(queryData, $1);
     }
@@ -340,6 +347,11 @@ join_condition:
     }
   ;
 
+opt_from_clause:
+    /* empty */
+  | FROM table_references
+  ;
+
 opt_where_clause:
     /* empty */
   | where_clause
@@ -414,6 +426,11 @@ column_ref_commalist:
   | column_ref_commalist ',' column_ref {
       parse_groupingSpec(queryData, parse_scalarExpColumnRef(queryData, $3));
     }
+  ;
+
+opt_now_brackets:
+    /* empty */
+  | '(' ')'
   ;
 
 opt_having_clause:

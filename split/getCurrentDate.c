@@ -1,9 +1,13 @@
-int getCurrentDate(struct qryData *query) {
+int getCurrentDate(char **retval) {
   time_t now;
   struct tm local;
   char *output = NULL;
 
   MAC_YIELD
+
+  if(retval == NULL) {
+    return FALSE;
+  }
 
   /* get unix epoch seconds */
   time(&now);
@@ -16,7 +20,7 @@ int getCurrentDate(struct qryData *query) {
 
     freeAndZero(output);
 
-    return EXIT_FAILURE;
+    return FALSE;
   };
 
   /* place the utc offset in the output string. */
@@ -27,7 +31,7 @@ int getCurrentDate(struct qryData *query) {
 
     freeAndZero(output);
 
-    return EXIT_FAILURE;
+    return FALSE;
   };
 
   /* place the rest of the time data in the output string */
@@ -36,15 +40,15 @@ int getCurrentDate(struct qryData *query) {
 
     freeAndZero(output);
 
-    return EXIT_FAILURE;
+    return FALSE;
   }
 
-  /* print the timestamp */
-  fputsEncoded(output, query->outputFile, query->outputEncoding);
+  if(*retval) {
+    free(*retval);
+  }
 
-  /* free the string data */
-  freeAndZero(output);
+  *retval = output;
 
   /* quit */
-  return EXIT_SUCCESS;
+  return TRUE;
 }

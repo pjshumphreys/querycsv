@@ -27,7 +27,7 @@ void runCommand(struct qryData *query, char *inputText) {
 
     case 4: {
       /* get the current date in ISO8601 format (local time with UTC offset) */
-      query->CMD_RETVAL = getCurrentDate(query);
+      query->CMD_RETVAL = outputCurrentDate(query);
     } return;
   }
 

@@ -486,6 +486,7 @@ struct qryData {
   struct sortingList *groupByClause;
   struct resultTree *resultSet; /* stored as a binary tree now */
   struct resultColumnValue *match;
+  char* dateString;
 };
 
 /*

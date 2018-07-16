@@ -8,6 +8,10 @@ void cleanup_query(struct qryData *query) {
   cleanup_expression(query->joinsAndWhereClause);
   cleanup_inputTables(query->firstInputTable);
 
+  if(query->dateString) {
+    free(query->dateString);
+  }
+
   if(query->outputFileName) {
     fclose(query->outputFile);
 

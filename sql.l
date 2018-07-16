@@ -29,6 +29,7 @@
 (?i:MIN)		{ yylval->intval = GRP_MIN;return AMMSC; }
 (?i:MAX)		{ yylval->intval = GRP_MAX;return AMMSC; }
 (?i:SUM)		{ yylval->intval = GRP_SUM;return AMMSC; }
+(?i:CURRENT_TIMESTAMP)		{ return NOW; }
 (?i:COUNT)		{ yylval->intval = GRP_COUNT;return AMMSC; }
 (?i:GROUP_CONCAT)		{ yylval->intval = GRP_CONCAT;return AMMSC; }
 (?i:AS)			TOK(AS)
