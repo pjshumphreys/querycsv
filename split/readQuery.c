@@ -47,7 +47,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
   query->hiddenColumnCount = 0;
   query->recordCount = 0;
   query->groupCount = 0;
-  query->params = 0;
+  query->params = PRM_DEFAULT;
   query->outputFileName = NULL;
   query->outputEncoding = ENC_OUTPUT;
   query->columnReferenceHashTable = hash_createTable(32);
@@ -137,6 +137,21 @@ int readQuery(char *queryFileName, struct qryData *query) {
     } break;
   }
 
+#ifdef MPW_C
+  /* Macs swap 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
+  if(query->outputFileName == NULL || (((query->params) & PRM_MAC) != 0)) {
+    query->newLine = "\n";
+  }
+  else if((((query->params) & PRM_UNIX) != 0)) {
+    query->newLine = "\r";
+  }
+  else if(query->outputEncoding == ENC_CP1047) {
+    query->newLine = "\205";
+  }
+  else {
+    query->newLine = "\n\r";
+  }
+#else
   if(query->outputFileName == NULL || (((query->params) & PRM_UNIX) != 0)) {
     query->newLine = "\n";
   }
@@ -149,6 +164,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
   else {
     query->newLine = "\r\n";
   }
+#endif
 
   /* set query->firstInputTable to actually be the first input table. */
   query->firstInputTable = currentInputTable =

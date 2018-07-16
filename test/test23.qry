@@ -1,2 +1,1 @@
-select current_timestamp() as time
-from 'test1.csv' as foo
+select current_timestamp() -1
