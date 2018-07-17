@@ -15,13 +15,13 @@ int getCsvColumn(
   int i;
   int c2;
   long c;
-  int state = 0;
   char *tempString = NULL;
   size_t tempSize;
   int canEnd = TRUE;
-  int quotePossible = TRUE;
   int exitCode = 0;
-  char *minSize = NULL;
+  int notFoundLeft = TRUE;
+  size_t minLeft = 0;
+  size_t minRight = 0;
   long offset = 0;
   char *nlCurrent = NULL;
 
@@ -53,91 +53,6 @@ int getCsvColumn(
   getCodepoints = chooseGetter(inputEncoding);
 
   do {
-    if(state != 0) {
-      if(state == 1) {   /* \r detected state. look for \n */
-        state = 0;
-
-        c2 = fgetc(*inputFile);
-        offset++;
-
-        if(c2 != '\n') {
-          ungetc(c2, *inputFile);
-          offset--;
-        }
-
-        if(canEnd) {
-          exitCode = 2;
-          break;
-        }
-        else {
-          if(quotedValue != NULL) {
-            *quotedValue = TRUE;
-          }
-
-          nlCurrent = newLine;
-          while(*nlCurrent) {
-            strAppend(*nlCurrent, value, strSize);
-            nlCurrent++;
-          }
-        }
-      }
-      else if(state == 2) {   /* \r detected state. look for \n */
-        state = 0;
-
-        c2 = fgetc(*inputFile);
-        offset++;
-
-        if(c2 != '\r') {
-          ungetc(c2, *inputFile);
-          offset--;
-        }
-
-        if(canEnd) {
-          exitCode = 2;
-          break;
-        }
-        else {
-          if(quotedValue != NULL) {
-            *quotedValue = TRUE;
-          }
-
-          nlCurrent = newLine;
-          while(*nlCurrent) {
-            strAppend(*nlCurrent, value, strSize);
-            nlCurrent++;
-          }
-        }
-      }
-      else if(state == 3) {   /* test for double quote literal inside a quoted string state */
-        state = 0;  /* go back to initial state */
-
-        c2 = fgetc(*inputFile);
-        offset++;
-
-        switch(c2) {
-          case ' ':  /* ' ' */
-          case '\r':  /* '\r' */
-          case '\n':  /* '\n' */
-          case EOF:
-          case ',': {  /* ',' */
-            canEnd = TRUE;
-            ungetc(c2, *inputFile);
-            offset--;
-          } break;
-
-          case '"': {  /* '"' */
-            strAppend('"', value, strSize);
-          } break;
-
-          default: {
-            strAppend('"', value, strSize);
-            ungetc(c2, *inputFile);
-            offset--;
-          } break;
-        }
-      }
-    }
-
     /* get some codepoints from the file, usually only 1 but maybe up to 4 */
     getCodepoints(*inputFile,
       codepoints,
@@ -154,20 +69,88 @@ int getCsvColumn(
 
       switch(c) {
         case 0x20: { /* ' ' */
+          /* if we're inside a double quoted string and haven't yet
+          found a minimum amount to left trim to then specify it now */          
           if(!canEnd) {
-            minSize = &((*value)[*strSize]);
+          
+            if(notFoundLeft) { 
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
+            strAppend(' ', value, strSize);
+            
+            minRight = *strSize;
           }
-          strAppend(' ', value, strSize);
+          else {
+            strAppend(' ', value, strSize);
+          }
         } break;
 
         case 0x0D: { /* '\r' */
-          state = 1;
-          continue;
+          c2 = fgetc(*inputFile);
+          offset++;
+
+          if(c2 != '\n') {
+            ungetc(c2, *inputFile);
+            offset--;
+          }
+
+          if(canEnd) {
+            exitCode = 2;
+            break;
+          }
+          else {
+            if(quotedValue != NULL) {
+              *quotedValue = TRUE;
+            }
+
+            if(notFoundLeft) { 
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
+            nlCurrent = newLine;
+            while(*nlCurrent) {
+              strAppend(*nlCurrent, value, strSize);
+              nlCurrent++;
+            }
+            
+            minRight = *strSize;
+          }
         } break;
 
         case 0x0A: { /* '\n' */
-          state = 2;
-          continue;
+          c2 = fgetc(*inputFile);
+          offset++;
+
+          if(c2 != '\r') {
+            ungetc(c2, *inputFile);
+            offset--;
+          }
+
+          if(canEnd) {
+            exitCode = 2;
+            break;
+          }
+          else {
+            if(quotedValue != NULL) {
+              *quotedValue = TRUE;
+            }
+
+            if(notFoundLeft) { 
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
+            nlCurrent = newLine;
+            while(*nlCurrent) {
+              strAppend(*nlCurrent, value, strSize);
+              nlCurrent++;
+            }
+            
+            minRight = *strSize;
+          }
         } break;
 
         case 0x85: { /* EBCDIC newline */
@@ -180,18 +163,23 @@ int getCsvColumn(
               *quotedValue = TRUE;
             }
 
+            if(notFoundLeft) { 
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
             nlCurrent = newLine;
             while(*nlCurrent) {
               strAppend(*nlCurrent, value, strSize);
               nlCurrent++;
             }
+            
+            minRight = *strSize;
           }
         } break;
 
-        case 0x0: {
-          if(quotedValue != NULL) {
-            *quotedValue = TRUE;
-          }
+        case 0x0: { /* csv files are a plain text format, so there shouldn't
+          be any null bytes. Remove any that may appear. */
         } break;
 
         case MYEOF: {
@@ -199,20 +187,32 @@ int getCsvColumn(
         } break;
 
         case 0x22: {  /* '"' */
-          canEnd = FALSE;
-
-          if(quotedValue != NULL) {
-            *quotedValue = TRUE;
-          }
-
-          if(quotePossible) {
-            *strSize = 0;
-
-            quotePossible = FALSE;
+          if(canEnd) {
+            canEnd = FALSE;
           }
           else {
-            state = 3;
-            continue;
+            c2 = fgetc(*inputFile);
+            offset++;
+
+            if(c2 != '"') {
+              ungetc(c2, *inputFile);
+              offset--;
+
+              canEnd = TRUE;
+            }
+            else {
+              if(quotedValue != NULL) {
+                *quotedValue = TRUE;
+              }
+
+              if(notFoundLeft) { 
+                notFoundLeft = FALSE;
+                minLeft = *strSize;
+              }
+              
+              strAppend('"', value, strSize);
+              minRight = *strSize;
+            }
           }
         } break;
 
@@ -221,26 +221,38 @@ int getCsvColumn(
             exitCode = 1;
             break;
           }
+          
+          if(quotedValue != NULL) {
+            *quotedValue = TRUE;
+          }
         } /* fall thru */
 
         default: {
-          if(doTrim && quotePossible) {
-            *strSize = 0;
+          if(notFoundLeft) { 
+            notFoundLeft = FALSE;
+            minLeft = *strSize;
           }
 
-          quotePossible = FALSE;
           *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
+          minRight = *strSize;
         } break;
       }
     }
   } while (exitCode == 0);
 
+
   if(doTrim) {
-    strRTrim(value, strSize, minSize);
+    if(minRight < *strSize) {
+      *strSize = minRight;
+    }
+
+    if(minLeft) {
+      (*strSize) -= minLeft;
+      memmove(*value, &((*value)[minLeft]), *strSize);
+    }
   }
 
   strAppend('\0', value, strSize);
-
   (*strSize)--;
 
   if(startPosition != NULL) {

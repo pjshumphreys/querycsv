@@ -31,31 +31,26 @@ void outputResult(
 
       field = &(columns[j]);
 
-      switch(field->leftNull) { /* a null resulting from a left join */
-        case TRUE: {
-          if(((query->params) & PRM_EXPORT) != 0) {
-            fputsEncoded("\\N", outputFile, query->outputEncoding);
-          }
-        } break;
+      if(field->isNull == TRUE) {
+        if(((query->params) & PRM_EXPORT) != 0) {
+          fputsEncoded("\\N", outputFile, query->outputEncoding);
+        }
+      }
+      else {
+        stringGet((unsigned char **)(&string), field, query->params);
 
-        default: {
-          stringGet((unsigned char **)(&string), field, query->params);
-
-          /* need to properly re-escape fields that need it */
-          if(*string == '\0') {
-            fputsEncoded("\"\"", outputFile, query->outputEncoding);  /* empty string always needs escaping */
-          }
-          else if(needsEscaping(string, query->params)) {
-            string2 = strReplace("\"", "\"\"", string);
-            fputsEncoded("\"", outputFile, query->outputEncoding);
+        /* need to properly re-escape fields that need it */
+        if(needsEscaping(string, query->params)) {
+          fputsEncoded("\"", outputFile, query->outputEncoding);
+          if(string2 = strReplace("\"", "\"\"", string)) {
             fputsEncoded(string2, outputFile, query->outputEncoding);
-            fputsEncoded("\"", outputFile, query->outputEncoding);
-            freeAndZero(string2);
           }
-          else {
-            fputsEncoded(string, outputFile, query->outputEncoding);
-          }
-        } break;
+          fputsEncoded("\"", outputFile, query->outputEncoding);
+          freeAndZero(string2);
+        }
+        else {
+          fputsEncoded(string, outputFile, query->outputEncoding);
+        }
       }
     }
 

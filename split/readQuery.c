@@ -159,7 +159,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
     query->newLine = "\r";
   }
   else if(query->outputEncoding == ENC_CP1047) {
-    query->newLine = "\205";
+    query->newLine = "\302\205";
   }
   else {
     query->newLine = "\r\n";

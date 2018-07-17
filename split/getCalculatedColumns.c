@@ -40,13 +40,13 @@ void getCalculatedColumns(
           getValue(currentReference->reference.calculatedPtr.expressionPtr, &matchParams);
 
           /* store the value's length */
-          if(currentReference->reference.calculatedPtr.expressionPtr->leftNull) {
+          if(currentReference->reference.calculatedPtr.expressionPtr->isNull) {
             match[j].length = 0;
-            match[j].leftNull = TRUE;
+            match[j].isNull = TRUE;
             match[j].value = mystrdup("");
           }
           else {
-            match[j].leftNull = FALSE;
+            match[j].isNull = FALSE;
             match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
             match[j].value = currentReference->reference.calculatedPtr.expressionPtr->value;
           }

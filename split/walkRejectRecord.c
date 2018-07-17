@@ -18,8 +18,8 @@ int walkRejectRecord(
     getValue(expressionPtr->unionPtrs.leaves.rightPtr, match);
 
     if(
-        expressionPtr->unionPtrs.leaves.leftPtr->leftNull ||
-        expressionPtr->unionPtrs.leaves.rightPtr->leftNull
+        expressionPtr->unionPtrs.leaves.leftPtr->isNull ||
+        expressionPtr->unionPtrs.leaves.rightPtr->isNull
       ) {
 
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
@@ -70,7 +70,7 @@ int walkRejectRecord(
   else if(expressionPtr->type == EXP_IN || expressionPtr->type == EXP_NOTIN) {
     getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
 
-    if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
+    if(expressionPtr->unionPtrs.leaves.leftPtr->isNull) {
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
       return FALSE;
     }

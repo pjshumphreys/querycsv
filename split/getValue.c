@@ -13,7 +13,7 @@ void getValue(
 
   MAC_YIELD
 
-  expressionPtr->leftNull = FALSE;
+  expressionPtr->isNull = FALSE;
 
   switch(expressionPtr->type) {
     case EXP_COLUMN: {
@@ -26,8 +26,8 @@ void getValue(
           firstResultColumn->resultColumnIndex
         ]);
 
-      if(field->leftNull) {
-        expressionPtr->leftNull = TRUE;
+      if(field->isNull) {
+        expressionPtr->isNull = TRUE;
         expressionPtr->value = mystrdup("");
       }
       else {
@@ -44,7 +44,7 @@ void getValue(
 
       getValue(calculatedField, match);
 
-      expressionPtr->leftNull = calculatedField->leftNull;
+      expressionPtr->isNull = calculatedField->isNull;
       expressionPtr->value = mystrdup(calculatedField->value);
 
       freeAndZero(calculatedField->value);
@@ -55,7 +55,7 @@ void getValue(
       if(column->groupingDone) {
         field = &(match->ptr[column->resultColumnIndex]);
 
-        if(field->leftNull == FALSE) {
+        if(field->isNull == FALSE) {
           stringGet((unsigned char **)(&(expressionPtr->value)), field, match->params);
           break;
         }
@@ -65,7 +65,7 @@ void getValue(
         break;
       }
 
-      expressionPtr->leftNull = TRUE;
+      expressionPtr->isNull = TRUE;
       expressionPtr->value = mystrdup("");
     } break;
 
@@ -75,8 +75,8 @@ void getValue(
           match
         );
 
-      if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
-        expressionPtr->leftNull = TRUE;
+      if(expressionPtr->unionPtrs.leaves.leftPtr->isNull) {
+        expressionPtr->isNull = TRUE;
         expressionPtr->value = mystrdup("");
       }
       else {
@@ -93,8 +93,8 @@ void getValue(
           match
         );
 
-      if(expressionPtr->unionPtrs.leaves.leftPtr->leftNull) {
-        expressionPtr->leftNull = TRUE;
+      if(expressionPtr->unionPtrs.leaves.leftPtr->isNull) {
+        expressionPtr->isNull = TRUE;
         expressionPtr->value = mystrdup("");
       }
       else {
@@ -124,10 +124,10 @@ void getValue(
         );
 
       if(
-          expressionPtr->unionPtrs.leaves.leftPtr->leftNull ||
-          expressionPtr->unionPtrs.leaves.rightPtr->leftNull
+          expressionPtr->unionPtrs.leaves.leftPtr->isNull ||
+          expressionPtr->unionPtrs.leaves.rightPtr->isNull
         ) {
-        expressionPtr->leftNull = TRUE;
+        expressionPtr->isNull = TRUE;
         expressionPtr->value = mystrdup("");
       }
       else {

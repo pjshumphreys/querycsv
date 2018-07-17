@@ -16,7 +16,11 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   /* the query hasn't returned any results yet. */
   /* needed as this function should continue where it left off next time */
   if(query->secondaryInputTable == NULL) {
-    if(query->firstInputTable == NULL) {
+    if(query->firstInputTable != NULL) {
+      query->secondaryInputTable = query->firstInputTable;
+    }
+    /* if there's no tables specified at all just return 1 row as we're probably just outputting constants */
+    else {
       if(query->recordCount != 0) {
         return FALSE;
       }
@@ -35,9 +39,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
           return FALSE;
         }
       }
-    }
-    else {
-      query->secondaryInputTable = query->firstInputTable;
     }
   }
 
@@ -84,12 +85,12 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
           /* these values should actually be set depending on whether the value was quoted or not */
           /* if the value is quoted we should probably also NFD normalise it before writing to the scratchpad */
           columnOffsetData.isNormalized = FALSE;
-          columnOffsetData.leftNull = FALSE;
+          columnOffsetData.isNull = FALSE;
         }
 
         /* construct an empty column reference. */
         else {
-          columnOffsetData.leftNull = doLeftRecord;
+          columnOffsetData.isNull = doLeftRecord;
           columnOffsetData.startOffset = 0;
           columnOffsetData.length = 0;
           columnOffsetData.isQuoted = FALSE;

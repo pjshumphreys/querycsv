@@ -70,8 +70,8 @@
 #define PRM_MAC 4    /* output mac newlines in the output file */
 #define PRM_SPACE 8   /* put a space before each column value that's not the first */
 #define PRM_TRIM 16    /* left trim and right trim whitespace from each column value */
-#define PRM_IMPORT 32
-#define PRM_EXPORT 64
+#define PRM_IMPORT 32  /* import unquoted \N as NULL */
+#define PRM_EXPORT 64  /* export NULLs as \N (nulls are exported as unquoted empty string otherwise) */
 
 #define TRE_BLACK 1
 #define TRE_RED 2
@@ -396,7 +396,7 @@ struct expression {
   int minTable;
   int minColumn;
   int containsAggregates;
-  int leftNull;
+  int isNull;
   int caseSensitive;
   char *value;
   union {
@@ -446,7 +446,7 @@ struct resultColumnValue { /* this information should be stored in files */
   long startOffset;
   int isQuoted;
   int isNormalized;
-  int leftNull;
+  int isNull;
   size_t length;
   char *value;  /* pre normalised value */
 };

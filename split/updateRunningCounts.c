@@ -42,7 +42,7 @@ void updateRunningCounts(
 
           field = &(match[currentResultColumn->resultColumnIndex]);
 
-          if(field->leftNull == FALSE) {
+          if(field->isNull == FALSE) {
             stringGet((unsigned char **)(&tempString), field, query->params);
 
             /* distinct groupings. only add to the count if the column value hasn't aready been seen */
