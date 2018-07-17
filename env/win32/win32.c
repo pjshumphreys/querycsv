@@ -33,31 +33,30 @@ void cleanup_w32(void) {
 
 int fputs_w32(const char *str, FILE *stream) {
   size_t len = 0;
+  char* output = NULL;
   wchar_t *wide = NULL;
   HANDLE hnd;
   unsigned long i;
   int retval;
-  char* output = NULL;
 
-  if(stream == stdout || stream == stderr) {
+  if(
+      (stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
+      (stream == stderr && usingError && ((hnd = std_err) || TRUE))
+    ) {
     if(
-        ((stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
-        (stream == stderr && usingError && ((hnd = std_err) || TRUE))) &&
-        (len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0))
-      ) {
-      if(
-          (wide = (wchar_t *)malloc(len * sizeof(wchar_t))) != NULL &&
-          MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len)
-        ) {
-        WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
-
-        free(wide);
-
-        return (int)len;
-      }
+        hasUtf8 &&
+        (len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0)) &&
+        (wide = (wchar_t *)malloc(len * sizeof(wchar_t))) != NULL &&
+        MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len)
+    ) {
+      WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
 
       free(wide);
+
+      return (int)len;
     }
+
+    free(wide);
 
     output = d_charsetEncode((char *)str, ENC_CP437, NULL);
 
@@ -132,6 +131,12 @@ void setupWin32(int *argc, char ***argv) {
   int maybeNewField = TRUE;
   int argc_w32 = 0;
 
+  std_out = GetStdHandle(STD_OUTPUT_HANDLE);
+  std_err = GetStdHandle(STD_ERROR_HANDLE);
+
+  usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
+  usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
+
   ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
   osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 
@@ -149,12 +154,6 @@ void setupWin32(int *argc, char ***argv) {
   }
 
   hasUtf8 = TRUE;
-
-  std_out = GetStdHandle(STD_OUTPUT_HANDLE);
-  std_err = GetStdHandle(STD_ERROR_HANDLE);
-
-  usingOutput = (std_out != INVALID_HANDLE_VALUE && GetConsoleMode(std_out, &mode));
-  usingError  = (std_err != INVALID_HANDLE_VALUE && GetConsoleMode(std_err, &mode));
 
   szArglist = GetCommandLineW();
 
