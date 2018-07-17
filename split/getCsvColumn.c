@@ -70,16 +70,16 @@ int getCsvColumn(
       switch(c) {
         case 0x20: { /* ' ' */
           /* if we're inside a double quoted string and haven't yet
-          found a minimum amount to left trim to then specify it now */          
+          found a minimum amount to left trim to then specify it now */
           if(!canEnd) {
-          
-            if(notFoundLeft) { 
+
+            if(notFoundLeft) {
               notFoundLeft = FALSE;
               minLeft = *strSize;
             }
 
             strAppend(' ', value, strSize);
-            
+
             minRight = *strSize;
           }
           else {
@@ -105,7 +105,7 @@ int getCsvColumn(
               *quotedValue = TRUE;
             }
 
-            if(notFoundLeft) { 
+            if(notFoundLeft) {
               notFoundLeft = FALSE;
               minLeft = *strSize;
             }
@@ -115,7 +115,7 @@ int getCsvColumn(
               strAppend(*nlCurrent, value, strSize);
               nlCurrent++;
             }
-            
+
             minRight = *strSize;
           }
         } break;
@@ -138,7 +138,7 @@ int getCsvColumn(
               *quotedValue = TRUE;
             }
 
-            if(notFoundLeft) { 
+            if(notFoundLeft) {
               notFoundLeft = FALSE;
               minLeft = *strSize;
             }
@@ -148,7 +148,7 @@ int getCsvColumn(
               strAppend(*nlCurrent, value, strSize);
               nlCurrent++;
             }
-            
+
             minRight = *strSize;
           }
         } break;
@@ -163,7 +163,7 @@ int getCsvColumn(
               *quotedValue = TRUE;
             }
 
-            if(notFoundLeft) { 
+            if(notFoundLeft) {
               notFoundLeft = FALSE;
               minLeft = *strSize;
             }
@@ -173,7 +173,7 @@ int getCsvColumn(
               strAppend(*nlCurrent, value, strSize);
               nlCurrent++;
             }
-            
+
             minRight = *strSize;
           }
         } break;
@@ -189,6 +189,10 @@ int getCsvColumn(
         case 0x22: {  /* '"' */
           if(canEnd) {
             canEnd = FALSE;
+
+            if(quotedValue != NULL) {
+              *quotedValue = TRUE;
+            }
           }
           else {
             c2 = fgetc(*inputFile);
@@ -205,11 +209,11 @@ int getCsvColumn(
                 *quotedValue = TRUE;
               }
 
-              if(notFoundLeft) { 
+              if(notFoundLeft) {
                 notFoundLeft = FALSE;
                 minLeft = *strSize;
               }
-              
+
               strAppend('"', value, strSize);
               minRight = *strSize;
             }
@@ -221,14 +225,14 @@ int getCsvColumn(
             exitCode = 1;
             break;
           }
-          
+
           if(quotedValue != NULL) {
             *quotedValue = TRUE;
           }
         } /* fall thru */
 
         default: {
-          if(notFoundLeft) { 
+          if(notFoundLeft) {
             notFoundLeft = FALSE;
             minLeft = *strSize;
           }

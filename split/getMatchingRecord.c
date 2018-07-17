@@ -78,14 +78,25 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
               NULL,
-              (query->params & PRM_TRIM) == 0,
+              (query->params & PRM_TRIM),
               query->newLine
             );
+
+          if(
+              (query->params & PRM_IMPORT) &&
+              (!columnOffsetData.isQuoted) &&
+              strcmp(columnOffsetData.value, "\\N") == 0
+          ) {
+            freeAndZero(columnOffsetData.value);
+            columnOffsetData.isNull = TRUE;
+          }
+          else {
+            columnOffsetData.isNull = FALSE;
+          }
 
           /* these values should actually be set depending on whether the value was quoted or not */
           /* if the value is quoted we should probably also NFD normalise it before writing to the scratchpad */
           columnOffsetData.isNormalized = FALSE;
-          columnOffsetData.isNull = FALSE;
         }
 
         /* construct an empty column reference. */
