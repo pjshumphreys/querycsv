@@ -59,6 +59,8 @@ int readQuery(char *queryFileName, struct qryData *query) {
   query->groupByClause = NULL;
   query->resultSet = NULL;
   query->dateString = NULL;
+  query->newLine = "\n";
+
 
   /* setup reentrant flex scanner data structure */
   yylex_init_extra(query, &scanner);
@@ -139,30 +141,28 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
 #ifdef MPW_C
   /* Macs swap 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
-  if(query->outputFileName == NULL || (((query->params) & PRM_MAC) != 0)) {
-    query->newLine = "\n";
-  }
-  else if((((query->params) & PRM_UNIX) != 0)) {
-    query->newLine = "\r";
-  }
-  else if(query->outputEncoding == ENC_CP1047) {
-    query->newLine = "\205";
-  }
-  else {
-    query->newLine = "\n\r";
+  if(query->outputFileName != NULL && (((query->params) & PRM_MAC) == FALSE)) {
+    if((((query->params) & PRM_UNIX) != FALSE)) {
+      query->newLine = "\r";
+    }
+    else if(query->outputEncoding == ENC_CP1047) {
+      query->newLine = "\205";
+    }
+    else {
+      query->newLine = "\n\r";
+    }
   }
 #else
-  if(query->outputFileName == NULL || (((query->params) & PRM_UNIX) != 0)) {
-    query->newLine = "\n";
-  }
-  else if((((query->params) & PRM_MAC) != 0)) {
-    query->newLine = "\r";
-  }
-  else if(query->outputEncoding == ENC_CP1047) {
-    query->newLine = "\302\205";
-  }
-  else {
-    query->newLine = "\r\n";
+  if(query->outputFileName != NULL && (((query->params) & PRM_UNIX) == FALSE)) {
+    if((((query->params) & PRM_MAC) != FALSE)) {
+      query->newLine = "\r";
+    }
+    else if(query->outputEncoding == ENC_CP1047) {
+      query->newLine = "\302\205";
+    }
+    else {
+      query->newLine = "\r\n";
+    }
   }
 #endif
 
