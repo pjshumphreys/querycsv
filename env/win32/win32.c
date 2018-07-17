@@ -39,32 +39,36 @@ int fputs_w32(const char *str, FILE *stream) {
   int retval;
   char* output = NULL;
 
-  if(
-      ((stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
-      (stream == stderr && usingError && ((hnd = std_err) || TRUE))) &&
-      (len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0))
-    ) {
+  if(stream == stdout || stream == stderr) {
     if(
-        (wide = (wchar_t *)malloc(len * sizeof(wchar_t))) != NULL &&
-        MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len)
+        ((stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
+        (stream == stderr && usingError && ((hnd = std_err) || TRUE))) &&
+        (len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0))
       ) {
-      WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
+      if(
+          (wide = (wchar_t *)malloc(len * sizeof(wchar_t))) != NULL &&
+          MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len)
+        ) {
+        WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
+
+        free(wide);
+
+        return (int)len;
+      }
 
       free(wide);
-
-      return (int)len;
     }
 
-    free(wide);
+    output = d_charsetEncode((char *)str, ENC_CP437, NULL);
+
+    retval = fputs(output, stream);
+
+    free(output);
+
+    return retval;
   }
 
-  output = d_charsetEncode((char *)str, ENC_CP437, NULL);
-
-  retval = fputs(output, stream);
-
-  free(output);
-
-  return retval;
+  return fputs(str, stream);
 }
 
 int fprintf_w32(FILE *stream, const char *format, ...) {
