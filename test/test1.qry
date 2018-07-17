@@ -1,3 +1,3 @@
-options 'ie';
+options 'tin';
 select hij,def,abc,klm
 from 'test1.csv' as test

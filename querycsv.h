@@ -70,8 +70,10 @@
 #define PRM_MAC 4    /* output mac newlines in the output file */
 #define PRM_SPACE 8   /* put a space before each column value that's not the first */
 #define PRM_TRIM 16    /* left trim and right trim whitespace from each column value */
-#define PRM_IMPORT 32  /* import unquoted \N as NULL */
+#define PRM_IMPORT 32  /* import unquoted \N or NULL as NULL */
 #define PRM_EXPORT 64  /* export NULLs as \N (nulls are exported as unquoted empty string otherwise) */
+#define PRM_NULL 128  /* export NULLs as NULL (nulls are exported as unquoted empty string otherwise) */
+#define PRM_QUOTE 256  /* always double quote non null values */
 
 #define TRE_BLACK 1
 #define TRE_RED 2

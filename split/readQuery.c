@@ -194,7 +194,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
             &columnLength,
             NULL,
             &headerByteLength,
-            (query->params & PRM_TRIM) == 0,
+            (query->params & PRM_TRIM),
             query->newLine
           );
 

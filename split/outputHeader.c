@@ -3,6 +3,7 @@ void outputHeader(struct qryData *query) {
   struct resultColumn *currentResultColumn;
   FILE *outputFile;
   char *separator = (((query->params) & PRM_SPACE) != 0) ? ", " : ",";
+  char *string2 = NULL;
 
   MAC_YIELD
 
@@ -29,11 +30,21 @@ void outputHeader(struct qryData *query) {
       }
 
       /* strip over the leading underscore */
-      fputsEncoded(
-          (currentResultColumn->resultColumnName)+1,
-          outputFile,
-          query->outputEncoding
-        );
+      if((query->params) & PRM_QUOTE) {
+          fputsEncoded("\"", outputFile, query->outputEncoding);
+          if(string2 = strReplace("\"", "\"\"", (currentResultColumn->resultColumnName)+1)) {
+            fputsEncoded(string2, outputFile, query->outputEncoding);
+          }
+          fputsEncoded("\"", outputFile, query->outputEncoding);
+          freeAndZero(string2);
+        }
+        else {
+          fputsEncoded(
+            (currentResultColumn->resultColumnName)+1,
+            outputFile,
+            query->outputEncoding
+          );
+        }
     }
   }
 

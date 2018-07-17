@@ -85,7 +85,8 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
           if(
               (query->params & PRM_IMPORT) &&
               (!columnOffsetData.isQuoted) &&
-              strcmp(columnOffsetData.value, "\\N") == 0
+              (strcmp(columnOffsetData.value, "\\N") == 0 ||
+              strcmp(columnOffsetData.value, "NULL") == 0)
           ) {
             freeAndZero(columnOffsetData.value);
             columnOffsetData.isNull = TRUE;

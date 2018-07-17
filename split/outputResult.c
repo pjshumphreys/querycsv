@@ -35,12 +35,18 @@ void outputResult(
         if(((query->params) & PRM_EXPORT) != 0) {
           fputsEncoded("\\N", outputFile, query->outputEncoding);
         }
+        else if(((query->params) & PRM_NULL) != 0) {
+          fputsEncoded("NULL", outputFile, query->outputEncoding);
+        }
       }
       else {
         stringGet((unsigned char **)(&string), field, query->params);
 
         /* need to properly re-escape fields that need it */
-        if(needsEscaping(string, query->params)) {
+        if(
+            ((query->params) & PRM_QUOTE) ||
+            needsEscaping(string, query->params)
+        ) {
           fputsEncoded("\"", outputFile, query->outputEncoding);
           if(string2 = strReplace("\"", "\"\"", string)) {
             fputsEncoded(string2, outputFile, query->outputEncoding);

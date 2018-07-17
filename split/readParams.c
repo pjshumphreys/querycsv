@@ -13,6 +13,11 @@ void readParams(struct qryData *queryData, char *string) {
 
   while(*i) {
     switch(*i) {
+      case 'a':
+      case 'A':
+        params |= PRM_QUOTE;
+      break;
+
       case 'd':
       case 'D':
         params &= ~PRM_MAC;
@@ -41,9 +46,9 @@ void readParams(struct qryData *queryData, char *string) {
         params |= PRM_SPACE;
       break;
 
-      case 't':
-      case 'T':
-        params |= PRM_TRIM;
+      case 'n':
+      case 'N':
+        params |= PRM_NULL;
       break;
 
       case 'i':
@@ -54,6 +59,11 @@ void readParams(struct qryData *queryData, char *string) {
       case 'e':
       case 'E':
         params |= PRM_EXPORT;
+      break;
+
+      case 't':
+      case 'T':
+        params |= PRM_TRIM;
       break;
     }
 
