@@ -5,6 +5,7 @@ int getColumnCount(
   FILE *inputFile = NULL;
   int columnCount = 1;
   char * outText = NULL;
+  struct inputTable table;
 
   MAC_YIELD
 
@@ -16,8 +17,12 @@ int getColumnCount(
     return EXIT_FAILURE;
   }
 
+  table.fileStream = inputFile;
+  table.fileEncoding = query->CMD_ENCODING;
+  table.cpIndex = table.arrLength = 0;
+
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE, query->newLine)) {
+  while(getCsvColumn(&table, NULL, NULL, NULL, NULL, TRUE, query->newLine)) {
     columnCount++;
   }
 

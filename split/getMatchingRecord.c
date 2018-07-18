@@ -72,8 +72,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
         if(recordHasColumn == TRUE && !doLeftRecord) {
           columnOffsetData.value = NULL;
           recordHasColumn = getCsvColumn(
-              &(currentInputTable->fileStream),
-              currentInputTable->fileEncoding,
+              currentInputTable,
               &(columnOffsetData.value),
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
@@ -132,8 +131,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
       /* consume any remaining column data that may exist in this record */
       if(recordHasColumn == TRUE && !doLeftRecord) {
         while(getCsvColumn(
-            &(currentInputTable->fileStream),
-            currentInputTable->fileEncoding,
+            currentInputTable,
             NULL,
             NULL,
             NULL,

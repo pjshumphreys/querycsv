@@ -1,6 +1,5 @@
 int getCsvColumn(
-    FILE **inputFile,
-    int inputEncoding,
+    struct inputTable *table,
     char **value,
     size_t *strSize,
     int *quotedValue,
@@ -8,13 +7,8 @@ int getCsvColumn(
     int doTrim,
     char * newLine
 ) {
-  long codepoints[4];
-  void (*getCodepoints)(FILE *, long *, int *, int *);
-  int arrLength;
-  int byteLength;
-  int i;
-  int c2;
   long c;
+  int byteLength;
   char *tempString = NULL;
   size_t tempSize;
   int canEnd = TRUE;
@@ -23,6 +17,7 @@ int getCsvColumn(
   size_t minLeft = 0;
   size_t minRight = 0;
   long offset = 0;
+  int state = 0;
   char *nlCurrent = NULL;
 
   MAC_YIELD
@@ -45,193 +40,126 @@ int getCsvColumn(
     offset = *startPosition;
   }
 
-  if(feof(*inputFile) != 0) {
+  if(feof(table->fileStream) != 0) {
     return FALSE;
   }
 
-  /* choose which function to use based upon the character encoding */
-  getCodepoints = chooseGetter(inputEncoding);
-
   do {
     /* get some codepoints from the file, usually only 1 but maybe up to 4 */
-    getCodepoints(*inputFile,
-      codepoints,
-      &arrLength,
-      &byteLength
-    );
-
-    offset += byteLength;
-
-    /* for each codepoint returned treat it as we previously treated bytes */
     /* read a character */
-    for(i = 0; i < arrLength && exitCode == 0; i++) {
-      c = codepoints[i];
+    c = getCurrentCodepoint(table, &byteLength);
 
-      switch(c) {
-        case 0x20: { /* ' ' */
-          /* if we're inside a double quoted string and haven't yet
-          found a minimum amount to left trim to then specify it now */
-          if(!canEnd) {
-
-            if(notFoundLeft) {
-              notFoundLeft = FALSE;
-              minLeft = *strSize;
-            }
-
-            strAppend(' ', value, strSize);
-
-            minRight = *strSize;
-          }
-          else {
-            strAppend(' ', value, strSize);
-          }
-        } break;
-
-        case 0x0D: { /* '\r' */
-          c2 = fgetc(*inputFile);
-          offset++;
-
-          if(c2 != '\n') {
-            ungetc(c2, *inputFile);
-            offset--;
-          }
-
-          if(canEnd) {
-            exitCode = 2;
-            break;
-          }
-          else {
-            if(quotedValue != NULL) {
-              *quotedValue = TRUE;
-            }
-
-            if(notFoundLeft) {
-              notFoundLeft = FALSE;
-              minLeft = *strSize;
-            }
-
-            nlCurrent = newLine;
-            while(*nlCurrent) {
-              strAppend(*nlCurrent, value, strSize);
-              nlCurrent++;
-            }
-
-            minRight = *strSize;
-          }
-        } break;
-
-        case 0x0A: { /* '\n' */
-          c2 = fgetc(*inputFile);
-          offset++;
-
-          if(c2 != '\r') {
-            ungetc(c2, *inputFile);
-            offset--;
-          }
-
-          if(canEnd) {
-            exitCode = 2;
-            break;
-          }
-          else {
-            if(quotedValue != NULL) {
-              *quotedValue = TRUE;
-            }
-
-            if(notFoundLeft) {
-              notFoundLeft = FALSE;
-              minLeft = *strSize;
-            }
-
-            nlCurrent = newLine;
-            while(*nlCurrent) {
-              strAppend(*nlCurrent, value, strSize);
-              nlCurrent++;
-            }
-
-            minRight = *strSize;
-          }
-        } break;
-
-        case 0x85: { /* EBCDIC newline */
-          if(canEnd) {
-            exitCode = 2;
-            break;
-          }
-          else {
-            if(quotedValue != NULL) {
-              *quotedValue = TRUE;
-            }
-
-            if(notFoundLeft) {
-              notFoundLeft = FALSE;
-              minLeft = *strSize;
-            }
-
-            nlCurrent = newLine;
-            while(*nlCurrent) {
-              strAppend(*nlCurrent, value, strSize);
-              nlCurrent++;
-            }
-
-            minRight = *strSize;
-          }
-        } break;
-
-        case 0x0: { /* csv files are a plain text format, so there shouldn't
-          be any null bytes. Remove any that may appear. */
-        } break;
-
-        case MYEOF: {
-          exitCode = 2;
-        } break;
-
-        case 0x22: {  /* '"' */
-          if(canEnd) {
-            canEnd = FALSE;
-
-            if(quotedValue != NULL) {
-              *quotedValue = TRUE;
-            }
-          }
-          else {
-            c2 = fgetc(*inputFile);
-            offset++;
-
-            if(c2 != '"') {
-              ungetc(c2, *inputFile);
-              offset--;
-
-              canEnd = TRUE;
-            }
-            else {
-              if(quotedValue != NULL) {
-                *quotedValue = TRUE;
-              }
-
-              if(notFoundLeft) {
-                notFoundLeft = FALSE;
-                minLeft = *strSize;
-              }
-
-              strAppend('"', value, strSize);
-              minRight = *strSize;
-            }
-          }
-        } break;
-
-        case 0x2C: {  /* ',' */
-          if(canEnd) {
-            exitCode = 1;
-            break;
-          }
-
-          if(quotedValue != NULL) {
-            *quotedValue = TRUE;
+    if(state != 0) {
+      switch(state) {
+        case 1:   /* found \r */
+        case 2: { /* found \n */
+          if((state == 1 && c == 0x0A) || c == 0x0D) {
+            offset += byteLength;
+            getNextCodepoint(table);
+            c = getCurrentCodepoint(table, &byteLength);
           }
         } /* fall thru */
 
-        default: {
+        case 3: { /* EBCDIC newline */
+          if(canEnd) {
+            exitCode = 2;
+          }
+          else {
+            if(quotedValue != NULL) {
+              *quotedValue = TRUE;
+            }
+
+            nlCurrent = newLine;
+
+            while(*nlCurrent) {
+              strAppend(*nlCurrent, value, strSize);
+              nlCurrent++;
+            }
+
+            minRight = *strSize;
+          }
+        } break;
+
+        case 4: { /* found double quote */
+          if(c != 0x22) { 
+            canEnd = TRUE;
+          }
+          else { /* and another double quote? */
+            offset += byteLength;
+            getNextCodepoint(table);
+            c = getCurrentCodepoint(table, &byteLength);
+
+            if(quotedValue != NULL) {
+              *quotedValue = TRUE;
+            }
+
+            if(notFoundLeft) {
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
+            strAppend('"', value, strSize);
+            minRight = *strSize;
+          }
+        } break;
+      }
+
+      state = 0;
+
+      if(exitCode) {
+        break;
+      }
+    }
+
+    switch(c) {
+      case 0x0: { /* csv files are a plain text format, so there shouldn't
+        be any null bytes. Remove any that may appear. */
+      } break;
+
+      case 0x0A: { /* '\n' */
+        state = 2;
+      } break;
+
+      case 0x0D: { /* '\r' */
+        state = 1;
+      } break;
+
+      case 0x20: { /* ' ' */
+        /* if we're inside a double quoted string and haven't yet
+        found a minimum amount to left trim to then specify it now */
+        if(canEnd == FALSE) {
+          if(notFoundLeft) {
+            notFoundLeft = FALSE;
+            minLeft = *strSize;
+          }
+
+          strAppend(' ', value, strSize);
+
+          minRight = *strSize;
+        }
+        else {
+          strAppend(' ', value, strSize);
+        }
+      } break;
+
+      case 0x22: {  /* '"' */
+        if(canEnd) {
+          canEnd = FALSE;
+        }
+        else {
+          state = 4;
+        }
+      } break;
+
+      case 0x2C: {  /* ',' */
+        if(canEnd) {
+          exitCode = 1;
+        }
+        else {
+          if(quotedValue != NULL) {
+            *quotedValue = TRUE;
+          }
+          
           if(notFoundLeft) {
             notFoundLeft = FALSE;
             minLeft = *strSize;
@@ -239,11 +167,31 @@ int getCsvColumn(
 
           *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
           minRight = *strSize;
-        } break;
-      }
-    }
-  } while (exitCode == 0);
+        }
+      } break;
 
+      case 0x85: { /* EBCDIC newline */
+        state = 3;
+      } break;
+
+      case MYEOF: {
+      
+        exitCode = 2;
+      } break;
+
+      default: {
+        if(notFoundLeft) {
+          notFoundLeft = FALSE;
+          minLeft = *strSize;
+        }
+
+        *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
+        minRight = *strSize;
+      } break;
+    }
+    
+    offset += byteLength;
+  } while (exitCode == 0 && getNextCodepoint(table));
 
   if(doTrim) {
     if(minRight < *strSize) {

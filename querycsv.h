@@ -382,9 +382,14 @@ struct inputTable {
   char *queryTableName;  /* according to the query */
   char *fileName;
   FILE *fileStream;
+  int fileEncoding;
+  long codepoints[4];
+  int cpIndex;
+  int cpByteLength;
+  int arrLength;
+  int byteLength;
   struct inputTable *nextInputTable;
   struct inputColumn *firstInputColumn;
-  int fileEncoding;
 };
 
 struct atomEntry {

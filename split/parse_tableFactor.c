@@ -34,6 +34,7 @@ void parse_tableFactor(
   newTable->fileName = fileName;
   newTable->fileStream = csvFile;
   newTable->fileEncoding = fileEncoding;
+  (newTable->cpIndex) = (newTable->arrLength) = 0;
 
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;

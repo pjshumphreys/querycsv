@@ -188,8 +188,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
         newColumn = NULL;
 
         recordContinues = getCsvColumn(
-            &(currentInputTable->fileStream),
-            currentInputTable->fileEncoding,
+            currentInputTable,
             &columnText,
             &columnLength,
             NULL,

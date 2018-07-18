@@ -8,6 +8,7 @@ int getColumnValue(
   char *output = NULL;
   size_t strSize = 0;
   int currentColumn = 0;
+  struct inputTable table;
 
   MAC_YIELD
 
@@ -15,12 +16,16 @@ int getColumnValue(
     return EXIT_FAILURE;
   }
 
+  table.fileStream = inputFile;
+  table.fileEncoding = query->CMD_ENCODING;
+  table.cpIndex = table.arrLength = 0;
+
   /* get the text of the specified csv column (if available). */
   /* if it's not available we'll return an empty string */
   while(
         ++currentColumn != columnIndex ?
-        getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, NULL, TRUE, query->newLine):
-        (getCsvColumn(&inputFile, query->CMD_ENCODING, &output, &strSize, NULL, NULL, TRUE, query->newLine) && FALSE)
+        getCsvColumn(&table, NULL, NULL, NULL, NULL, TRUE, query->newLine):
+        (getCsvColumn(&table, &output, &strSize, NULL, NULL, TRUE, query->newLine) && FALSE)
       ) {
     /* get next column */
   }

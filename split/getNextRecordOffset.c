@@ -5,6 +5,7 @@ int getNextRecordOffset(
 ) {
   FILE *inputFile = NULL;
   char* outText = NULL;
+  struct inputTable table;
 
   MAC_YIELD
 
@@ -12,8 +13,12 @@ int getNextRecordOffset(
     return EXIT_FAILURE;
   }
 
+  table.fileStream = inputFile;
+  table.fileEncoding = query->CMD_ENCODING;
+  table.cpIndex = table.arrLength = 0;
+
   /* read csv columns until end of line occurs */
-  while(getCsvColumn(&inputFile, query->CMD_ENCODING, NULL, NULL, NULL, &offset, TRUE, query->newLine)) {
+  while(getCsvColumn(&table, NULL, NULL, NULL, &offset, TRUE, query->newLine)) {
     /* do nothing */
   }
 
