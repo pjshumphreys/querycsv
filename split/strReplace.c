@@ -13,7 +13,7 @@ char *strReplace(char *search, char *replace, char *subject) {
       strlen(replace) == 0 ||
       strlen(subject) == 0
     ) {
-    return NULL;
+    return mystrdup("");
   }
 
   replaced = (char*)calloc(1, 1);
@@ -24,7 +24,7 @@ char *strReplace(char *search, char *replace, char *subject) {
 
     if(temp == NULL) {
       free(replaced);
-      return NULL;
+      return mystrdup("");
     }
 
     replaced = temp;
@@ -41,7 +41,7 @@ char *strReplace(char *search, char *replace, char *subject) {
 
       if(temp == NULL) {
         free(replaced);
-        return NULL;
+        return mystrdup("");
       }
 
       replaced = temp;

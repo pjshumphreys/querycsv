@@ -69,7 +69,5 @@ void outputResult(
     cleanup_matchValues(query, &columns);
   }
 
-  query->recordCount++;
-
   fputsEncoded(query->newLine, outputFile, query->outputEncoding);
 }

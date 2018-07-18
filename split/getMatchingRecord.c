@@ -89,6 +89,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               strcmp(columnOffsetData.value, "NULL") == 0)
           ) {
             freeAndZero(columnOffsetData.value);
+            columnOffsetData.value = mystrdup("");
             columnOffsetData.isNull = TRUE;
           }
           else {
