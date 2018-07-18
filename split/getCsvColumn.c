@@ -190,8 +190,9 @@ int getCsvColumn(
       } break;
     }
     
+    getNextCodepoint(table);
     offset += byteLength;
-  } while (exitCode == 0 && getNextCodepoint(table));
+  } while (exitCode == 0);
 
   if(doTrim) {
     if(minRight < *strSize) {

@@ -1,22 +1,18 @@
-void getNextCodepoint(struct inputTable* table) {
-  void (*getCodepoints)(FILE *, long *, int *, int *);
+int getNextCodepoint(struct inputTable* table) {
   long temp;
 
-  if(table->cpIndex == (table->arrLength) - 1) {
-    getCodepoints = chooseGetter(table->fileEncoding);
+  table->cpIndex++;
 
+  if(table->cpIndex >= table->arrLength) {
     /* we've exhausted the current buffer. Get some more codepoints */
-    (table->getCodepoints)(
+    (chooseGetter(table->fileEncoding))(
         table->fileStream,
-        &(table->codepoints),
+        &(table->codepoints[0]),
         &(table->arrLength),
         &(table->byteLength)
       );
 
-    (table->cpIndex) == 0;
-  }
-  else {
-    (table->cpIndex)++;
+    (table->cpIndex) = 0;
   }
 
   /*the last codepoint in the buffer. We need to ensure the cpByteLength is correct */
@@ -73,4 +69,6 @@ void getNextCodepoint(struct inputTable* table) {
       }
     break;
   }
+
+  return TRUE;
 }
