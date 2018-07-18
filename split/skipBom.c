@@ -76,6 +76,13 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
             }
           }
           else {  /* UTF-16LE */
+            fclose(file);
+
+            file = fopen(filename, fopen_read);
+
+            fgetc(file);
+            fgetc(file);
+
             if(offset) {
               *offset = 2;
             }

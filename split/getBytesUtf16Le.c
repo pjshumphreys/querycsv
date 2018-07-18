@@ -1,10 +1,11 @@
+
 void getBytesUtf16Le(
     long codepoint,
     char **bytes,
     int *byteLength
 ) {
-  QCSV_SHORT highSurrogate;
-  QCSV_SHORT lowSurrogate;
+  unsigned QCSV_SHORT highSurrogate;
+  unsigned QCSV_SHORT lowSurrogate;
 
   MAC_YIELD
 
