@@ -19,6 +19,13 @@
 
 %s commands
 
+U       [\x80-\xbf]
+U2      [\xc2-\xdf]
+U3      [\xe0-\xef]
+U4      [\xf0-\xf4]
+
+UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
+
 %%
 
 	/* literal keyword tokens */
@@ -82,7 +89,7 @@
 
 	/* names */
 
-[A-Za-z][A-Za-z0-9_]*	{
+([A-Za-z]|{UANY})([A-Za-z0-9_]|{UANY})*	{
     yylval->strval = NULL;
     d_sprintf(&(yylval->strval), "_%s", yytext);
     return NAME;

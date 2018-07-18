@@ -293,7 +293,7 @@ function compileFloatLib() {
       this.push(v);
     }, functionsList);
 
-    hash2ChunkCount = parseInt(execSync("node ./generate_hash2.js 398").toString(), 10);
+    hash2ChunkCount = 15;
 
     for(i = 0; i < hash2ChunkCount; i++) {
       /*

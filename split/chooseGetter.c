@@ -27,10 +27,10 @@ void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
       return &getCodepointsUtf16Le;
     } break;
 
-    /*
     case ENC_UTF16BE: {
-      return &getCodepointsUTF16BE;
+      return &getCodepointsUtf16Be;
     } break;
+    /*
 
     case ENC_UTF32LE: {
       return &getCodepointsUTF32LE;
