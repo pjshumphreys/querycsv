@@ -20,6 +20,9 @@ int getColumnValue(
   table.fileEncoding = query->CMD_ENCODING;
   table.cpIndex = table.arrLength = 0;
 
+  /* initalise the "get a codepoint" data structures */
+  getNextCodepoint(&table);
+
   /* get the text of the specified csv column (if available). */
   /* if it's not available we'll return an empty string */
   while(

@@ -17,6 +17,9 @@ int getNextRecordOffset(
   table.fileEncoding = query->CMD_ENCODING;
   table.cpIndex = table.arrLength = 0;
 
+  /* initalise the "get a codepoint" data structures */
+  getNextCodepoint(&table);
+
   /* read csv columns until end of line occurs */
   while(getCsvColumn(&table, NULL, NULL, NULL, &offset, TRUE, query->newLine)) {
     /* do nothing */

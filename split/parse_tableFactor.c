@@ -34,7 +34,10 @@ void parse_tableFactor(
   newTable->fileName = fileName;
   newTable->fileStream = csvFile;
   newTable->fileEncoding = fileEncoding;
-  (newTable->cpIndex) = (newTable->arrLength) = 0;
+  newTable->cpIndex = newTable->arrLength = 0;
+
+  /* initalise the "get a codepoint" data structures */
+  getNextCodepoint(newTable);
 
   newTable->firstInputColumn = NULL;  /* the table initially has no columns */
   newTable->isLeftJoined = FALSE;
@@ -68,6 +71,6 @@ void parse_tableFactor(
       queryData->firstInputTable = newTable;
     }
   }
-  
+
   newTable->firstRecordOffset = headerByteLength;
 }
