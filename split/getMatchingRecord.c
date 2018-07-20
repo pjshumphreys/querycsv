@@ -77,7 +77,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
               NULL,
-              (query->params & PRM_TRIM),
+              (query->params & PRM_TRIM) == FALSE,
               query->newLine
             );
 
@@ -136,7 +136,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             NULL,
             NULL,
             NULL,
-            (query->params & PRM_TRIM) == 0,
+            (query->params & PRM_TRIM) == FALSE,
             query->newLine
           )) {
           /* do nothing */

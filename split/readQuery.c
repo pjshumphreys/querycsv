@@ -121,20 +121,20 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     case 1: {
       /* the input script contained a syntax error. show message and exit */
-      fputs(errSyntax, stderr);
+      fputs("\n", stderr);
       return EXIT_FAILURE;
     } break;
 
     case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
-      fputs(errRam, stderr);
+      fputs("\n", stderr);
       return EXIT_FAILURE;
     } break;
 
     default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
-      fputs(errUnknown, stderr);
+      fputs("\n", stderr);
       return EXIT_FAILURE;
     } break;
   }
@@ -193,7 +193,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
             &columnLength,
             NULL,
             &headerByteLength,
-            (query->params & PRM_TRIM),
+            (query->params & PRM_TRIM) == FALSE,
             query->newLine
           );
 

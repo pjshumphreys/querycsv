@@ -32,6 +32,7 @@ int runQuery(char *queryFileName) {
 
     while(getMatchingRecord(&query, match)) {
       /* print record to stdout */
+      query.recordCount++;
       outputResult(&query, match, -1);
     }
 

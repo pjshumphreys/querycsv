@@ -61,8 +61,8 @@ void readParams(struct qryData *queryData, char *string) {
         params |= PRM_EXPORT;
       break;
 
-      case 't':
-      case 'T':
+      case 'p':
+      case 'P':
         params |= PRM_TRIM;
       break;
     }

@@ -72,7 +72,8 @@ env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.h ! -name 'hash2*' -exec cp {} env/bbcarm/h/ \;
 	cd env/bbcarm/c; sed -i -E 's/\/\*[^\*]+\*\//\/\* \*\//g' *
 	cd env/bbcarm/c; sed -i -E 's/const char \*p;/char \*p;/g;s/short/long/g' lexer.c; cp ../bbcarm.c bbcarm; bash -c 'ls | cat -n | while read n f; do mv "$$f" $$(printf "\x$$(printf %x $$(($$n+96)))"); done';
-	cd softfloat; bash -c 'ls *.c | cat -n | while read n f; do cp "$$f" ../env/bbcarm/c/$$(printf "\x$$(printf %x $$(($$n+47)))"); cp "$$f" ../env/riscos/c/; done';find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../env/bbcarm/h/ \;;find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../env/riscos/h/ \;
+	cd softfloat; bash -c 'ls *.c | cat -n | while read n f; do cp "$$f" ../env/bbcarm/c/$$(printf "\x$$(printf %x $$(($$n+47)))"); cp "$$f" ../env/riscos/c/; done';find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../env/bbcarm/h/ \;
+	cd softfloat; find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../env/riscos/h/ \;
 	cd env/bbcarm/c; cp ../mode.c mode; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 	cd env/bbcarm/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 

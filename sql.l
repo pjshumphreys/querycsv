@@ -95,14 +95,6 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
     return NAME;
 }
 
-\"([^\"]|\"\")+\" {
-    yytext[strlen(yytext)-1] = '\0';
-    yylval->strval = strReplace("\"\"", "\"", yytext);
-    return STRING;
-}
-
-\"([^\"]|\"\")*$	{	yyerror2(yylineno, yytext); }
-
 \[([^\]]|\]\])+\] {
     yytext[0] = '_';
     yytext[strlen(yytext)-1] = '\0';
@@ -116,10 +108,6 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 	/* numbers */
 
 [0-9]+ {
-    /*
-    yylval->intval = atol(yytext);
-    return INTNUM;
-    */
     yylval->strval = mystrdup(yytext);
     return INTNUM;
 }
@@ -129,10 +117,6 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 [0-9]+[eE][+-]?[0-9]+	|
 [0-9]+"."[0-9]*[eE][+-]?[0-9]+ |
 "."[0-9]*[eE][+-]?[0-9]+	{
-    /*
-    yylval->floatval = strtod(yytext, NULL);
-    return APPROXNUM;
-    */
     yylval->strval = mystrdup(yytext);
     return STRING;
 }
@@ -146,6 +130,15 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 }
 
 '([^']|'')*$	{	yyerror2(yylineno, yytext); }
+
+\"([^\"]|\"\")+\" {
+    yytext[strlen(yytext)-1] = '\0';
+    yylval->strval = strReplace("\"\"", "\"", yytext+1);
+    return STRING;
+}
+
+\"([^\"]|\"\")*$	{	yyerror2(yylineno, yytext); }
+
 
 [ \t\r\n\205]+	/* white space */
 

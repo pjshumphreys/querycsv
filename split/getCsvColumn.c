@@ -69,6 +69,11 @@ int getCsvColumn(
               *quotedValue = TRUE;
             }
 
+            if(notFoundLeft) {
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
             nlCurrent = newLine;
 
             while(*nlCurrent) {
@@ -175,7 +180,6 @@ int getCsvColumn(
       } break;
 
       case MYEOF: {
-      
         exitCode = 2;
       } break;
 
@@ -190,8 +194,8 @@ int getCsvColumn(
       } break;
     }
     
-    getNextCodepoint(table);
     offset += byteLength;
+    getNextCodepoint(table);
   } while (exitCode == 0);
 
   if(doTrim) {
