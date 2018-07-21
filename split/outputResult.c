@@ -32,11 +32,11 @@ void outputResult(
       field = &(columns[j]);
 
       if(field->isNull == TRUE) {
-        if(((query->params) & PRM_EXPORT) != 0) {
-          fputsEncoded("\\N", outputFile, query->outputEncoding);
-        }
-        else if(((query->params) & PRM_NULL) != 0) {
+        if(((query->params) & PRM_ENULL) != 0) {
           fputsEncoded("NULL", outputFile, query->outputEncoding);
+        }
+        else if(((query->params) & PRM_EPOSTGRES) != 0) {
+          fputsEncoded("\\N", outputFile, query->outputEncoding);
         }
       }
       else {

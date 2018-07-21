@@ -64,16 +64,18 @@
 #define GRP_DIS_CONCAT 13
 
 /* output parameters. Now specified as part of the input grammar */
-#define PRM_DEFAULT 0 /* no parametters by default */
 #define PRM_BOM 1    /* output a utf-8 byte order mark before the file contents. UTF-16 and 32 always get a BOM */
 #define PRM_UNIX 2    /* output unix newlines in the output file */
 #define PRM_MAC 4    /* output mac newlines in the output file */
 #define PRM_SPACE 8   /* put a space before each column value that's not the first */
 #define PRM_TRIM 16    /* left trim and right trim whitespace from each column value */
-#define PRM_IMPORT 32  /* import unquoted \N or NULL as NULL */
-#define PRM_EXPORT 64  /* export NULLs as \N (nulls are exported as unquoted empty string otherwise) */
-#define PRM_NULL 128  /* export NULLs as NULL (nulls are exported as unquoted empty string otherwise) */
-#define PRM_QUOTE 256  /* always double quote non null values */
+#define PRM_QUOTE 32  /* always double quote non null values */
+#define PRM_BLANK 64  /* import unquoted empty strings as NULL */
+#define PRM_NULL 128  /* import unquoted text NULL as NULL */
+#define PRM_POSTGRES 256  /* import unquoted text \N as NULL */
+#define PRM_ENULL 512  /* export NULL as unquoted text NULL */
+#define PRM_EPOSTGRES 1024  /* export NULL as unquoted text \N */
+#define PRM_DEFAULT PRM_BLANK  /* default parametters */
 
 #define TRE_BLACK 1
 #define TRE_RED 2
@@ -254,7 +256,7 @@ Just use long ones for that compiler */
 #ifdef AMIGA
   /* Unix style newlines by default */
   #undef PRM_DEFAULT
-  #define PRM_DEFAULT PRM_UNIX
+  #define PRM_DEFAULT PRM_BLANK & PRM_UNIX
 
   #define YY_NO_UNISTD_H 1
   #include <clib/utility_protos.h> /* for Stricmp */

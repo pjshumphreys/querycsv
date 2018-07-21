@@ -149,6 +149,10 @@ int getCsvColumn(
 
       case 0x22: {  /* '"' */
         if(canEnd) {
+          if(quotedValue != NULL) {
+            *quotedValue = TRUE;
+          }
+
           canEnd = FALSE;
         }
         else {

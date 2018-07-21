@@ -82,10 +82,12 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             );
 
           if(
-              (query->params & PRM_IMPORT) &&
               (!columnOffsetData.isQuoted) &&
-              (strcmp(columnOffsetData.value, "\\N") == 0 ||
-              strcmp(columnOffsetData.value, "NULL") == 0)
+              (
+                ((query->params & PRM_BLANK) && strcmp(columnOffsetData.value, "") == 0) ||
+                ((query->params & PRM_POSTGRES) && strcmp(columnOffsetData.value, "\\N") == 0) ||
+                ((query->params & PRM_NULL) && strcmp(columnOffsetData.value, "NULL") == 0)
+              )
           ) {
             freeAndZero(columnOffsetData.value);
             columnOffsetData.value = mystrdup("");
