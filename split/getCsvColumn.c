@@ -160,7 +160,8 @@ int getCsvColumn(
         }
       } break;
 
-      case 0x2C: {  /* ',' */
+      case 0x2C:  /* ',' */
+      case 0x3B:{ /* ';'. As used as a delimiter by european dsv files */
         if(canEnd) {
           exitCode = 1;
         }

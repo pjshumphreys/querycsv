@@ -86,7 +86,7 @@ void updateRunningCounts(
               case GRP_DIS_SUM: {
                 if(j == query->groupCount) {
                   currentResultColumn->groupCount++;
-                  tempFloat = strtod(tempString, NULL);
+                  tempFloat = strctod(tempString, NULL);
                   currentResultColumn->groupNum = fadd(currentResultColumn->groupNum, tempFloat);
                 }
               } break;
@@ -94,7 +94,7 @@ void updateRunningCounts(
               case GRP_AVG:
               case GRP_SUM: {
                 currentResultColumn->groupCount++;
-                tempFloat = strtod(tempString, NULL);
+                tempFloat = strctod(tempString, NULL);
                 currentResultColumn->groupNum = fadd(currentResultColumn->groupNum, tempFloat);
               } break;
 

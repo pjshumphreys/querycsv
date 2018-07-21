@@ -80,7 +80,7 @@ void getValue(
         expressionPtr->value = mystrdup("");
       }
       else {
-        temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+        temp1 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
         ftostr(&(expressionPtr->value), temp1);
       }
 
@@ -100,7 +100,7 @@ void getValue(
       else {
         exp_uminus(
             &(expressionPtr->value),
-            strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
+            strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
           );
       }
 
@@ -133,28 +133,28 @@ void getValue(
       else {
         switch(expressionPtr->type){
           case EXP_PLUS:
-            temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
-            temp2 = fadd(temp1, strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
+            temp1 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+            temp2 = fadd(temp1, strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
             ftostr(&(expressionPtr->value), temp2);
           break;
 
           case EXP_MINUS:
-            temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
-            temp2 = fsub(temp1, strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
+            temp1 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+            temp2 = fsub(temp1, strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
             ftostr(&(expressionPtr->value), temp2);
           break;
 
           case EXP_MULTIPLY:
-            temp1 = strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
-            temp2 = fmul(temp1, strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
+            temp1 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+            temp2 = fmul(temp1, strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));
             ftostr(&(expressionPtr->value), temp2);
           break;
 
           case EXP_DIVIDE:
             exp_divide(
                 &(expressionPtr->value),
-                strtod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL),
-                strtod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
+                strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL),
+                strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
               );
           break;
 

@@ -25,6 +25,7 @@ int needsEscaping(char *str, int params) {
       case '\r':
       case '\n':
       case ',':
+      case ';': /* used as a field delimiter by european dsv files, so also needs escaping */
         return TRUE;
 
       case '\302': {
