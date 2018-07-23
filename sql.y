@@ -206,6 +206,7 @@ optional_as_name:
 scalar_exp:
     scalar_exp COLLATE NAME {
       if($1 != NULL) {
+        /* TODO: Confirm this works correctly in all cases */
         $1->caseSensitive = (stricmp($3,"_sensitive") == 0);
       }
 
@@ -249,9 +250,49 @@ scalar_exp:
   | function_ref {
       $$ = $1;
     }
+  | case_exp {
+      $$ = parse_scalarExpLiteral(queryData, "");
+    }
   | '(' scalar_exp ')' {
       $$ = $2;
     }
+  ;
+
+case_exp:
+    simple_case
+  | searched_case
+  ;
+
+simple_case:
+    CASE scalar_exp
+    simple_when_clause
+    opt_case_else END
+  ;
+
+simple_when_clause:
+    WHEN scalar_exp THEN result
+  | simple_when_clause WHEN scalar_exp THEN result
+  ;
+
+opt_case_else:
+    /* empty */
+  | ELSE result
+  ;
+
+searched_case:
+    CASE
+    searched_when_clause
+    opt_case_else END
+  ;
+
+searched_when_clause:
+    WHEN search_condition THEN result
+  | searched_when_clause WHEN search_condition THEN result
+  ;
+
+result:
+    scalar_exp
+  | NULLX
   ;
 
 literal:
@@ -387,6 +428,12 @@ predicate:
     }
   | in_predicate {
       $$ = $1;
+    }
+  | scalar_exp IS NOT NULLX {
+      $$ = parse_scalarExpLiteral(queryData, "");
+    }
+  | scalar_exp IS NULLX {
+      $$ = parse_scalarExpLiteral(queryData, "");
     }
   ;
 

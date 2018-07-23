@@ -55,6 +55,7 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 (?i:CONCAT)		TOK(CONCAT)
 (?i:DESC)		TOK(DESC)
 (?i:DISTINCT)		TOK(DISTINCT)
+(?i:ELSE)		TOK(ELSE)
 (?i:END)		TOK(END)
 (?i:FROM)		TOK(FROM)
 (?i:GROUP)		TOK(GROUP)
@@ -72,6 +73,7 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 (?i:ORDER)		TOK(ORDER)
 (?i:OPTIONS)		TOK(OPTIONS)
 (?i:SELECT)		TOK(SELECT)
+(?i:THEN)		TOK(THEN)
 (?i:WHEN)		TOK(WHEN)
 (?i:WHERE)		TOK(WHERE)
 
