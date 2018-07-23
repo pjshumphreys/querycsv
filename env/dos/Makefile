@@ -3,4 +3,4 @@
 OBJECTS = *.c
 querycsv.exe: $(OBJECTS)
 	wcl /ml /zt1900 /dMICROSOFT=1 /fpc /0 /os /k3000 /fe=querycsv $(OBJECTS)
-	c:\upx\upx --8086 .\querycsv.exe
+	c:\upx\upx --8086 .\qrycsv16.exe

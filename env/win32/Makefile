@@ -2,4 +2,4 @@
 OBJECTS = *.c
 qrycsvw.exe: $(OBJECTS)
 	wcl386 -bcl=nt /dMICROSOFT=1 /dWINDOWS=1 /fe=qrycsvw /os $(OBJECTS)
-	c:\upx\upx .\qrycsvw.exe
+	c:\upx\upx .\querycsv.exe
