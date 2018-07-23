@@ -430,10 +430,10 @@ predicate:
       $$ = $1;
     }
   | scalar_exp IS NOT NULLX {
-      $$ = parse_scalarExpLiteral(queryData, "");
+      $$ = parse_scalarExp(queryData, $1, EXP_NOTNULL, NULL);
     }
   | scalar_exp IS NULLX {
-      $$ = parse_scalarExpLiteral(queryData, "");
+      $$ = parse_scalarExp(queryData, $1, EXP_ISNULL, NULL);
     }
   ;
 

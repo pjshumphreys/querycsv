@@ -42,6 +42,8 @@
 #define EXP_IN 20
 #define EXP_NOTIN 21
 #define EXP_GROUP 22
+#define EXP_ISNULL 23
+#define EXP_NOTNULL 24
 
 /* identifier reference types */
 #define REF_COLUMN 1
@@ -155,7 +157,7 @@ it becomes needed */
 
   /* Mac style newlines by default */
   #undef PRM_DEFAULT
-  #define PRM_DEFAULT PRM_MAC
+  #define PRM_DEFAULT PRM_BLANK | PRM_MAC
 
   /* macs don't have stricmp, so we provide our own implementation */
   #ifdef __unix__
@@ -225,7 +227,7 @@ Just use long ones for that compiler */
 
     /* Mac style newlines by default */
     #undef PRM_DEFAULT
-    #define PRM_DEFAULT PRM_MAC
+    #define PRM_DEFAULT PRM_BLANK | PRM_MAC
 
     #undef ENC_INPUT
     #define ENC_INPUT ENC_BBC
@@ -236,7 +238,7 @@ Just use long ones for that compiler */
   #else
     /* Unix style newlines by default */
     #undef PRM_DEFAULT
-    #define PRM_DEFAULT PRM_UNIX
+    #define PRM_DEFAULT PRM_BLANK | PRM_UNIX
 
     #include <unixlib.h> /*for chdir? */
 
