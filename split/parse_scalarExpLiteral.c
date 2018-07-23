@@ -13,12 +13,13 @@ struct expression *parse_scalarExpLiteral(
   reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->type = EXP_LITERAL;
-  expressionPtr->value = NULL;
-  expressionPtr->unionPtrs.voidPtr = mystrdup(literal);
-  expressionPtr->minColumn = 0;
   expressionPtr->minTable = 0;
-
+  expressionPtr->minColumn = 0;
   expressionPtr->containsAggregates = FALSE;
+  expressionPtr->isNull = literal == NULL;
+  expressionPtr->value = NULL;
+  expressionPtr->unionPtrs.voidPtr = mystrdup(literal?literal:"");
+
 
   return expressionPtr;
 }

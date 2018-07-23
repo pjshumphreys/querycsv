@@ -423,6 +423,13 @@ struct expression {
   } unionPtrs;
 };
 
+struct caseEntry {
+  int index;
+  struct expression* test;
+  struct expression* value;
+  struct caseEntry *nextInList;
+};
+
 struct columnReference {
   char *referenceName; /* if an input table column then according to csv header record, if expression then according to name specifed in the query using 'as' */
   int referenceType;  /* 1 - actual input column, 2 - expression */

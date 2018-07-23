@@ -30,6 +30,7 @@ typedef void* yyscan_t;
   struct columnReference *referencePtr;
   struct expression *expressionPtr;
   struct atomEntry *atomPtr;
+  struct caseEntry *casePtr;
 }
 
 /* operators */
@@ -64,9 +65,11 @@ typedef void* yyscan_t;
 %type <strval> optional_as_name literal command_types
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding
+%type <expressionPtr> case_exp simple_case searched_case
 %type <expressionPtr> scalar_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
 %type <atomPtr> atom_commalist
+%type <casePtr> when_clause
 %%
 
 main_file:
@@ -237,6 +240,9 @@ scalar_exp:
       $$ = parse_scalarExpLiteral(queryData, $1);
       free($1);
     }
+  | NULLX {
+      $$ = parse_scalarExpLiteral(queryData, NULL);
+    }
   | NOW opt_now_brackets {
       if(queryData->dateString == NULL) {
         getCurrentDate(&(queryData->dateString));
@@ -251,7 +257,7 @@ scalar_exp:
       $$ = $1;
     }
   | case_exp {
-      $$ = parse_scalarExpLiteral(queryData, "");
+      $$ = $1;
     }
   | '(' scalar_exp ')' {
       $$ = $2;
@@ -259,40 +265,31 @@ scalar_exp:
   ;
 
 case_exp:
-    simple_case
-  | searched_case
+    simple_case { $$ = $1; }
+  | searched_case { $$ = $1; }
   ;
 
 simple_case:
     CASE scalar_exp
-    simple_when_clause
-    opt_case_else END
-  ;
-
-simple_when_clause:
-    WHEN scalar_exp THEN result
-  | simple_when_clause WHEN scalar_exp THEN result
-  ;
-
-opt_case_else:
-    /* empty */
-  | ELSE result
+    when_clause
+    END { $$ = parse_case(queryData, $2, $3, NULL); }
+  | CASE scalar_exp
+    when_clause
+    ELSE scalar_exp END { $$ = parse_case(queryData, $2, $3, $5); }
   ;
 
 searched_case:
     CASE
-    searched_when_clause
-    opt_case_else END
+    when_clause
+    END { $$ = parse_case(queryData, NULL, $2, NULL); }
+  | CASE
+    when_clause
+    ELSE scalar_exp END { $$ = parse_case(queryData, NULL, $2, $4); }
   ;
 
-searched_when_clause:
-    WHEN search_condition THEN result
-  | searched_when_clause WHEN search_condition THEN result
-  ;
-
-result:
-    scalar_exp
-  | NULLX
+when_clause:
+    WHEN scalar_exp THEN scalar_exp { $$ = parse_when(queryData, NULL, $2, $4); }
+  | when_clause WHEN scalar_exp THEN scalar_exp { $$ = parse_when(queryData, $1, $3, $5); }
   ;
 
 literal:
