@@ -1,3 +1,2 @@
-options 'ic';
 select names, case when nm is null then 9 else 0 end as nm, bar
-from 'test24.csv' as a
+from 'test24.csv' as a options 'ec'

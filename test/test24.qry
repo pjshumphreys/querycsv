@@ -1,3 +1,2 @@
-options 'ic';
 select names,nm,nm + 0 as nm2, bar
-from 'test24.csv' as a
+from 'test24.csv' as a options 'ec'

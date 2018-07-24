@@ -69,7 +69,7 @@ typedef void* yyscan_t;
 %type <expressionPtr> scalar_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
 %type <atomPtr> atom_commalist
-%type <casePtr> when_clause
+%type <casePtr> when_clause when_clause2
 %%
 
 main_file:
@@ -280,16 +280,21 @@ simple_case:
 
 searched_case:
     CASE
-    when_clause
+    when_clause2
     END { $$ = parse_case(queryData, NULL, $2, NULL); }
   | CASE
-    when_clause
+    when_clause2
     ELSE scalar_exp END { $$ = parse_case(queryData, NULL, $2, $4); }
   ;
 
 when_clause:
     WHEN scalar_exp THEN scalar_exp { $$ = parse_when(queryData, NULL, $2, $4); }
   | when_clause WHEN scalar_exp THEN scalar_exp { $$ = parse_when(queryData, $1, $3, $5); }
+  ;
+
+when_clause2:
+    WHEN search_condition THEN scalar_exp { $$ = parse_when(queryData, NULL, $2, $4); }
+  | when_clause WHEN search_condition THEN scalar_exp { $$ = parse_when(queryData, $1, $3, $5); }
   ;
 
 literal:
