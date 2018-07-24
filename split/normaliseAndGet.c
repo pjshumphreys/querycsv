@@ -6,9 +6,10 @@ int normaliseAndGet(
     int bytesRead,
     struct hash2Entry* entry
 ) {
-  int offsetInt = *offset - *str;
+  size_t offsetInt = *offset - *str;
   unsigned char * nfdString = NULL;
-  int nfdLength = offsetInt, i = 0, j;
+  size_t nfdLength = offsetInt;
+  int i = 0, j;
   long * codepointBuffer = NULL;
   int bufferLength;
   long codepoint;
@@ -46,7 +47,7 @@ int normaliseAndGet(
 
         /* output all the codepoints up to and including this one as utf-8 sequences */
         for(j = 0; j <= i; j++) {
-          nfdLength = strAppendUTF8(codepointBuffer[j], &nfdString, nfdLength);
+          strAppendUTF8(codepointBuffer[j], &nfdString, &nfdLength);
         }
 
         bufferLength-=++i;
@@ -148,11 +149,11 @@ int normaliseAndGet(
 
   /* output the rest of the codepoints (which will all be combining characters) */
   for(j = 0; j < i; j++) {
-    nfdLength = strAppendUTF8(codepointBuffer[j], &nfdString, nfdLength);
+    strAppendUTF8(codepointBuffer[j], &nfdString, &nfdLength);
   }
 
   /* append null to the string */
-  strAppendUTF8(0, &nfdString, nfdLength);
+  strAppendUTF8(0, &nfdString, &nfdLength);
 
   /* free the codepoint buffer */
   free(codepointBuffer);

@@ -1,5 +1,11 @@
-int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t nfdLength) {
+int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t *retval) {
+  size_t nfdLength = 0;
+
   MAC_YIELD
+
+  if(*retval) {
+    nfdLength = *retval;
+  }
 
   if(codepoint < 0x80) {
     reallocMsg((void**)nfdString, nfdLength+1);
@@ -28,5 +34,9 @@ int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t nfdLength) {
     (*nfdString)[nfdLength++] = (codepoint & 0x3F) + 0x80;
   }
 
-  return nfdLength;
+  if(retval) {
+    *retval = nfdLength;
+  }
+
+  return TRUE;
 }

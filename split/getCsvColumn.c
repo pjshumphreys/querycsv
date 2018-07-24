@@ -176,7 +176,7 @@ int getCsvColumn(
               minLeft = *strSize;
             }
 
-            *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
+            strAppendUTF8(c, (unsigned char**)value, strSize);
             minRight = *strSize;
           }
         } break;
@@ -195,7 +195,7 @@ int getCsvColumn(
             minLeft = *strSize;
           }
 
-          *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
+          strAppendUTF8(c, (unsigned char**)value, strSize);
           minRight = *strSize;
         } break;
       }
@@ -301,7 +301,7 @@ int getCsvColumn(
 
                 default:
                   strAppend('\\', value, strSize);
-                  *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
+                  strAppendUTF8(c, (unsigned char**)value, strSize);
                 break;
               }
 
@@ -338,7 +338,7 @@ int getCsvColumn(
 
         case 0x5C: { /* '\\' */
           state = 3;
-        }
+        } break;
 
         case 0x85:  /* EBCDIC newline */
         case MYEOF: {
@@ -346,7 +346,7 @@ int getCsvColumn(
         } break;
 
         default: {
-          *strSize = strAppendUTF8(c, (unsigned char**)value, *strSize);
+          strAppendUTF8(c, (unsigned char**)value, strSize);
         } break;
       }
 
