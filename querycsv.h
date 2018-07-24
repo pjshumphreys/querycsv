@@ -72,11 +72,10 @@
 #define PRM_SPACE 8   /* put a space before each column value that's not the first */
 #define PRM_TRIM 16    /* left trim and right trim whitespace from each column value */
 #define PRM_QUOTE 32  /* always double quote non null values */
-#define PRM_BLANK 64  /* import unquoted empty strings as NULL */
-#define PRM_NULL 128  /* import unquoted text NULL as NULL */
-#define PRM_POSTGRES 256  /* import unquoted text \N as NULL */
-#define PRM_ENULL 512  /* export NULL as unquoted text NULL */
-#define PRM_EPOSTGRES 1024  /* export NULL as unquoted text \N */
+#define PRM_BLANK 64  /* import/export unquoted empty strings as NULL */
+#define PRM_NULL 128  /* import/export unquoted text NULL as NULL */
+#define PRM_POSTGRES 256  /* import/export using postgres text files */
+#define PRM_EURO 512  /* import/export with ";" as delimiter rather than "," */
 #define PRM_DEFAULT PRM_BLANK  /* default parametters */
 
 #define TRE_BLACK 1
@@ -386,6 +385,7 @@ struct inputTable {
   char *queryTableName;  /* according to the query */
   char *fileName;
   FILE *fileStream;
+  int options;
   int fileEncoding;
   long codepoints[4];
   int cpIndex;

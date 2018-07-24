@@ -64,7 +64,7 @@ typedef void* yyscan_t;
 %token <intval> APPROXNUM /* floatval*/
 %type <strval> optional_as_name literal command_types
 %type <referencePtr> column_ref
-%type <intval> opt_asc_desc optional_encoding
+%type <intval> opt_asc_desc optional_encoding from_options
 %type <expressionPtr> case_exp simple_case searched_case
 %type <expressionPtr> scalar_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
@@ -348,19 +348,26 @@ function_ref:
   ;
 
 table_references:
-    STRING AS NAME optional_encoding {
-      parse_tableFactor(queryData, FALSE, $1, $3, $4);
+    STRING AS NAME from_options optional_encoding {
+      parse_tableFactor(queryData, FALSE, $1, $3, $4, $5);
     }
   | join_table
   ;
 
 join_table:
-    table_references JOIN STRING AS NAME optional_encoding {
-      parse_tableFactor(queryData, FALSE, $3, $5, $6);
+    table_references JOIN STRING AS NAME from_options optional_encoding {
+      parse_tableFactor(queryData, FALSE, $3, $5, $6, $7);
     } optional_join_condition
-  | table_references LEFT JOIN STRING AS NAME optional_encoding {
-      parse_tableFactor(queryData, TRUE, $4, $6, $7);
+  | table_references LEFT JOIN STRING AS NAME from_options optional_encoding {
+      parse_tableFactor(queryData, TRUE, $4, $6, $7, $8);
     } join_condition
+  ;
+
+from_options:
+    /* empty */ { $$ = PRM_BLANK; }
+  | OPTIONS STRING {
+      $$ = readInputOptions(queryData, $2);
+    }
   ;
 
 optional_encoding:
@@ -510,17 +517,23 @@ opt_asc_desc:
 
 opt_into_clause:
     /* empty */
-  | INTO STRING optional_encoding {
+  | INTO STRING into_options optional_encoding {
       if(queryData->outputFileName == NULL) {
         queryData->outputFileName = $2;
 
-        if($3 != ENC_DEFAULT) {
-          queryData->outputEncoding = $3;
+        if($4 != ENC_DEFAULT) {
+          queryData->outputEncoding = $4;
         }
       }
       else {
         free($2);
       }
+    }
+  ;
+
+into_options:
+  | OPTIONS STRING {
+      readParams(queryData, $2);
     }
   ;
 %%

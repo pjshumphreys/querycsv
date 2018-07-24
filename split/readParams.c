@@ -36,55 +36,39 @@ void readParams(struct qryData *queryData, char *string) {
         params |= PRM_BOM;
       break;
 
+      case 'q':
+      case 'Q':
+        params |= PRM_QUOTE;
+      break;
+
+      case 'c':
+      case 'C':
+        params &= ~PRM_BLANK;
+      break;
+
+      case 'p':
+      case 'P':
+        params |= PRM_POSTGRES;
+        params &= ~PRM_EURO;
+        params &= ~PRM_NULL;
+      break;
+
+      case 'e':
+      case 'E': {
+        params &= ~PRM_POSTGRES;
+        params |= PRM_EURO;
+      } break;
+
+      case 'n':
+      case 'N':
+        params &= ~PRM_POSTGRES;
+        params |= PRM_NULL;
+      break;
+
       case 's':
       case 'S':
         params |= PRM_SPACE;
       break;
-
-      case 'a':
-      case 'A':
-        params |= PRM_QUOTE;
-      break;
-
-      case 'k':
-      case 'K':
-        params |= PRM_TRIM;
-      break;
-
-      case 'i':
-      case 'I': {
-        switch(*(i+1)) {
-          case 'c':
-          case 'C':
-            params &= ~PRM_BLANK;
-          break;
-
-          case 'p':
-          case 'P':
-            params |= PRM_POSTGRES;
-          break;
-
-          case 'n':
-          case 'N':
-            params |= PRM_NULL;
-          break;
-        }
-      } break;
-
-      case 'e':
-      case 'E': {
-        switch(*(i+1)) {
-          case 'p':
-            params |= PRM_EPOSTGRES;
-            params &= ~PRM_ENULL;
-          break;
-
-          case 'n':
-            params &= ~PRM_EPOSTGRES;
-            params |= PRM_ENULL;
-          break;
-        }
-      } break;
     }
 
     i++;

@@ -1,4 +1,4 @@
-int strAppendUTF8(long codepoint, unsigned char **nfdString, int nfdLength) {
+int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t nfdLength) {
   MAC_YIELD
 
   if(codepoint < 0x80) {

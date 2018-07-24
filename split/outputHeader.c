@@ -2,10 +2,17 @@ void outputHeader(struct qryData *query) {
   int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
   FILE *outputFile;
-  char *separator = (((query->params) & PRM_SPACE) != 0) ? ", " : ",";
+  char *separator;
   char *string2 = NULL;
 
   MAC_YIELD
+
+  if((query->params & PRM_EURO)) {
+    separator = (query->params & PRM_SPACE) ? "; " : ";";
+  }
+  else {
+    separator = (query->params & PRM_SPACE) ? ", " : ",";
+  }
 
   /* set up the output context */
   if(!outputSetup(query)) {
@@ -30,11 +37,17 @@ void outputHeader(struct qryData *query) {
       }
 
       /* strip over the leading underscore */
-      if((query->params) & PRM_QUOTE) {
+      if(query->params & PRM_POSTGRES) {
+        outputPostgresEscapes((currentResultColumn->resultColumnName)+1, outputFile, query->outputEncoding);
+      }
+      else {
+        if(query->params & PRM_QUOTE) {
           fputsEncoded("\"", outputFile, query->outputEncoding);
-          if(string2 = strReplace("\"", "\"\"", (currentResultColumn->resultColumnName)+1)) {
+
+          if((string2 = strReplace("\"", "\"\"", (currentResultColumn->resultColumnName)+1))) {
             fputsEncoded(string2, outputFile, query->outputEncoding);
           }
+
           fputsEncoded("\"", outputFile, query->outputEncoding);
           freeAndZero(string2);
         }
@@ -45,6 +58,7 @@ void outputHeader(struct qryData *query) {
             query->outputEncoding
           );
         }
+      }
     }
   }
 

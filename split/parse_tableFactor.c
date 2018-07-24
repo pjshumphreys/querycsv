@@ -3,6 +3,7 @@ void parse_tableFactor(
     int isLeftJoin,
     char *fileName,
     char *tableName,
+    int fromOptions,
     int fileEncoding
 ) {
   FILE *csvFile;
@@ -33,6 +34,7 @@ void parse_tableFactor(
   newTable->queryTableName = tableName;
   newTable->fileName = fileName;
   newTable->fileStream = csvFile;
+  newTable->options = fromOptions;
   newTable->fileEncoding = fileEncoding;
   newTable->cpIndex = newTable->arrLength = 0;
 

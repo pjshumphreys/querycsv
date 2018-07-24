@@ -6,7 +6,6 @@ int needsEscaping(char *str, int params) {
       *str == '\0' ||
 
       /* always escape the string "\N" to work well with systems that store nulls in csv files*/
-      strcmp(str, "\\N") == 0 ||
       strcmp(str, "NULL") == 0
     ) {
     return TRUE;

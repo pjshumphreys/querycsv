@@ -141,24 +141,28 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
 #ifdef MPW_C
   /* Macs swap 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
-  if(query->outputFileName != NULL && (((query->params) & PRM_MAC) == FALSE)) {
-    if((((query->params) & PRM_UNIX) != FALSE)) {
+  if(query->outputFileName && !(query->params & PRM_MAC)) {
+    if(query->params & PRM_UNIX) {
       query->newLine = "\r";
     }
     else if(query->outputEncoding == ENC_CP1047) {
-      query->newLine = "\205";
+      if(!(query->params & PRM_POSTGRES)) {
+        query->newLine = "\302\205";
+      }
     }
     else {
       query->newLine = "\n\r";
     }
   }
 #else
-  if(query->outputFileName != NULL && (((query->params) & PRM_UNIX) == FALSE)) {
-    if((((query->params) & PRM_MAC) != FALSE)) {
+  if(query->outputFileName && !(query->params & PRM_UNIX)) {
+    if(query->params & PRM_MAC) {
       query->newLine = "\r";
     }
     else if(query->outputEncoding == ENC_CP1047) {
-      query->newLine = "\302\205";
+      if(!(query->params & PRM_POSTGRES)) {
+        query->newLine = "\302\205";
+      }
     }
     else {
       query->newLine = "\r\n";
@@ -193,7 +197,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
             &columnLength,
             NULL,
             &headerByteLength,
-            (query->params & PRM_TRIM) == FALSE,
+            !(query->params & PRM_TRIM),
             query->newLine
           );
 

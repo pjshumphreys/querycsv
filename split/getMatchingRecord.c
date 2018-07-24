@@ -77,16 +77,16 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               &(columnOffsetData.length),
               &(columnOffsetData.isQuoted),
               NULL,
-              (query->params & PRM_TRIM) == FALSE,
+              !(currentInputTable->options & PRM_TRIM),
               query->newLine
             );
 
           if(
               (!columnOffsetData.isQuoted) &&
               (
-                ((query->params & PRM_BLANK) && strcmp(columnOffsetData.value, "") == 0) ||
-                ((query->params & PRM_POSTGRES) && strcmp(columnOffsetData.value, "\\N") == 0) ||
-                ((query->params & PRM_NULL) && strcmp(columnOffsetData.value, "NULL") == 0)
+                ((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData.value, "") == 0) ||
+                ((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData.value, "\\N") == 0) ||
+                ((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData.value, "NULL") == 0)
               )
           ) {
             freeAndZero(columnOffsetData.value);
@@ -138,7 +138,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             NULL,
             NULL,
             NULL,
-            (query->params & PRM_TRIM) == FALSE,
+            !(query->params & PRM_TRIM),
             query->newLine
           )) {
           /* do nothing */

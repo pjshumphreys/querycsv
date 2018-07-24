@@ -8,11 +8,18 @@ void outputResult(
   struct resultColumnValue *field;
   int firstColumn = TRUE, j = 0;
   FILE *outputFile = query->outputFile;
-  char *separator = (((query->params) & PRM_SPACE) != 0) ? ", " : ",";
+  char *separator;
   char *string = NULL;
   char *string2 = NULL;
 
   MAC_YIELD
+
+  if(query->params & PRM_EURO) {
+    separator = (query->params & PRM_SPACE) ? "; " : ";";
+  }
+  else {
+    separator = (query->params & PRM_SPACE) ? ", " : ",";
+  }
 
   /* for output columns */
   for(
@@ -32,30 +39,35 @@ void outputResult(
       field = &(columns[j]);
 
       if(field->isNull == TRUE) {
-        if(((query->params) & PRM_ENULL) != 0) {
-          fputsEncoded("NULL", outputFile, query->outputEncoding);
-        }
-        else if(((query->params) & PRM_EPOSTGRES) != 0) {
+        if(query->params & PRM_POSTGRES) {
           fputsEncoded("\\N", outputFile, query->outputEncoding);
+        }
+        else if(query->params & PRM_NULL) {
+          fputsEncoded("NULL", outputFile, query->outputEncoding);
         }
       }
       else {
         stringGet((unsigned char **)(&string), field, query->params);
 
-        /* need to properly re-escape fields that need it */
-        if(
-            ((query->params) & PRM_QUOTE) ||
-            needsEscaping(string, query->params)
-        ) {
-          fputsEncoded("\"", outputFile, query->outputEncoding);
-          if(string2 = strReplace("\"", "\"\"", string)) {
-            fputsEncoded(string2, outputFile, query->outputEncoding);
-          }
-          fputsEncoded("\"", outputFile, query->outputEncoding);
-          freeAndZero(string2);
+        if(query->params & PRM_POSTGRES) {
+          outputPostgresEscapes(string, outputFile, query->outputEncoding);
         }
         else {
-          fputsEncoded(string, outputFile, query->outputEncoding);
+          /* need to properly re-escape fields that need it */
+          if(
+              (query->params & PRM_QUOTE) ||
+              needsEscaping(string, query->params)
+          ) {
+            fputsEncoded("\"", outputFile, query->outputEncoding);
+            if((string2 = strReplace("\"", "\"\"", string))) {
+              fputsEncoded(string2, outputFile, query->outputEncoding);
+            }
+            fputsEncoded("\"", outputFile, query->outputEncoding);
+            freeAndZero(string2);
+          }
+          else {
+            fputsEncoded(string, outputFile, query->outputEncoding);
+          }
         }
       }
     }

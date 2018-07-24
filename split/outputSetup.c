@@ -19,7 +19,7 @@ int outputSetup(struct qryData *query) {
     switch(query->outputEncoding) {
       case ENC_UTF8:
         /* only write the byte order mark if it was requested for utf-8 */
-        if(((query->params) & PRM_BOM) == 0) {
+        if(!(query->params & PRM_BOM)) {
           break;
         }
 
