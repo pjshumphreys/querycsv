@@ -8,7 +8,7 @@ void getCaseValue(
 
   while(
     currentCase->test != NULL &&
-    walkRejectRecord(expressionPtr->minTable, currentCase->test, match) != FALSE
+    walkRejectRecord(expressionPtr->minTable, currentCase->test, match)
   ) {
     currentCase = currentCase->nextInList;
   }

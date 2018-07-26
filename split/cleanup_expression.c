@@ -30,6 +30,10 @@ void cleanup_expression(struct expression *currentExpression) {
         cleanup_expression(currentExpression->unionPtrs.leaves.leftPtr);
       break;
 
+      case EXP_CASE:
+        cleanup_case((struct caseEntry *)(currentExpression->unionPtrs.voidPtr));
+      break;
+
       default:
         cleanup_expression(currentExpression->unionPtrs.leaves.leftPtr);
         cleanup_expression(currentExpression->unionPtrs.leaves.rightPtr);

@@ -1,2 +1,2 @@
-select names, case when nm = 6 then 9 else 0 end as nm, bar
+select names, case when nm is null then 9 else 0 end as nm, bar
 from 'test24.csv' as a options 'e'

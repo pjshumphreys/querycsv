@@ -109,7 +109,7 @@
 
 /* this macro was intended to facilitate multi tasking on classic mac os,
 but hasn't actually been needed up to now. It's being kept just in case
-it becomes needed */
+it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
 
 #if defined(__unix__) || defined(__LINUX__)

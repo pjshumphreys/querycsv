@@ -44,7 +44,7 @@ void getCalculatedColumns(
             getCaseValue(currentExpression, &matchParams);
           }
 
-          /* store the value's length */
+          /* change ownership of the expression value to the result set */
           if(currentExpression->isNull) {
             match[j].length = 0;
             match[j].isNull = TRUE;
@@ -56,8 +56,6 @@ void getCalculatedColumns(
             match[j].value = currentExpression->value;
           }
 
-          /* free the expression value for this match */
-          /* strFree(&(currentReference->reference.calculatedPtr.expressionPtr->value)); */
           currentExpression->value = NULL;
         }
 

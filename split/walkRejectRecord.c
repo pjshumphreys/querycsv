@@ -109,10 +109,16 @@ int walkRejectRecord(
     } break;
 
     case EXP_ISNULL: {
+      getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
+
       return !(expressionPtr->unionPtrs.leaves.leftPtr->isNull);
     } break;
 
     case EXP_NOTNULL: {
+      getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
+      freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
+
       return expressionPtr->unionPtrs.leaves.leftPtr->isNull;
     } break;
 
