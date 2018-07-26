@@ -22,7 +22,7 @@ void getCaseValue(
   }
   else {
     expressionPtr->isNull = FALSE;
-    expressionPtr->value = expressionPtr->value->value;
-    expressionPtr->test->value = NULL;
+    expressionPtr->value = currentCase->value->value;
+    currentCase->test->value = NULL;
   }
 }

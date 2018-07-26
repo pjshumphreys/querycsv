@@ -37,7 +37,7 @@ void getCalculatedColumns(
           currentExpression = currentReference->reference.calculatedPtr.expressionPtr;
 
           /* get expression value for this match */
-          if(currentExpression->type !== EXP_CASE) {
+          if(currentExpression->type != EXP_CASE) {
             getValue(currentExpression, &matchParams);
           }
           else {

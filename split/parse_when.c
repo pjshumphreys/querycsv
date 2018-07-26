@@ -12,7 +12,7 @@ struct caseEntry *parse_when(
     return NULL;
   }
 
-  reallocMsg(&newEntry, sizeof(struct caseEntry));
+  reallocMsg((void **)&newEntry, sizeof(struct caseEntry));
 
   newEntry->test = newTest;
   newEntry->value = newResult;

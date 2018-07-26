@@ -8,7 +8,6 @@ struct expression *parse_case(
     struct caseEntry* currentCase,
     struct expression* elseResult
 ) {
-  struct caseEntry* firstEntry = NULL;
   struct expression* newExpression = NULL;
 
   MAC_YIELD
@@ -17,7 +16,7 @@ struct expression *parse_case(
     return NULL;
   }
 
-  if(elseValue != NULL) {
+  if(elseResult != NULL) {
     currentCase = parse_when(
         queryData,
         currentCase,
@@ -27,7 +26,7 @@ struct expression *parse_case(
       );
   }
 
-  reallocMsg(&newExpression, sizeof(struct expression));
+  reallocMsg((void **)&newExpression, sizeof(struct expression));
 
   newExpression->type = EXP_CASE;
 
