@@ -23,6 +23,6 @@ void getCaseValue(
   else {
     expressionPtr->isNull = FALSE;
     expressionPtr->value = currentCase->value->value;
-    currentCase->test->value = NULL;
+    currentCase->value->value = NULL;
   }
 }
