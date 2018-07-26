@@ -1,4 +1,4 @@
-function ___syscall220(which, varargs) {
+___syscall220 = function(which, varargs) {
   SYSCALLS.varargs = varargs;
 
   try {
@@ -581,7 +581,7 @@ return Module;
 
 })();
 
-var stringifyAndPostFactory = function(object, JSON) {
+this["stringifyAndPostFactory"] = function(object, JSON) {
   return function(messageType, data) {
     object.postMessage(JSON.stringify({
       messageType:  messageType,

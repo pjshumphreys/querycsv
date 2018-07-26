@@ -60,7 +60,7 @@
       consoleRefresh(true);
     }, 30),
 
-    addListEntry = Module.Runtime.addFunction(function(name, type, modified, size) {
+    addListEntry = Module.addFunction(function(name, type, modified, size) {
       var a, b;
       name = Module.Pointer_stringify(name);
 
@@ -113,7 +113,7 @@
   }
 
   function stopTap() {
-    targetElem.removeClass('longTapping').removeClass('pushed');
+    targetElem && targetElem.removeClass('longTapping').removeClass('pushed');
     doTap = false;
   }
 
@@ -969,10 +969,6 @@
     var factor = Math.floor(((""+bytes).length - 1) / 3);
 
     return ""+round(bytes / Math.pow(1000, factor), 1) + " " + size[factor];
-  }
-
-  function doNothing() {
-
   }
 
   function messageHandler(e) {

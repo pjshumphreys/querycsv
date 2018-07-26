@@ -2,12 +2,12 @@
   'use strict';
 
   var
-  currentMessageId = 0,
-  usingFakeIDB,
-  stringifyAndPost,
-  toEmscripten,
-  commandQueue = [],
-  xxx;
+    currentMessageId = 0,
+    usingFakeIDB,
+    stringifyAndPost,
+    toEmscripten,
+    commandQueue = [],
+    xxx;
 
   function doNothing() {
 
@@ -106,8 +106,8 @@
     stringifyAndPost = stringifyAndPostFactory(self, JSON);
     self.onmessage = messageHandler;
 
-    Module.print = stdout;
-    Module.printErr = stderr;
+    Module.qcsvprint = stdout;
+    Module.qcsvprinterr = stderr;
 
     Module.FS.mkdir('/Documents');
     Module.FS.mount(Module.FS.filesystems.IDBWFS, {

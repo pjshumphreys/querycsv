@@ -71,7 +71,8 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
     fclose(queryFile);
-    queryFile = fopen(queryFileName, fopen_read);
+
+    queryFile = skipBom(queryFileName, NULL, &initialEncoding);
 
     if(queryFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
@@ -198,7 +199,8 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
   /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
   fclose(queryFile);
-  queryFile = fopen(queryFileName, fopen_read);
+
+  queryFile = skipBom(queryFileName, NULL, &initialEncoding);
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return EXIT_FAILURE;

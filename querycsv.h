@@ -115,7 +115,9 @@ it becomes needed and because it's useful for debugging */
 #if defined(__unix__) || defined(__LINUX__)
   #if defined(EMSCRIPTEN)
     #define main realmain
-  #elif !defined(__WATCOMC__)
+  #endif
+
+  #if !defined(__WATCOMC__)
     int vsnprintf(char *s, size_t n, const char *format, va_list arg);
     #define HAS_VSNPRINTF   /* this function intentionally never works
     properly on watcom (for source compatability with the windows version) */
