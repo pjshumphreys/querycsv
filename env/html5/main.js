@@ -562,7 +562,7 @@
         break;
 
         case "editor":
-          editorRefresh();
+          setTimeout(editorRefresh,1);
         break;
 
         case "console":
