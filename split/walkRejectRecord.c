@@ -73,16 +73,6 @@ int walkRejectRecord(
         walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.rightPtr, match);
     } break;
 
-    case EXP_COLUMN:
-    case EXP_LITERAL:
-    case EXP_CALCULATED:
-    case EXP_PLUS:
-    case EXP_MINUS:
-    case EXP_MULTIPLY:
-    case EXP_DIVIDE:
-    case EXP_CONCAT:
-    case EXP_UPLUS:
-    case EXP_UMINUS:
     case EXP_NOT: {
       return walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.leftPtr, match) == 0;
     } break;
@@ -124,6 +114,11 @@ int walkRejectRecord(
 
     case EXP_NOTNULL: {
       return expressionPtr->unionPtrs.leaves.leftPtr->isNull;
+    } break;
+
+    default: {
+      fputs("Invalid search condition\n", stderr);
+      exit(EXIT_FAILURE);
     } break;
   }
 

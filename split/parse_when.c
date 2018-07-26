@@ -4,6 +4,7 @@ struct caseEntry *parse_when(
     struct expression* newTest,
     struct expression* newResult
 ) {
+  struct caseEntry* newEntry = NULL;
 
   MAC_YIELD
 
@@ -11,6 +12,19 @@ struct caseEntry *parse_when(
     return NULL;
   }
 
-  return NULL;
+  reallocMsg(&newEntry, sizeof(struct caseEntry));
+
+  newEntry->test = newTest;
+  newEntry->value = newResult;
+
+  if(initialEntries == NULL) {
+    newEntry->nextInList = newEntry;
+  }
+  else {
+    newEntry->nextInList = initialEntries->nextInList;
+    initialEntries->nextInList = newEntry;
+  }
+
+  return newEntry;
 }
 

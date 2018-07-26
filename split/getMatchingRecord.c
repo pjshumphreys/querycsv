@@ -6,6 +6,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   struct resultColumnParam matchParams;
   int recordHasColumn;
   int doLeftRecord = FALSE;
+  int isQuoted;
 
   MAC_YIELD
 
@@ -29,7 +30,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
         getCalculatedColumns(query, match, FALSE);
 
         if(!walkRejectRecord(
-          1, /* 1 means all tables and *CALCULATED* columns */
+          1, /* there aren't any tables that need to be checked against here */
           query->joinsAndWhereClause,
           &matchParams
         )) {
@@ -75,14 +76,14 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               currentInputTable,
               &(columnOffsetData.value),
               &(columnOffsetData.length),
-              &(columnOffsetData.isQuoted),
+              &(isQuoted),
               NULL,
               !(currentInputTable->options & PRM_TRIM),
               query->newLine
             );
 
           if(
-              (!columnOffsetData.isQuoted) &&
+              (!isQuoted) &&
               (
                 ((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData.value, "") == 0) ||
                 ((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData.value, "\\N") == 0) ||
@@ -96,19 +97,12 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
           else {
             columnOffsetData.isNull = FALSE;
           }
-
-          /* these values should actually be set depending on whether the value was quoted or not */
-          /* if the value is quoted we should probably also NFD normalise it before writing to the scratchpad */
-          columnOffsetData.isNormalized = FALSE;
         }
 
         /* construct an empty column reference. */
         else {
           columnOffsetData.isNull = doLeftRecord;
-          columnOffsetData.startOffset = 0;
           columnOffsetData.length = 0;
-          columnOffsetData.isQuoted = FALSE;
-          columnOffsetData.isNormalized = TRUE; /* an empty string needs no unicode normalization */
           columnOffsetData.value = mystrdup("");
         }
 
@@ -204,6 +198,9 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
     }
 
     myfseek(currentInputTable->fileStream, currentInputTable->firstRecordOffset, SEEK_SET);
+
+    getNextCodepoint(currentInputTable);
+
     currentInputTable->noLeftRecord = TRUE;
 
     /* go back up the list of tables. */

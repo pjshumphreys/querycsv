@@ -12,7 +12,7 @@ void parse_whereClause(
   }
 
   if(queryData->joinsAndWhereClause == NULL) {
-    /* first join or where clause. just use it dirrectly */
+    /* first join or where clause. just use it directly */
     queryData->joinsAndWhereClause = expressionPtr;
   }
   else {

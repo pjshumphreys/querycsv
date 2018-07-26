@@ -44,6 +44,7 @@
 #define EXP_GROUP 22
 #define EXP_ISNULL 23
 #define EXP_NOTNULL 24
+#define EXP_CASE 25
 
 /* identifier reference types */
 #define REF_COLUMN 1
@@ -364,7 +365,7 @@ struct resultColumn {
   double groupNum;
   char *groupText;
   char *resultColumnName;
-  struct resultColumn *nextColumnInstance;
+  struct resultColumn *nextColumnInstance;  /* if the same expression is used in multiple places */
   struct resultColumn *nextColumnInResults;
 };
 
@@ -424,7 +425,6 @@ struct expression {
 };
 
 struct caseEntry {
-  int index;
   struct expression* test;
   struct expression* value;
   struct caseEntry *nextInList;
@@ -461,12 +461,9 @@ struct sortingList {
 };
 
 struct resultColumnValue { /* this information should be stored in files */
-  long startOffset;
-  int isQuoted;
-  int isNormalized;
-  int isNull;
-  size_t length;
   char *value;  /* pre normalised value */
+  size_t length;
+  char isNull;
 };
 
 /* results are sorted in a binary tree for quick in order retrieval */

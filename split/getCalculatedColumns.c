@@ -8,6 +8,7 @@ void getCalculatedColumns(
   struct resultColumn *currentResultColumn;
   struct columnRefHashEntry *currentHashEntry;
   struct resultColumnParam matchParams;
+  struct expression *currentExpression;
 
   MAC_YIELD
 
@@ -32,28 +33,32 @@ void getCalculatedColumns(
 
           /* start setting column value fields */
           j = currentResultColumn->resultColumnIndex;
-          match[j].isQuoted = FALSE;
-          match[j].isNormalized = FALSE;
-          match[j].startOffset = 0;   /* ftell(query->scratchpad); */
+
+          currentExpression = currentReference->reference.calculatedPtr.expressionPtr;
 
           /* get expression value for this match */
-          getValue(currentReference->reference.calculatedPtr.expressionPtr, &matchParams);
+          if(currentExpression->type !== EXP_CASE) {
+            getValue(currentExpression, &matchParams);
+          }
+          else {
+            getCaseValue(currentExpression, &matchParams);
+          }
 
           /* store the value's length */
-          if(currentReference->reference.calculatedPtr.expressionPtr->isNull) {
+          if(currentExpression->isNull) {
             match[j].length = 0;
             match[j].isNull = TRUE;
             match[j].value = mystrdup("");
           }
           else {
             match[j].isNull = FALSE;
-            match[j].length = strlen(currentReference->reference.calculatedPtr.expressionPtr->value);
-            match[j].value = currentReference->reference.calculatedPtr.expressionPtr->value;
+            match[j].length = strlen(currentExpression->value);
+            match[j].value = currentExpression->value;
           }
 
           /* free the expression value for this match */
           /* strFree(&(currentReference->reference.calculatedPtr.expressionPtr->value)); */
-          currentReference->reference.calculatedPtr.expressionPtr->value = NULL;
+          currentExpression->value = NULL;
         }
 
         currentReference = currentReference->nextReferenceWithName;

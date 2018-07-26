@@ -13,17 +13,19 @@ struct expression *parse_functionRef(
     return NULL;
   }
 
-  queryData->hasGrouping = TRUE;
+  if(aggregationType != GRP_NONE) {
+    queryData->hasGrouping = TRUE;
 
-  if(isDistinct) {
-    aggregationType+=GRP_STAR;
-  }
+    if(isDistinct) {
+      aggregationType+=GRP_STAR;
+    }
 
-  if(expressionPtr->containsAggregates) {
-    /* I don't think in sql you can aggregate an aggregate. */
-    /* therefore we should error out if we get to this point */
-    fputs(TDB_AGGREG_AGGREG, stderr);
-    exit(EXIT_FAILURE);
+    if(expressionPtr->containsAggregates) {
+      /* I don't think in sql you can aggregate an aggregate. */
+      /* therefore we should error out if we get to this point */
+      fputs(TDB_AGGREG_AGGREG, stderr);
+      exit(EXIT_FAILURE);
+    }
   }
 
   /* parse_expCommaList is used to put an expression into a */
@@ -42,7 +44,7 @@ struct expression *parse_functionRef(
   expressionPtr2->minTable = expressionPtr->minTable;
 
   /* change the ref type back up the expression tree to be calculated later */
-  expressionPtr2->containsAggregates = TRUE;
+  expressionPtr2->containsAggregates = (aggregationType != GRP_NONE);
 
   return expressionPtr2;
 }
