@@ -263,8 +263,8 @@ Just use long ones for that compiler */
   #define PRM_DEFAULT PRM_BLANK & PRM_UNIX
 
   #define YY_NO_UNISTD_H 1
-  #include <clib/utility_protos.h> /* for Stricmp */
-  #define stricmp Stricmp
+  int stricmp(const char *str1, const char *str2); /* use our own stricmp as the
+  amiga's built in one is a hassle to use with vbcc */
 
   #define main realmain   /* We need to define our own main function as
   VBCC seems to be doing something automagical with the main function

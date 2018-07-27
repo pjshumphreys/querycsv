@@ -67,6 +67,20 @@ struct IntuiText ok_text = {
 BPTR olddir = (BPTR)-1;
 char **myargv = NULL;
 
+int stricmp(const char *str1, const char *str2) {
+  const unsigned char *p1 = (unsigned char *)str1-1;
+  const unsigned char *p2 = (unsigned char *)str2-1;
+  unsigned long c1, c2;
+
+  while(tolower(c1 = *++p1) == tolower(c2 = *++p2)) {
+    if(!c1) {
+      return 0;
+    }
+  }
+
+  return c1 - c2;
+}
+
 void onShutdown(void) {
   free(myargv);
 
@@ -75,9 +89,9 @@ void onShutdown(void) {
     olddir = (BPTR)-1;
   }
 
-  fputs("\nPRESS ENTER TO QUIT\n", stdout);
+  fputs(TDB_PRESS_A_KEY, stdout);
   setvbuf(stdout, NULL, _IONBF, 0);
-  while(fgetc(stdout) != 10) { /* Do nothing */}
+  fgetc(stdout);
   fclose(stdout);
 }
 
@@ -105,7 +119,7 @@ int main(int argc, char** argv) {
 
   /* open console for reading and writing so that we can prevent the console window
   from closing until enter has been pressed */
-  if((fp = freopen("CON:30/30/510/175/QueryCSV", "a+", stdout)) == NULL) {
+  if((fp = freopen("RAW:30/30/510/175/QueryCSV", "a+", stdout)) == NULL) {
     return EXIT_FAILURE;
   }
 
