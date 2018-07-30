@@ -1,12 +1,115 @@
 void cleanup_query(struct qryData *query) {
   MAC_YIELD
 
-  cleanup_columnReferences(query->columnReferenceHashTable);
-  cleanup_resultColumns(query->firstResultColumn);
-  cleanup_orderByClause(query->groupByClause);
-  cleanup_orderByClause(query->orderByClause);
+  /* cleanup_columnReferences */
+  {
+    struct columnReferenceHash *table = query->columnReferenceHashTable;
+    int i;
+    struct columnRefHashEntry *currentHashEntry, *nextHashEntry;
+    struct columnReference *currentReference, *nextReference;
+
+    for(i = 0; i < table->size; i++) {
+      currentHashEntry = table->table[i];
+
+      while(currentHashEntry != NULL) {
+        nextHashEntry = currentHashEntry->nextReferenceInHash;
+
+        free(currentHashEntry->referenceName);
+        currentReference = currentHashEntry->content;
+        free(currentHashEntry);
+
+        while(currentReference != NULL) {
+          nextReference = currentReference->nextReferenceWithName;
+
+          if(currentReference->referenceType == REF_COLUMN) {
+            free(currentReference->reference.columnPtr);
+          }
+
+          if(currentReference->referenceType == REF_EXPRESSION) {
+            cleanup_expression(currentReference->reference.calculatedPtr.expressionPtr);
+          }
+
+          free(currentReference);
+
+          currentReference = nextReference;
+        }
+
+        currentHashEntry = nextHashEntry;
+      }
+    }
+
+    free(table->table);
+    free(table);
+  }
+
+  /* cleanup_resultColumns */
+  {
+    struct resultColumn *currentResultColumn = query->firstResultColumn;
+    struct resultColumn *next;
+
+    while(currentResultColumn != NULL) {
+      next = currentResultColumn->nextColumnInResults;
+
+      free(currentResultColumn->resultColumnName);
+      free(currentResultColumn);
+
+      currentResultColumn = next;
+    }
+  }
+
+  /* cleanup_groupByClause */
+  {
+    struct sortingList *currentSortingList = query->groupByClause;
+    struct sortingList *next;
+
+    while(currentSortingList != NULL) {
+      next = currentSortingList->nextInList;
+
+      cleanup_expression(currentSortingList->expressionPtr);
+
+      free(currentSortingList);
+
+      currentSortingList = next;
+    }
+  }
+
+  /* cleanup_orderByClause */
+  {
+    struct sortingList *currentSortingList = query->orderByClause;
+    struct sortingList *next;
+
+    MAC_YIELD
+
+    while(currentSortingList != NULL) {
+      next = currentSortingList->nextInList;
+
+      cleanup_expression(currentSortingList->expressionPtr);
+
+      free(currentSortingList);
+
+      currentSortingList = next;
+    }
+  }
+
   cleanup_expression(query->joinsAndWhereClause);
-  cleanup_inputTables(query->firstInputTable);
+
+  /* cleanup_inputTables */
+  {
+    struct inputTable *currentInputTable = query->firstInputTable;
+    struct inputTable *next;
+
+    while(currentInputTable != NULL) {
+      next = currentInputTable->nextInputTable;
+
+      free(currentInputTable->queryTableName);
+      free(currentInputTable->fileName);
+      fclose(currentInputTable->fileStream);
+      free(currentInputTable);
+
+      currentInputTable = next;
+    }
+  }
+
   free(query->dateString);
 
   if(query->outputFileName) {

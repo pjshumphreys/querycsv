@@ -459,7 +459,7 @@ function compileData() {
 
   var labels = fs.createWriteStream('labels.s');
 
-  /* read the resultant memory locations an make an assembly include
+  /* read the resultant memory locations and make an assembly include
   containing just their addresses */
   lineReader2.on('line', line => {
     var name = line.replace(/^al\s+[0-9A-F]+ \./, "");
@@ -973,7 +973,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 8277;//8277;
+  var maxSize = 8430;//8277;
 
   files = [];
   var totalSizes = [];
@@ -1242,11 +1242,11 @@ function splitUpFunctions(filename, callback, append) {
             ]);
 
           activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
+writePause(activeStream, ".ifndef "+name+"\n");
         }
         else {
           writePause(activeStream, ".export "+name+"\n");
         }
-
         writePause(activeStream, line+"\n");
       }
     }
@@ -1300,6 +1300,7 @@ function splitUpFunctions(filename, callback, append) {
 
     for(i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */
+      writePause(rodataOutputStreams[i], ".endif\n");
       rodataOutputStreams[i].end(allStreamsClosed);
     }
 
