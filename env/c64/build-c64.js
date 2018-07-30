@@ -405,7 +405,13 @@ function compileParser() {
     'sed "'+
       's/YY_INITIAL_VALUE \(static YYSTYPE yyval_default;\)//g;'+
       's/YYSTYPE yylval YY_INITIAL_VALUE \(= yyval_default\);/static YYSTYPE yylval;/g;'+
-      '" sql.c > sql2.c');
+      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2\(int offset\);static const yytype_int16 yypact[]/g;'+
+      '" sql.c > sql2.h');
+
+  execSync(
+    'sed -i -r "'+
+      's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;'+
+      '" sql2.h');
 
   execSync('./cc65_2 -T -t c64 -O -Os sql2.c --static-locals --writable-strings');
 
@@ -1242,7 +1248,7 @@ function splitUpFunctions(filename, callback, append) {
             ]);
 
           activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
-writePause(activeStream, ".ifndef "+name+"\n");
+          writePause(activeStream, ".ifndef "+name+"\n");
         }
         else {
           writePause(activeStream, ".export "+name+"\n");

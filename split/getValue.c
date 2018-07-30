@@ -98,10 +98,15 @@ void getValue(
         expressionPtr->value = mystrdup("");
       }
       else {
-        exp_uminus(
-            &(expressionPtr->value),
-            strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL)
-          );
+        temp1 = ctof(0);
+        temp2 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
+
+        if(fcmp(temp2, temp1)) {
+          ftostr(&(expressionPtr->value), fneg(temp2));
+        }
+        else {
+          (expressionPtr->value) = mystrdup("0");
+        }
       }
 
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
@@ -151,11 +156,18 @@ void getValue(
           break;
 
           case EXP_DIVIDE:
-            exp_divide(
-                &(expressionPtr->value),
-                strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL),
-                strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL)
-              );
+            temp1 = ctof(0);
+            temp2 = strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL);
+
+            if(fcmp(temp2, temp1)) {
+              ftostr(
+                  &(expressionPtr->value),
+                  fdiv(strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL), temp2)
+                );
+            }
+            else {
+              (expressionPtr->value) = mystrdup("Infinity");
+            }
           break;
 
           case EXP_CONCAT:
