@@ -59,9 +59,7 @@ int d_sprintf(char **str, char *format, ...) {
 
   /* Create a new block of memory with the correct size rather than using realloc */
   /* as any old values could overlap with the format string. quit on failure */
-  if((newStr = (char*)malloc(newSize+1)) == NULL) {
-    return FALSE;
-  }
+  reallocMsg((void**)&newStr, newSize+1);
 
   /* do the string formatting for real. vsnprintf doesn't seem to be available on Lattice C */
   va_start(args, format);

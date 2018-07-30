@@ -15,7 +15,6 @@ int d_tztime(
   int hour_difference;
   int minute_difference;
 
-  char *output2;
   char *format = "+%02i%02i";
 
   MAC_YIELD
@@ -30,11 +29,7 @@ int d_tztime(
     memcpy((void*)lcl, (void*)localtime(now), sizeof(struct tm));
   }
   else if(output != NULL) {
-    lcl = (struct tm *)malloc(sizeof(struct tm));
-
-    if(lcl == NULL) {
-      return FALSE;
-    }
+    reallocMsg((void*)&lcl, sizeof(struct tm));
 
     memcpy((void*)lcl, (void*)localtime(now), sizeof(struct tm));
   }
@@ -45,15 +40,7 @@ int d_tztime(
     memcpy((void*)gm, (void*)gmtime(now), sizeof(struct tm));
   }
   else if(output != NULL) {
-    gm = (struct tm *)malloc(sizeof(struct tm));
-
-    if(gm == NULL) {
-      if(local == NULL) {
-        free((void*)lcl);
-      }
-
-      return FALSE;
-    }
+    reallocMsg((void**)&gm, sizeof(struct tm));
 
     memcpy((void*)gm, (void*)gmtime(now), sizeof(struct tm));
   }
@@ -62,20 +49,7 @@ int d_tztime(
     hourlcl = lcl->tm_hour;
     hourutc = gm->tm_hour;
 
-      output2 = (char*)realloc((void*)*output, 6);
-
-    if(output2 == NULL) {
-      if(local == NULL) {
-        free((void*)lcl);
-      }
-
-      if(utc == NULL) {
-        free((void*)gm);
-      }
-
-      return FALSE;
-    }
-    *output = output2;
+    reallocMsg((void**)output, 6);
 
     if(lcl->tm_year > gm->tm_year) {
       hourlcl+=24;
@@ -117,7 +91,6 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
   size_t length = 32; /* starting value */
   size_t length2 = 0;
   char *output = NULL;
-  char *output2 = NULL;
 
   MAC_YIELD
 
@@ -126,14 +99,7 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
   }
 
   while(length2 == 0) {
-    output2 = realloc((void*)output, length*sizeof(char));
-
-    if(output2 == NULL) {
-      freeAndZero(output);
-
-      return FALSE;
-    }
-    output = output2;
+    reallocMsg((void**)&output, length);
 
     /* calling strftime using the buffer we created */
     length2 = strftime(output, length, format, timeptr);
@@ -143,18 +109,11 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
   }
 
   /* shrink the allocated memory to fit the returned length */
-  output2 = realloc((void*)output, (length2+1)*sizeof(char));
-
-  /* quit if the shrinking didn't work successfully */
-  if(output2 == NULL) {
-    freeAndZero(output);
-
-    return FALSE;
-  }
+  reallocMsg((void**)&output, length2+1);
 
   /* free the contents of ptr then update it to point to the string we've built up */
   freeAndZero(*ptr);
-  *ptr = output2;
+  *ptr = output;
 
   /* everything completed successfully */
   return TRUE;

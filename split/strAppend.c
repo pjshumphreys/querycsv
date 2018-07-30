@@ -11,6 +11,7 @@ int strAppend(char c, char **value, size_t *strSize) {
   /* increment strSize */
   if(strSize != NULL) {
     if(value != NULL) {
+      /* continue to use realloc directly here as reallocMsg can call strAppend itself indirectly */
       if((temp = realloc(*value, (*strSize)+1)) != NULL) {
         *value = temp;
 
