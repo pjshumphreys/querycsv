@@ -185,7 +185,7 @@ message:
   .byte "       querycsv by paul humphreys", 13, 0
 
   ; jump table with our own [if], [rem] and [sys] statements.
-  ; [if] and [rem] necessary to make the new jump table work properly
+  ; [if] and [rem] are necessary to make the new jump table work properly
 A00C:
   .word $A830
   .word $A741

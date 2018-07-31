@@ -330,7 +330,7 @@ function compileLibC() {
 
   /* compile a fake program that uses c library */
   execSync(
-      "cl65 -T -t c64 -O -Os "+
+      "cl65 -T -t c64 "+
       "-Ln libc.lbl "+
       "--static-locals "+
       "--config libc"+passPostfix+".cfg "+
@@ -393,7 +393,7 @@ function compileLexer() {
 
   /* compile functions into assembly language. use our own
   patched cc65 executable that does "jmp farret" instead of "rts" */
-  execSync('./cc65_2 -T -t c64 -O -Os lexer2.c --writable-strings');
+  execSync('./cc65_2 -T -t c64 lexer2.c -O -Os --static-locals --writable-strings');
 
   splitUpFunctions("lexer2", compileParser);
 }
@@ -423,7 +423,7 @@ function compileParser() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync("./cc65_2 -T -t c64 -O -Os querycsv.c --writable-strings");
+  execSync("./cc65_2 -T -t c64 querycsv.c --writable-strings");
 
   splitUpFunctions("querycsv", compileData, true);
 }
@@ -530,7 +530,7 @@ function compileHash2() {
 
   if(passPostfix === "") {
     /* allow the hash2 function to be packed also */
-    execSync('./cc65_2 -T -t c64 -O -Os hash2out.c');
+    execSync('./cc65_2 -T -t c64 hash2out.c');
     splitUpFunctions("hash2out", compileHash3And4, true);
   }
   else {
@@ -979,7 +979,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 8430;//8277;
+  var maxSize = 8192;//8277;
 
   files = [];
   var totalSizes = [];
