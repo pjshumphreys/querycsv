@@ -112,6 +112,8 @@ but hasn't actually been needed up to now. It's being kept just in case
 it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
 
+#define YYMALLOC yymalloc
+
 #if defined(__unix__) || defined(__LINUX__)
   #if defined(EMSCRIPTEN)
     #define main realmain

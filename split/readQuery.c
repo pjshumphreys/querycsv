@@ -3,7 +3,7 @@
 
 int readQuery(char *queryFileName, struct qryData *query) {
   FILE *queryFile = NULL;
-  void *scanner;
+  void *scanner = NULL;
   struct inputTable *currentInputTable;
   struct resultColumn *currentResultColumn;
   struct sortingList *currentSortingList;
@@ -63,15 +63,15 @@ int readQuery(char *queryFileName, struct qryData *query) {
   /* check that the parsing completed sucessfully, otherwise show a message and quit */
   parserReturn = yyparse(query, scanner);
 
+  /* clean up the re-entrant flex scanner */
+  yylex_destroy(scanner);
+  scanner = NULL;
+
+  /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
+  fclose(queryFile);
+
   if(parserReturn == 0 && query->inputEncoding != ENC_UNKNOWN) {
     /* the input file specified its own encoding. rewind and parse again */
-
-    /* clean up the re-entrant flex scanner */
-    yylex_destroy(scanner);
-
-    /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
-    fclose(queryFile);
-
     queryFile = skipBom(queryFileName, NULL, &initialEncoding);
 
     if(queryFile == NULL) {
@@ -90,6 +90,13 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     /* do the first parser pass again using the proper encoding */
     parserReturn = yyparse(query, scanner);
+
+    /* clean up the re-entrant flex scanner */
+    yylex_destroy(scanner);
+    scanner = NULL;
+
+    /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
+    fclose(queryFile);
   }
   else {
     query->inputEncoding = initialEncoding;
@@ -101,9 +108,6 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
       /* Quit early if a command was run */
       if(query->commandMode) {
-        /* clean up the re-entrant flex scanner */
-        yylex_destroy(scanner);
-
         return EXIT_SUCCESS;
       }
 
@@ -188,17 +192,11 @@ int readQuery(char *queryFileName, struct qryData *query) {
   /* to store the current input table when getting matching records */
   query->secondaryInputTable = NULL;
 
-  /* clean up the re-entrant flex scanner */
-  yylex_destroy(scanner);
-
   /* TODO: use a hash table of the tables names to ensure they are all unique. */
   /* cause an error and exit the program if any table names are non-unique. */
 
   /* get set up for the second stage (populating the rest of the qryData structure using the cached data from stage 1) */
   query->parseMode = 1;
-
-  /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
-  fclose(queryFile);
 
   queryFile = skipBom(queryFileName, NULL, &initialEncoding);
   if(queryFile == NULL) {
@@ -212,10 +210,18 @@ int readQuery(char *queryFileName, struct qryData *query) {
   /* feed our script file into the scanner structure */
   yyset_in(queryFile, scanner);
 
+  parserReturn = yyparse(query, scanner);
+
+  /* clean up the re-entrant flex scanner */
+  yylex_destroy(scanner);
+
+  /* close the query file */
+  fclose(queryFile);
+
   /* parse the script file into the query data structure. */
   /* the parser will set up the contents of qryData as necessary */
   /* check that the parsing completed sucessfully, otherwise show a message and quit */
-  switch(yyparse(query, scanner)) {
+  switch(parserReturn) {
     case 0: {
       /* parsing finished sucessfully. continue processing */
     } break;
@@ -262,12 +268,6 @@ int readQuery(char *queryFileName, struct qryData *query) {
     query->groupByClause = query->groupByClause->nextInList;
     currentSortingList->nextInList = NULL;
   }
-
-  /* clean up the re-entrant flex scanner */
-  yylex_destroy(scanner);
-
-  /* close the query file */
-  fclose(queryFile);
 
   return EXIT_SUCCESS;
 }

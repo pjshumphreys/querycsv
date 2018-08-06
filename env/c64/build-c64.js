@@ -330,7 +330,7 @@ function compileLibC() {
 
   /* compile a fake program that uses c library */
   execSync(
-      "cl65 -T -t c64 "+
+      "cl65 -T -t c64 -O -Os "+
       "-Ln libc.lbl "+
       "--static-locals "+
       "--config libc"+passPostfix+".cfg "+
@@ -404,6 +404,7 @@ function compileParser() {
   execSync(
     'sed "'+
       's/YY_INITIAL_VALUE \(static YYSTYPE yyval_default;\)//g;'+
+      's/define YY_LAC_ESTABLISH/define YY_LAC_OESTABLISH/g;'+
       's/YYSTYPE yylval YY_INITIAL_VALUE \(= yyval_default\);/static YYSTYPE yylval;/g;'+
       's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2\(int offset\);static const yytype_int16 yypact[]/g;'+
       '" sql.c > sql2.h');
@@ -777,7 +778,7 @@ function calculateSizes() {
       "cl65 -T -t c64 "+
       "-o ./obj2/yyparse.bin "+
       "-Ln ./obj2/yyparse.lbl "+
-      "-C ./function.cfg ./g/_yyparse.s"
+      "-C ./yyparse.cfg ./g/_yyparse.s"
     );
 
   passPostfix = "a";
@@ -807,16 +808,16 @@ function calculateSizes() {
   remainder -= (yyparse_size+data_size+libc_size+floatlib_size+main_size);
 
   execSync(
-      "sed 's/ROMH:    file = %O, start = $8000, size = $4000/"+
-      "ROMH:    file = %O, start = $"+
+      "sed 's/ROMH:   file = %O, start = $8000, size = $4000/"+
+      "ROMH:   file = %O, start = $"+
       (yyparse_start.toString(16).toUpperCase())+
       ", size = $"+
       (yyparse_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:    file = "", start = $081A, size = $97E6/'+
-      'RAM5:    file = "", start = $081A, size = $'+
+      's/RAM5:   file = "", start = $081A, size = $97E6/'+
+      'RAM5:   file = "", start = $081A, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' function.cfg > yyparse.cfg"
+      "' yyparse.cfg > yyparsea.cfg"
     );
 
   execSync(
@@ -826,8 +827,8 @@ function calculateSizes() {
       ", size = $"+
       (data_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:    file = "", start = $081A, size = $97E6/'+
-      'RAM5:    file = "", start = $081A, size = $'+
+      's/RAM5:   file = "", start = $081A, size = $97E6/'+
+      'RAM5:   file = "", start = $081A, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' data.cfg > dataa.cfg"
     );
@@ -839,8 +840,8 @@ function calculateSizes() {
       ", size = $"+
       (floatlib_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:    file = "", start = $081A, size = $97E6/'+
-      'RAM5:    file = "", start = $081A, size = $'+
+      's/RAM5:   file = "", start = $081A, size = $97E6/'+
+      'RAM5:   file = "", start = $081A, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' floatlib.cfg > floatliba.cfg"
     );
@@ -852,8 +853,8 @@ function calculateSizes() {
       ", size = $"+
       (libc_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:    file = "", start = $081A, size = $97E6/'+
-      'RAM5:    file = "", start = $081A, size = $'+
+      's/RAM5:   file = "", start = $081A, size = $97E6/'+
+      'RAM5:   file = "", start = $081A, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' libc.cfg > libca.cfg"
     );
@@ -873,8 +874,8 @@ function calculateSizes() {
 
   execSync(
       "sed '"+
-      's/RAM5:    file = "", start = $081A, size = $97E6/'+
-      'RAM5:    file = "", start = $081A, size = $'+
+      's/RAM2:    file = "", start = $081A, size = $97E6/'+
+      'RAM2:    file = "", start = $081A, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' page.cfg > pagea.cfg"
     );
@@ -890,7 +891,7 @@ function compileYYParse() {
       "cl65 -T -t c64 "+
       "-o ./obj2/yyparse.bin "+
       "-Ln ./obj2/yyparse.lbl "+
-      "-C ./yyparse.cfg ./g/_yyparse.s"
+      "-C ./yyparsea.cfg ./g/_yyparse.s"
     );
 
   execSync("mv s/_yyparse.s ./_yyparse.s");
@@ -979,7 +980,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 8192;//8277;
+  var maxSize = 8277;//8277;
 
   files = [];
   var totalSizes = [];

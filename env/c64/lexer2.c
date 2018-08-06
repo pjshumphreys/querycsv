@@ -1,4 +1,5 @@
 #define YY_USE_CONST 1
+#define YY_BUF_SIZE 512
 
 #include "lexer2.h"
 

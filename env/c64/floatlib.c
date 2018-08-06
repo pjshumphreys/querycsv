@@ -46,7 +46,7 @@ double strtod(const char* str, char** endptr) {
 #pragma rodata-name ("FAKERODATA")
 #pragma data-name ("FAKEDATA")
 #pragma bss-name ("FAKEDATA")
-#pragma code-name ("FOO")
+#pragma code-name ("FAKECODE")
 
 int main(int argc, char **argv) {
   return 0;
