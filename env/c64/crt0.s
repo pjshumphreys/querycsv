@@ -15,7 +15,7 @@ EASYFLASH_KILL    = $04
 
 .importzp       ptr1, ptr2, tmp1
 .import BSOUT
-.import __RAM5_START__, __RAM5_SIZE__     ; Linker generated
+.import __RAM_START__, __RAM_SIZE__     ; Linker generated
 .import __LOADER_LOAD__
 .import __STARTUP_LOAD__
 
@@ -331,9 +331,9 @@ AA9A:
   and #$02
   cmp #0
   bne skip
+  jsr $E544 ; clear screen
   lda #14
   jsr BSOUT
-  jsr $E544 ; clear screen
 
 skip:
   ;switch on the easy flash cartridge memory
@@ -398,9 +398,9 @@ MD4:
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
 
   ; Set argument stack ptr
-  lda #<(__RAM5_START__ + __RAM5_SIZE__)
+  lda #<(__RAM_START__ + __RAM_SIZE__)
   sta sp
-  lda #>(__RAM5_START__ + __RAM5_SIZE__)
+  lda #>(__RAM_START__ + __RAM_SIZE__)
   sta sp + 1
 
   ;initialise cc65 libc then call main

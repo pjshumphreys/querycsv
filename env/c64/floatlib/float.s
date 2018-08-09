@@ -493,8 +493,7 @@ __strtod:
 ; convert char to float
 ; void _ctof(FLOATFAC *f,char v);
 __ctof:
-        jsr popa
-        ;a: low
+        ;the char will be in register A
         jsr BASIC_s8_to_FAC
         jsr ___float_fac_to_float
         jmp farret
@@ -502,8 +501,7 @@ __ctof:
 ; convert unsigned char to float
 ; void _utof(FLOATFAC *f,unsigned char v);
 __utof:
-        jsr popa
-        ;a: low
+        ;the char will be in register A
         jsr BASIC_u8_to_FAC
         jsr ___float_fac_to_float
         jmp farret

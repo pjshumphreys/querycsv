@@ -17,9 +17,6 @@
 %option reentrant noyywrap never-interactive nounistd yylineno
 %option bison-bridge
 
-%option noyyalloc
-%option noyyrealloc
-
 %s commands
 
 U       [\x80-\xbf]

@@ -4,14 +4,20 @@ void reallocMsg(void **mem, size_t size) {
   MAC_YIELD
 
   if(mem != NULL) {
-    temp = realloc(*mem, size);
+    if(size) {
+      temp = realloc(*mem, size);
 
-    if(temp == NULL) {
-      fputs(TDB_MALLOC_FAILED, stderr);
-      exit(EXIT_FAILURE);
+      if(temp == NULL) {
+        fputs(TDB_MALLOC_FAILED, stderr);
+        exit(EXIT_FAILURE);
+      }
+
+      *mem = temp;
     }
-
-    *mem = temp;
+    else {
+      free(*mem);
+      *mem = NULL;
+    }
   }
   else {
     fputs(TDB_INVALID_REALLOC, stderr);

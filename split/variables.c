@@ -25,3 +25,7 @@ char returnByte;
 
 char * fopen_read = "rb";
 char * fopen_write = "wb";
+
+#ifndef __CC65__
+  char * columnText = TDB_UNTITLED_COLUMN;
+#endif

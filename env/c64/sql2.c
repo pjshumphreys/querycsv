@@ -1,5 +1,4 @@
-#define YYMAXDEPTH 1000
-#define YYMALLOC yymalloc
+#define YYMAXDEPTH 100
 #define YY_LAC_ESTABLISH                                         \
 do {                                                             \
   if (!yy_lac_established)                                       \

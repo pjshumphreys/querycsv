@@ -418,7 +418,15 @@ function compileParser() {
 
   //split parser up into 1 function per .s file
   //(including all rodata. add all data vars to a single .s file)
-  splitUpFunctions("sql2", compileQueryCSV, true);
+  splitUpFunctions("sql2", compileC64, true);
+}
+
+function compileC64() {
+  console.log('compileC64');
+
+  execSync("./cc65_2 -T -t c64 c64.c --writable-strings");
+
+  splitUpFunctions("c64", compileQueryCSV, true);
 }
 
 function compileQueryCSV() {
@@ -814,68 +822,68 @@ function calculateSizes() {
       ", size = $"+
       (yyparse_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:   file = "", start = $081A, size = $97E6/'+
-      'RAM5:   file = "", start = $081A, size = $'+
+      's/RAM:    file = "", start = $0800, size = $9800/'+
+      'RAM:    file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' yyparse.cfg > yyparsea.cfg"
     );
 
   execSync(
-      "sed 's/data2.bin\\\", start = $081A, size = $97E6/"+
+      "sed 's/data2.bin\\\", start = $0800, size = $9800/"+
       "data2.bin\\\", start = $"+
       (data_start.toString(16).toUpperCase())+
       ", size = $"+
       (data_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:   file = "", start = $081A, size = $97E6/'+
-      'RAM5:   file = "", start = $081A, size = $'+
+      's/RAM:    file = "", start = $0800, size = $9800/'+
+      'RAM:    file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' data.cfg > dataa.cfg"
     );
 
   execSync(
-      "sed 's/floatlibdata2.bin\\\", start = \$081A, size = \$97E6/"+
+      "sed 's/floatlibdata2.bin\\\", start = \$0800, size = \$9800/"+
       "floatlibdata2.bin\\\", start = $"+
       (floatlib_start.toString(16).toUpperCase())+
       ", size = $"+
       (floatlib_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:   file = "", start = $081A, size = $97E6/'+
-      'RAM5:   file = "", start = $081A, size = $'+
+      's/RAM:    file = "", start = $0800, size = $9800/'+
+      'RAM:    file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' floatlib.cfg > floatliba.cfg"
     );
 
   execSync(
-      "sed 's/libcdata2.bin\\\", start = \$081A, size = \$97E6/"+
+      "sed 's/libcdata2.bin\\\", start = \$0800, size = \$9800/"+
       "libcdata2.bin\\\", start = $"+
       (libc_start.toString(16).toUpperCase())+
       ", size = $"+
       (libc_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:   file = "", start = $081A, size = $97E6/'+
-      'RAM5:   file = "", start = $081A, size = $'+
+      's/RAM:      file = "", start = $0800, size = $9800/'+
+      'RAM:      file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' libc.cfg > libca.cfg"
     );
 
   execSync(
-      "sed 's/RAM2:     file = \\\"\\\", start = $081A, size = $97E6/"+
+      "sed 's/RAM2:     file = \\\"\\\", start = $0800, size = $9800/"+
       "RAM2:     file = \\\"\\\", start = $"+
       (main_start.toString(16).toUpperCase())+
       ", size = $"+
       (main_size.toString(16).toUpperCase())+
       "/g;"+
-      's/RAM5:     file = "", start = $081A, size = $97E6/'+
-      'RAM5:     file = "", start = $081A, size = $'+
+      's/RAM:      file = "", start = $0800, size = $9800/'+
+      'RAM:      file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' main.cfg > maina.cfg"
     );
 
   execSync(
       "sed '"+
-      's/RAM2:    file = "", start = $081A, size = $97E6/'+
-      'RAM2:    file = "", start = $081A, size = $'+
+      's/RAM:     file = "", start = $0800, size = $9800/'+
+      'RAM:     file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
       "' page.cfg > pagea.cfg"
     );

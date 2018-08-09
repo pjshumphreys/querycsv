@@ -14,7 +14,9 @@
 #define TDB_MALLOC_FAILED2 "Could not allocate needed memory\n"
 #define TDB_MALLOC_FAILED mallocFail
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
-#define TDB_UNTITLED_COLUMN "_Column %d", queryData->columnCount
+#define TDB_UNTITLED_COLUMN2 columnText, queryData->columnCount
+#define TDB_UNTITLED_COLUMN "_Column %d"
+#define TDB_UNTITLED_COLUMN3 "_Column %D"
 #define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename]\n"
 #define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"
 #define TDB_INVALID_UTF8 "Invalid utf-8 bytes stored in memory\n"

@@ -28,7 +28,7 @@ struct resultColumn *parse_expCommaList(
           exit(EXIT_FAILURE);
         }
       }
-      else if(d_sprintf(&resultColumnName, TDB_UNTITLED_COLUMN) == FALSE) {
+      else if(d_sprintf(&resultColumnName, TDB_UNTITLED_COLUMN2) == FALSE) {
         fputs(TDB_MALLOC_FAILED, stderr);
         exit(EXIT_FAILURE);
       }

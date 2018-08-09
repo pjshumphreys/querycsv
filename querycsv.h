@@ -112,8 +112,6 @@ but hasn't actually been needed up to now. It's being kept just in case
 it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
 
-#define YYMALLOC yymalloc
-
 #if defined(__unix__) || defined(__LINUX__)
   #if defined(EMSCRIPTEN)
     #define main realmain
@@ -317,6 +315,8 @@ Just use long ones for that compiler */
   have strtod (as it doesn't have built in floating point number support).
   We supply our own implementation that provides the same semantics but
   uses cc65-floatlib */
+
+  extern char* columnText;
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
