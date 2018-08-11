@@ -8,7 +8,7 @@ EASYFLASH_LED     = $80
 EASYFLASH_16K     = $07
 EASYFLASH_KILL    = $04
 
-;.export _exit
+.export _exit
 ;.export __STARTUP__ : absolute = 1      ; Mark as startup
 
 ;.import _main
@@ -407,19 +407,31 @@ MD4:
   lda #2
   sta EASYFLASH_BANK
   jsr initlib2
+  stx xRegBackup
+  tsx
+  stx spRegBackup
+  ldx xRegBackup
   jsr callmain
 
 _exit:
+  sta aRegBackup
   lda #2
   sta EASYFLASH_BANK
+  lda aRegBackup
+  stx xRegBackup
+  ldx spRegBackup
+  txs
+  ldx xRegBackup
   jsr donelib2
 
   ;disable the easyflash cartridge
+  sta aRegBackup
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
   ora #$07
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
+  lda aRegBackup
   jmp $A644
 
 callmain:

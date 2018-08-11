@@ -177,6 +177,7 @@ var defines = {
   "___float_float_to_fac": 0,
   "___float_float_to_fac_arg": 0,
   "aRegBackup": 0,
+  "spRegBackup": 0,
   "xRegBackup": 0
 };
 
@@ -746,6 +747,14 @@ function compileMain() {
     if(name == "farret") {
       labels.write(
           "farret = $"+
+          ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
+          "\n"
+        );
+    }
+
+    if(name == "_exit") {
+      labels.write(
+          "_exit = $"+
           ("0000"+(address.toString(16).toUpperCase())).substr(-4)+
           "\n"
         );

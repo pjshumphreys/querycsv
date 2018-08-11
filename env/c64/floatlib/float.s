@@ -145,7 +145,7 @@ incsp2x:
   .export   __fpoly1,__fpoly2
   .export   __fatan2
   .export   ___float_float_to_fac,___float_fac_to_float, ___float_float_to_fac_arg
-  .export aRegBackup, xRegBackup
+  .export aRegBackup, xRegBackup, spRegBackup
 
   .import   popa,popax,pushax,pusha
   .importzp ptr1
@@ -666,6 +666,7 @@ __fatan2:
 tempfloat:  .res 5
 xRegBackup: .byte $00
 aRegBackup: .byte $00
+spRegBackup: .byte $00
 
         .export __f_0,__f_256
         .export __f_pi2,__f_pi,__f_1pi2,__f_2pi

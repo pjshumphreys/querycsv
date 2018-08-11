@@ -1,5 +1,6 @@
 /* get localtime, gmtime and utc offset string from a time_t. allocate/free memory as needed */
 /* any of the last three parameters can be skipped by passing null */
+#ifndef __CC65__
 int d_tztime(
     time_t *now,
     struct tm *local,
@@ -118,3 +119,4 @@ int d_strftime(char **ptr, char *format, struct tm *timeptr) {
   /* everything completed successfully */
   return TRUE;
 }
+#endif

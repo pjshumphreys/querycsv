@@ -65,7 +65,6 @@ void foobar(char *string, char* format, ...) {
   va_end(args2);
 
   free(string);
-  exit(0);
 }
 
 int main(void) {
