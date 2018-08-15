@@ -20,7 +20,6 @@ void foobar(char *string, char* format, ...) {
   string = malloc(1);
   fgets(string, 1, stdin);
   free(string);
-  strnicmp(c, string, 3);
   string = calloc(1,3);
   string = realloc(string,5);
   strcpy(string, c);
@@ -42,10 +41,10 @@ void foobar(char *string, char* format, ...) {
   clearerr(test);
   num = fclose(test);
   fread(string, 2, 2, stdin);
-  fwrite(string, 1, 1, stdout);
   num = fgetc(stdin);
   ungetc(num, stdin);
   num = feof(stdin);
+  fwrite(string, 1, 1, stdout);
   num = fgetc(stdin);
   fputc(num, stderr);
   fflush(stdout);

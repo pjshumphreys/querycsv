@@ -6,12 +6,14 @@ on the c64 build, the format specifiers need to be in uppercase */
   #define D_STRING "%D"
   #define FOPEN_READ "RB";
   #define FOPEN_WRITE "WB";
+  #define TDB_MALLOC_FAILED2 "cOULD NOT ALLOCATE NEEDED MEMORY\n" /*avoid doing another malloc to print the out of memory message */
 #else
   #define S_STRING "%s"
   #define LD_STRING "%ld"
   #define D_STRING "%d"
   #define FOPEN_READ "rb";
   #define FOPEN_WRITE "wb";
+  #define TDB_MALLOC_FAILED2 "Could not allocate needed memory\n"
 #endif
 
 /* some translatable text strings */
@@ -27,7 +29,6 @@ on the c64 build, the format specifiers need to be in uppercase */
 #define TDB_PARSER_USED_ALL_RAM "Parsing the input file used up all memory storage space\n"
 #define TDB_PARSER_UNKNOWN "An unknown error occurred when parsing the input file\n"
 #define TDB_LEX_UNTERMINATED "Unterminated string on line " LD_STRING " (" S_STRING ")\n", lineno, text
-#define TDB_MALLOC_FAILED2 "Could not allocate needed memory\n"
 #define TDB_MALLOC_FAILED mallocFail
 #define TDB_MALLOC_FAILED3 TDB_MALLOC_FAILED, 1, 33
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"

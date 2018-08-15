@@ -173,6 +173,7 @@ lp2:
   jsr $AB1E     ; Output String
 
   ;start BASIC
+restart:
   ldx #$FB
   txs
   bne E386     ; BASIC Warm start [RUNSTOP-RESTORE]
@@ -432,7 +433,9 @@ _exit:
   lda #EASYFLASH_KILL
   sta EASYFLASH_CONTROL
   lda aRegBackup
-  jmp $A644
+
+  jsr $E3BF     ; re-initialize BASIC RAM
+  jmp restart   ; go to the regular c64 command line code
 
 callmain:
   lda #$02
