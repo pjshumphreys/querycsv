@@ -7,7 +7,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
   struct inputTable *currentInputTable;
   struct resultColumn *currentResultColumn;
   struct sortingList *currentSortingList;
-  int initialEncoding = ENC_UNKNOWN;
+  int initialEncoding = ENC_DEFAULT;
   int inputTableIndex = 1;
   int parserReturn = 0;
   char* errSyntax = TDB_PARSER_SYNTAX;
