@@ -26,7 +26,6 @@ void foobar(char *string, char* format, ...) {
   fgets(string,1,stdin);
   num = strcmp(c, string);
   num = strncmp(c, string, 3);
-  num = stricmp(c, string);
   num = strlen(string);
   string = strstr(string, c);
 

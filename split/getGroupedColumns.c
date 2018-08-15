@@ -33,10 +33,10 @@ void getGroupedColumns(struct qryData *query) {
             break;
             case GRP_COUNT:
             case GRP_DIS_COUNT:
-              d_sprintf(&(currentResultColumn->groupText), "%d", currentResultColumn->groupCount);
+              d_sprintf(&(currentResultColumn->groupText), D_STRING, currentResultColumn->groupCount);
             break;
             case GRP_STAR:
-              d_sprintf(&(currentResultColumn->groupText), "%d", query->groupCount);
+              d_sprintf(&(currentResultColumn->groupText), D_STRING, query->groupCount);
             break;
           }
         }

@@ -317,11 +317,13 @@ Just use long ones for that compiler */
   int fputs_c64(const char *str, FILE *stream);
   int fprintf_c64(FILE *stream, const char *format, ...);
   FILE *fopen_c64(const char *filename, const char *mode);
+  int mystricmp(const char *str1, const char *str2);
 
   #define fputs fputs_c64
   #define fopen fopen_c64
   #define fprintf fprintf_c64
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
+  #define stricmp mystricmp
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT

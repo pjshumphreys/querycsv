@@ -135,7 +135,6 @@ var clibFunctionsList = [
   ["_strcat",             2, 0x0001, "farcall2"],
   ["_strcmp",             2, 0x0001, "farcall2"],
   ["_strcpy",             2, 0x0001, "farcall2"],
-  ["_stricmp",            2, 0x0001, "farcall2"],
   ["_strlen",             2, 0x0001, "farcall2"],
   ["_strncat",            2, 0x0001, "farcall2"],
   ["_strstr",             2, 0x0001, "farcall2"],

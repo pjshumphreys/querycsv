@@ -14,6 +14,41 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 #define TRUE 1
 #define FALSE 0
 
+int mystricmp(const char *str1, const char *str2) {
+  int retval = 0;
+
+  unsigned char a, b;
+
+  for(;;) {
+    a = *str1++;
+    b = *str2++;
+
+    if(a >= 'A' && a <= 'Z') {
+      a = a - 'A' + 'a';
+    }
+
+    if(b >= 'A' && b <= 'Z') {
+      b = b - 'A' + 'a';
+    }
+
+    retval = a - b;
+
+    if(retval) {
+      break;
+    }
+
+    if(*str1 && *str2) {
+      continue;
+    }
+    else {
+      break;
+    }
+  }
+
+  return retval;
+}
+
+
 int fputs_c64(const char *str, FILE *stream) {
   size_t bytesStored;
   char *encoded = NULL;
