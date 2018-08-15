@@ -322,7 +322,6 @@ Just use long ones for that compiler */
   #define fopen fopen_c64
   #define fprintf fprintf_c64
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
-  #define mystrnicmp strnicmp
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT

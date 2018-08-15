@@ -111,8 +111,7 @@ var floatlibFunctionsList = [
 
 var clibFunctionsList = [
   /* standard C library functions */
-  ["_strtod",             1, 0x0001, "farcall"], /*this'll be provided by my
-  floatib wrapper */
+  ["_strtod",             1, 0x0001, "farcall"],
   ["_ltoa",               2, 0x0001, "farcall2"],
   ["_ultoa",              2, 0x0001, "farcall2"],
   ["_clearerr",           2, 0x0001, "farcall2"],
@@ -141,7 +140,6 @@ var clibFunctionsList = [
   ["_strlen",             2, 0x0001, "farcall2"],
   ["_strncat",            2, 0x0001, "farcall2"],
   ["_strncmp",            2, 0x0001, "farcall2"],
-  ["_strnicmp",           2, 0x0001, "farcall2"],
   ["_strstr",             2, 0x0001, "farcall2"],
   ["_sprintf",            2, 0x0001, "farcall2"],
   ["_vsnprintf",          2, 0x0001, "farcall2"],

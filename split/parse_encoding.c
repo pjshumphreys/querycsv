@@ -18,23 +18,23 @@ int parse_encoding2(char *encoding) {
 
     if(
         strcmp("16", matcher) == 0 ||
-        stricmp("16le", matcher) == 0
+        mystrnicmp("16le", matcher, 5) == 0
     ) {
       return ENC_UTF16LE;
     }
 
-    if(stricmp("16be", matcher) == 0) {
+    if(mystrnicmp("16be", matcher, 5) == 0) {
       return ENC_UTF16BE;
     }
 
     if(
         strcmp("32", matcher) == 0 ||
-        stricmp("32le", matcher) == 0
+        mystrnicmp("32le", matcher, 5) == 0
     ) {
       return ENC_UTF32LE;
     }
 
-    if(stricmp("32be", matcher) == 0) {
+    if(mystrnicmp("32be", matcher, 5) == 0) {
       return ENC_UTF32BE;
     }
   }
@@ -60,33 +60,33 @@ int parse_encoding2(char *encoding) {
   }
 
   else if(
-      stricmp("mac", encoding) == 0 ||
-      stricmp("macroman", encoding) == 0
+      mystrnicmp("mac", encoding, 4) == 0 ||
+      mystrnicmp("macroman", encoding, 9) == 0
   ) {
     return ENC_MAC;
   }
 
-  else if(stricmp("oem", encoding) == 0) {
+  else if(mystrnicmp("oem", encoding, 4) == 0) {
     return ENC_CP437;
   }
 
-  else if(stricmp("ansi", encoding) == 0) {
+  else if(mystrnicmp("ansi", encoding, 5) == 0) {
     return ENC_CP1252;
   }
 
-  else if(stricmp("unicode", encoding) == 0) {
+  else if(mystrnicmp("unicode", encoding, 8) == 0) {
     return ENC_UTF8;
   }
 
-  else if(stricmp("petscii", encoding) == 0) {
+  else if(mystrnicmp("petscii", encoding, 8) == 0) {
     return ENC_PETSCII;
   }
 
-  else if(stricmp("atarist", encoding) == 0) {
+  else if(mystrnicmp("atarist", encoding, 8) == 0) {
     return ENC_ATARIST;
   }
 
-  else if(stricmp("bbc", encoding) == 0) {
+  else if(mystrnicmp("bbc", encoding, 4) == 0) {
     return ENC_BBC;
   }
 
