@@ -49,12 +49,6 @@ int main(int argc, char *argv[]) {
 
   /* identify whether to run a script or display the usage message */
   if(argc2 == 2) {
-    if(strcmp(argv2[1], "") == 0) {
-      displayFile();
-
-      return EXIT_SUCCESS;
-    }
-
     return runQuery(argv2[1]);
   }
 
