@@ -27,7 +27,7 @@ void getTableColumns(struct qryData *query, struct inputTable *currentInputTable
         query->newLine
       );
 
-    d_sprintf(&columnText, "_%s", columnText);
+    d_sprintf(&columnText, "_" S_STRING, columnText);
 
     /* test whether a column with this name already exists in the hashtable */
     currentReference = hash_lookupString(query->columnReferenceHashTable, columnText);

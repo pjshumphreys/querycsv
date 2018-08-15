@@ -314,7 +314,7 @@ column_ref:
       struct columnReference *retval = NULL;
 
       if(parse_columnRefUnsuccessful(queryData, &retval, NULL, $1)) {
-        fprintf(stderr, "unknown or ambiguous column name (%s)\n", $1+1);
+        fprintf(stderr, TDB_NAME, $1+1);
         free($1);
         YYERROR;
       }
@@ -326,7 +326,7 @@ column_ref:
       struct columnReference *retval = NULL;
 
       if(parse_columnRefUnsuccessful(queryData, &retval, $1, $3)) {
-        fprintf(stderr, "unknown or ambiguous column name (%s.%s)\n", $1+1, $3+1);
+        fprintf(stderr, TDB_NAME_NAME, $1+1, $3+1);
         free($1);
         free($3);
         YYERROR;

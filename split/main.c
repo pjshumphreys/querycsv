@@ -2,6 +2,13 @@ int main(int argc, char *argv[]) {
   int argc2;
   char ** argv2;
 
+  #ifdef __CC65__
+    char * temp;
+    temp = petsciiToUtf8(argv[1]);
+    strcpy(argv[1], temp);
+    free(temp);
+  #endif
+
   argc2 = argc;
   argv2 = argv;
 
@@ -30,18 +37,24 @@ int main(int argc, char *argv[]) {
       fprintf approach */
       devNull = "/dev/null";
     #endif
+  #endif
 
-    #ifdef __CC_NORCROFT
-      devNull = "null:";
+  #ifdef __CC_NORCROFT
+    devNull = "null:";
 
-      #if __LIB_VERSION >= 300
-        setupRiscOS(&argc2, &argv2);
-      #endif
+    #if __LIB_VERSION >= 300
+      setupRiscOS(&argc2, &argv2);
     #endif
   #endif
 
   /* identify whether to run a script or display the usage message */
   if(argc2 == 2) {
+    if(strcmp(argv2[1], "") == 0) {
+      displayFile();
+
+      return EXIT_SUCCESS;
+    }
+
     return runQuery(argv2[1]);
   }
 

@@ -2,7 +2,7 @@ int getCurrentDate(char **retval) {
   char *output = NULL;
 #ifdef __CC65__
   /*the commodore 64 doesn't have a real time clock, so why bother including time functions? */
-  output = mystrdup("1970-01-01t00:00:00+0000");
+  output = mystrdup("1970-01-01T00:00:00+0000");
 #else
   time_t now;
   struct tm local;

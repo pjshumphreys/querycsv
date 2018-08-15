@@ -173,7 +173,7 @@ void getValue(
           case EXP_CONCAT:
             d_sprintf(
                 &(expressionPtr->value),
-                "%s%s",
+                S_STRING S_STRING,
                 expressionPtr->unionPtrs.leaves.leftPtr->value,
                 expressionPtr->unionPtrs.leaves.rightPtr->value
               );

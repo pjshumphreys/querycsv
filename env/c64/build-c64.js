@@ -113,51 +113,39 @@ var clibFunctionsList = [
   /* standard C library functions */
   ["_strtod",             1, 0x0001, "farcall"], /*this'll be provided by my
   floatib wrapper */
-  ["_calloc",             2, 0x0001, "farcall2"],
+  ["_ltoa",               2, 0x0001, "farcall2"],
+  ["_ultoa",              2, 0x0001, "farcall2"],
   ["_clearerr",           2, 0x0001, "farcall2"],
-  ["_close",              2, 0x0001, "farcall2"],
-  //["_exit",               2, 0x0001, "farcall2"],
+  ["_fopen",              2, 0x0001, "farcall2"],
   ["_fclose",             2, 0x0001, "farcall2"],
   ["_feof",               2, 0x0001, "farcall2"],
   ["_ferror",             2, 0x0001, "farcall2"],
   ["_fflush",             2, 0x0001, "farcall2"],
-  ["_fgetc",              2, 0x0001, "farcall2"],
-  ["_fopen",              2, 0x0001, "farcall2"],
-  ["_fprintf",            2, 0x0001, "farcall2"],
-  ["_fputc",              2, 0x0001, "farcall2"],
-  ["_fputs",              2, 0x0001, "farcall2"],
   ["_fread",              2, 0x0001, "farcall2"],
-  ["_free",               2, 0x0001, "farcall2"],
   ["_fwrite",             2, 0x0001, "farcall2"],
-  //["_getenv",             2, 0x0001, "farcall2"],
-  ["_ltoa",               2, 0x0001, "farcall2"],
+  ["_fgetc",              2, 0x0001, "farcall2"],
+  ["_ungetc",             2, 0x0001, "farcall2"],
+  ["_fputc",              2, 0x0001, "farcall2"],
+  ["_fgets",              2, 0x0001, "farcall2"],
   ["_malloc",             2, 0x0001, "farcall2"],
+  ["_calloc",             2, 0x0001, "farcall2"],
+  ["_realloc",            2, 0x0001, "farcall2"],
+  ["_free",               2, 0x0001, "farcall2"],
   ["_memcpy",             2, 0x0001, "farcall2"],
   ["_memmove",            2, 0x0001, "farcall2"],
   ["_memset",             2, 0x0001, "farcall2"],
-  ["_open",               2, 0x0001, "farcall2"],
-  ["_printf",             2, 0x0001, "farcall2"],
-  //["_putenv",             2, 0x0001, "farcall2"],
-  ["_read",               2, 0x0001, "farcall2"],
-  ["_realloc",            2, 0x0001, "farcall2"],
-  //["_setlocale",          2, 0x0001, "farcall2"],
-  ["_sprintf",            2, 0x0001, "farcall2"],
   ["_strcat",             2, 0x0001, "farcall2"],
   ["_strcmp",             2, 0x0001, "farcall2"],
   ["_strcpy",             2, 0x0001, "farcall2"],
   ["_stricmp",            2, 0x0001, "farcall2"],
   ["_strlen",             2, 0x0001, "farcall2"],
-  ["_strlower",           2, 0x0001, "farcall2"],
   ["_strncat",            2, 0x0001, "farcall2"],
   ["_strncmp",            2, 0x0001, "farcall2"],
+  ["_strnicmp",           2, 0x0001, "farcall2"],
   ["_strstr",             2, 0x0001, "farcall2"],
-  ["_ultoa",              2, 0x0001, "farcall2"],
-  ["_ungetc",             2, 0x0001, "farcall2"],
-  //["_vfprintf",           2, 0x0001, "farcall2"],
+  ["_sprintf",            2, 0x0001, "farcall2"],
   ["_vsnprintf",          2, 0x0001, "farcall2"],
   ["_vsprintf",           2, 0x0001, "farcall2"],
-  ["_write",              2, 0x0001, "farcall2"],
-  ["_cgetc",              2, 0x0001, "farcall2"],
 
   //other special functions we'll need
   ["_isCombiningChar",    0, 0x0001, "farcall2"],
@@ -382,6 +370,7 @@ function compileLexer() {
         'flex_int16_t yy_chk2\(unsigned int offset\);'+
         'YY_CHAR yy_ec2\(unsigned int offset\);'+
         'struct yy_trans_info/g;'+
+        's/%s/%S/g;'+
         's/yyconst char msg\\[\\]/yyconst char *msg/g;'+
         's/flex_int32_t yy_rule_can_match_eol/flex_int8_t yy_rule_can_match_eol/g;'+
         's/flex_int16_t yy_accept/flex_int8_t yy_accept/g;'+
@@ -406,6 +395,10 @@ function compileParser() {
     'sed "'+
       's/YY_INITIAL_VALUE \(static YYSTYPE yyval_default;\)//g;'+
       's/define YY_LAC_ESTABLISH/define YY_LAC_OESTABLISH/g;'+
+      's/%s/%S/g;'+
+      's/%d/%D/g;'+
+      's/%lu/%LU/g;'+
+      's/\'s\'/\'S\'/g;'+
       's/YYSTYPE yylval YY_INITIAL_VALUE \(= yyval_default\);/static YYSTYPE yylval;/g;'+
       's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2\(int offset\);static const yytype_int16 yypact[]/g;'+
       '" sql.c > sql2.h');

@@ -93,7 +93,7 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
 ([A-Za-z]|{UANY})([A-Za-z0-9_]|{UANY})*	{
     yylval->strval = NULL;
-    d_sprintf(&(yylval->strval), "_%s", yytext);
+    d_sprintf(&(yylval->strval), "_" S_STRING, yytext);
     return NAME;
 }
 

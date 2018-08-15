@@ -102,7 +102,7 @@ void updateRunningCounts(
                 if(j == query->groupCount) {
                   d_sprintf(
                       &(currentResultColumn->groupText),
-                      "%s%s",
+                      S_STRING S_STRING,
                       currentResultColumn->groupText,
                       tempString
                     );
@@ -112,7 +112,7 @@ void updateRunningCounts(
               case GRP_CONCAT: {
                 d_sprintf(
                     &(currentResultColumn->groupText),
-                    "%s%s",
+                    S_STRING S_STRING,
                     currentResultColumn->groupText,
                     tempString
                   );

@@ -1,3 +1,4 @@
+#ifndef __CC65__
 int mystrnicmp(const char *str1, const char *str2, size_t n) {
   int i, retval = 0;
 
@@ -22,3 +23,4 @@ int mystrnicmp(const char *str1, const char *str2, size_t n) {
 
   return retval;
 }
+#endif

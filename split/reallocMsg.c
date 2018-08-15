@@ -8,7 +8,7 @@ void reallocMsg(void **mem, size_t size) {
       temp = realloc(*mem, size);
 
       if(temp == NULL) {
-        fputs(TDB_MALLOC_FAILED, stderr);
+        fwrite(TDB_MALLOC_FAILED3, stderr);
         exit(EXIT_FAILURE);
       }
 

@@ -1,4 +1,4 @@
-static const struct codepointToByte petsciiBytes[95] = {
+static const struct codepointToByte petsciiBytes[96] = {
   {0x0041, 0x61}, {0x0042, 0x62},
   {0x0043, 0x63}, {0x0044, 0x64},
   {0x0045, 0x65}, {0x0046, 0x66},
@@ -13,6 +13,7 @@ static const struct codepointToByte petsciiBytes[95] = {
   {0x0057, 0x77}, {0x0058, 0x78},
   {0x0059, 0x79}, {0x005A, 0x7A},
   {0x005B, 0x5B}, {0x005D, 0x5D},
+  {0x005F, 0xA4},
   {0x0061, 0x41}, {0x0062, 0x42},
   {0x0063, 0x43}, {0x0064, 0x44},
   {0x0065, 0x45}, {0x0066, 0x46},
@@ -70,7 +71,7 @@ void getBytesPetscii(
     if((lookup = (struct codepointToByte*)bsearch(
       (void *)&codepoint,
       (void *)petsciiBytes,
-      95,
+      96,
       sizeof(struct codepointToByte),
       compareCodepoints
     )) == NULL) {

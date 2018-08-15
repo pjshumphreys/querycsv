@@ -1,6 +1,6 @@
-int parse_encoding2(struct qryData *queryData, char *encoding) {
+int parse_encoding2(char *encoding) {
   char *matcher;
-    
+
   MAC_YIELD
 
   if(mystrnicmp("utf", encoding, 3) == 0) {
@@ -49,7 +49,7 @@ int parse_encoding2(struct qryData *queryData, char *encoding) {
     if(strcmp("437", matcher) == 0) {  /* always CP437 */
       return ENC_CP437;
     }
-    
+
     if(strcmp("850", matcher) == 0) {  /* always CP850 */
       return ENC_CP850;
     }
@@ -90,7 +90,7 @@ int parse_encoding2(struct qryData *queryData, char *encoding) {
     return ENC_BBC;
   }
 
-  fprintf(stderr, TDB_INVALID_ENCODING);
+  fprintf(stderr, TDB_INVALID_ENCODING, encoding);
 
   return ENC_UNSUPPORTED;
 }
@@ -99,7 +99,7 @@ int parse_encoding(
     struct qryData *queryData,
     char *encoding
   ) {
-  int retval = parse_encoding2(queryData, encoding);
+  int retval = parse_encoding2(encoding);
 
   free(encoding);
 

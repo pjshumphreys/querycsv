@@ -10,9 +10,6 @@
 #include <string.h>
 #include <time.h>
 
-/* translatable strings */
-#include "en_gb.h"
-
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
 #define FALSE 0
@@ -301,7 +298,7 @@ Just use long ones for that compiler */
   #undef PRM_DEFAULT
   #define PRM_DEFAULT PRM_MAC
 
-  #include <conio.h> /* for cgetc */
+  #include "cc65iso.h" /* switch back from petscii to ascii */
   #include "floatlib/float.h" /* fudges kinda support for floating point
   into cc65 by utilising functionality in the c64 basic rom */
   #define ftostr(_d,_a) { \
@@ -316,7 +313,16 @@ Just use long ones for that compiler */
   We supply our own implementation that provides the same semantics but
   uses cc65-floatlib */
 
-  extern char* columnText;
+  char * petsciiToUtf8(char *input);
+  int fputs_c64(const char *str, FILE *stream);
+  int fprintf_c64(FILE *stream, const char *format, ...);
+  FILE *fopen_c64(const char *filename, const char *mode);
+
+  #define fputs fputs_c64
+  #define fopen fopen_c64
+  #define fprintf fprintf_c64
+  #define YYFPRINTF fprintf_c64   /* for the bison parser */
+  #define mystrnicmp strnicmp
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -357,6 +363,10 @@ Just use long ones for that compiler */
   #define in_word_set_b in_word_set_bi
   #define in_word_set_c in_word_set_ci
 #endif
+
+/* translatable strings */
+#include "en_gb.h"
+
 
 /* structures */
 struct resultColumn {

@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <conio.h>
 
 #pragma rodata-name ("FAKERODATA")
 #pragma data-name ("FAKEDATA")
@@ -17,42 +16,38 @@ void foobar(char *string, char* format, ...) {
 
   FILE* test;
   int num;
-  char temp;
-
-  temp = cgetc();
 
   string = malloc(1);
+  fgets(string, 1, stdin);
   free(string);
+  strnicmp(c, string, 3);
   string = calloc(1,3);
   string = realloc(string,5);
   strcpy(string, c);
+  fgets(string,1,stdin);
   num = strcmp(c, string);
   num = strncmp(c, string, 3);
   num = stricmp(c, string);
   num = strlen(string);
   string = strstr(string, c);
 
-  /* fraction = strtod("C", &string); */
   memset(string, 0, 4);
   strcat(string, c);
   strncat(string, c, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
-  /* bsearch (string, string, 2, 2, compar); */
 
   test = fopen(c,"rb");
   num = ferror(test);
   clearerr(test);
   num = fclose(test);
   fread(string, 2, 2, stdin);
+  fwrite(string, 1, 1, stdout);
   num = fgetc(stdin);
   ungetc(num, stdin);
   num = feof(stdin);
-  fwrite(string, 1, 1, stdout);
+  num = fgetc(stdin);
   fputc(num, stderr);
-  fputs(string, stdout);
-  fprintf(stdout, c, num);
-  printf(c, num);
   fflush(stdout);
   sprintf(string, c, num);
 

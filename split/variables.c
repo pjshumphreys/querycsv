@@ -17,15 +17,11 @@ struct hash4Entry hash4export = {(char *)(&hash4letter), 0, 0, 0};
 char * devNull = NULL;
 
 /*dedup string literals */
-const char* TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
-const char* TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
+char* TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
+char* TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 
 /*the return value from the getBytes functions. bodged to make the c64 build work */
 char returnByte;
 
-char * fopen_read = "rb";
-char * fopen_write = "wb";
-
-#ifndef __CC65__
-  char * columnText = TDB_UNTITLED_COLUMN;
-#endif
+char * fopen_read = FOPEN_READ;
+char * fopen_write = FOPEN_WRITE;

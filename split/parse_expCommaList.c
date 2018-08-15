@@ -23,14 +23,12 @@ struct resultColumn *parse_expCommaList(
     /* if the expression wasn't given a name then provide it with a default one */
     if(resultColumnName == NULL) {
       if(expressionPtr->type == EXP_COLUMN) {
-        if((resultColumnName = mystrdup(((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->fileColumnName)) == NULL) {
-          fputs(TDB_MALLOC_FAILED, stderr);
-          exit(EXIT_FAILURE);
-        }
+        resultColumnName = mystrdup(
+            ((struct inputColumn*)(expressionPtr->unionPtrs.voidPtr))->fileColumnName
+          );
       }
-      else if(d_sprintf(&resultColumnName, TDB_UNTITLED_COLUMN2) == FALSE) {
-        fputs(TDB_MALLOC_FAILED, stderr);
-        exit(EXIT_FAILURE);
+      else {
+        d_sprintf(&resultColumnName, TDB_UNTITLED_COLUMN, queryData->columnCount);
       }
     }
   }
@@ -39,10 +37,7 @@ struct resultColumn *parse_expCommaList(
 
     queryData->hiddenColumnCount++;
 
-    if(d_sprintf(&resultColumnName, "%d", queryData->hiddenColumnCount) == FALSE) {
-      fputs(TDB_MALLOC_FAILED, stderr);
-      exit(EXIT_FAILURE);
-    }
+    d_sprintf(&resultColumnName, D_STRING, queryData->hiddenColumnCount);
   }
 
   /*  stick this new reference into the lookup table for identifiers */
