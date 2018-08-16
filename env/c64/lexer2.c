@@ -1,7 +1,7 @@
 #define YY_USE_CONST 1
 #define YY_BUF_SIZE 512
 
-#include "lexer2.h"
+#include "build/lexer2.h"
 
 flex_int8_t yy_accept2(unsigned int offset) {
   return yy_accept[offset];

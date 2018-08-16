@@ -128,7 +128,7 @@ startUpEnd:
 .segment "STARTUP"
 farret:
   jmp farret3
-.include "tables.inc"
+.include "build/tables.inc"
 
 ;entry point is here!
 entry:

@@ -11,7 +11,7 @@ farret: ;put a couple of 'nop's after the rts so this can become a jmp later wit
   nop
   nop
 
-.include "floatlib.inc"
+.include "../build/floatlib.inc"
 
 FUNC0:
   sta aRegBackup

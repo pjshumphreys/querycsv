@@ -109,21 +109,21 @@ count:
 
 clean:
 	rm -f makeheaders querycsv gen.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h
-	cd env/html5; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
-	cd env/posix; rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
-	cd env/dos; find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/win32; find . -maxdepth 1 ! -path './win32.c' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/m68kmac; find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;; mac2unix *
-	cd env/powermac; find . -type f ! -path './.finf/Makefile' ! -path './Makefile' ! -path './powermac.h' ! -path './powermac.c' ! -path './mac.c' ! -path './powermac.r' ! -path './size.r' ! -path './carbon.r' ! -path './blank.zip' -exec rm {} \;; find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \;; mac2unix *
+	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
+	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
+	cd env/dos && find . -maxdepth 1 ! -path './Makefile' ! -path './DOSBox.exe' ! -path './SDL.dll' ! -path './SDL_net.dll' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/m68kmac && find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *
+	cd env/powermac && find . -type f ! -path './.finf/Makefile' ! -path './Makefile' ! -path './powermac.h' ! -path './powermac.c' ! -path './mac.c' ! -path './powermac.r' ! -path './size.r' ! -path './carbon.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *
 	rm -rf env/bbcarm/c env/bbcarm/h env/bbcarm/o hash2
-	cd env/riscos; rm -rf o od \!QueryCSV/querycsv,ff8 \!QueryCSV/\!RunImage,ff8
-	cd env/riscos/launcher; rm -rf o od
-	cd env/riscos/c; find . -maxdepth 1 ! -path './riscos' ! -path './riscos.c' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/riscos && rm -rf o od \!QueryCSV/querycsv,ff8 \!QueryCSV/\!RunImage,ff8
+	cd env/riscos/launcher && rm -rf o od
+	cd env/riscos/c && find . -maxdepth 1 ! -path './riscos' ! -path './riscos.c' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	find ./env/riscos/c -name "riscos" -exec mv {} env/riscos/c/riscos.c \;
 	find ./env/riscos/launcher/c -name "runimage" -exec mv {} env/riscos/launcher/c/runimage.c \;
-	cd env/riscos/h; find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/amiga; rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
-	cd env/atarist; rm -rf querycsv.ttp; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './atarist.c' -exec rm -rf {} \;
+	cd env/riscos/h && find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/amiga && rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
+	cd env/atarist && rm -rf querycsv.ttp; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './atarist.c' -exec rm -rf {} \;
 
 .PHONY: all
 .PHONY: count

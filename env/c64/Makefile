@@ -2,52 +2,22 @@
 # do not remove intermediate targets
 .SECONDARY:
 
-name := querycsv
-
-ld_config := linker.cfg
-
-obj :=
-obj += crt0.o
-obj += obj/floattest.o
-
-INCLUDE  := include
-
-DEFINE   := -DEFVERSION=\"${version}\"
-
 .PHONY: all
-all: $(name).crt
+all: querycsv.crt
 
 ###############################################################################
 # Poor men's dependencies: Let all files depend from all header files
 #
-headers := $(wildcard $(INCLUDE)/*.h)
-
-obj/%.s: %.c obj $(headers)
-	cc65 -t c64 -T -O --static-locals -I $(INCLUDE) $(DEFINE) -o $@ $<
-
-###############################################################################
-obj/%.o: obj/%.s obj
-	ca65 -t c64 -o $@ $<
-
-###############################################################################
-%.o: %.s obj
-	ca65 -t c64 -o $@ $<
 
 ###############################################################################
 # create a crt image from a binary image
 #
-%.crt: %.bin
-	bin2efcrt $< $@
-
-###############################################################################
-obj:
-	mkdir -p $@
-
-$(name).bin: $(obj) $(ld_config)
-	ld65 -o $@ -m $@.map -C $(ld_config) $(obj) \
-		-L /usr/local/lib/cc65/lib -m querycsv.map -Ln querycsv.lbl --lib c64.lib
+querycsv.crt: $(wildcard ./*.h) $(wildcard ./*.c) crt0.s
+	node ./build-c64.js
+	rm -f crt0.o
 
 .PHONY: clean
 clean:
-	rm -f $(name) crt0.o $(name).map $(name).bin $(name).crt
-	rm -rf obj
+	rm -rf build
+	rm  -f querycsv.crt crt0.o 
+

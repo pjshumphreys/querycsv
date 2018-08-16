@@ -167,20 +167,23 @@ var defines = {
 
 var rodataLabels = [];
 
-/* The first action to initiate */
-start();
+if(fs.existsSync("querycsv.c")) {
+  /* The first action to initiate */
+  start();
+}
 
 function start() {
   console.log("start");
 
   /* create the necessary folders */
   execSync(
-      "mkdir -p bin;"+
-      "mkdir -p s;"+
-      "mkdir -p g;"+
-      "mkdir -p ro;"+
-      "mkdir -p obj;"+
-      "mkdir -p obj2"
+      "mkdir -p build;"+
+      "mkdir -p build/bin;"+
+      "mkdir -p build/s;"+
+      "mkdir -p build/g;"+
+      "mkdir -p build/ro;"+
+      "mkdir -p build/obj;"+
+      "mkdir -p build/obj2"
     );
 
   createFloatLibInclude();
@@ -190,7 +193,7 @@ function start() {
 function createFloatLibInclude() {
   console.log('createFloatLibInclude');
 
-  var tables = fs.createWriteStream('floatlib/floatlib.inc');
+  var tables = fs.createWriteStream('build/floatlib.inc');
 
   for(i = 0; i < functionsList.length; i++) {
     hashMap[functionsList[i][0]] = i;
@@ -236,34 +239,34 @@ function compileFloatLib() {
   console.log('compileFloatLib');
 
   /* compile the floatlib portion written in C (strtod) */
-  execSync("cc65 -T -t c64 -I ./floatlib floatlib.c");
+  execSync("cc65 -T -t c64 -I ./floatlib floatlib.c -o build/floatlib.s");
 
   /* link into a binary */
   execSync("cl65 -T -t c64 "+
       "-I ./floatlib "+
-      "-Ln floatlib.lbl "+
-      "--config floatlib"+passPostfix+".cfg "+
-      "floatlib/float.s floatlib.s"
+      "-Ln build/floatlib.lbl "+
+      "--config " + (passPostfix === ""?"":"build/") + "floatlib"+passPostfix+".cfg "+
+      "floatlib/float.s build/floatlib.s"
     );
 
-  /*create an zeroed binary the same size as the total ram used */
+  /*create a zeroed binary the same size as the total ram used */
   execSync(
       "("+
         "echo -n \"ibase=16;scale=16;\" && "+
-        "((grep __RAM2_LAST__ floatlib.lbl|"+
+        "((grep __RAM2_LAST__ build/floatlib.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\\n')"+
         " && echo -n \"-\" && "+
-        "grep __RAM2_START__ floatlib.lbl|"+
+        "grep __RAM2_START__ build/floatlib.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
       ")|bc|"+
-      "xargs -I {} dd if=/dev/zero bs=1 count={} of=floatlibdata.bin"
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=build/floatlibdata.bin"
     );
 
   /* Create a combined binary of the data and bss
   segments so that they can be copied as one blob */
   execSync(
-      "dd if=floatlibdata2.bin of=floatlibdata.bin conv=notrunc;"+
-      "rm floatlibdata2.bin"
+      "dd if=build/floatlibdata2.bin of=build/floatlibdata.bin conv=notrunc;"+
+      "rm build/floatlibdata2.bin"
     );
 
   if(passPostfix === "") {
@@ -300,7 +303,7 @@ function compileFloatLib() {
   /* read the label file and use its contents to
   update each function address in the hashmap */
   var lineReader = readline.createInterface({
-      input: fs.createReadStream('floatlib.lbl')
+      input: fs.createReadStream('build/floatlib.lbl')
     });
 
   lineReader.on('line', updateFunctionAddress.bind(1));
@@ -316,9 +319,9 @@ function compileLibC() {
   /* compile a fake program that uses c library */
   execSync(
       "cl65 -T -t c64 -O -Os "+
-      "-Ln libc.lbl "+
+      "-Ln build/libc.lbl "+
       "--static-locals "+
-      "--config libc"+passPostfix+".cfg "+
+      "--config " + (passPostfix === ""?"":"build/") + "libc"+passPostfix+".cfg "+
       "libc.c"
     );
 
@@ -326,26 +329,26 @@ function compileLibC() {
   execSync(
       "("+
         "echo -n \"ibase=16;scale=16;\" && "+
-        "((grep __RAM2_LAST__ libc.lbl|"+
+        "((grep __RAM2_LAST__ build/libc.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\n')"+
         " && echo -n \"-\" && "+
-        "grep __RAM2_START__ libc.lbl|"+
+        "grep __RAM2_START__ build/libc.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
       ")|bc|"+
-      "xargs -I {} dd if=/dev/zero bs=1 count={} of=libcdata.bin"
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=build/libcdata.bin"
     );
 
   /* Create a combined binary of the ram segments
   so that they can be copied as one blob */
   execSync(
-      "dd if=libcdata2.bin of=libcdata.bin conv=notrunc;"+
-      "rm libcdata2.bin"
+      "dd if=build/libcdata2.bin of=build/libcdata.bin conv=notrunc;"+
+      "rm build/libcdata2.bin"
     );
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
   var lineReader = readline.createInterface({
-    input: fs.createReadStream('libc.lbl')
+    input: fs.createReadStream('build/libc.lbl')
   });
 
   lineReader.on('line', updateFunctionAddress.bind(2));
@@ -374,12 +377,12 @@ function compileLexer() {
         's/yy_nxt\\[yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c\\]/yy_nxt2\\(yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c)/g;'+
         's/yy_chk\\[yy_base\\[yy_current_state\\] + yy_c\\]/yy_chk2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;'+
         's/yy_accept\\[yy_current_state\\]/yy_accept2\\(yy_current_state\\)/g;'+
-      '" lexer.c > lexer2.h'
+      '" lexer.c > build/lexer2.h'
     );
 
   /* compile functions into assembly language. use our own
   patched cc65 executable that does "jmp farret" instead of "rts" */
-  execSync('./cc65_2 -T -t c64 lexer2.c -O -Os --static-locals --writable-strings');
+  execSync('./cc65_2 -T -t c64 lexer2.c -O -Os --static-locals --writable-strings -o build/lexer2.s');
 
   splitUpFunctions("lexer2", compileParser);
 }
@@ -397,14 +400,14 @@ function compileParser() {
       's/\'s\'/\'S\'/g;'+
       's/YYSTYPE yylval YY_INITIAL_VALUE \(= yyval_default\);/static YYSTYPE yylval;/g;'+
       's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2\(int offset\);static const yytype_int16 yypact[]/g;'+
-      '" sql.c > sql2.h');
+      '" sql.c > build/sql2.h');
 
   execSync(
     'sed -i -r "'+
       's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;'+
-      '" sql2.h');
+      '" build/sql2.h');
 
-  execSync('./cc65_2 -T -t c64 -O -Os sql2.c --static-locals --writable-strings');
+  execSync('./cc65_2 -T -t c64 -O -Os sql2.c --static-locals --writable-strings -o build/sql2.s');
 
   //split parser up into 1 function per .s file
   //(including all rodata. add all data vars to a single .s file)
@@ -414,7 +417,7 @@ function compileParser() {
 function compileC64() {
   console.log('compileC64');
 
-  execSync("./cc65_2 -T -t c64 c64.c --writable-strings");
+  execSync("./cc65_2 -T -t c64 c64.c --writable-strings -o build/c64.s");
 
   splitUpFunctions("c64", compileQueryCSV, true);
 }
@@ -422,7 +425,7 @@ function compileC64() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync("./cc65_2 -T -t c64 querycsv.c --writable-strings");
+  execSync("./cc65_2 -T -t c64 querycsv.c --writable-strings -o build/querycsv.s");
 
   splitUpFunctions("querycsv", compileData, true);
 }
@@ -437,32 +440,32 @@ function compileData() {
 
   execSync(
       "cl65 "+
-      "-Ln data.lbl "+
-      "-C data"+passPostfix+".cfg "+
-      "data.s -vm -m data.map"
+      "-Ln build/data.lbl "+
+      "-C " + (passPostfix === ""?"":"build/") + "data"+passPostfix+".cfg "+
+      "build/data.s -vm"
     );
 
   execSync(
       "("+
         "echo -n \"ibase=16;scale=16;\" && "+
-        "((grep __RAM2_LAST__ data.lbl|"+
+        "((grep __RAM2_LAST__ build/data.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\n')"+
         " && echo -n \"-\" && "+
-        "grep __RAM2_START__ data.lbl|"+
+        "grep __RAM2_START__ build/data.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
       ")|bc|"+
-      "xargs -I {} dd if=/dev/zero bs=1 count={} of=data.bin"
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=build/data.bin"
     );
 
   /*TODO: confirm this: Create a combined binary of the ram segments
   so that they can be copied as one blob? */
-  execSync("dd if=data2.bin of=data.bin conv=notrunc;rm data2.bin");
+  execSync("dd if=build/data2.bin of=build/data.bin conv=notrunc;rm build/data2.bin");
 
   var lineReader2 = readline.createInterface({
-    input: fs.createReadStream('data.lbl')
+    input: fs.createReadStream('build/data.lbl')
   });
 
-  var labels = fs.createWriteStream('labels.s');
+  var labels = fs.createWriteStream('build/labels.s');
 
   /* read the resultant memory locations and make an assembly include
   containing just their addresses */
@@ -505,10 +508,10 @@ function compileHash2() {
   for(i = 0; fs.existsSync('./hash2in'+i+'.c'); i++) {
     execSync(
         "cl65 -T -t c64 "+
-        "-o obj2/hash2in"+i+".bin "+
-        "-Ln obj2/hash2in"+i+".lbl "+
+        "-o build/obj2/hash2in"+i+".bin "+
+        "-Ln build/obj2/hash2in"+i+".lbl "+
         "-C rodata-page.cfg "+
-        "hash2in"+i+".c labels.s;"+
+        "hash2in"+i+".c build/labels.s;"+
         "rm *.o"
       );
 
@@ -521,7 +524,7 @@ function compileHash2() {
     functionsList[hashMap[name]][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isInHash2_'+
       i+
-      ' obj2/hash2in'+
+      ' build/obj2/hash2in'+
       i+
       '.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
@@ -529,7 +532,7 @@ function compileHash2() {
 
   if(passPostfix === "") {
     /* allow the hash2 function to be packed also */
-    execSync('./cc65_2 -T -t c64 hash2out.c');
+    execSync('./cc65_2 -T -t c64 hash2out.c -o build/hash2out.s');
     splitUpFunctions("hash2out", compileHash3And4, true);
   }
   else {
@@ -542,48 +545,48 @@ function compileHash3And4() {
 
   execSync(
       "cl65 -T -t c64 "+
-      "-o obj2/hash4a.bin "+
-      "-Ln obj2/hash4a.lbl "+
+      "-o build/obj2/hash4a.bin "+
+      "-Ln build/obj2/hash4a.lbl "+
       "-C rodata-page.cfg "+
-      "hash4a.c labels.s;"+
+      "hash4a.c build/labels.s;"+
       "rm *.o");
 
   functionsList[hashMap['_in_word_set_a']][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_a'+
-      ' obj2/hash4a.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+      ' build/obj2/hash4a.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
 
   execSync(
       "cl65 -T -t c64 "+
-      "-o obj2/hash4b.bin "+
-      "-Ln obj2/hash4b.lbl "+
+      "-o build/obj2/hash4b.bin "+
+      "-Ln build/obj2/hash4b.lbl "+
       "-C rodata-page.cfg "+
-      "hash4b.c labels.s;"+
+      "hash4b.c build/labels.s;"+
       "rm *.o"
     );
 
   functionsList[hashMap['_in_word_set_b']][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_b'+
-      ' obj2/hash4b.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+      ' build/obj2/hash4b.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
 
   execSync(
       "cl65 -T -t c64 "+
-      "-o obj2/hash4c.bin "+
-      "-Ln obj2/hash4c.lbl "+
+      "-o build/obj2/hash4c.bin "+
+      "-Ln build/obj2/hash4c.lbl "+
       "-C rodata-page.cfg "+
-      "hash4c.c hash3.c labels.s;"+
+      "hash4c.c hash3.c build/labels.s;"+
       "rm *.o"
     );
 
   functionsList[hashMap['_in_word_set_c']][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_c'+
-      ' obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+      ' build/obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
 
   functionsList[hashMap['_isCombiningChar']][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isCombiningChar'+
-      ' obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+      ' build/obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
 
   createTrampolinesInclude();
@@ -592,7 +595,7 @@ function compileHash3And4() {
 function createTrampolinesInclude() {
   console.log("createTrampolinesInclude");
 
-  var tables = fs.createWriteStream('tables.inc');
+  var tables = fs.createWriteStream('build/tables.inc');
 
   for(i in defines) {
     tables.write(
@@ -694,29 +697,29 @@ function createTrampolinesInclude() {
 function compileMain() {
   console.log("compileMain");
 
-  execSync("cl65 -T -t c64 -Ln main.lbl --config main"+(passPostfix===""?"":"a")+".cfg crt0.s");
+  execSync("cl65 -T -t c64 -Ln build/main.lbl --config "+(passPostfix===""?"":"build/")+"main"+(passPostfix===""?"":"a")+".cfg crt0.s");
 
   execSync(
       "("+
         "echo -n \"ibase=16;scale=16;\" && "+
-        "((grep __RAM2_LAST__ main.lbl|"+
+        "((grep __RAM2_LAST__ build/main.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\")|tr -d '\\n')"+
         " && echo -n \"-\" && "+
-        "grep __RAM2_START__ main.lbl|"+
+        "grep __RAM2_START__ build/main.lbl|"+
         "sed -n \"s/al \\([^ ]*\\).*/\\1/p\""+
       ")|bc|"+
-      "xargs -I {} dd if=/dev/zero bs=1 count={} of=maindata.bin"
+      "xargs -I {} dd if=/dev/zero bs=1 count={} of=build/maindata.bin"
     );
 
   /*read the label file and update each function address */
 
   var lineReader = readline.createInterface({
-    input: fs.createReadStream('main.lbl')
+    input: fs.createReadStream('build/main.lbl')
   });
 
-  execSync("cat labels.s > labels2.s");
+  execSync("cat build/labels.s > build/labels2.s");
 
-  var labels = fs.createWriteStream('labels2.s', { flags: 'a' });
+  var labels = fs.createWriteStream('build/labels2.s', { flags: 'a' });
 
   for(i in defines) {
     labels.write(
@@ -775,41 +778,41 @@ function compileMain() {
 function calculateSizes() {
   console.log("calculateSizes");
 
-  updateName(["_yyparse.s", fs.readFileSync("s/_yyparse.s", {encoding: 'utf8'})]);
+  updateName(["_yyparse.s", fs.readFileSync("build/s/_yyparse.s", {encoding: 'utf8'})]);
 
   execSync(
-      "echo \".include \\\"../header.inc\\\"\" > ./g/_yyparse.s;"+
-      "echo \".include \\\"../labels2.s\\\"\" >> ./g/_yyparse.s;"+
-      "cat ./s/_yyparse.s >> ./g/_yyparse.s;"+
+      "echo \".include \\\"../../header.inc\\\"\" > ./build/g/_yyparse.s;"+
+      "echo \".include \\\"../labels2.s\\\"\" >> ./build/g/_yyparse.s;"+
+      "cat ./build/s/_yyparse.s >> ./build/g/_yyparse.s;"+
       "cl65 -T -t c64 "+
-      "-o ./obj2/yyparse.bin "+
-      "-Ln ./obj2/yyparse.lbl "+
-      "-C ./yyparse.cfg ./g/_yyparse.s"
+      "-o ./build/obj2/yyparse.bin "+
+      "-Ln ./build/obj2/yyparse.lbl "+
+      "-C ./yyparse.cfg ./build/g/_yyparse.s"
     );
 
   passPostfix = "a";
 
-  var yyparse_size = Math.max(0x2000, fs.statSync("obj2/yyparse.bin").size);
+  var yyparse_size = Math.max(0x2000, fs.statSync("build/obj2/yyparse.bin").size);
 
   var yyparse_start = 0xC000 - yyparse_size;
 
-  var data_size = fs.statSync("data.bin").size;
+  var data_size = fs.statSync("build/data.bin").size;
 
   var data_start = yyparse_start - data_size;
 
-  var libc_size = fs.statSync("libcdata.bin").size;
+  var libc_size = fs.statSync("build/libcdata.bin").size;
 
   var libc_start = data_start - libc_size;
 
-  var floatlib_size = fs.statSync("floatlibdata.bin").size;
+  var floatlib_size = fs.statSync("build/floatlibdata.bin").size;
 
   var floatlib_start = libc_start - floatlib_size;
 
-  var main_size = fs.statSync("maindata.bin").size;
+  var main_size = fs.statSync("build/maindata.bin").size;
 
   var main_start = floatlib_start - main_size;
 
-  var heap_size = main_start - 0x081A; /* 0x1a bytes are taken up by working variables */
+  var heap_size = main_start - 0x0800;
 
   remainder -= (yyparse_size+data_size+libc_size+floatlib_size+main_size);
 
@@ -823,7 +826,7 @@ function calculateSizes() {
       's/RAM:    file = "", start = $0800, size = $9800/'+
       'RAM:    file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' yyparse.cfg > yyparsea.cfg"
+      "' yyparse.cfg > build/yyparsea.cfg"
     );
 
   execSync(
@@ -836,7 +839,7 @@ function calculateSizes() {
       's/RAM:    file = "", start = $0800, size = $9800/'+
       'RAM:    file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' data.cfg > dataa.cfg"
+      "' data.cfg > build/dataa.cfg"
     );
 
   execSync(
@@ -849,7 +852,7 @@ function calculateSizes() {
       's/RAM:    file = "", start = $0800, size = $9800/'+
       'RAM:    file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' floatlib.cfg > floatliba.cfg"
+      "' floatlib.cfg > build/floatliba.cfg"
     );
 
   execSync(
@@ -862,7 +865,7 @@ function calculateSizes() {
       's/RAM:      file = "", start = $0800, size = $9800/'+
       'RAM:      file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' libc.cfg > libca.cfg"
+      "' libc.cfg > build/libca.cfg"
     );
 
   execSync(
@@ -875,7 +878,7 @@ function calculateSizes() {
       's/RAM:      file = "", start = $0800, size = $9800/'+
       'RAM:      file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' main.cfg > maina.cfg"
+      "' main.cfg > build/maina.cfg"
     );
 
   execSync(
@@ -883,7 +886,7 @@ function calculateSizes() {
       's/RAM:     file = "", start = $0800, size = $9800/'+
       'RAM:     file = "", start = $0800, size = $'+
       (heap_size.toString(16).toUpperCase())+"/g;"+
-      "' page.cfg > pagea.cfg"
+      "' page.cfg > build/pagea.cfg"
     );
 
   compileFloatLib();
@@ -895,17 +898,17 @@ function compileYYParse() {
   /*yyparse goes directly into an oversized page of its own */
   execSync(
       "cl65 -T -t c64 "+
-      "-o ./obj2/yyparse.bin "+
-      "-Ln ./obj2/yyparse.lbl "+
-      "-C ./yyparsea.cfg ./g/_yyparse.s"
+      "-o ./build/obj2/yyparse.bin "+
+      "-Ln ./build/obj2/yyparse.lbl "+
+      "-C ./build/yyparsea.cfg ./build/g/_yyparse.s"
     );
 
-  execSync("mv s/_yyparse.s ./_yyparse.s");
+  execSync("mv build/s/_yyparse.s ./build/_yyparse.s");
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
   var lineReader = readline.createInterface({
-    input: fs.createReadStream('./obj2/yyparse.lbl')
+    input: fs.createReadStream('./build/obj2/yyparse.lbl')
   });
 
   lineReader.on('line', updateFunctionAddress.bind(3));
@@ -920,10 +923,10 @@ function addROData() {
   console.log("addROData");
 
   var list = [];
-  var walker = walk.walk('./s', {});
+  var walker = walk.walk('./build/s', {});
 
   walker.on("file", (root, fileStats, next) => {
-    list.push([fileStats.name, fs.readFileSync("s/"+fileStats.name, {encoding: 'utf8'})]);
+    list.push([fileStats.name, fs.readFileSync("build/s/"+fileStats.name, {encoding: 'utf8'})]);
 
     next();
   });
@@ -944,26 +947,26 @@ function packPages() {
 
   /*patch compareCodepoints into the functions that need it (so the table is
   always in the same page) */
-  execSync("sed -i 's/jmp     farret/rts/g;s/__compareCodepoints/_compareCodepoints/g;' s/_compareCodepoints.s");
+  execSync("sed -i 's/jmp     farret/rts/g;s/__compareCodepoints/_compareCodepoints/g;' build/s/_compareCodepoints.s");
 
-  execSync("cat s/_compareCodepoints.s >> s/_getBytesCP1252.s;sed -i 's/_compareCodepoints/_compareCP1252/g;s/querycsv/querycsv1/g;' s/_getBytesCP1252.s");
-  execSync("cat s/_compareCodepoints.s >> s/_getBytesCommon.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv2/g;' s/_getBytesCommon.s");
-  execSync("cat s/_compareCodepoints.s >> s/_getBytesPetscii.s;sed -i 's/_compareCodepoints/_comparePetscii/g;s/querycsv/querycsv3/g;' s/_getBytesPetscii.s");
-  execSync("cat s/_compareCodepoints.s >> s/_getBytesAtariST.s;sed -i 's/_compareCodepoints/_compareAtariST/g;s/querycsv/querycsv4/g;' s/_getBytesAtariST.s");
-  execSync("rm s/_compareCodepoints.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesCP1252.s;sed -i 's/_compareCodepoints/_compareCP1252/g;s/querycsv/querycsv1/g;' build/s/_getBytesCP1252.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesCommon.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv2/g;' build/s/_getBytesCommon.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesPetscii.s;sed -i 's/_compareCodepoints/_comparePetscii/g;s/querycsv/querycsv3/g;' build/s/_getBytesPetscii.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesAtariST.s;sed -i 's/_compareCodepoints/_compareAtariST/g;s/querycsv/querycsv4/g;' build/s/_getBytesAtariST.s");
+  execSync("rm build/s/_compareCodepoints.s");
 
   execSync(
-    "pushd s;"+
-      "find * -name \"*.s\" ! -name _yyparse.s -print0|"+
+    "pushd build/s;"+
+      "find * -name \"*.s\" ! -name build/_yyparse.s -print0|"+
       "sed -z \"s/\\.s$//g\"|"+
       "xargs -0 -I {} sh -c '"+
-        "echo \".include \\\"../header.inc\\\"\" > ../g/'{}'.s;"+
+        "echo \".include \\\"../../header.inc\\\"\" > ../g/'{}'.s;"+
         "echo \".include \\\"../labels2.s\\\"\" >> ../g/'{}'.s;"+
         "cat '{}'.s >> ../g/'{}'.s;"+
         ""+
         "cl65 -T -t c64 "+
         "-o ../obj/'{}'.bin "+
-        "-C ../function.cfg "+
+        "-C ../../function.cfg "+
         "-Ln ../g/'{}'.lbl ../g/'{}'.s;"+
         "rm ../g/'{}'.o;"+
       "';"+
@@ -974,8 +977,8 @@ function packPages() {
   produce a binary of each 8k page */
   var list = exec(
       "sh -c '"+
-        "pushd obj > /dev/null;"+
-          "find * -type f ! -name _yyparse.bin -print0|"+
+        "pushd build/obj > /dev/null;"+
+          "find * -type f ! -name build/_yyparse.bin -print0|"+
           "xargs -0 stat --printf=\"%s %n\\n\"|"+
           "sort -rh;"+
         "popd > /dev/null"+
@@ -1039,8 +1042,8 @@ function compilePages() {
       join(" ");
 
     execSync(
-        "pushd s;"+
-        'echo ".include \\"header.inc\\"" > ../page'+(i+1)+'.s;'+
+        "pushd build/s;"+
+        'echo ".include \\"../header.inc\\"" > ../page'+(i+1)+'.s;'+
         'echo ".include \\"labels2.s\\"" >> ../page'+(i+1)+'.s;'+
         "cat "+names+" >> ../page"+(i+1)+".s;"+
           ""+
@@ -1060,7 +1063,7 @@ function compilePages() {
 function updatePageFunctionAddresses(pageNumber) {
   console.log("updatePageFunctionAddresses: ", pageNumber-3);
 
-  var stream = fs.createReadStream("./obj2/page"+(pageNumber-3)+".lbl");
+  var stream = fs.createReadStream("./build/obj2/page"+(pageNumber-3)+".lbl");
 
   var lineReader = readline.createInterface({
     input: stream
@@ -1098,30 +1101,30 @@ function updatePageFunctionAddresses(pageNumber) {
 function glueTogetherBinary() {
   console.log("glueTogetherBinary");
 
-  execSync('dd if=/dev/zero bs=1 count='+remainder+' | tr "\\000" "\\377" >padding.bin');
+  execSync('dd if=/dev/zero bs=1 count='+remainder+' | tr "\\000" "\\377" > build/padding.bin');
 
-  execSync("cat padding.bin maindata.bin floatlibdata.bin libcdata.bin data.bin obj2/yyparse.bin > output.bin");
+  execSync("cat build/padding.bin build/maindata.bin build/floatlibdata.bin build/libcdata.bin build/data.bin build/obj2/yyparse.bin > build/output.bin");
 
-  execSync('dd if=/dev/zero bs=1 count=8192 | tr "\\000" "\\377" >8k.bin');
+  execSync('dd if=/dev/zero bs=1 count=8192 | tr "\\000" "\\377" > build/8k.bin');
 
-  execSync("cat 8k.bin querycsv.bin >full.bin");
-  execSync("cat 8k.bin floatlib.bin >>full.bin");
-  execSync("cat 8k.bin libc.bin >>full.bin");
-  execSync("cat output.bin >>full.bin");
+  execSync("cat build/8k.bin build/querycsv.bin >build/full.bin");
+  execSync("cat build/8k.bin build/floatlib.bin >>build/full.bin");
+  execSync("cat build/8k.bin build/libc.bin >> build/full.bin");
+  execSync("cat build/output.bin >> build/full.bin");
 
   for(i = 0; i < files.length; i++) {
-    execSync("cat 8k.bin ./obj2/page"+(i+1)+".bin >>full.bin");
+    execSync("cat build/8k.bin ./build/obj2/page"+(i+1)+".bin >> build/full.bin");
   }
 
   for (i = 0; i < hash2ChunkCount; i++) {
-    execSync("cat 8k.bin ./obj2/hash2in"+i+".bin >>full.bin");
+    execSync("cat build/8k.bin ./build/obj2/hash2in"+i+".bin >> build/full.bin");
   }
 
-  execSync("cat 8k.bin ./obj2/hash4a.bin >>full.bin");
-  execSync("cat 8k.bin ./obj2/hash4b.bin >>full.bin");
-  execSync("cat 8k.bin ./obj2/hash4c.bin >>full.bin");
+  execSync("cat build/8k.bin ./build/obj2/hash4a.bin >> build/full.bin");
+  execSync("cat build/8k.bin ./build/obj2/hash4b.bin >> build/full.bin");
+  execSync("cat build/8k.bin ./build/obj2/hash4c.bin >> build/full.bin");
 
-  execSync("bin2efcrt full.bin full.crt");
+  execSync("bin2efcrt build/full.bin querycsv.crt");
 
   //all done (hooray!)
 }
@@ -1140,16 +1143,16 @@ function splitUpFunctions(filename, callback, append) {
   var notAddedJmpVec = true;
 
   var lineReader = readline.createInterface({
-    input: fs.createReadStream(filename+'.s')
+    input: fs.createReadStream('build/'+filename+'.s')
   });
 
-  var data = fs.createWriteStream('data.s', {
+  var data = fs.createWriteStream('build/data.s', {
     flags: append?'a':'w'
   });
 
   var rodataOutputStreams = [];
 
-  var code = fs.createWriteStream(filename+'_code.s');
+  var code = fs.createWriteStream('build/'+filename+'_code.s');
 
   var functionOutputStreams = [];
   var activeStream = code;
@@ -1200,7 +1203,7 @@ function splitUpFunctions(filename, callback, append) {
     }
     else if (/^\.proc\s+/.test(line)) {
       name = (line.replace(/^\.proc\s+/, "")).match(/[^:]+/)[0];
-      functionOutputStreams.push(fs.createWriteStream('s/'+name+'.s'));
+      functionOutputStreams.push(fs.createWriteStream('build/s/'+name+'.s'));
 
       activeStream = functionOutputStreams[functionOutputStreams.length-1];
 
@@ -1226,7 +1229,7 @@ function splitUpFunctions(filename, callback, append) {
         if(rodataType == 1 || rodataType == 3) {
           rodataType = 3;
 
-          rodataOutputStreams.push(fs.createWriteStream("ro/"+name+'.s'));
+          rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name+'.s'));
 
           /* add to the list of rodata regexes used to add the appropriate rodata to each function */
           rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
@@ -1247,7 +1250,7 @@ function splitUpFunctions(filename, callback, append) {
         if(rodataType == 1 || rodataType == 3) {
           rodataType = 3;
 
-          rodataOutputStreams.push(fs.createWriteStream("ro/"+name+'.s'));
+          rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name+'.s'));
           rodataLabels.push([
               name,
               false,
@@ -1270,7 +1273,7 @@ function splitUpFunctions(filename, callback, append) {
         if(rodataType == 1 || rodataType == 3) {
           rodataType = 3;
 
-          rodataOutputStreams.push(fs.createWriteStream("ro/"+name+'.s'));
+          rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name+'.s'));
           rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
           activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
         }
@@ -1404,13 +1407,13 @@ function updateName(elem) {
   });
 
   execSync(
-    'echo ".segment \\"INIT\\"" >> s/'+elem[0] + " &&" +
-    'echo ".segment \\"STARTUP\\"" >> s/'+elem[0] + " &&" +
-    'echo ".segment \\"ONCE\\"" >> s/'+elem[0] + (!hasMatches?'':(" &&" +
-    'echo ".segment \\"RODATA\\"" >> s/'+elem[0] + " &&" +
+    'echo ".segment \\"INIT\\"" >> build/s/'+elem[0] + " &&" +
+    'echo ".segment \\"STARTUP\\"" >> build/s/'+elem[0] + " &&" +
+    'echo ".segment \\"ONCE\\"" >> build/s/'+elem[0] + (!hasMatches?'':(" &&" +
+    'echo ".segment \\"RODATA\\"" >> build/s/'+elem[0] + " &&" +
     "cat "+
-    shellEscape(rodataLabels.filter(label => label[1]).map(label => "ro/"+label[0]+".s")) +
-    ">> s/"+elem[0]))
+    shellEscape(rodataLabels.filter(label => label[1]).map(label => "build/ro/"+label[0]+".s")) +
+    ">> build/s/"+elem[0]))
   );
 }
 
