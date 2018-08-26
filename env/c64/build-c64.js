@@ -541,7 +541,21 @@ function compileHash2() {
 }
 
 function compileHash3And4() {
-  console.log("compileHash4");
+  console.log("compileHash3And4");
+
+  execSync(
+      "cl65 -T -t c64 "+
+      "-o build/obj2/hash3.bin "+
+      "-Ln build/obj2/hash3.lbl "+
+      "-C rodata-page.cfg "+
+      "hash3.c build/labels.s;"+
+      "rm *.o"
+    );
+
+  functionsList[hashMap['_isCombiningChar']][2] = parseInt(execSync(
+      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isCombiningChar'+
+      ' build/obj2/hash3.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
+    ).toString(), 10);
 
   execSync(
       "cl65 -T -t c64 "+
@@ -575,17 +589,12 @@ function compileHash3And4() {
       "-o build/obj2/hash4c.bin "+
       "-Ln build/obj2/hash4c.lbl "+
       "-C rodata-page.cfg "+
-      "hash4c.c hash3.c build/labels.s;"+
+      "hash4c.c build/labels.s;"+
       "rm *.o"
     );
 
   functionsList[hashMap['_in_word_set_c']][2] = parseInt(execSync(
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_c'+
-      ' build/obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
-    ).toString(), 10);
-
-  functionsList[hashMap['_isCombiningChar']][2] = parseInt(execSync(
-      'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _isCombiningChar'+
       ' build/obj2/hash4c.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
 
@@ -989,7 +998,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 8277;//8277;
+  var maxSize = 8410;//8277;
 
   files = [];
   var totalSizes = [];
@@ -1073,9 +1082,9 @@ function updatePageFunctionAddresses(pageNumber) {
     if(err.code == 'ENOENT') {
       passPostfix = "b";
 
+      functionsList[hashMap["_isCombiningChar"]][1] = pageNumber++;
       functionsList[hashMap["_in_word_set_a"]][1] = pageNumber++;
       functionsList[hashMap["_in_word_set_b"]][1] = pageNumber++;
-      functionsList[hashMap["_isCombiningChar"]][1] = pageNumber;
       functionsList[hashMap["_in_word_set_c"]][1] = pageNumber++;
 
       for (i = 0; i < hash2ChunkCount; i++) {
@@ -1116,13 +1125,14 @@ function glueTogetherBinary() {
     execSync("cat build/8k.bin ./build/obj2/page"+(i+1)+".bin >> build/full.bin");
   }
 
-  for (i = 0; i < hash2ChunkCount; i++) {
-    execSync("cat build/8k.bin ./build/obj2/hash2in"+i+".bin >> build/full.bin");
-  }
-
+  execSync("cat build/8k.bin ./build/obj2/hash3.bin >> build/full.bin");
   execSync("cat build/8k.bin ./build/obj2/hash4a.bin >> build/full.bin");
   execSync("cat build/8k.bin ./build/obj2/hash4b.bin >> build/full.bin");
   execSync("cat build/8k.bin ./build/obj2/hash4c.bin >> build/full.bin");
+
+  for (i = 0; i < hash2ChunkCount; i++) {
+    execSync("cat build/8k.bin ./build/obj2/hash2in"+i+".bin >> build/full.bin");
+  }
 
   execSync("bin2efcrt build/full.bin querycsv.crt");
 
