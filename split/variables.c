@@ -23,5 +23,13 @@ const char* TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 /*the return value from the getBytes functions. bodged to make the c64 build work */
 char returnByte;
 
+#ifdef __CC65__
+  #define FOPEN_READ "RB";
+  #define FOPEN_WRITE "WB";
+#else
+  #define FOPEN_READ "rb";
+  #define FOPEN_WRITE "wb";
+#endif
+
 char * fopen_read = FOPEN_READ;
 char * fopen_write = FOPEN_WRITE;

@@ -4,15 +4,11 @@ on the c64 build, the format specifiers need to be in uppercase */
   #define S_STRING "%S"
   #define LD_STRING "%LD"
   #define D_STRING "%D"
-  #define FOPEN_READ "RB";
-  #define FOPEN_WRITE "WB";
   #define TDB_MALLOC_FAILED2 "cOULD NOT ALLOCATE NEEDED MEMORY\n" /*avoid doing another malloc to print the out of memory message */
 #else
   #define S_STRING "%s"
   #define LD_STRING "%ld"
   #define D_STRING "%d"
-  #define FOPEN_READ "rb";
-  #define FOPEN_WRITE "wb";
   #define TDB_MALLOC_FAILED2 "Could not allocate needed memory\n"
 #endif
 
