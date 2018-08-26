@@ -24,12 +24,11 @@ const char* TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 char returnByte;
 
 #ifdef __CC65__
-  #define FOPEN_READ "RB";
-  #define FOPEN_WRITE "WB";
+char * fopen_read = "RB";
+char * fopen_write = "WB";
 #else
-  #define FOPEN_READ "rb";
-  #define FOPEN_WRITE "wb";
+char * fopen_read = "rb";
+char * fopen_write = "wb";
 #endif
 
-char * fopen_read = FOPEN_READ;
-char * fopen_write = FOPEN_WRITE;
+
