@@ -79,6 +79,7 @@
 #define TRE_BLACK 1
 #define TRE_RED 2
 #define TRE_FREED 3
+#define isRed(x) (x != NULL && x->type == TRE_RED)
 
 /* short codes for the character encodings we want to support */
 #define ENC_UNKNOWN 0
@@ -484,8 +485,7 @@ struct resultColumnValue { /* this information should be stored in files */
 /* results are sorted in a binary tree for quick in order retrieval */
 /* TODO: make the tree_insert function use a red black tree algorithm */
 struct resultTree {
-  struct resultTree *left;
-  struct resultTree *right;
+  struct resultTree *link[2];
   struct resultTree *parent;
   struct resultColumnValue *columns;
   int type; /* red, black or freed */

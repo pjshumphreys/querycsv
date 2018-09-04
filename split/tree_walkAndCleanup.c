@@ -19,8 +19,9 @@ void tree_walkAndCleanup(
   currentResult = *root;
 
   for( ; ; ) {
-    if(currentResult->left) {
-      currentResult = currentResult->left;
+    if(currentResult->link[0]) {
+      currentResult->link[0]->parent = currentResult;
+      currentResult = currentResult->link[0];
       continue;
     }
 
@@ -35,23 +36,24 @@ void tree_walkAndCleanup(
       i++;
     }
 
-    if(currentResult->right) {
-      currentResult = currentResult->right;
+    if(currentResult->link[1]) {
+      currentResult->link[1]->parent = currentResult;
+      currentResult = currentResult->link[1];
       continue;
     }
 
     parentResult = currentResult->parent;
 
     if(parentResult != NULL) {
-      if(parentResult->left == currentResult) {
+      if(parentResult->link[0] == currentResult) {
         currentResult = parentResult;
-        free(currentResult->left);
-        currentResult->left = NULL;
+        free(currentResult->link[0]);
+        currentResult->link[0] = NULL;
       }
       else {
         currentResult = parentResult;
-        free(currentResult->right);
-        currentResult->right = NULL;
+        free(currentResult->link[1]);
+        currentResult->link[1] = NULL;
       }
     }
     else {
