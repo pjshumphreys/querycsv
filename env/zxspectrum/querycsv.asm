@@ -212,7 +212,7 @@ resigot128:
   jr dosload
 
 printnofile2:
-  jr printnofile3
+  jr printnofile
 
 noresidos:
   ld a, 0xff
@@ -256,7 +256,9 @@ dosload:
   ;ld hl,filename  ; filename
   ld iy, DOS_OPEN  ; +3DOS call ID
   call dodos
-  jr nc, open_error  ; exit if error
+  push af
+  jr nc, finish  ; exit if error
+  pop af
 
   ; Get the address of the header in +3DOS memory.
   ld hl, 0xc000
@@ -264,53 +266,30 @@ dosload:
   ld de, 16384  ; amount of data to load
   ld iy, DOS_READ  ; +3DOS call ID
   call dodos
-  jr nc, ref_error  ; exit if error
+  push af
+  jr nc, finish  ; exit if error
+  pop af
 
   ; Close the file
   ld b, 0  ; file 0
   ld iy, DOS_CLOSE  ; +3DOS call ID
   call dodos
-  jr nc, close_error  ; exit if error
+  push af
+  jr c, finish  ; exit if error
 
-  call 0xc000
-  jr resiexit
-
-printnofile3:
-  jr printnofile
-
-  ; Error handling. If a file might be in an open state, we
-  ; should attempt to close or abandon it before exiting.
-ref_error:
-  push af  ; save error code
-  ; Attempt to close file 0
-  ld b, 0  ; file 0
-  ld iy, DOS_CLOSE  ; +3DOS call ID
-  call dodos
-  jr c, closed_ok  ; move on if the close succeeded
   ; Otherwise, abandon file 0
   ld b, 0  ; file 0
   ld iy, DOS_ABANDON  ; +3DOS call ID
   call dodos
 
-closed_ok:
+finish:
   pop af  ; restore error code
 
-resiexit:
   exx
   pop hl      ; restore BASIC's HL'
   exx
-  ret
 
-nadagot:
-  ld de, nada+offset
-  push de
-  jr println
-
-open_error:
-close_error:
-  exx
-  pop hl      ; restore BASIC's HL'
-  exx
+  jp c, 0xc000
 
 printnofile:
   push hl
@@ -320,6 +299,11 @@ printnofile:
   ld (hl), 0x0a
   pop hl
   ld de, noopen+offset
+  push de
+  jr println
+  
+nadagot:
+  ld de, nada+offset
   push de
 
 println:
