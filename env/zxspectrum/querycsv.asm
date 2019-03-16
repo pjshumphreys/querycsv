@@ -136,8 +136,7 @@ esxload:
   rst RST_HOOK
   defb F_CLOSE
 
-  call 0xc000
-  ret
+  jp 0xc000
 
 noresidos2:
   jr noresidos
