@@ -99,13 +99,15 @@ esxcont:
   ld a, 0x34  ; '4'
   jr esxload
 
+noresidos2:
+  jr noresidos3
+
+resicheck:
+  jr resicheck2
+
 esxgot128:
   ld a, 0x35  ; '5'
   ; jr esxload
-
-
-
-
 
 esxload:
   ld hl, (PROG)
@@ -136,9 +138,39 @@ esxload:
   rst RST_HOOK
   defb F_CLOSE
 
-  jp 0xc000
+  call 0xc000
 
-noresidos2:
+  di
+  ld c, 0xe3
+  xor a
+  out (c), a
+  ld a, (bankm)  ; system variable that holds current switch state
+  or 31 ; use shadow screen
+  ld (bankm), a  ; must keep system variable up to date (very important)
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+  out (c), a
+  ei
+
+  ld bc, 0x0c0c
+  push bc
+  call 0xec20
+  pop bc
+  ld bc, 0x4141
+  push bc
+  call 0xec20
+  pop bc
+  ld bc, 0x4242
+  push bc
+  call 0xec20
+  pop bc
+  ld bc, 0x4343
+  push bc
+  call 0xec20
+  pop bc
+  ret
+
+
+noresidos3:
   jr noresidos
 
 esxexit:
@@ -154,7 +186,7 @@ esxend:
 
 
 
-resicheck:
+resicheck2:
   ld hl, (ERR_SP)
   push hl  ; save the existing ERR_SP
 
@@ -300,7 +332,7 @@ printnofile:
   ld de, noopen+offset
   push de
   jr println
-  
+
 nadagot:
   ld de, nada+offset
   push de
@@ -393,24 +425,40 @@ dodos_residos:
   ld iy, 23610
   ret
 
-
-
 checkmem:
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+
   di
   ld a, (bankm)  ; system variable that holds current switch state
-  res 4, a  ; move right to left in horizontal ROM switch (3 to 2)
-  or 7
+  or 23
   ld (bankm), a  ; must keep system variable up to date (very important)
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
   out (c), a
+  ei
+
   ld a, (0xc000)
   cp 0xe9
   jr z, noram
+
+  ; copy the character set up into page 7 so we can print using page 7 and use page 5 for data
+  ld hl, 0x3d00  ; Pointer to the source
+  ld de, 0xe800  ; Pointer to the destination
+  ld bc, 0x2ff  ; Number of bytes to move
+  ldir
+
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+
+  di
+  ld a, (bankm)  ; system variable that holds current switch state
+  res 4, a  ; move right to left in horizontal ROM switch (3 to 2)
+  ld (bankm), a  ; must keep system variable up to date (very important)
+  out (c), a
+
   ld a, (0x0008)
   cp 0x50  ; 'P' of 'PLUS3DOS'
-  jr z, plus3
+
   ld a, (bankm)  ; get current switch state
   set 4, a  ; move left to right (ROM 2 to ROM 3)
+  jr z, plus3
   and 0xf8  ; also want RAM page 0
   ld (bankm), a  ; update the system variable (very important)
   out (c), a
@@ -419,13 +467,10 @@ checkmem:
   ret
 
 noram:
-  ei
   ld a, 0  ; 48k only
   ret
 
 plus3:
-  ld a, (bankm)  ; get current switch state
-  set 4, a  ; move left to right (ROM 2 to ROM 3)
   and 0xf8  ; also want RAM page 0
   ld (bankm), a  ; update the system variable (very important)
   out (c), a
