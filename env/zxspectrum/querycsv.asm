@@ -6,7 +6,7 @@ PROG equ 0x5c53
 jumptoit equ 0xbffc
 dodos equ 0xbffd
 SEED equ 0xbffe
-offset equ 5
+offset equ 45
 
 HOOK_VERSION equ 0xfc
 HOOK_PACKAGE equ 0xfb
@@ -138,37 +138,7 @@ esxload:
   rst RST_HOOK
   defb F_CLOSE
 
-  call 0xc000
-
-  di
-  ld c, 0xe3
-  xor a
-  out (c), a
-  ld a, (bankm)  ; system variable that holds current switch state
-  or 31 ; use shadow screen
-  ld (bankm), a  ; must keep system variable up to date (very important)
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-  out (c), a
-  ei
-
-  ld bc, 0x0c0c
-  push bc
-  call 0xec20
-  pop bc
-  ld bc, 0x4141
-  push bc
-  call 0xec20
-  pop bc
-  ld bc, 0x4242
-  push bc
-  call 0xec20
-  pop bc
-  ld bc, 0x4343
-  push bc
-  call 0xec20
-  pop bc
-  ret
-
+  jp 0xc000
 
 noresidos3:
   jr noresidos
@@ -293,7 +263,7 @@ dosload:
 
   ; Get the address of the header in +3DOS memory.
   ld hl, 0xc000
-  ld bc, 0x0000  ; file id 3, 0 - ram page 0
+  ld bc, 0x0000  ; file id 0, 0 - ram page 0
   ld de, 16384  ; amount of data to load
   ld iy, DOS_READ  ; +3DOS call ID
   call dodos

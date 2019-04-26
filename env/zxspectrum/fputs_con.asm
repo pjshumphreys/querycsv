@@ -11,11 +11,13 @@
 ;
 ; djm 3/3/2000
 
+port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
+bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
+
 
   SECTION first
-  PUBLIC fputc_cons_native
 
-  __zx_32col_font equ 0xe800
+  __zx_32col_font equ 0x3d00
   __zx_32col_udgs equ 0xeb00
 
 ;
@@ -23,7 +25,7 @@
 ;
 org 0xec20
 
-fputc_cons_native:
+; fputc_cons:
   ld hl, 2
   add hl, sp
   ld a, (hl)
@@ -90,7 +92,7 @@ handle_control:
 ; x posn and divide by two to get our real position
 
 print32:
-  sub 32 
+  sub 32
   ld c, a ;save character
   call calc_screen_address
   ex de, hl ;de = screen address
@@ -120,11 +122,11 @@ no_inverse32:
   djnz loop32
   dec d
   ld hl, (chrloc)
-  ld a, d 
-  rrca 
-  rrca 
-  rrca 
-  and 3 
+  ld a, d
+  rrca
+  rrca
+  rrca
+  and 3
   or 88
   ld d, a
   ld a, (__zx_console_attr)
@@ -135,16 +137,16 @@ increment:
   inc l
 
 posncheck:
-  bit 6, l 
+  bit 6, l
   jr z, char4
 
 cbak1:
-  ld l, 0 
-  inc h 
+  ld l, 0
+  inc h
 
 char4:
-  ld (chrloc), hl 
-  ret 
+  ld (chrloc), hl
+  ret
 
 
 ; Calculate screen address from xy coords
@@ -174,7 +176,7 @@ just_calculate:
   rrca
   rrca
   rrca
-  and 248 
+  and 248
   or l
   ld l, a
   ld a, h
@@ -318,6 +320,13 @@ cls:
   ld (hl), a
   ld bc, 767
   ldir
+  di
+  ld a, (bankm)  ; system variable that holds current switch state
+  or 8
+  ld (bankm), a  ; must keep system variable up to date (very important)
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+  out (c), a
+  ei
   ret
 
 beep:
@@ -369,7 +378,7 @@ doflash:
 
 dopaper:
   ld hl, __zx_console_attr
-  ld a, (hl) 
+  ld a, (hl)
   and @11000111
   ld c, a
   ld a, (params)
@@ -380,7 +389,7 @@ dopaper:
   or c
   ld (hl), a
   ret
-  
+
 doink:
   ld hl, __zx_console_attr
   ld a, (hl)
@@ -401,7 +410,7 @@ setudg:
   ld hl, doudg
   ld a, 2
   jr setparams
-  
+
 setvscroll:
   ld hl, dovscroll
   jr setink1
@@ -442,7 +451,7 @@ setposn:
   jr setparams
 
 ; Setting the position
-; We only care 
+; We only care
 
 doposn:
   ld hl, (params)
@@ -494,14 +503,14 @@ print_routine:
   defw print32
 
 deltax:
-  defb 1 ;how much to move in x 
+  defb 1 ;how much to move in x
 
 __zx_console_attr:
   defb 56
 
 generic_console_scrollup:
   push hl
-  
+
   ; Code to be used when the original ROM is missing or not available
   push ix
   ld ix, zx_rowtab
@@ -520,7 +529,7 @@ inner_loop:
   ld d, (ix+1)
   ld bc, 32
   ldir
-  
+
   ld bc, 16
   add ix, bc
   dec a
@@ -550,7 +559,7 @@ clear_loop:
   inc ix
   dec a
   jr nz, clear_loop
-  
+
   ld hl, $C000+6880;$4000+6880
   ld de, $C000+6881;$4000+6881
   ld bc, 31

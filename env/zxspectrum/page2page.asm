@@ -1,19 +1,20 @@
-port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
-bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
+include "pager.sym"
 
-org 0xc000-52
+port1a equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
+bankm2 equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
+
+org 0xbd00
   push bc
   push af
   di
-  ld a, (bankm)  ; get current switch state
-  and 0xf8  ; also want RAM page 0
+  ld a, (bankm2)  ; get current switch state
+  and 0xf8  ; also want RAM page
   ld b, a
   pop af
   add b
-  ld (bankm), a  ; update the system variable (very important)
-  ld bc, port1
+  ld (bankm2), a  ; update the system variable (very important)
+  ld bc, port1a
   out (c), a
-  ei
   pop bc
 
 Loop2:
@@ -23,17 +24,18 @@ Loop2:
   ld (hl), d
   dec hl
   djnz Loop2
-  dec c 
+  dec c
   jr nz, Loop2
 
-  di
-  ld a, (bankm)  ; get current switch state
-  and 0xf8  ; also want RAM page 0
+  ld a, (bankm2)  ; get current switch state
+  and 0xf8  ; also want RAM page
   ld b, a
   pop af
   add b
-  ld (bankm), a  ; update the system variable (very important)
-  ld bc, port1
+  ld (bankm2), a  ; update the system variable (very important)
+  ld bc, port1a
   out (c), a
   ei
+
+lastcall:
   jp 0x0000
