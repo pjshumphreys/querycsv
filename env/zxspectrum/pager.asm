@@ -15,7 +15,7 @@ DOS_ABANDON equ 0x010c
 RESI_DEALLOC equ 0x0328
 
 SECTION part1
-org 0xbd00
+include ""
 
 ;------------------------------------------------
 

@@ -82,10 +82,18 @@ inf:
   ; switch to interrupt mode 2 so we can use the iy register and
   ; ram at 0x0000-0x2000 with interrupts enabled
 
-  ;ld hl, pager
-  ;ld de, pagerLocation
-  ;ld bc, pagerend-pager
-  ;ldir
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbe
+  inc hl
+  djnz intSetup
+
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
 
   exx
   ld (exhlBackup), hl      ; save BASIC's HL'
@@ -131,10 +139,10 @@ loopAlloc:
   push hl
   push de
   cp 0
-  jp z, startup2
+  jp z, startup
   ld iy, RESI_ALLOC   ; get free bank
   call doresi
-  jr nc, startup2   ; call failed if Fc=0
+  jr nc, startup   ; call failed if Fc=0
   pop de
   pop hl
   push hl
@@ -153,7 +161,7 @@ loopAlloc:
   ld a, (hl)  ; bank obtained by RESI_ALLOC
   call mypager  ; switch it in to $0000-$3fff
 
-  ; copy the isr code to the right place
+  ; copy the code to the right place
   ld hl, 0xc000
   ld de, 0
   ld bc, 16384
@@ -169,7 +177,7 @@ loopAlloc:
   inc de
   jr loopAlloc
 
-startup2:
+startup:
   pop de
   pop hl
 
