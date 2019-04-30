@@ -15,7 +15,8 @@ DOS_ABANDON equ 0x010c
 RESI_DEALLOC equ 0x0328
 
 SECTION part1
-include ""
+include "part1.inc"
+org origin
 
 ;------------------------------------------------
 
@@ -36,7 +37,10 @@ pageLocations:
   defb 0b11111111 ; 03
   defb 0b11111111 ; 04
   defb 0b11111111 ; 05
+  defb 0b11111111 ; 06
 pageLocationsEnd:
+
+  defb 0x00 ; null terminator for the list of pages
 
 ;----------------------------------------------
 
@@ -44,76 +48,96 @@ lookupTable:
   defw 0xc000 ; _fprintf_real
 lookupTableEnd:
 
-;----------------------------------------------
+;--------------------------------------------------
 
-atexit2:
-  ld (hlBackup), hl
+dorom2:
+  ld (jumptoit+1), iy
+  ld iy, 23610
+  push af
+  ld a, (usingBanks)
 
-  ; switch back to the basic bank
+  ;test for 0
+  inc a
+  dec a
+  jr z, doromnopage
   di
   ld a, (basicBank)
-  ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
-  ld hl, pageLocationsEnd-1
   call mypager
-  ei
 
-  ; free all allocated ram
-freeLoop:
-  ld a, (hl)
-  cp 255 ; special code that indicates to always load from disk
-  jr z, freeSkip
-  cp b ; if the current bank is the basic bank then exit the loop
-  jr z, freeExit
+  ld a, (bankm)  ; RAM/ROM switching system variable
+  ld (bankmBackup), a
+  or 7  ; want RAM page 7
+  ld (bankm), a  ; keep system variables up to date
   push bc
-  push hl
-  ld iy, RESI_DEALLOC
-  call doresi
-  pop hl
+  ld bc, port1  ; port used for horiz ROM switch and RAM paging
+  out (c), a  ; RAM page 7 to top and DOS ROM
   pop bc
-freeSkip:
-  dec hl
-  jr freeLoop
-freeExit:
-
-  ; reload the startup page so we can jump to it directly from basic next time
-  ld de, 0x0000  ; page 0
-  call switchPage
-
-  push af
-  xor a ;page 0
-  ld (pageQueue+6), a
+  ei
   pop af
-  ld e, 5 ; or whenever virtual page number is the one to restart with
-  call loadFromDisk
 
-  ; restore stack pointer and 'hl values
-  exx
-  ld hl, (exhlBackup)      ; restore BASIC's HL'
-  ld sp, (spBackup)
-  exx
-
-  ; if hlBackup is non zero, push it onto the stack
+  ld (hlBackup), hl
+  pop hl
+  ld (deBackup), hl
   ld hl, (hlBackup)
-  ld a, h
-  or l
-  jr z, nopush
+
+  call jumptoit  ; go sub routine address in IY
+
+  ld (hlBackup), hl
+  ld hl, (deBackup)
   push hl
+  ld hl, (hlBackup)
 
-nopush:
-  ;switch in page 7
-  ld de, 0x0700
-  call switchPage
+  di
+  push af  ; return from JP (IY) will be to here
+  ld a, (defaultBank) ; page 0
+  call mypager  ; switch it in to $0000-$3fff
 
-  ; copy page 7 screen ram to screen 5
-  ld hl, 0xc000  ; Pointer to the source
-  ld de, 0x4000  ; Pointer to the destination
-  ld bc, 0x1b00  ; Number of bytes to move
-  ldir
-
-  ; switch in page 0 and disable secondary screen
-  ld de, 0x0010
-  call switchPage
+doromdone:
+  push bc
+  ld a, (bankmBackup)
+  and 7
+  ld b, a
+  ld a, (bankm)
+  and 0xf8
+  or b
+  ld (bankm), a
+  ld bc, port1
+  out (c), a  ; switch back to previous RAM page and 48 BASIC
+  pop bc
+  pop af
+  ei
   ret
+
+doromnopage:
+  di
+  ld a, (bankm)  ; RAM/ROM switching system variable
+  ld (bankmBackup), a
+  or 7  ; want RAM page 7
+  ld (bankm), a  ; keep system variables up to date
+  push bc
+  ld bc, port1  ; port used for horiz ROM switch and RAM paging
+  out (c), a  ; RAM page 7 to top and DOS ROM
+  pop bc
+  ei
+  pop af
+
+  ld (hlBackup), hl
+  pop hl
+  ld (deBackup), hl
+  ld hl, (hlBackup)
+
+  call jumptoit  ; go sub routine address in IY
+
+  ld (hlBackup), hl
+  ld hl, (deBackup)
+  push hl
+  ld hl, (hlBackup)
+  di
+  push af  ; return from JP (IY) will be to here
+  jr doromdone
+
+jumptoit:
+  jp 0x0000
 
 ;---------------------------------------------------
 
@@ -137,7 +161,48 @@ farRet:
   ld hl, (hlBackup)
   ret
 
+;------------------------------------------------
+
+loadFromDisk2:
+  push de
+  ld de, 0x0100
+  call switchPage
+  pop de
+  push de
+
+  push hl
+  call loadFromDisk
+  pop hl
+
+  push hl
+  ld a, (hl)
+  call mypager  ; switch it in to $0000-$3fff
+
+  ; copy the code to the right place
+  ld hl, 0xc000
+  ld de, 0
+  ld bc, 16384
+  ldir
+
+  ld de, 0x0000
+  call switchPage
+  pop hl
+
+  pop de
+  ret
+
+
 ;---------------------------------------------------
+
+hlBackup:
+  defw 0x0000
+
+
+usingBanks:
+  defb 0
+
+;---------------------------------------------------
+
 dorom:
   jp dorom2
 
@@ -163,27 +228,17 @@ SECTION part2
 org 0xbd00
   defs 257, 0xbe
 
-;---------------------------------------------------
-
-afBackup:
-  defw 0x0000
-
-hlBackup:
-  defw 0x0000
-
-deBackup:
-  defw 0x0000
-
 bankmBackup:
   defb 0
 
-usingBanks:
-  defb 0
 
 ;---------------------------------------------------
 
 ;queue of high ram pages
 pageQueue:
+  defb 0x00
+  defb 0x03
+
   defb 0x04
   defb 0xff
 
@@ -191,9 +246,6 @@ pageQueue:
   defb 0xff
 
   defb 0x01
-  defb 0xff
-
-  defb 0x00
   defb 0xff
 
 filename:
@@ -258,73 +310,83 @@ farCall:
 jumpPoint:
   jp 0x0000  ;self modifying code
 
-;--------------------------------------------------
+;----------------------------------------------
 
-dorom2:
-  push af
-  ld a, (usingBanks)
+atexit2:
+  ld (hlBackup), hl
 
-  ;test for 0
-  inc a
-  dec a
-  jr z, doromnopage
+  ld a, 0
+  ld (usingBanks), a
+
+  ; switch back to the basic bank
   di
   ld a, (basicBank)
+  ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
   call mypager
-
-  ld a, (bankm)  ; RAM/ROM switching system variable
-  ld (bankmBackup), a
-  or 7  ; want RAM page 7
-  ld (bankm), a  ; keep system variables up to date
-  push bc
-  ld bc, port1  ; port used for horiz ROM switch and RAM paging
-  out (c), a  ; RAM page 7 to top and DOS ROM
-  pop bc
   ei
-  pop af
 
-  call jumptoit  ; go sub routine address in IY
+  ld hl, pageLocationsEnd-1
 
-  di
-  push af  ; return from JP (IY) will be to here
-  ld a, (defaultBank) ; page 0
-  call mypager  ; switch it in to $0000-$3fff
-
-doromdone:
-  ld a, (bankmBackup)
-  ld (bankm), a
+  ; free all allocated ram
+freeLoop:
+  ld a, (hl)
+  cp 255 ; special code that indicates to always load from disk
+  jr z, freeSkip
+  cp b ; if the current bank is the basic bank then exit the loop
+  jr z, freeExit
   push bc
-  ld bc, port1
-  out (c), a  ; switch back to previous RAM page and 48 BASIC
+  push hl
+  ld iy, RESI_DEALLOC
+  call doresi
+  pop hl
   pop bc
-  pop af
-  ei
-  ld iy, 23610
+freeSkip:
+  dec hl
+  jr freeLoop
+freeExit:
+
+  ; reload the startup page so we can jump to it directly from basic next time
+  ld de, 0x0000  ; page 0
+  call switchPage
+
+  xor a ;page 0
+  ld (pageQueue+6), a
+  ld (pageQueue+7), a
+
+  ld e, 3 ; or whenever virtual page number is the one to restart with
+  call loadFromDisk
+
+  ; restore stack pointer and 'hl values
+  exx
+  ld hl, (exhlBackup)      ; restore BASIC's HL'
+  ld sp, (spBackup)
+  exx
+
+  ; if hlBackup is non zero, push it onto the stack
+  ld hl, (hlBackup)
+  ld a, h
+  or l
+  jr z, nopush
+  push hl
+
+nopush:
+  ;switch in page 7
+  ld de, 0x0700
+  call switchPage
+
+  ; copy page 7 screen ram to screen 5
+  ld hl, 0xc000  ; Pointer to the source
+  ld de, 0x4000  ; Pointer to the destination
+  ld bc, 0x1b00  ; Number of bytes to move
+  ldir
+
+  ; switch in page 0 and disable the secondary screen
+  ld de, 0x0008
+  call switchPage
+  im 0
   ret
 
-doromnopage:
-  di
-  ld a, (bankm)  ; RAM/ROM switching system variable
-  ld (bankmBackup), a
-  or 7  ; want RAM page 7
-  ld (bankm), a  ; keep system variables up to date
-  push bc
-  ld bc, port1  ; port used for horiz ROM switch and RAM paging
-  out (c), a  ; RAM page 7 to top and DOS ROM
-  pop bc
-  ei
-  pop af
-
-  call jumptoit  ; go sub routine address in IY
-
-  di
-  push af  ; return from JP (IY) will be to here
-  jr doromdone
-
-jumptoit:
-  jp (iy)
-
-;--------------------------------------------------
+;-----------------------------------------
 
 defs 0x1be - ASMPC
 if (ASMPC <> 0x1be)
@@ -348,41 +410,9 @@ keyInt:
   pop hl
   pop af
   ei
-  ret  ;21 bytes
+  reti  ;21 bytes
 
 ;------------------------------------------------------
-
-found:
-  ; if yes, make it the most recently used, switch to it then jump to the proper location
-  dec hl
-  ld d, (hl)
-  push de
-  push hl
-  pop de
-  dec hl
-  dec hl
-  lddr
-  pop de
-  dec hl
-  ld (hl), e
-  dec hl
-  ld (hl), d
-found4:
-  ld e, 0
-switchPage:
-  di
-  ld a, d
-  ld (currentVirtualPage), a
-  ld a, (bankm)  ; system variable that holds current switch state
-  and 0xf8
-  or d
-  xor e
-  ld (bankm), a  ; must keep system variable up to date (very important)
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-  out (c), a
-  ei
-  pop bc
-  ret
 
 changePage:  ; is the virtual page currently in a ram page?
 
@@ -423,8 +453,30 @@ notFound:
   add hl, de
   ld a, (hl)
   cp 255  ; 255 = load from disk
-  jr z, loadFromDisk
-  ; jp copyLoToHi
+  jr nz, copyLoToHi
+  call loadFromDisk
+  ; jr found
+
+found:
+  ; if yes, make it the most recently used, switch to it then jump to the proper location
+  dec hl
+  ld d, (hl)
+  push de
+  push hl
+  pop de
+  dec hl
+  dec hl
+  lddr
+  pop de
+  dec hl
+  ld (hl), e
+  dec hl
+  ld (hl), d
+found4:
+  ld e, 0
+  call switchPage
+  pop bc
+  ret
 
 copyLoToHi:
   ;if it is in overlay ram, disable interupts, switch in the proper overlay ram and the least recently used page, copy the data, make it the most recently used, switch to it then jump to the proper location.
@@ -433,7 +485,6 @@ copyLoToHi:
   call mypager  ; switch it in to $0000-$3fff
 
   ;switch to the ram page we'll be loading into
-  push bc  ; purely for stack accounting
   ld a, (pageQueue+6) ; which page to switch to
   ld d, a
   ld e, 0
@@ -454,7 +505,25 @@ copyLoToHi:
   ld a, (defaultBank)  ; bank with our interupt code
   call mypager  ; switch it in to $0000-$3fff
   ei
-  jp found
+  jr found
+
+;------------------------------------------------------
+
+switchPage:
+  di
+  ld a, d
+  ld (currentVirtualPage), a
+  ld a, (bankm)  ; system variable that holds current switch state
+  and 0xf8
+  or d
+  xor e
+  ld (bankm), a  ; must keep system variable up to date (very important)
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+  out (c), a
+  ei
+  ret
+
+;------------------------------------------------------
 
 loadFromDisk:
   ; if it isn't in rom overlay ram, load it from disk, make it the most recently used, switch to it then jump to the proper location.
@@ -479,12 +548,11 @@ loadFromDisk:
   and 0b00001111
   add 0x30
   ld (hl), a
-  ld hl, filename
 
   ; Open the file.
   ld bc, 0x0005  ; use file 0 ; access: shared-read
   ld de, 0x0001  ; create action: error ; open action: read header
-  ;ld hl,filename  ; filename
+  ld hl, filename  ; filename
   ld iy, DOS_OPEN  ; +3DOS call ID
   call dodos
   push af
@@ -514,8 +582,7 @@ loadFromDisk:
 
 finish:
   pop af  ; restore error code
-
-  jp c, found
+  ret c
 
   ld hl, invalidFile
   jp atexit
@@ -572,11 +639,23 @@ contnopage:
 
 ;----------------------------------------------
 
-currentVirtualPage:
-  defb 0x05
-
 exhlBackup:
   defw 0x0000
 
 spBackup:
   defw 0x0000
+
+afBackup:
+  defw 0x0000
+
+deBackup:
+  defw 0x0000
+
+
+defs 0x2ff - ASMPC
+if (ASMPC <> 0x2ff)
+  defs CODE_ALIGNMENT_ERROR
+endif
+
+currentVirtualPage:
+  defb 0x03

@@ -1,5 +1,3 @@
-include "pager.sym"
-
 port1a equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
 bankm2 equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
 
@@ -37,5 +35,6 @@ Loop2:
   out (c), a
   ei
 
-lastcall:
+lastCall:
   jp 0x0000
+frund:
