@@ -7,6 +7,8 @@ RESI_ALLOC equ 0x0325
 
 DOS_SET_1346 equ 0x013f
 
+VARS equ 0x5c4b
+
 org 0xc000
 
 ; copy all the data from this page to elsewhere in the memory map
@@ -160,7 +162,56 @@ startup2:
   pop hl
 
 failed:
-startup:
+  ; get the filename to load from basic variable a$
+  ; zx_getstra:
+  push bc
+  push de
+  push hl
+
+  ld d, 'A'
+  ld hl, (VARS)
+
+loop:
+  ld a, (hl)
+
+  cp 128
+  jr z, notfound    ;  n.b. z => nc
+
+  cp d
+  jr z, found2
+
+  push de
+  call call_rom3
+  defw 0x19b8   ; find next variable
+
+  ex de, hl
+  pop de
+  jr loop
+
+found2:
+  inc hl
+  ld c, (hl)
+  inc hl
+  ld (argName), hl
+  ld de, argNameLsb
+  ldi
+  inc bc
+  dec hl
+  ld b, (hl)
+  push hl
+  pop de
+  inc hl
+  ldir
+  xor a
+  dec hl
+  ld (hl), a
+
+notfound:
+  pop hl
+  pop de
+  pop bc
+  ; ret
+
   ld bc, 0x000c
   push bc
   call _fputc_cons
@@ -200,4 +251,3 @@ page2page:
   binary "pager_part1.bin"
   binary "pager_part2.bin"
 page2pageend:
-

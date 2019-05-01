@@ -6,7 +6,7 @@ PROG equ 0x5c53
 jumptoit equ 0xbffc
 dodos equ 0xbffd
 SEED equ 0xbffe
-offset equ 45
+offset equ 67
 
 HOOK_VERSION equ 0xfc
 HOOK_PACKAGE equ 0xfb

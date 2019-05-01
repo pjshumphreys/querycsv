@@ -473,8 +473,7 @@ nomult:
   ret
 
 ; SECTION bss_clib
-chrloc:
-  defw 0x0101
+chrloc equ 0x5c84
 
 ; Attribute to use
 
