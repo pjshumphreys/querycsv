@@ -21,14 +21,13 @@ org 0xc000
   di
   exx
   ld (exhlBackup), hl      ; save BASIC's HL'
-  ld (spBackup), sp
   exx
   ei
 
   ld hl, jumpback
   ld (lastCall+1), hl
 
-  ld a, 3  ; how many loads to do
+  ld a, 4  ; how many loads to do
   push af
 
   ld a, 0  ; which page to go back to
@@ -57,10 +56,12 @@ jumpback:
   pop af
   dec a
   push af
-  cp 2
+  cp 3
   jr z, secondcopy
-  cp 1
+  cp 2
   jr z, thirdcopy
+  cp 1
+  jr z, fourthcopy
 
   pop af
   jr inf
@@ -87,10 +88,19 @@ thirdcopy:
   ld hl, third
   jr Loop
 
-inf:
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
+fourthcopy:
+  ld a, 0  ; which page to go back to
+  push af
+  ld b, 57
+  ld c, 1
+  ld (bcBackup), bc
+  ld hl, 0xe60e+113
+  ld (hlBackup), hl
+  ld hl, fourth
+  jr Loop
 
+inf:
+  ; restore the interrupt mode 2 bytes
   ld b, 255
   ld hl, 0xbd00
 intSetup:
@@ -98,6 +108,8 @@ intSetup:
   inc hl
   djnz intSetup
 
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
   di
   ld a, 0xbd
   ld i, a
@@ -163,11 +175,7 @@ startup2:
 
 failed:
   ; get the filename to load from basic variable a$
-  ; zx_getstra:
-  push bc
-  push de
-  push hl
-
+  ; zx_getstraddr:
   ld d, 'A'
   ld hl, (VARS)
 
@@ -175,14 +183,14 @@ loop:
   ld a, (hl)
 
   cp 128
-  jr z, notfound    ;  n.b. z => nc
+  jr z, notFound2
 
   cp d
   jr z, found2
 
   push de
   call call_rom3
-  defw 0x19b8   ; find next variable
+  defw 0x19b8  ; get the address of the next variable
 
   ex de, hl
   pop de
@@ -191,26 +199,32 @@ loop:
 found2:
   inc hl
   ld c, (hl)
+  xor a
+  ld (hl), a  ; zero the first byte so we can find the start of the string later
   inc hl
-  ld (argName), hl
-  ld de, argNameLsb
-  ldi
-  inc bc
-  dec hl
   ld b, (hl)
+  ld a, b
+  or c
+  jp z, notFound2
+  ld (argName), hl
   push hl
   pop de
   inc hl
   ldir
   xor a
-  dec hl
-  ld (hl), a
+  ld (de), a  ; null terminate the string
+  ld hl, 2
+  jr startup
 
-notfound:
-  pop hl
-  pop de
-  pop bc
+notFound2:
+  ld hl, 1
   ; ret
+
+startup:
+  ld de, argv
+  push de  ; argv
+  push hl  ; argc
+  ld (spBackup), sp
 
   ld bc, 0x000c
   push bc
@@ -246,6 +260,9 @@ second:
 
 third:
   binary "fputs_con_third.bin"
+
+fourth:
+  binary "atexit.bin"
 
 page2page:
   binary "pager_part1.bin"

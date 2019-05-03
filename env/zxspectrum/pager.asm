@@ -12,8 +12,6 @@ DOS_READ equ 0x0112
 DOS_CLOSE equ 0x0109
 DOS_ABANDON equ 0x010c
 
-RESI_DEALLOC equ 0x0328
-
 SECTION part1
 include "part1.inc"
 org origin
@@ -24,6 +22,9 @@ mypager:
   defs 32, 0x00
 
 ;------------------------------------------------
+
+hlBackup:
+  defw 0x0000
 
 basicBank:
   defb 0
@@ -141,161 +142,6 @@ jumptoit:
 
 ;---------------------------------------------------
 
-farRet:
-  ; backup registers
-  ld (hlBackup), hl
-  ld (deBackup), de
-  push af
-  pop hl
-  ld (afBackup), hl
-
-  pop af
-  ld e, a
-  ld d, 0
-  call changePage
-
-  ld hl, (afBackup)
-  push hl
-  pop af
-  ld de, (deBackup)
-  ld hl, (hlBackup)
-  ret
-
-;------------------------------------------------
-
-loadFromDisk2:
-  push de
-  ld de, 0x0100
-  call switchPage
-  pop de
-  push de
-
-  push hl
-  call loadFromDisk
-  pop hl
-
-  push hl
-  ld a, (hl)
-  call mypager  ; switch it in to $0000-$3fff
-
-  ; copy the code to the right place
-  ld hl, 0xc000
-  ld de, 0
-  ld bc, 16384
-  ldir
-
-  ld de, 0x0000
-  call switchPage
-  pop hl
-
-  pop de
-  ret
-
-;---------------------------------------------------
-
-hlBackup:
-  defw 0x0000
-
-usingBanks:
-  defb 0
-
-programName:
-  defb "querycsv"
-
-terminator:
-  defb 0
-
-params:
-  defw programName
-argName:
-  defw terminator
-  defw 0x0000
-
-argNameLsb:
-  defb 0x00
-
-;----------------------------------------------
-
-atexit2:
-  ld (hlBackup), hl
-
-  ld a, 0
-  ld (usingBanks), a
-
-  ; switch back to the basic bank
-  di
-  ld a, (basicBank)
-  ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
-  call mypager
-  ei
-
-  ld hl, pageLocationsEnd-1
-
-  ; free all allocated ram
-freeLoop:
-  ld a, (hl)
-  cp 255 ; special code that indicates to always load from disk
-  jr z, freeSkip
-  cp b ; if the current bank is the basic bank then exit the loop
-  jr z, freeExit
-  push bc
-  push hl
-  ld iy, RESI_DEALLOC
-  call doresi
-  pop hl
-  pop bc
-freeSkip:
-  dec hl
-  jr freeLoop
-freeExit:
-
-  ; reload the startup page so we can jump to it directly from basic next time
-  ld de, 0x0000  ; page 0
-  call switchPage
-
-  xor a ;page 0
-  ld (pageQueue+6), a
-  ld (pageQueue+7), a
-
-  ld e, 3 ; or whenever virtual page number is the one to restart with
-  call loadFromDisk
-
-  ; restore stack pointer and 'hl values
-  exx
-  ld hl, (exhlBackup)      ; restore BASIC's HL'
-  ld sp, (spBackup)
-  exx
-
-  ld hl, argNameLsb
-  ld de, (argName)
-  ldi
-
-  ; if hlBackup is non zero, push it onto the stack
-  ld hl, (hlBackup)
-  ld a, h
-  or l
-  jr z, nopush
-  push hl
-
-nopush:
-  ;switch in page 7
-  ld de, 0x0700
-  call switchPage
-
-  ; copy page 7 screen ram to screen 5
-  ld hl, 0xc000  ; Pointer to the source
-  ld de, 0x4000  ; Pointer to the destination
-  ld bc, 0x1b00  ; Number of bytes to move
-  ldir
-
-  ; switch in page 0 and disable the secondary screen
-  ld de, 0x0008
-  call switchPage
-  im 0
-  ret
-
-;---------------------------------------------------
-
 call_rom3:
   ld (deBackup), de
   pop hl
@@ -333,6 +179,18 @@ org 0xbd00
 
 bankmBackup:
   defb 0
+
+usingBanks:
+  defb 0
+
+programName:
+  defb "querycsv", 0
+
+argv:
+  defw programName
+argName:
+  defw 0x0000
+  defw 0x0000
 
 ;---------------------------------------------------
 
@@ -411,6 +269,80 @@ farCall:
 
 jumpPoint:
   jp 0x0000  ;self modifying code
+
+;---------------------------------------------------
+
+farRet:
+  ; backup registers
+  ld (hlBackup), hl
+  ld (deBackup), de
+  push af
+  pop hl
+  ld (afBackup), hl
+
+  pop af
+  ld e, a
+  ld d, 0
+  call changePage
+
+  ld hl, (afBackup)
+  push hl
+  pop af
+  ld de, (deBackup)
+  ld hl, (hlBackup)
+  ret
+
+;------------------------------------------------
+
+loadFromDisk2:
+  push de
+  ld de, 0x0100
+  call switchPage
+  pop de
+  push de
+
+  push hl
+  call loadFromDisk
+  pop hl
+
+  push hl
+  ld a, (hl)
+  call mypager  ; switch it in to $0000-$3fff
+
+  ; copy the code to the right place
+  ld hl, 0xc000
+  ld de, 0
+  ld bc, 16384
+  ldir
+
+  ld de, 0x0000
+  call switchPage
+  pop hl
+
+  pop de
+  ret
+
+;-----------------------------------------
+
+atexit2:
+  ;switch in page 7
+  ld de, 0x0700
+  call switchPage
+
+  call 0xe60e ; atexit3
+
+  ; switch in page 0 and disable the secondary screen
+  ld de, 0x0008
+  call switchPage
+
+  ; reload the startup page so we can jump to it directly from basic next time
+  ;;xor a ;page 0
+  ;;ld (pageQueue+6), a
+  ;;ld (pageQueue+7), a
+
+  ;;ld e, 3 ; or whenever virtual page number is the one to restart with
+  ;;call loadFromDisk
+  ret
 
 ;-----------------------------------------
 
