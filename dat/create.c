@@ -1,6 +1,5 @@
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#define _GNU_SOURCE  /* for asprintf */
 #include "../hash2in0.h"
-#include <stdint.h>
 
 struct treeNode {
   int32_t arrayOffset;

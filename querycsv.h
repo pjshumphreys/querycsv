@@ -2,6 +2,7 @@
 #define QUERYCSV_H 1
 
 /* standard lib headers */
+
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -9,6 +10,11 @@
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
+
+/* int32_t et al. Keep flex happy (yet again) */
+#ifndef FLEXINT_H
+#include <inttypes.h>
+#endif
 
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
