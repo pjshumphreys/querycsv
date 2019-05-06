@@ -1,22 +1,24 @@
-#include "hash2in0.h"
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include "../hash2in0.h"
+#include <stdint.h>
 
 struct treeNode {
-  int arrayOffset;
-  int state;
-  int fileOffset;
+  int32_t arrayOffset;
+  int32_t state;
+  int32_t fileOffset;
 
   struct treeNode* left;
   struct treeNode* right;
   struct treeNode* parent;
 };
 
-struct treeNode* createTree(int lowerBound, int upperBound, struct treeNode* parent) {
-  int leftLB, leftUB, rightLB, rightUB, current;
+struct treeNode* createTree(int32_t lowerBound, int32_t upperBound, struct treeNode* parent) {
+  int32_t leftLB, leftUB, rightLB, rightUB, current;
   struct treeNode* retval = malloc(sizeof(struct treeNode));
 
   leftLB = lowerBound;
   rightUB = upperBound;
-  current = (upperBound-lowerbound)/2)+lowerBound;
+  current = ((upperBound-lowerBound)/2)+lowerBound;
   retval->parent = parent;
   retval->arrayOffset = current;
   retval->state = 0;
@@ -41,8 +43,11 @@ struct treeNode* createTree(int lowerBound, int upperBound, struct treeNode* par
   return retval;
 }
 
-void walkTree(struct treeNode* theTree, int state, FILE *fp) {
-  int fileOffset = 0;
+unsigned char shortVar;
+
+void walkTree(struct treeNode* theTree, int32_t state, FILE *fp) {
+  int32_t fileOffset = 0;
+  int32_t j;
 
   struct treeNode* current = theTree;
 
@@ -51,13 +56,47 @@ void walkTree(struct treeNode* theTree, int state, FILE *fp) {
       switch(state) {
         case 1: {
           current->fileOffset = fileOffset;
-          fileOffset += ((3+(hash2[current->arrayOffset].length))*sizeof(int))+sizeof(short);
+          fileOffset += ((3+(hash2[current->arrayOffset].length))*sizeof(int32_t))+sizeof(unsigned char);
         } break;
 
         case 2: {
-          i = (int)(hash2[current->arrayOffset])
+          i = (int32_t)(hash2[current->arrayOffset].codepoint);
+          /* printf("%d\n", i); */
+          fwrite(&i, sizeof(int32_t), 1, fp);
 
-          fwrite(&(i, sizeof(int), 1, fp);
+          if(current->left) {
+            i = current->left->fileOffset;
+          }
+          else {
+            i = -1;
+          }
+
+          /* printf("%d\n", i); */
+          fwrite(&i, sizeof(int32_t), 1, fp);
+
+          if(current->right) {
+            i = current->right->fileOffset;
+          }
+          else {
+            i = -1;
+          }
+
+          /* printf("%d\n", i); */
+          fwrite(&i, sizeof(int32_t), 1, fp);
+
+          shortVar = (unsigned char)(hash2[current->arrayOffset].length);
+          /* printf("%d\n", (int)(shortVar)); */
+          fwrite(&shortVar, 1, 1, fp);
+
+          for(j = 0; j != shortVar; j++) {
+            i = (int32_t)(hash2[current->arrayOffset].codepoints[j]);
+            /* printf("%d\n", i); */
+            fwrite(&i, sizeof(int32_t), 1, fp);
+          }
+
+          /* printf("--------------------------------------\n", i); */
+
+
         } break;
       }
 
@@ -97,26 +136,32 @@ void walkTree(struct treeNode* theTree, int state, FILE *fp) {
   }
 }
 
-  /* fwrite(&i, sizeof(int), 1, fp); */
-
 int main(int argc, char *argv[]) {
   FILE *fp;
   struct treeNode* theTree = NULL;
+  char * command = NULL;
+  int j;
 
-  /* find the offset of the first codepoint past U+00FF */
-  for(i = 0; hash2[i].codepoint < 0x100; i++) {}
+  /* find the offset of the first codepoint32_t past U+00FF */
+  for(j = 0; hash2[j].codepoint < 0x100; j++) {}
 
-  theTree = createTree(i, HASH2SIZE-1, NULL);
+  theTree = createTree(j, HASH2SIZE-1, NULL);
 
   /* populate the tree with 'file' offsets */
   walkTree(theTree, 1, NULL);
 
   /* write out the tree to the file and free it as we go */
-  fp = fopen("hash2.dat", "w");
+  fp = fopen("hash2.dat", "wb");
 
   walkTree(theTree, 2, fp);
 
   fclose(fp);
+
+  asprintf(&command, "node ../generate_hash2.js %d 1", j);
+
+  system(command);
+
+  freeAndZero(command);
 
   return 0;
 }

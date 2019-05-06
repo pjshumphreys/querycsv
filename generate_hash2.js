@@ -70,7 +70,7 @@ var inner = "";
 
 /* parse UnicodeData.txt to find characters that have a decomposition string */
 var lineReader = readline.createInterface({
-  input: fs.createReadStream('UnicodeData.txt')
+  input: fs.createReadStream(__dirname+'/UnicodeData.txt')
 });
 
 lineReader.on('line', function(line){
@@ -81,7 +81,7 @@ lineReader.on('line', function(line){
 });
 
 lineReader.on('close', function(){
-  fs.readFile("./dcompose.json", 'utf8', decomposeRead);
+  fs.readFile(__dirname+"/dcompose.json", 'utf8', decomposeRead);
 });
 
 function decomposeRead(err, data) {
@@ -100,7 +100,7 @@ function decomposeRead(err, data) {
     array4 = JSON.stringify(array3);
   } while(array5!==array4 && (array4 = JSON.parse(array4)));
 
-  fs.readFile("./hash2outT.h", 'utf8', outerRead);
+  fs.readFile(__dirname+"/hash2outT.h", 'utf8', outerRead);
 }
 
 function expand(hash2, decompose) {
@@ -152,8 +152,8 @@ function outerRead(err, contents) {
 
   outer = contents;
 
-  fs.readFile("./hash2iT.h", 'utf8', innerRead);
-}  
+  fs.readFile(__dirname+"/hash2iT.h", 'utf8', innerRead);
+}
 
 // combine this array with our own extra list of replacements and repeat replacing until the source and destination files are the same
 
@@ -174,7 +174,7 @@ function innerRead(err, contents) {
   var data = array3;
 
   var arrays = [];
-  
+
   var size = process.argv.length > 2 && parseInt(process.argv[2], 10) ? parseInt(process.argv[2],10) : 1114112;
   var string;
   var string2;
@@ -183,11 +183,11 @@ function innerRead(err, contents) {
     arrays.push(data.splice(0, size));
   }
 
-  for(j = 0, len2 = arrays.length; j < len2; j++) {
+  for(j = 0, len2 = (process.argv.length > 3 ? Math.min(arrays.length, process.argv[3]):arrays.length); j < len2; j++) {
     string = "/*unicode normalization mapping table*/\n\
   #define HASH2SIZE "+arrays[j].length+"\n\n\
   static const long\n";
-    
+
     // use fromcodepoint to write to the file in utf-8
     for(i = 0, len = arrays[j].length; i < len; i++) {
       string += 'hash2_' +
@@ -198,7 +198,7 @@ function innerRead(err, contents) {
                 (i == len - 1 ? ';' : ',') +
                 '  /* ' +
                 arrays[j][i][2] +
-                " */ \n"; 
+                " */ \n";
     }
 
     string += "\nstatic const struct hash2Entry hash2[HASH2SIZE] = {\n";
@@ -213,22 +213,24 @@ function innerRead(err, contents) {
     }
 
     string += '};';
-    
-    fs.writeFile('./hash2in'+j+(process.argv.length > 2?'.c':'.h'), inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
+
+    fs.writeFile('./hash2in'+j+(process.argv.length === 3 ?'.c':'.h'), inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
   }
 
-  string = "";
-  string2 = ""
+  if(process.argv.length <= 2) {
+    string = "";
+    string2 = ""
 
-  for(j = 0, len2 = arrays.length; j < len2; j++) {
-    string += "  else if(codepoint < 0x"+(j==(len2-1)?"110000":arrays[j+1][0][0]) +") {\n\
-    isInHash2_"+j+"();\n\
-  }\n\n";
+    for(j = 0, len2 = arrays.length; j < len2; j++) {
+      string += "  else if(codepoint < 0x"+(j==(len2-1)?"110000":arrays[j+1][0][0]) +") {\n\
+      isInHash2_"+j+"();\n\
+    }\n\n";
 
-    string2 += "void isInHash2_"+j+"(void);\n"
+      string2 += "void isInHash2_"+j+"(void);\n"
+    }
+
+    fs.writeFile('./hash2out.'+(process.argv.length > 2?'c':'h'), outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
+
+    console.log(arrays.length);
   }
-
-  fs.writeFile('./hash2out.'+(process.argv.length > 2?'c':'h'), outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
-
-  console.log(arrays.length);
 }
