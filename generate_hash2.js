@@ -217,7 +217,7 @@ function innerRead(err, contents) {
     fs.writeFile('./hash2in'+j+(process.argv.length === 3 ?'.c':'.h'), inner.replace(/TABLE/g, string).replace(/NUMBER/g, j), 'utf8');
   }
 
-  if(process.argv.length <= 2) {
+  if(process.argv.length <= 3) {
     string = "";
     string2 = ""
 
@@ -229,7 +229,7 @@ function innerRead(err, contents) {
       string2 += "void isInHash2_"+j+"(void);\n"
     }
 
-    fs.writeFile('./hash2out.'+(process.argv.length > 2?'c':'h'), outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
+    fs.writeFile('./hash2out.'+(process.argv.length === 3?'c':'h'), outer.replace(/DEFINES/g, string2).replace(/BLOCKS/g, string), 'utf8');
 
     console.log(arrays.length);
   }
