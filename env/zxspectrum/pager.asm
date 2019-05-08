@@ -26,6 +26,13 @@ mypager:
 hlBackup:
   defw 0x0000
 
+afBackup:
+  defw 0x0000
+
+deBackup:
+  defw 0x0000
+
+
 basicBank:
   defb 0
 
@@ -46,6 +53,7 @@ pageLocationsEnd:
 ;----------------------------------------------
 
 lookupTable:
+  defw 0xc000 ; _fprintf_real
   defw 0xc000 ; _fprintf_real
 lookupTableEnd:
 
@@ -163,13 +171,17 @@ atexit:
   jp atexit2
 
 _fputc_cons:
+fputc_cons:
   ld iy, 0xec20  ; fputc_con location in page 7
   jp dorom2
 
 funcstart:
-_fprintf:
+_main2:
   call farCall
-  defb 0x09; virtual page number
+  defb 0x06; virtual page number
+_main3:
+  call farCall
+  defb 0x06; virtual page number
 
 ;---------------------------------------------------
 
@@ -200,10 +212,10 @@ pageQueue:
   defb 0x03
 
   defb 0x04
-  defb 0xff
+  defb 0xfc
 
   defb 0x03
-  defb 0xff
+  defb 0xfe
 
   defb 0x01
   defb 0xff
@@ -236,7 +248,7 @@ farCall:
   push hl
 
   ;calculate which value in the jump table to use
-  ld de, funcstart-3
+  ld de, funcstart+3
   sbc hl, de
 
   ;shift right to divide by 2 (for groups of 2 rather than 4)
@@ -371,14 +383,14 @@ keyInt:
   reti  ;21 bytes
 
 ;------------------------------------------------------
-
 changePage:  ; is the virtual page currently in a ram page?
 
   ; save bc as we'll be using lddr that corrupts it
   push bc
 
-  ld bc, 6
   ld e, (hl)  ; get the number of the virtual page we want to use
+found7:
+  ld bc, 6
   ld hl, pageQueue+7
   ld a, (hl)
   cp e
@@ -423,13 +435,13 @@ found:
   push hl
   pop de
   dec hl
-  dec hl
+  inc de
   lddr
   pop de
-  dec hl
-  ld (hl), e
-  dec hl
+  inc hl
   ld (hl), d
+  inc hl
+  ld (hl), e
 found4:
   ld e, 0
   call switchPage
@@ -441,6 +453,8 @@ copyLoToHi:
   di  ; disable interrupts
   ld a, (hl)  ; bank obtained by RESI_ALLOC
   call mypager  ; switch it in to $0000-$3fff
+
+  push de
 
   ;switch to the ram page we'll be loading into
   ld a, (pageQueue+6) ; which page to switch to
@@ -454,16 +468,17 @@ copyLoToHi:
   ld bc, 0x3fff  ; Number of bytes to move
   ldir
 
+  pop de
+
   ;update pageQueue to reference our newly loaded page
   ld a, e
-  ld (pageQueue), a
-  ld hl, pageQueue+7
-  ld bc, 6
+  ld (pageQueue+7), a
 
   ld a, (defaultBank)  ; bank with our interupt code
   call mypager  ; switch it in to $0000-$3fff
   ei
-  jr found
+
+  jr found7
 
 ;------------------------------------------------------
 
@@ -603,11 +618,6 @@ exhlBackup:
 spBackup:
   defw 0x0000
 
-afBackup:
-  defw 0x0000
-
-deBackup:
-  defw 0x0000
 
 
 defs 0x2ff - ASMPC

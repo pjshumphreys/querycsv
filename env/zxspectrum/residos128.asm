@@ -213,38 +213,22 @@ found2:
   ldir
   xor a
   ld (de), a  ; null terminate the string
-  ld hl, 2
+  ld a, 3
+  ld (currentVirtualPage), a
+  ld bc, 2
   jr startup
 
 notFound2:
-  ld hl, 1
+  ld bc, 1
   ; ret
 
 startup:
-  ld de, argv
-  push de  ; argv
-  push hl  ; argc
+  ld hl, argv
+  push hl  ; argv
+  push bc  ; argc
   ld (spBackup), sp
 
-  ld bc, 0x000c
-  push bc
-  call _fputc_cons
-  pop bc
-
-  ld bc, 0x0041
-  push bc
-  call _fputc_cons
-  pop bc
-
-  ld bc, 0x0042
-  push bc
-  call _fputc_cons
-  pop bc
-
-  ld bc, 0x0007
-  push bc
-  call _fputc_cons
-  pop bc
+  call _main2
 
   jp atexit
 
