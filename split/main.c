@@ -4,8 +4,13 @@ int main(int argc, char *argv[]) {
 
   #ifdef __CC65__
     char * temp;
+
     temp = petsciiToUtf8(argv[1]);
-    strcpy(argv[1], temp);
+    strncpy(argv[1], temp, 255);
+
+    /* ensure null termination of the string */
+    argv[1][255] = '\0';
+
     free(temp);
   #endif
 
