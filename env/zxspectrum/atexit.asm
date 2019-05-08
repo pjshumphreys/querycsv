@@ -6,7 +6,8 @@ RESI_DEALLOC equ 0x0328
 org 0xe60e
 
   ld (hlBackup), hl
-  push de
+
+  ;save return location for later
   pop hl
   ld (deBackup), hl
 

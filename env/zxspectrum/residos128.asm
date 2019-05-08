@@ -228,6 +228,16 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
+  ; clear the second screen (and switch to it at the same time)
+  ld bc, 0x0c0c
+  push bc
+  call fputc_cons
+  pop bc
+  pop bc
+  pop hl
+  push hl
+  push bc
+
   call _main2
 
   jp atexit
