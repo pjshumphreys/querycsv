@@ -270,6 +270,7 @@ farCall:
   pop hl
 
   ;change to the appropriate page
+  ld e, (hl)  ; get the number of the virtual page we want to use
   call changePage
 
   ;restore all registers
@@ -294,7 +295,6 @@ farRet:
 
   pop af
   ld e, a
-  ld d, 0
   call changePage
 
   ld hl, (afBackup)
@@ -388,7 +388,6 @@ changePage:  ; is the virtual page currently in a ram page?
   ; save bc as we'll be using lddr that corrupts it
   push bc
 
-  ld e, (hl)  ; get the number of the virtual page we want to use
 found7:
   ld bc, 6
   ld hl, pageQueue+7
