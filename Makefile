@@ -67,7 +67,7 @@ dat/create: dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/externs.
 	cd dat && $(CC) create.c externs.c -o create
 
 dat/qrycsv00.ovl: hash2.c dat/create dat/hash2dat.c
-	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2in0.h hash2dat.c)
+	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2in0.h hash2dat.c qrycsv00.ovl)
 
 env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
@@ -123,6 +123,7 @@ clean:
 	cd env/riscos/c && find . -maxdepth 1 ! -path './riscos' ! -path './riscos.c' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	find ./env/riscos/c -name "riscos" -exec mv {} env/riscos/c/riscos.c \;
 	find ./env/riscos/launcher/c -name "runimage" -exec mv {} env/riscos/launcher/c/runimage.c \;
+	cd env/bbcarm && rm -rf c h o
 	cd env/riscos/h && find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/amiga && rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
 	cd env/atarist && rm -rf querycsv.ttp; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './atarist.c' -exec rm -rf {} \;
