@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
   walkTree(theTree, 1, NULL);
 
   /* write out the tree to the file and free it as we go */
-  fp = fopen("hash2.dat", "wb");
+  fp = fopen("qrycsv00.ovl", "wb");
 
   walkTree(theTree, 2, fp);
 

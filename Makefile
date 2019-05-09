@@ -1,5 +1,4 @@
 CC = gcc
-GPERF = gperf
 CFLAGS = -O2 -g -Wall -std=c99 -ansi
 SOURCES = $(wildcard split/*.c)
 OBJECTS = $(SOURCES:%.c=%.o)
@@ -10,7 +9,7 @@ LIBS =
 all: querycsv
 
 .SUFFIXES:
-.SUFFIXES:	.c .cc .C .cpp .o
+.SUFFIXES: .c .cc .C .cpp .o
 
 .c.o :
 	$(CC) -o $@ -c $(CFLAGS) $< $(INCFLAGS)
@@ -34,38 +33,41 @@ hash4b.c: hash4b.gperf
 hash4c.c: hash4c.gperf
 	gperf hash4c.gperf > hash4c.c
 
-hash2.c: UnicodeData.txt dcompose.json hash2iT.h hash2outT.h hash2T.h
+hash2.c: UnicodeData.txt generate_hash2.js dcompose.json hash2iT.h hash2outT.h hash2T.h
 	npm install graceful-fs strip-json-comments readline walk shell-escape
 	node ./generate_hash2.js
 	cp hash2T.h hash2.c
 
-sql.c: sql.y lexer.c querycsv.h
-	bison sql.y
-
 lexer.c: sql.l querycsv.h
 	flex sql.l
-	gcc -fpreprocessed -dD -E lexer.c > lexer2.c
+	$(CC) -fpreprocessed -dD -E lexer.c > lexer2.c
 	sed '/^[#] [0-9]*/d' lexer2.c > lexer.c
 	rm -rf lexer2.c
 
+sql.c: sql.y lexer.c
+	bison sql.y
+
 hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h
+hash4a.o: gen.h en_gb.h querycsv.h
+hash4b.o: gen.h en_gb.h querycsv.h
+hash4c.o: gen.h en_gb.h querycsv.h
 querycsv.o: gen.h en_gb.h querycsv.h
 sql.o: lexer.c gen.h en_gb.h querycsv.h
 lexer.o: gen.h en_gb.h querycsv.h
 
-hash2:
-	rm -rf env/bbcarm/c
+hash2: hash2.c
 	mkdir -p env/bbcarm/c
 	mkdir -p env/bbcarm/h
 	mkdir -p env/bbcarm/o
 	mkdir -p hash2
-	cp UnicodeData.txt hash2/
-	cp generate_hash2.js hash2/
-	cp dcompose.json hash2/
-	cp hash2outT.h hash2/
-	cp hash2iT.h hash2/
-	cd hash2; node generate_hash2.js 398; rm -f hash2.c; cp *.c ../env/powermac; cp *.c ../env/bbcarm/c; cp *.c ../env/c64
+	cd hash2 && node ../generate_hash2.js 398 && echo ../env/powermac ../env/bbcarm/c ../env/c64 | xargs -n 1 cp *.c
+
+dat/create: dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/externs.c
+	cd dat && $(CC) create.c externs.c -o create
+
+dat/qrycsv00.ovl: hash2.c dat/create dat/hash2dat.c
+	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2in0.h hash2dat.c)
 
 env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
@@ -73,14 +75,13 @@ env/bbcarm/c: hash2
 	cd env/bbcarm/c; sed -i -E 's/\/\*[^\*]+\*\//\/\* \*\//g' *
 	cd env/bbcarm/c; sed -i -E 's/const char \*p;/char \*p;/g;s/short/long/g' *.c; cp ../bbcarm.c bbcarm; bash -c 'ls | cat -n | while read n f; do mv "$$f" $$(printf "\x$$(printf %x $$(($$n+96)))"); done';
 	cd softfloat; bash -c 'ls *.c | cat -n | while read n f; do cp "$$f" ../env/bbcarm/c/$$(printf "\x$$(printf %x $$(($$n+47)))"); cp "$$f" ../env/riscos/c/; done';find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../env/bbcarm/h/ \;
+	mkdir -p env/riscos/h
 	cd softfloat; find . -maxdepth 1 -type f -iname \*.h -exec cp {} ../env/riscos/h/ \;
 	cd env/bbcarm/c; cp ../mode.c mode; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 	cd env/bbcarm/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv; sed -i -E '/#include <errno\.h>/d;s/#include( [<"])([^.]+)\.h([">])/#include\1h\.\2\3/g' *
 
-querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o env/bbcarm/c
+querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o env/bbcarm/c dat/qrycsv00.ovl
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/posix/ \;
-	find . -maxdepth 1 -type f -iname \*.o ! -exec mv {} env/posix/ \;
-	cd env/posix; $(CC) -o querycsv sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o $(LDFLAGS) $(LIBS)
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/html5/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
 	cd env/dos; unix2dos *
@@ -95,7 +96,6 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o en
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/atarist/ \;
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/atarist/ \;
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' -exec cp {} env/riscos/c/ \;
-	mkdir -p env/riscos/h
 	find . -maxdepth 1 -type f -iname \*.h -exec cp {} env/riscos/h/ \;
 	cd env/riscos/c; find . -name "*.c" | sed -e "p;s/\.c$$//" | xargs -n2 mv
 	cd env/riscos/h; find . -name "*.h" | sed -e "p;s/\.h$$//" | xargs -n2 mv
@@ -104,6 +104,7 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o en
 	cp hash4a.c env/c64/hash4a.h
 	cp hash4b.c env/c64/hash4b.h
 	cp hash4c.c env/c64/hash4c.h
+	$(CC) -o querycsv sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o $(LDFLAGS) $(LIBS)
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
@@ -111,6 +112,7 @@ clean:
 	rm -f makeheaders querycsv gen.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h
 	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
+	rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.o \) -exec rm -rf {} \;
 	cd env/dos && find . -maxdepth 1 ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/m68kmac && find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *

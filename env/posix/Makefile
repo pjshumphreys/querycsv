@@ -17,7 +17,7 @@ querycsv: $(OBJECTS)
 	$(CC) -o querycsv $(OBJECTS) $(LDFLAGS) $(LIBS)
 
 .SUFFIXES:
-.SUFFIXES:	.c .cc .C .cpp .o
+.SUFFIXES: .c .cc .C .cpp .o
 
 .c.o :
 	$(CC) -o $@ -c $(CFLAGS) $< $(INCFLAGS)

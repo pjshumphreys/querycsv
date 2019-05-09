@@ -246,14 +246,14 @@ bcBackup:
   defw 0x0000
 
 first:
-  binary "fputs_con_first.bin"
+  binary "fputc_cons_first.bin"
   defb 0
 
 second:
-  binary "fputs_con_second.bin"
+  binary "fputc_cons_second.bin"
 
 third:
-  binary "fputs_con_third.bin"
+  binary "fputc_cons_third.bin"
 
 fourth:
   binary "atexit.bin"

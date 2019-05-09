@@ -6,7 +6,7 @@
 all: querycsv.crt
 
 ###############################################################################
-# Poor men's dependencies: Let all files depend from all header files
+# Poor man's dependencies: Let all files depend from all header files
 #
 
 ###############################################################################

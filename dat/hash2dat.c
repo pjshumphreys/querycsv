@@ -11,10 +11,10 @@ void isInHash2_1(void) {
   int hasMatch = 0;
   int length;
 
-  FILE * fp = fopen("hash2.dat", "rb");
+  FILE * fp = fopen("qrycsv00.ovl", "rb");
 
   if(fp == NULL) {
-    fputs("Couldn't open hash2.dat\n", stderr);
+    fputs("Couldn't open qrycsv00.ovl\n", stderr);
     exit(EXIT_FAILURE);
   }
 

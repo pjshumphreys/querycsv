@@ -17,45 +17,45 @@ COptions        = {Includes} {Sym-68K} -model far -opt space
 ### Source Files ###
 
 SrcFiles        =  ¶
-				  lexer.c ¶
-				  sql.c ¶
-				  hash2.c ¶
-				  hash3.c ¶
-				  hash4a.c ¶
-				  hash4b.c ¶
-				  hash4c.c ¶
-				  querycsv.c ¶
-				  mac.c
+					lexer.c ¶
+					sql.c ¶
+					hash2.c ¶
+					hash3.c ¶
+					hash4a.c ¶
+					hash4b.c ¶
+					hash4c.c ¶
+					querycsv.c ¶
+					mac.c
 
 RezFiles        =  ¶
-				  mac.r ¶
-				  size.r
+					mac.r ¶
+					size.r
 
 ### Object Files ###
 
 ObjFiles-68K    =  ¶
-				  "{ObjDir}lexer.c.o" ¶
-				  "{ObjDir}sql.c.o" ¶
-				  "{ObjDir}hash2.c.o" ¶
-				  "{ObjDir}hash3.c.o" ¶
-				  "{ObjDir}hash4a.c.o" ¶
-				  "{ObjDir}hash4b.c.o" ¶
-				  "{ObjDir}hash4c.c.o" ¶
-				  "{ObjDir}querycsv.c.o" ¶
-				  "{ObjDir}mac.c.o" ¶
-				  "{ObjDir}TEGlue.a.o"
+					"{ObjDir}lexer.c.o" ¶
+					"{ObjDir}sql.c.o" ¶
+					"{ObjDir}hash2.c.o" ¶
+					"{ObjDir}hash3.c.o" ¶
+					"{ObjDir}hash4a.c.o" ¶
+					"{ObjDir}hash4b.c.o" ¶
+					"{ObjDir}hash4c.c.o" ¶
+					"{ObjDir}querycsv.c.o" ¶
+					"{ObjDir}mac.c.o" ¶
+					"{ObjDir}TEGlue.a.o"
 
 
 ### Libraries ###
 
 LibFiles-68K    =  ¶
-				  "{Libraries}MathLib.o" ¶
-				  "{CLibraries}StdCLib.o" ¶
-				  "{Libraries}MacRuntime.o" ¶
-				  "{Libraries}IntEnv.o" ¶
-				  "{Libraries}ToolLibs.o" ¶
-				  "{Libraries}Interface.o" ¶
-				  "{Libraries}AEObjectSupportLib.o"
+					"{Libraries}MathLib.o" ¶
+					"{CLibraries}StdCLib.o" ¶
+					"{Libraries}MacRuntime.o" ¶
+					"{Libraries}IntEnv.o" ¶
+					"{Libraries}ToolLibs.o" ¶
+					"{Libraries}Interface.o" ¶
+					"{Libraries}AEObjectSupportLib.o"
 
 
 ### Default Rules ###

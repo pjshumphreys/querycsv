@@ -19,83 +19,83 @@ PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON
 ### Source Files ###
 
 SrcFiles        =  ¶
-				  lexer.c ¶
-				  sql.c ¶
-				  hash2out.c ¶
-				  hash2in0.c ¶
-				  hash2in1.c ¶
-				  hash2in2.c ¶
-				  hash2in3.c ¶
-				  hash2in4.c ¶
-				  hash2in5.c ¶
-				  hash2in6.c ¶
-				  hash2in7.c ¶
-				  hash2in8.c ¶
-				  hash2in9.c ¶
-				  hash2in10.c ¶
-				  hash2in11.c ¶
-				  hash2in12.c ¶
-				  hash2in13.c ¶
-				  hash2in14.c ¶
-				  hash3.c ¶
-				  hash4a.c ¶
-				  hash4b.c ¶
-				  hash4c.c ¶
-				  querycsv.c ¶
-				  powermac.c
+					lexer.c ¶
+					sql.c ¶
+					hash2out.c ¶
+					hash2in0.c ¶
+					hash2in1.c ¶
+					hash2in2.c ¶
+					hash2in3.c ¶
+					hash2in4.c ¶
+					hash2in5.c ¶
+					hash2in6.c ¶
+					hash2in7.c ¶
+					hash2in8.c ¶
+					hash2in9.c ¶
+					hash2in10.c ¶
+					hash2in11.c ¶
+					hash2in12.c ¶
+					hash2in13.c ¶
+					hash2in14.c ¶
+					hash3.c ¶
+					hash4a.c ¶
+					hash4b.c ¶
+					hash4c.c ¶
+					querycsv.c ¶
+					powermac.c
 
 RezFiles        =  ¶
-				  powermac.r ¶
-				  carbon.r ¶
-				  size.r
+					powermac.r ¶
+					carbon.r ¶
+					size.r
 
 ### Object Files ###
 
 ObjFiles-68K    =  ¶
-				  "{ObjDir}mac.c.o"
+					"{ObjDir}mac.c.o"
 
 ObjFiles-PPC    =  ¶
-				  "{ObjDir}lexer.c.x" ¶
-				  "{ObjDir}sql.c.x" ¶
-				  "{ObjDir}hash2out.c.x" ¶
-				  "{ObjDir}hash2in0.c.x" ¶
-				  "{ObjDir}hash2in1.c.x" ¶
-				  "{ObjDir}hash2in2.c.x" ¶
-				  "{ObjDir}hash2in3.c.x" ¶
-				  "{ObjDir}hash2in4.c.x" ¶
-				  "{ObjDir}hash2in5.c.x" ¶
-				  "{ObjDir}hash2in6.c.x" ¶
-				  "{ObjDir}hash2in7.c.x" ¶
-				  "{ObjDir}hash2in8.c.x" ¶
-				  "{ObjDir}hash2in9.c.x" ¶
-				  "{ObjDir}hash2in10.c.x" ¶
-				  "{ObjDir}hash2in11.c.x" ¶
-				  "{ObjDir}hash2in12.c.x" ¶
-				  "{ObjDir}hash2in13.c.x" ¶
-				  "{ObjDir}hash2in14.c.x" ¶
-				  "{ObjDir}hash3.c.x" ¶
-				  "{ObjDir}hash4a.c.x" ¶
-				  "{ObjDir}hash4b.c.x" ¶
-				  "{ObjDir}hash4c.c.x" ¶
-				  "{ObjDir}querycsv.c.x" ¶
-				  "{ObjDir}powermac.c.x"
+					"{ObjDir}lexer.c.x" ¶
+					"{ObjDir}sql.c.x" ¶
+					"{ObjDir}hash2out.c.x" ¶
+					"{ObjDir}hash2in0.c.x" ¶
+					"{ObjDir}hash2in1.c.x" ¶
+					"{ObjDir}hash2in2.c.x" ¶
+					"{ObjDir}hash2in3.c.x" ¶
+					"{ObjDir}hash2in4.c.x" ¶
+					"{ObjDir}hash2in5.c.x" ¶
+					"{ObjDir}hash2in6.c.x" ¶
+					"{ObjDir}hash2in7.c.x" ¶
+					"{ObjDir}hash2in8.c.x" ¶
+					"{ObjDir}hash2in9.c.x" ¶
+					"{ObjDir}hash2in10.c.x" ¶
+					"{ObjDir}hash2in11.c.x" ¶
+					"{ObjDir}hash2in12.c.x" ¶
+					"{ObjDir}hash2in13.c.x" ¶
+					"{ObjDir}hash2in14.c.x" ¶
+					"{ObjDir}hash3.c.x" ¶
+					"{ObjDir}hash4a.c.x" ¶
+					"{ObjDir}hash4b.c.x" ¶
+					"{ObjDir}hash4c.c.x" ¶
+					"{ObjDir}querycsv.c.x" ¶
+					"{ObjDir}powermac.c.x"
 
 ### Libraries ###
 LibFiles-68K    =  ¶
-				  "{Libraries}MathLib.o" ¶
-				  "{CLibraries}StdCLib.o" ¶
-				  "{Libraries}MacRuntime.o" ¶
-				  "{Libraries}ToolLibs.o" ¶
-				  "{Libraries}Interface.o"
+					"{Libraries}MathLib.o" ¶
+					"{CLibraries}StdCLib.o" ¶
+					"{Libraries}MacRuntime.o" ¶
+					"{Libraries}ToolLibs.o" ¶
+					"{Libraries}Interface.o"
 
 LibFiles-PPC    =  ¶
-				  "{PPCLibraries}CarbonStdCLib.o" ¶
-				  "{PPCLibraries}StdCRuntime.o" ¶
-				  "{PPCLibraries}PPCCRuntime.o" ¶
-				  "{PPCLibraries}PPCToolLibs.o" ¶
-				  "{SharedLibraries}CarbonLib" ¶
-				  "{SharedLibraries}StdCLib" ¶
-				  "{SharedLibraries}MathLib"
+					"{PPCLibraries}CarbonStdCLib.o" ¶
+					"{PPCLibraries}StdCRuntime.o" ¶
+					"{PPCLibraries}PPCCRuntime.o" ¶
+					"{PPCLibraries}PPCToolLibs.o" ¶
+					"{SharedLibraries}CarbonLib" ¶
+					"{SharedLibraries}StdCLib" ¶
+					"{SharedLibraries}MathLib"
 
 
 ### Default Rules ###
@@ -190,7 +190,7 @@ Dependencies  Ä  $OutOfDate
 		{Includes} ¶
 		{SrcFiles}
 
-Clean		Ä	$OutOfDate
+Clean  Ä $OutOfDate
 	Delete -i -y ¶
 		{ObjFiles-PPC} ¶
 		QueryCSV
