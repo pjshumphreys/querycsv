@@ -1,0 +1,17 @@
+c64
+
++---------------+
+| 0x0000-0x07FF | zero page, stack, c64 basic variables screen memory
++---------------+
+| 0x0800-0x9??? | heap
++---------------+
+| 0x9???-0x9FFF | global variables and constants, first part of yyparse page code (which can only be shrunk to around 10k)
++---------------+
+| 0xA000-0xBFFF | paged code
++---------------+
+| 0xC000-0xCFFF | page swapping code
++---------------+
+| 0xD000-0xDFFF | memory mapped I/O devices
++---------------+
+| 0xC000-0xFFFF | kernal rom
++---------------+

@@ -1,0 +1,51 @@
+esxdos
+
++---------------+
+| 0x0000-0x1FFF | esxdos/basic rom
++---------------+
+| 0x2000-0x3FFF | extra heap memory/divmmc memory page cache/basic rom
++---------------+
+| 0x4000-0x5B00 | extra heap memory on 128k+ screen otherwise
++---------------+
+| 0x5???-0x5??? | basic loader and argv[1] (basic variable move 1 byte down to fit a null terminator)
++---------------+
+| 0x5???-0xB??? | heap memory at bottom. stack memory at top
++---------------+
+| 0xB???-0xBFFF | global variables and constants, page swapping code
++---------------+
+| 0xC000-0xFFFF | paged code / disk buffer in page 6 / screen, fputc_cons and atexit in page 7
++---------------+
+
+
+residos
+
++---------------+
+| 0x0000-0x3FFF | extra heap memory/divmmc memory page cache/basic rom
++---------------+
+| 0x4000-0x5B00 | extra heap memory on 128k+ screen otherwise
++---------------+
+| 0x5???-0x5??? | basic loader and argv[1] (basic variable move 1 byte down to fit a null terminator)
++---------------+
+| 0x5???-0xB??? | heap memory at bottom. stack memory at top
++---------------+
+| 0xB???-0xBFFF | global variables and constants, page swapping code
++---------------+
+| 0xC000-0xFFFF | paged code / disk buffer in page 6 / screen, fputc_cons and atexit in page 7
++---------------+
+
+
+plus3dos
+
++---------------+
+| 0x0000-0x3FFF | basic rom
++---------------+
+| 0x4000-0x5B00 | extra heap memory on 128k+ screen otherwise
++---------------+
+| 0x5???-0x5??? | basic loader and argv[1] (basic variable move 1 byte down to fit a null terminator)
++---------------+
+| 0x5???-0xB??? | heap memory at bottom. stack memory at top
++---------------+
+| 0xB???-0xBFFF | page swapping code and data
++---------------+
+| 0xC000-0xFFFF | paged code / disk buffer in page 6 / screen, fputc_cons and atexit in page 7
++---------------+

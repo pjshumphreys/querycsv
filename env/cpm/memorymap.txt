@@ -1,0 +1,13 @@
+cpm/msxdos
+
++---------------+
+| 0x0000-0x00FF | cpm syscalls
++---------------+
+| 0x0100-0x3FFF | paging code, global variables and constants at bottom. extra heap memory at top
++---------------+
+| 0x4000-0x7FFF | paged code
++---------------+
+| 0x8000-0x???? | heap memory at bottom. stack memory at top
++---------------+
+| 0x????-0xFFFF | cpm tpa code
++---------------+
