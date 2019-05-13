@@ -63,10 +63,10 @@ hash2: hash2.c
 	mkdir -p hash2
 	cd hash2 && node ../generate_hash2.js 398 && echo ../env/powermac ../env/bbcarm/c ../env/c64 | xargs -n 1 cp *.c
 
-dat/create: dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/externs.c
+dat/create: hash2.c dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/externs.c
 	cd dat && $(CC) create.c externs.c -o create
 
-dat/qrycsv00.ovl: hash2.c dat/create dat/hash2dat.c
+dat/qrycsv00.ovl: dat/create dat/hash2dat.c
 	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2in0.h hash2dat.c qrycsv00.ovl)
 
 env/bbcarm/c: hash2

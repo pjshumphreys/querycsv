@@ -11,9 +11,13 @@
 #include <string.h>
 #include <time.h>
 
-/* int32_t et al. Keep flex happy (yet again) */
-#ifndef FLEXINT_H
-#include <inttypes.h>
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+  /* Keep flex happy (yet again) */
+  #ifndef FLEXINT_H
+    #include <inttypes.h>
+  #endif
+#else
+  typedef long int32_t;
 #endif
 
 #define YY_EXTRA_TYPE struct qryData*
@@ -117,11 +121,11 @@ it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
 
 #if defined(__unix__) || defined(__LINUX__)
-  #if defined(EMSCRIPTEN)
+  #ifdef EMSCRIPTEN
     #define main realmain
   #endif
 
-  #if !defined(__WATCOMC__)
+  #ifndef __WATCOMC__
     int vsnprintf(char *s, size_t n, const char *format, va_list arg);
     #define HAS_VSNPRINTF   /* this function intentionally never works
     properly on watcom (for source compatability with the windows version) */
@@ -372,9 +376,13 @@ Just use long ones for that compiler */
   #define in_word_set_c in_word_set_ci
 #endif
 
+#ifdef __Z88DK
+  /* classic clib z88dk doesn't have ferror. stub it out */
+  #define ferror(...) 0
+#endif
+
 /* translatable strings */
 #include "en_gb.h"
-
 
 /* structures */
 struct resultColumn {

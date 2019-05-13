@@ -4,7 +4,7 @@
 #define printfd(...)
 
 void isInHash2_1(void) {
-  int32_t lookFor = entry.codepoint;
+  int32_t lookFor = (int32_t)entry.codepoint;
 
   unsigned char shortVar;
   int32_t current = 0;
@@ -17,7 +17,6 @@ void isInHash2_1(void) {
     fputs("Couldn't open qrycsv00.ovl\n", stderr);
     exit(EXIT_FAILURE);
   }
-
 
   for(;;) {
     /* get the current codepoint */
