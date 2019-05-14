@@ -111,13 +111,6 @@ but hasn't actually been needed up to now. It's being kept just in case
 it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
 
-/* define the sizes of the charset lookup tables here
-for the benefit of z88dk, as it doesn't have proper bsearch */
-#define SIZE_ATARIBYTES 159
-#define SIZE_COMMONBYTES 212
-#define SIZE_CP1252BYTES 32
-#define SIZE_PETSCIIBYTES 96
-
 #if defined(__unix__) || defined(__LINUX__)
   #ifdef EMSCRIPTEN
     #define main realmain
@@ -307,10 +300,15 @@ Just use long ones for that compiler */
   double strtod(const char* str, char** endptr);  /* z88dk doesn't
   have strtod, but does have floating point support. We supply our own implementation */
 
+  /*
+  z88dk doesn't have bsearch, but it does have l_bsearch.
+  employ some macro magic to smooth things over.
+  */
+  #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
+
   #ifndef FLEXINT_H
     #include <stdint.h>
   #endif
-
 #endif
 
 /* ugly hacks to raise the game of cc65 */
