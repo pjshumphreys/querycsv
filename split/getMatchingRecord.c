@@ -1,3 +1,36 @@
+
+int clause1(struct inputTable *currentInputTable) {
+
+  MAC_YIELD
+
+  if(endOfFile(currentInputTable->fileStream)) {
+    return TRUE;
+  }
+
+  else if (currentInputTable->isLeftJoined && currentInputTable->noLeftRecord) {
+    return TRUE;
+  };
+
+  return FALSE;
+}
+
+int clause2(struct inputTable *currentInputTable, struct resultColumnValue *columnOffsetData) {
+
+  MAC_YIELD
+
+  if((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData->value, "") == 0) {
+    return TRUE;
+  }
+  else if((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData->value, "\\N") == 0) {
+    return TRUE;
+  }
+  else if((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData->value, "NULL") == 0) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   struct inputTable *currentInputTable;
   struct inputColumn *currentInputColumn;
@@ -49,14 +82,13 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   /* ****************************************************************************************** */
 
   do {  /* tables */
-    while(
-        endOfFile(currentInputTable->fileStream) ||
-        (
+    while(clause1(currentInputTable)) {   /* records */
+      if(
           currentInputTable->isLeftJoined &&
-          currentInputTable->noLeftRecord &&
-          (doLeftRecord = TRUE)
-        )
-      ) {   /* records */
+          currentInputTable->noLeftRecord
+      ) {
+        doLeftRecord = TRUE;
+      }
 
       /* reset the flag that says the column values ran out */
       recordHasColumn = TRUE;
@@ -82,14 +114,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               query->newLine
             );
 
-          if(
-              (!isQuoted) &&
-              (
-                ((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData.value, "") == 0) ||
-                ((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData.value, "\\N") == 0) ||
-                ((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData.value, "NULL") == 0)
-              )
-          ) {
+          if(isQuoted == FALSE && clause2(currentInputTable, &columnOffsetData)) {
             freeAndZero(columnOffsetData.value);
             columnOffsetData.value = mystrdup("");
             columnOffsetData.isNull = TRUE;

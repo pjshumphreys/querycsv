@@ -1,4 +1,4 @@
-static const struct codepointToByte atariBytes[159] = {
+static const struct codepointToByte atariBytes[SIZE_ATARIBYTES] = {
   {0x0006, 0x06}, {0x0007, 0x07}, {0x0009, 0x09},
   {0x000A, 0x0A}, {0x000C, 0x0C}, {0x000D, 0x0D},
   {0x000E, 0x0E}, {0x000F, 0x0F}, {0x0010, 0x10},
@@ -54,6 +54,10 @@ static const struct codepointToByte atariBytes[159] = {
   {0x266A, 0x0B}, {0x2713, 0x08}, {0x274E, 0x05}
 };
 
+#ifdef __Z88DK
+  static struct codepointToByte * atariBytes2[SIZE_ATARIBYTES];
+#endif
+
 void getBytesAtariST(
     long codepoint,
     char **bytes,
@@ -72,13 +76,23 @@ void getBytesAtariST(
       return;
     }
 
+#ifdef __Z88DK
+    if((lookup = (struct codepointToByte*)l_bsearch(
+      (void *)&codepoint,
+      (void *)atariBytes2,
+      SIZE_ATARIBYTES,
+      compareCodepoints
+    )) == NULL)
+#else
     if((lookup = (struct codepointToByte*)bsearch(
       (void *)&codepoint,
       (void *)atariBytes,
-      159,
+      SIZE_ATARIBYTES,
       sizeof(struct codepointToByte),
       compareCodepoints
-    )) == NULL) {
+    )) == NULL)
+#endif
+    {
       returnByte = 0x3f;  /* ascii question mark */
       *bytes = &returnByte;
       return;

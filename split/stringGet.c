@@ -10,6 +10,6 @@ void stringGet(
       free(*str);
     }
 
-    *str = (unsigned char *)(mystrdup((char const *)(field->value)));
+    *str = (unsigned char *)(mystrdup(field->value));
   }
 }

@@ -11,6 +11,18 @@ VARS equ 0x5c4b
 
 org 0xc000
 
+CRT_ENABLE_STDIO = 1
+__CRT_KEY_CAPS_LOCK = 6
+__CRT_KEY_DEL = 12
+
+GLOBAL _heap
+GLOBAL fputc_cons
+GLOBAL dodos
+GLOBAL __CRT_KEY_CAPS_LOCK
+GLOBAL __CRT_KEY_DEL
+
+include "globals.inc"
+
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
   ld hl, page2page
@@ -262,3 +274,6 @@ page2page:
   binary "pager_part1.bin"
   binary "pager_part2.bin"
 page2pageend:
+
+start:
+  INCLUDE "crt/classic/crt_section.asm"

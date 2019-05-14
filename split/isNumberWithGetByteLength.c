@@ -1,3 +1,29 @@
+int clause3(unsigned char *offset, int firstChar) {
+  MAC_YIELD
+
+  if (*offset >= '0' && *offset <= '9') {
+    return TRUE;
+  }
+
+  if(firstChar) {
+    if(*offset == '.' && *(offset+1) >= '0' && *(offset+1) <= '9') {
+      return TRUE;
+    }
+
+    if (*offset == '-' || *offset == '+') {
+      if(*(offset+1) >= '0' && *(offset+1) <= '9') {
+        return TRUE;
+      }
+
+      if (*(offset+1) == '.' && *(offset+2) >= '0' && *(offset+2) <= '9') {
+        return TRUE;
+      }
+    }
+  }
+
+  return FALSE;
+}
+
 int isNumberWithGetByteLength(
     unsigned char *offset,
     int *lastMatchedBytes,
@@ -8,14 +34,7 @@ int isNumberWithGetByteLength(
 
   MAC_YIELD
 
-  if(
-      (*offset >= '0' && *offset <= '9') ||
-      (firstChar && (
-      (*offset == '.' && (*(offset+1) >= '0' && *(offset+1) <= '9')) ||
-      (*offset == '-' && ((*(offset+1) >= '0' && *(offset+1) <= '9') || (*(offset+1) == '.' && (*(offset+2) >= '0' && *(offset+2) <= '9')))) ||
-      (*offset == '+' && ((*(offset+1) >= '0' && *(offset+1) <= '9') || (*(offset+1) == '.' && (*(offset+2) >= '0' && *(offset+2) <= '9'))))
-      ))) {
-
+  if(clause3(offset, firstChar)) {
     if(*string == '-' || *string == '+') {
       string++;
     }

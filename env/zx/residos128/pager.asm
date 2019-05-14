@@ -32,7 +32,6 @@ afBackup:
 deBackup:
   defw 0x0000
 
-
 basicBank:
   defb 0
 
@@ -45,7 +44,7 @@ pageLocations:
   defb 0b11111111 ; 03
   defb 0b11111111 ; 04
   defb 0b11111111 ; 05
-  defb 0b11111111 ; 06
+  include "pages.inc"
 pageLocationsEnd:
 
   defb 0x00 ; null terminator for the list of pages
@@ -53,8 +52,7 @@ pageLocationsEnd:
 ;----------------------------------------------
 
 lookupTable:
-  defw 0xc000 ; _fprintf_real
-  defw 0xc000 ; _fprintf_real
+  include "lookupTable.inc"
 lookupTableEnd:
 
 ;--------------------------------------------------
@@ -150,6 +148,9 @@ jumptoit:
 
 ;---------------------------------------------------
 
+funcstart:
+  include "functions.inc"
+
 call_rom3:
   ld (deBackup), de
   pop hl
@@ -170,18 +171,12 @@ atexit:
   ld hl, 0
   jp atexit2
 
-_fputc_cons:
 fputc_cons:
   ld iy, 0xec20  ; fputc_con location in page 7
   jp dorom2
 
-funcstart:
-_main2:
-  call farCall
-  defb 0x06; virtual page number
-_main3:
-  call farCall
-  defb 0x06; virtual page number
+_heap:
+  defb 0, 0, 0, 0
 
 ;---------------------------------------------------
 

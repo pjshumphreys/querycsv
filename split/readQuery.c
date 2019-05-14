@@ -166,12 +166,14 @@ int readQuery(char *queryFileName, struct qryData *query) {
 #endif
 
   /* set query->firstInputTable to actually be the first input table. */
-  query->firstInputTable = currentInputTable =
-    (
-      query->secondaryInputTable != NULL ?
-      query->secondaryInputTable :
-      query->firstInputTable
-    );
+  if(query->secondaryInputTable != NULL) {
+    currentInputTable = query->secondaryInputTable;
+  }
+  else {
+    currentInputTable = query->firstInputTable;
+  }
+
+  query->firstInputTable = currentInputTable;
 
   /* set the index columns for every table other than the first */
   if(query->firstInputTable) {

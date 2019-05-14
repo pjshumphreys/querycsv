@@ -1,4 +1,4 @@
-static const struct codepointToBytes codepointBytes[212] = {
+static const struct codepointToBytes commonBytes[SIZE_COMMONBYTES] = {
   {0x00A0, 0xFF, 0xFF, 0x41, 0xCA},
   {0x00A1, 0xAD, 0xAD, 0xAA, 0xC1},
   {0x00A2, 0x9B, 0xBD, 0x4A, 0xA2},
@@ -213,18 +213,32 @@ static const struct codepointToBytes codepointBytes[212] = {
   {0xFB02, 0x00, 0x00, 0x00, 0xDF}
 };
 
+#ifdef __Z88DK
+  static struct codepointToBytes * commonBytes2[SIZE_COMMONBYTES];
+#endif
+
 char* getBytesCommon(long codepoint, int key) {
   struct codepointToBytes *lookup;
 
   MAC_YIELD
 
+#ifdef __Z88DK
+  if((lookup = (struct codepointToBytes*)l_bsearch(
+    (void *)&codepoint,
+    (void *)commonBytes2,
+    SIZE_COMMONBYTES,
+    compareCodepoints
+  )) == NULL)
+#else
   if((lookup = (struct codepointToBytes*)bsearch(
-      (void *)&codepoint,
-      (void *)codepointBytes,
-      212,
-      sizeof(struct codepointToBytes),
-      compareCodepoints
-    )) == NULL) {
+    (void *)&codepoint,
+    (void *)commonBytes,
+    SIZE_COMMONBYTES,
+    sizeof(struct codepointToBytes),
+    compareCodepoints
+  )) == NULL)
+#endif
+  {
     returnByte = 0;
   }
   else switch(key) {

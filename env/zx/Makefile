@@ -30,7 +30,7 @@ querycsv.tap: querycsv.bas
 
 #qrycsv02.ovl:
 
-qrycsv03.ovl: residos128/atexit.asm residos128/fputc_cons.asm residos128/page2page.asm residos128/residos128.asm residos128/pager.asm
+qrycsv03.ovl: libc.c crt0.asm residos128/atexit.asm residos128/fputc_cons.asm residos128/page2page.asm residos128/residos128.asm residos128/pager.asm
 	z80asm -b --split-bin residos128/fputc_cons.asm
 	printf 'origin equ 0xc000' > residos128/part1.inc
 	z80asm -b residos128/pager.asm
@@ -41,10 +41,11 @@ qrycsv03.ovl: residos128/atexit.asm residos128/fputc_cons.asm residos128/page2pa
 	z80asm -b -m residos128/atexit.asm
 	sed -i '/^__/d' residos128/page2page.map
 	dd conv=notrunc if=residos128/page2page.bin of=residos128/pager_part2.bin
-	z80asm -b -m -o=qrycsv03.ovl residos128/residos128.asm
+	zcc +zx -DRESIDOS -lp3 -lm -m --no-crt residos128/residos128.asm libc.c -bn qrycsv03.ovl
 	dd if=/dev/zero bs=1 count=$$((16384-`wc -c < qrycsv03.ovl`)) >> qrycsv03.ovl
 
 #qrycsv04.ovl:
+#  zcc +zx -DRESIDOS -U__STDC_VERSION__ -lp3 -lm -m --no-crt querycsv.c strtod.c -S
 
 #qrycsv05.ovl:
 

@@ -4,11 +4,9 @@
 #include <stdarg.h>
 #include <string.h>
 
-unsigned char heap;
+char * a = "%d";
 
-char* c = "%d";
-
-void foobar(char *string, char* format, ...) {
+void b(char * string, unsigned char * format, ...) {
   va_list args;
   va_list args2;
 
@@ -21,22 +19,25 @@ void foobar(char *string, char* format, ...) {
   string = malloc(1);
   fgets(string, 1, stdin);
   free(string);
-  string = calloc(1,3);
-  string = realloc(string,5);
-  strcpy(string, c);
-  fgets(string,1,stdin);
-  num = strcmp(c, string);
-  num = strncmp(c, string, 3);
+  string = calloc(1, 3);
+  string = realloc(string, 5);
+  strcpy(string, a);
+  fgets(string, 1, stdin);
+  num = strcmp(a, string);
+  num = strncmp(a, string, 3);
   num = strlen(string);
-  string = strstr(string, c);
+  string = strstr(string, a);
 
   memset(string, 0, 4);
-  strcat(string, c);
-  strncat(string, c, 3);
+  strcat(string, a);
+  strncat(string, a, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
-  test = fopen(c,"rb");
+  fprintf(test, a, 1);
+  fputs(a, test);
+
+  test = fopen(a, "rb");
   clearerr(test);
   num = fclose(test);
   fread(string, 2, 2, stdin);
@@ -47,7 +48,7 @@ void foobar(char *string, char* format, ...) {
   num = fgetc(stdin);
   fputc(num, stderr);
   fflush(stdout);
-  sprintf(string, c, num);
+  sprintf(string, a, num);
 
   va_start(args, format);
   vsprintf(string, format, args);
@@ -61,6 +62,6 @@ void foobar(char *string, char* format, ...) {
 }
 
 int main(void) {
-  foobar(NULL, c);
+  b(a, (unsigned char *)a);
   return 0;
 }

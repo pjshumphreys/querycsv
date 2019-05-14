@@ -28,7 +28,7 @@ int readInputOptions(struct qryData *queryData, char *string) {
       case 'K':
         params |= PRM_TRIM;
       break;
-      
+
       case 'e':
       case 'E':
         params &= ~PRM_POSTGRES;

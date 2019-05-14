@@ -40,6 +40,6 @@ void getBytesCP1047(
     if(codepoint > 0xFF || !(*bytes = getBytesCommon(codepoint, 2))) {
       returnByte = 0x6f;  /* ebcidic question mark */
       *bytes = &returnByte;
-    } 
+    }
   }
 }

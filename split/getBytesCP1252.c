@@ -1,4 +1,4 @@
-static const struct codepointToByte cp1252Bytes[32] = {
+static const struct codepointToByte cp1252Bytes[SIZE_CP1252BYTES] = {
   {0x0081, 0x81}, {0x008D, 0x8D},
   {0x008F, 0x8F}, {0x0090, 0x90},
   {0x009D, 0x9D}, {0x0152, 0x8C},
@@ -17,6 +17,10 @@ static const struct codepointToByte cp1252Bytes[32] = {
   {0x20AC, 0x80}, {0x2122, 0x99}
 };
 
+#ifdef __Z88DK
+  static struct codepointToByte* cp1252Bytes2[SIZE_CP1252BYTES];
+#endif
+
 void getBytesCP1252(
     long codepoint,
     char **bytes,
@@ -34,13 +38,23 @@ void getBytesCP1252(
       return;
     }
 
+#ifdef __Z88DK
+    if((lookup = (struct codepointToByte*)l_bsearch(
+      (void *)&codepoint,
+      (void *)cp1252Bytes2,
+      SIZE_CP1252BYTES,
+      compareCodepoints
+    )) == NULL)
+#else
     if((lookup = (struct codepointToByte*)bsearch(
       (void *)&codepoint,
       (void *)cp1252Bytes,
-      32,
+      SIZE_CP1252BYTES,
       sizeof(struct codepointToByte),
       compareCodepoints
-    )) == NULL) {
+    )) == NULL)
+#endif
+    {
       returnByte = 0x3f;  /* ascii question mark */
       *bytes = &returnByte;
       return;

@@ -11,15 +11,6 @@
 #include <string.h>
 #include <time.h>
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-  /* Keep flex happy (yet again) */
-  #ifndef FLEXINT_H
-    #include <inttypes.h>
-  #endif
-#else
-  typedef long int32_t;
-#endif
-
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
 #define FALSE 0
@@ -119,6 +110,13 @@
 but hasn't actually been needed up to now. It's being kept just in case
 it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
+
+/* define the sizes of the charset lookup tables here
+for the benefit of z88dk, as it doesn't have proper bsearch */
+#define SIZE_ATARIBYTES 159
+#define SIZE_COMMONBYTES 212
+#define SIZE_CP1252BYTES 32
+#define SIZE_PETSCIIBYTES 96
 
 #if defined(__unix__) || defined(__LINUX__)
   #ifdef EMSCRIPTEN
@@ -299,6 +297,22 @@ Just use long ones for that compiler */
   #define ENC_PRINT ENC_ATARIST
 #endif
 
+#ifdef __Z88DK
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF
+
+  /* classic clib z88dk doesn't have ferror. stub it out */
+  #define ferror(...) 0
+
+  double strtod(const char* str, char** endptr);  /* z88dk doesn't
+  have strtod, but does have floating point support. We supply our own implementation */
+
+  #ifndef FLEXINT_H
+    #include <stdint.h>
+  #endif
+
+#endif
+
 /* ugly hacks to raise the game of cc65 */
 #ifdef __CC65__
   #define YY_NO_UNISTD_H 1
@@ -374,11 +388,6 @@ Just use long ones for that compiler */
   #define in_word_set_a in_word_set_ai
   #define in_word_set_b in_word_set_bi
   #define in_word_set_c in_word_set_ci
-#endif
-
-#ifdef __Z88DK
-  /* classic clib z88dk doesn't have ferror. stub it out */
-  #define ferror(...) 0
 #endif
 
 /* translatable strings */

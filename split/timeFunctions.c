@@ -1,6 +1,6 @@
 /* get localtime, gmtime and utc offset string from a time_t. allocate/free memory as needed */
 /* any of the last three parameters can be skipped by passing null */
-#ifndef __CC65__
+#if !(defined(__CC65__) || defined(__Z88DK))
 int d_tztime(
     time_t *now,
     struct tm *local,

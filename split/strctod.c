@@ -3,7 +3,7 @@ format numbers to work without changing the locale */
 double strctod(char* str, char** endptr) {
   char * temp;
   double retval;
-  
+
   if(str) {
     temp = strReplace(",", ".", str);
     retval = strtod(temp, endptr);

@@ -1,6 +1,6 @@
 struct expression *parse_functionRef(
     struct qryData *queryData,
-    long aggregationType,
+    int aggregationType,
     struct expression *expressionPtr,
     int isDistinct
 ) {

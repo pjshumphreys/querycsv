@@ -5,7 +5,7 @@ void getCodepointsUtf16Le(
     int *byteLength
 ) {
   int c,c2;
-  
+
   unsigned QCSV_SHORT highSurrogate;
   unsigned QCSV_SHORT lowSurrogate;
 
@@ -26,15 +26,15 @@ void getCodepointsUtf16Le(
     codepoints[0] = MYEOF;
     return;
   }
-  
+
   highSurrogate = (c2 << 8) + c;
-  
+
   if(highSurrogate < 0xD800 || highSurrogate > 0xDBFF) {
     *arrLength = 1;
     codepoints[0] = (long)highSurrogate;
     return;
   }
-  
+
   if(
     (((c = fgetc(stream)) == EOF) || ((*byteLength += 1) && FALSE)) ||
     (((c2 = fgetc(stream)) == EOF) || ((*byteLength += 1) && FALSE))
@@ -47,7 +47,7 @@ void getCodepointsUtf16Le(
   }
 
   lowSurrogate = (c2 << 8) + c;
-  
+
   if(lowSurrogate < 0xDC00 || lowSurrogate > 0xDFFF) {
     *arrLength = 2;
     codepoints[0] = 0xFFFD;

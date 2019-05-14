@@ -1,6 +1,6 @@
 struct expression *parse_functionRefStar(
     struct qryData *queryData,
-    long aggregationType
+    int aggregationType
 ) {
   MAC_YIELD
 

@@ -1,5 +1,29 @@
 static struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
 
+struct hash4Entry * clause4(unsigned char **offset, int totalBytes2) {
+  struct hash4Entry *temp;
+
+  temp = in_word_set_a((char *)(*offset), totalBytes2);
+
+  if(temp != NULL) {
+    return temp;
+  }
+
+  temp = in_word_set_b((char *)(*offset), totalBytes2);
+
+  if(temp != NULL) {
+    return temp;
+  }
+
+  temp = in_word_set_c((char *)(*offset), totalBytes2);
+
+  if(temp != NULL) {
+    return temp;
+  }
+
+  return NULL;
+}
+
 struct hash4Entry *getLookupTableEntry(
     unsigned char **offset,
     unsigned char **str,
@@ -19,11 +43,7 @@ struct hash4Entry *getLookupTableEntry(
 
   totalBytes2 = totalBytes+(*lastMatchedBytes);
 
-  while(
-      (temp = in_word_set_a((char const *)(*offset), totalBytes2)) ||
-      (temp = in_word_set_b((char const *)(*offset), totalBytes2)) ||
-      (temp = in_word_set_c((char const *)(*offset), totalBytes2))
-    ) {
+  while((temp = clause4(offset, totalBytes2))) {
     /* the match is so far holding up.  */
 
     /* keep this match for later as it may be the last one we find */

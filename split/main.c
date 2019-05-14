@@ -2,6 +2,24 @@ int main(int argc, char *argv[]) {
   int argc2;
   char ** argv2;
 
+  #ifdef __Z88DK
+    for(i = 0; i < SIZE_ATARIBYTES; i++) {
+      atariBytes2[i] = &atariBytes[i];
+    }
+
+    for(i = 0; i < SIZE_COMMONBYTES; i++) {
+      commonBytes2[i] = &commonBytes[i];
+    }
+
+    for(i = 0; i < SIZE_CP1252BYTES; i++) {
+      cp1252Bytes[i] = &cp1252Bytes2[i];
+    }
+
+    for(i = 0; i < SIZE_PETSCIIBYTES; i++) {
+      petsciiBytes2[i] = &petsciiBytes[i];
+    }
+  #endif
+
   #ifdef __CC65__
     char * temp;
 
