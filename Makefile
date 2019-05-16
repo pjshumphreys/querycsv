@@ -68,7 +68,7 @@ dat/create: hash2.c dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/
 	cd dat && $(CC) create.c externs.c -o create
 
 dat/qrycsv00.ovl: dat/create dat/hash2dat.c
-	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2in0.h hash2dat.c qrycsv00.ovl)
+	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2dat.h hash2dat.c qrycsv00.ovl)
 
 env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
