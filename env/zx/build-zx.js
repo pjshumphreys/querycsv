@@ -166,6 +166,9 @@ function packPages() {
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
 
+const byteMaps = {
+}
+
 /*
 Split the specified assembly file into one file for each function's code
 (including the necessary rodata) and append to a global data segment.
@@ -251,6 +254,32 @@ function splitUpFunctions(filename, callback, append) {
       if(activeStream) {
         name = line.replace(/^\./, '');
 
+        const name2 = name.replace(/[0-9]+$/, '');
+
+        switch(name2) {
+          case '_atariBytes':
+          case '_commonBytes':
+          case '_cp1252Bytes':
+          case '_petsciiBytes': {
+            console.log('wat')
+
+            /* add to the list of rodata regexes used to add the appropriate rodata to each function */
+            rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
+
+            if(!byteMaps.hasOwnProperty(name2)) {
+              rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name2+'.asm'));
+
+              byteMaps[name2] = rodataOutputStreams.length-1;
+            }
+            else {
+              console.log('false');
+            }
+
+            activeStream = rodataOutputStreams[byteMaps[name2]];
+
+            rodataType = 4;
+          } break;
+        }
 
         if(rodataType == 1 || rodataType == 3) {
           rodataType = 3;
@@ -263,7 +292,7 @@ function splitUpFunctions(filename, callback, append) {
           activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
         }
 
-        writePause(activeStream, line.replace(name, name.toLowerCase()+filename)+"\n");
+        writePause(activeStream, line+(name === 'i_1'?filename:'')+"\n");
       }
     }
 
