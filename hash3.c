@@ -9,18 +9,21 @@ int combiningCharCompare(const void *a, const void *b) {
 int isCombiningChar(long codepoint) {
   struct hash3Entry * result;
 
-  if(
-      codepoint < 0x300 ||
-      (
-        codepoint > 0x309A && (
-          codepoint < 0xA66F || (
-            codepoint < 0xFB1E &&
-            codepoint > 0xABED
-          )
-        )
-      )
-  ) {
+  if(codepoint < 0x300) {
     return 0;
+  }
+
+  if(codepoint > 0x309A) {
+    if(codepoint < 0xA66F) {
+      return 0;
+    }
+
+    if(
+        codepoint < 0xFB1E &&
+        codepoint > 0xABED
+    ) {
+      return 0;
+    }
   }
 
   result = (struct hash3Entry*)bsearch(

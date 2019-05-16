@@ -1,7 +1,24 @@
 #include "querycsv.h"
-#include "hash2in0.h"
+#include "hash2dat.h"
 
 #define printfd(...)
+
+void isInHash2_0(void) {
+  i = 0;
+
+  int index = (int)(entry.codepoint - 160);
+
+  if(hash2_[index] == NULL) {
+    return NULL;
+  }
+
+  while(hash2_[index][i] != 0) {
+    entry.codepoints[i] = hash2_[index][i];
+    i++;
+  }
+
+  entry.length = i;
+}
 
 void isInHash2_1(void) {
   int32_t lookFor = (int32_t)entry.codepoint;
@@ -100,22 +117,23 @@ void isInHash2_1(void) {
 }
 
 struct hash2Entry* isInHash2(long codepoint) {
-  if(
-      codepoint < 0xA0 ||
-      (
-        codepoint > 0x33FF && (
-          codepoint < 0xA69C || (
-            codepoint < 0xF900 &&
-            codepoint > 0xAB5F
-          )
-        )
-      ) ||
-      ((entry.codepoint = codepoint) && FALSE)
-    ) {
+  if(codepoint < 0xA0) {
     return NULL;
   }
 
-  else if(codepoint < 0x100) {
+  if(codepoint > 0x33FF) {
+    if(codepoint < 0xA69C) {
+      return NULL;
+    }
+
+    if(codepoint > 0xAB5F && codepoint < 0xF900) {
+      return NULL;
+    }
+  }
+
+  entry.codepoint = codepoint;
+
+  if(codepoint < 0x100) {
     isInHash2_0();
   }
 

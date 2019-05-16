@@ -139,10 +139,41 @@ int main(int argc, char *argv[]) {
   FILE *fp;
   struct treeNode* theTree = NULL;
   char * command = NULL;
-  int j;
+  int j = 0;
+
+  fp = fopen("hash2dat.h", "wb");
+
+  for(j = 0; hash2[j].codepoint < 0x100; j++) {
+    fprintf(fp, j == 0 ? "static const long\n  hash2_%d[] = {" : ",\n  hash2_%d[] = {", j+1);
+
+    for(int k = 0; k < hash2[j].length; k++) {
+      fprintf(fp, "0x%04x%s", hash2[j].codepoints[k], k == hash2[j].length-1 ? ", 0}" : ", ");
+    }
+  }
+
+  fprintf(fp, ";\n\nstatic const long * hash2_[96] = {");
+
+  j = 0;
+
+  for(int i = 160; i < 256; i++) {
+    if(hash2[j].codepoint == i) {
+      fprintf(fp, i == 160 ? "\n  { hash2_%-2d }  /* 0x%02x */" : ",\n  { hash2_%-2d }  /* 0x%02x */", j+1, i);
+      j++;
+    }
+    else {
+      fprintf(fp, i == 160 ? "\n  { NULL     }  /* 0x%02x */" : ",\n  { NULL     }  /* 0x%02x */", i);
+    }
+  }
+
+  fprintf(fp, "\n};");
+
+  fclose(fp);
+
 
   /* find the offset of the first codepoint32_t past U+00FF */
-  for(j = 0; hash2[j].codepoint < 0x100; j++) {}
+  for(j = 0; hash2[j].codepoint < 0x100; j++) {
+
+  }
 
   theTree = createTree(j, HASH2SIZE-1, NULL);
 
@@ -155,10 +186,6 @@ int main(int argc, char *argv[]) {
   walkTree(theTree, 2, fp);
 
   fclose(fp);
-
-  asprintf(&command, "node ../generate_hash2.js %d 1", j);
-
-  system(command);
 
   freeAndZero(command);
 

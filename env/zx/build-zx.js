@@ -107,10 +107,10 @@ function compileLexer() {
       's/yy_nxt\\[yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c\\]/yy_nxt2\\(yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c)/g;'+
       's/yy_chk\\[yy_base\\[yy_current_state\\] + yy_c\\]/yy_chk2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;'+
       's/yy_accept\\[yy_current_state\\]/yy_accept2\\(yy_current_state\\)/g;'+
-    '" lexer.c > build/lexer2.c'
+    '" lexer.c > build/lexer2.h'
   );
 
-  execSync('zcc +zx -U__STDC_VERSION__ build/lexer2.c -S -o build/lexer.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ lexer2.c -S -o build/lexer.asm');
 
   splitUpFunctions("lexer", compileParser);
 }
@@ -126,9 +126,9 @@ function compileParser() {
       's/YYSTYPE yylval YY_INITIAL_VALUE \(= yyval_default\);/static YYSTYPE yylval;/g;'+
       's/yyval = yyvsp\\[1-yylen\\];//g;'+
       's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2\(int offset\);static const yytype_int16 yypact[]/g;'+
-      '" sql.c > build/sql2.c');
+      '" sql.c > build/sql2.h');
 
-  execSync('zcc +zx -U__STDC_VERSION__ build/sql2.c -S -o build/sql.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ sql2.c -S -o build/sql.asm');
 
   splitUpFunctions("sql", compileQueryCSV);
 }
@@ -138,7 +138,7 @@ function compileQueryCSV() {
 
   execSync('zcc +zx -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm');
 
-  splitUpFunctions("querycsv", compileData);
+  splitUpFunctions("querycsv", compileHash2);
 
 }
 
@@ -150,18 +150,119 @@ function compileData() {
 
 function compileHash2() {
   console.log("compileHash2");
+
+  execSync('zcc +zx -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm');
+
+  splitUpFunctions("hash2",  compileHash3);
 }
 
-function compileHash3And4() {
-  console.log("compileHash3And4");
+function compileHash3() {
+  console.log("compileHash3");
+
+  execSync('zcc +zx -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm');
+
+  splitUpFunctions("hash3",  compileHash4a);
+}
+
+function compileHash4a() {
+  console.log("compileHash4a");
+
+  execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
+
+  splitUpFunctions("hash4a",  compileHash4b);
+
+}
+
+function compileHash4b() {
+  console.log("compileHash4b");
+
+  execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
+
+  splitUpFunctions("hash4a",  compileHash4c);
+
+}
+
+function compileHash4c() {
+  console.log("compileHash4c");
+
+  execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
+
+  splitUpFunctions("hash4a",  addROData);
+
 }
 
 function compileYYParse() {
   console.log("compileYYParse");
 }
 
+function addROData() {
+  console.log("addROData");
+
+  var list = [];
+  var walker = walk.walk('./build/s', {});
+
+  walker.on("file", (root, fileStats, next) => {
+    list.push([fileStats.name, fs.readFileSync("build/s/"+fileStats.name, {encoding: 'utf8'})]);
+
+    next();
+  });
+
+  walker.on("errors", (root, nodeStatsArray, next) => {
+    next();
+  });
+
+  walker.on("end", () => {
+    list.forEach(updateName);
+
+    packPages();
+  });
+}
+
+/* updateName adds to rodata values needed by each function to the end of
+its assembly source file */
+function updateName(elem) {
+  var text = elem[1];
+
+  var name = elem[0].replace(/\.asm$/, "");
+
+  var hasMatches = false;
+
+  rodataLabels.forEach(element => {
+    if(element[1] = element[2].test(text)) {
+      hasMatches = true;
+    }
+  });
+
+  if(hasMatches) {
+    execSync(
+      'echo "\tSECTION rodata_compiler" >> build/s/'+elem[0] + " &&" +
+      " cat "+
+      shellEscape(rodataLabels.filter(label => label[1]).map(label => "build/ro/"+label[0]+".asm")) +
+      ">> build/s/"+elem[0] +
+      ' && echo "\tSECTION code_compiler" >> build/s/'+elem[0]
+      );
+  }
+}
+
 function packPages() {
   console.log("packPages");
+
+  /*get the file sizes of each function
+  var walker = walk.walk('./build/s', {});
+
+  walker.on("file", (root, fileStats, next) => {
+    list.push([fileStats.name, fs.readFileSync("build/s/"+fileStats.name, {encoding: 'utf8'})]);
+
+    next();
+  });
+
+  walker.on("errors", (root, nodeStatsArray, next) => {
+    next();
+  });
+
+  walker.on("end", () => {
+
+  });*/
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
@@ -189,7 +290,7 @@ function splitUpFunctions(filename, callback, append) {
 
   const rodataOutputStreams = [];
 
-  const code = fs.createWriteStream('build/'+filename+'_code.s');
+  const code = fs.createWriteStream('build/'+filename+'_code.asm');
 
   const functionOutputStreams = [];
   let activeStream = code;
@@ -200,8 +301,6 @@ function splitUpFunctions(filename, callback, append) {
 
     if(/SECTION/.test(line)) {
       name = line.replace(/^[ \t]*SECTION[ \t]*/, '');
-      console.log('here', name);
-
       if(name == 'code_compiler') {
         rodataType = 0;
 
@@ -257,12 +356,12 @@ function splitUpFunctions(filename, callback, append) {
         const name2 = name.replace(/[0-9]+$/, '');
 
         switch(name2) {
+
+          case '_hash2_':
           case '_atariBytes':
           case '_commonBytes':
           case '_cp1252Bytes':
           case '_petsciiBytes': {
-            console.log('wat')
-
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
             rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
 
@@ -270,9 +369,6 @@ function splitUpFunctions(filename, callback, append) {
               rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name2+'.asm'));
 
               byteMaps[name2] = rodataOutputStreams.length-1;
-            }
-            else {
-              console.log('false');
             }
 
             activeStream = rodataOutputStreams[byteMaps[name2]];
@@ -287,13 +383,24 @@ function splitUpFunctions(filename, callback, append) {
           rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name+(name === 'i_1'?filename:'')+'.asm'));
 
           /* add to the list of rodata regexes used to add the appropriate rodata to each function */
-          rodataLabels.push([name, false, new RegExp("(\\b"+name.replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
+          rodataLabels.push([name, false, new RegExp("(\\b"+(name==='i_70'?'i_70+':name).replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
 
           activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
         }
 
         writePause(activeStream, line+(name === 'i_1'?filename:'')+"\n");
       }
+    }
+
+    else if(/^\tGLOBAL/.test(line)) {
+      /* DO NOTHING */
+    }
+
+    else if(/\bi_1\b/.test(line)) {
+      writePause(
+          activeStream,
+          line.replace(/\bi_1\b/, 'i_1'+filename)+"\n"
+        );
     }
 
     else {
