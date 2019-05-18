@@ -29,7 +29,7 @@ int isCombiningChar(long codepoint) {
   result = (struct hash3Entry*)bsearch(
       (const void*)&codepoint,
       (const void*)&hash3EntryMap,
-      745,
+      SIZE_HASH3,
       sizeof(struct hash3Entry),
       &combiningCharCompare
     );
