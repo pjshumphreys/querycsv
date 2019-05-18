@@ -144,14 +144,14 @@ int main(int argc, char *argv[]) {
   fp = fopen("hash2dat.h", "wb");
 
   for(j = 0; hash2[j].codepoint < 0x100; j++) {
-    fprintf(fp, j == 0 ? "static const long\n  hash2_%d[] = {" : ",\n  hash2_%d[] = {", j+1);
+    fprintf(fp, j == 0 ? "static const int\n  hash2_%d[] = {" : ",\n  hash2_%d[] = {", j+1);
 
     for(int k = 0; k < hash2[j].length; k++) {
       fprintf(fp, "0x%04x%s", hash2[j].codepoints[k], k == hash2[j].length-1 ? ", 0}" : ", ");
     }
   }
 
-  fprintf(fp, ";\n\nstatic const long * hash2_[96] = {");
+  fprintf(fp, ";\n\nstatic const int * hash2_[96] = {");
 
   j = 0;
 

@@ -47,7 +47,7 @@ const functionsList = [
   ['fflush', 3, 0x0001, "farCall" ],
   ['fgetc', 3, 0x0001, "farCall" ],
   ['ungetc', 3, 0x0001, "farCall" ],
-  ['fgets','_fgets', 3, 0x0001, "farCall" ],
+  ['fgets',3, 0x0001, "farCall" ],
   ['fputc_callee', 3, 0x0001, "farCall" ],
   ['fputs_callee', 3, 0x0001, "farCall" ],
   ['feof', 3, 0x0001, "farCall" ],
@@ -110,6 +110,7 @@ function compileLexer() {
     '" lexer.c > build/lexer2.h'
   );
 
+
   execSync('zcc +zx -U__STDC_VERSION__ lexer2.c -S -o build/lexer.asm');
 
   splitUpFunctions("lexer", compileParser);
@@ -120,17 +121,22 @@ function compileParser() {
 
   execSync(
     'sed "'+
-      's/static const char \\*const yytname\\[\\] =/static char ** yytname =/g;'+
-      's/const//g;'+
+      's/static const char \\*const yytname\\[\\] =/static const char ** yytname =/g;'+
       's/YY_INITIAL_VALUE \(static YYSTYPE yyval_default;\)//g;'+
+      's/char const/char/g;'+
       's/YYSTYPE yylval YY_INITIAL_VALUE \(= yyval_default\);/static YYSTYPE yylval;/g;'+
       's/yyval = yyvsp\\[1-yylen\\];//g;'+
       's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2\(int offset\);static const yytype_int16 yypact[]/g;'+
       '" sql.c > build/sql2.h');
 
+  execSync(
+    'sed -i -r "'+
+      's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;'+
+      '" build/sql2.h');
+
   execSync('zcc +zx -U__STDC_VERSION__ sql2.c -S -o build/sql.asm');
 
-  splitUpFunctions("sql", compileQueryCSV);
+  splitUpFunctions("sql", compileQueryCSV, true);
 }
 
 function compileQueryCSV() {
@@ -138,7 +144,7 @@ function compileQueryCSV() {
 
   execSync('zcc +zx -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm');
 
-  splitUpFunctions("querycsv", compileHash2);
+  splitUpFunctions("querycsv", compileHash2, true);
 
 }
 
@@ -153,7 +159,7 @@ function compileHash2() {
 
   execSync('zcc +zx -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm');
 
-  splitUpFunctions("hash2",  compileHash3);
+  splitUpFunctions("hash2",  compileHash3, true);
 }
 
 function compileHash3() {
@@ -161,7 +167,7 @@ function compileHash3() {
 
   execSync('zcc +zx -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm');
 
-  splitUpFunctions("hash3",  compileHash4a);
+  splitUpFunctions("hash3",  compileHash4a, true);
 }
 
 function compileHash4a() {
@@ -169,25 +175,25 @@ function compileHash4a() {
 
   execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
 
-  splitUpFunctions("hash4a",  compileHash4b);
+  splitUpFunctions("hash4a",  compileHash4b, true);
 
 }
 
 function compileHash4b() {
   console.log("compileHash4b");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ hash4b.c -S -o build/hash4b.asm');
 
-  splitUpFunctions("hash4a",  compileHash4c);
+  splitUpFunctions("hash4b",  compileHash4c, true);
 
 }
 
 function compileHash4c() {
   console.log("compileHash4c");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ hash4c.c -S -o build/hash4c.asm');
 
-  splitUpFunctions("hash4a",  addROData);
+  splitUpFunctions("hash4c",  addROData, true);
 
 }
 
@@ -197,6 +203,10 @@ function compileYYParse() {
 
 function addROData() {
   console.log("addROData");
+
+  execSync(" cat build/ro/i_1*.asm >> build/data.asm && "+
+      'echo "  SECTION code_compiler" >> build/data.asm');
+
 
   var list = [];
   var walker = walk.walk('./build/s', {});
@@ -288,6 +298,13 @@ function splitUpFunctions(filename, callback, append) {
     flags: append?'a':'w'
   });
 
+  if(!append) {
+      writePause(
+          data,
+          "\tSECTION\tdata_compiler\n"
+        );
+  }
+
   const rodataOutputStreams = [];
 
   const code = fs.createWriteStream('build/'+filename+'_code.asm');
@@ -321,10 +338,6 @@ function splitUpFunctions(filename, callback, append) {
         rodataType = 2;
 
         activeStream = data;
-
-        if(name !== "bss_compiler") {
-          writePause(activeStream, line+"\n");
-        }
       }
     }
 
@@ -357,6 +370,7 @@ function splitUpFunctions(filename, callback, append) {
 
         switch(name2) {
 
+          case '_hash3EntryMap':
           case '_hash2_':
           case '_atariBytes':
           case '_commonBytes':
