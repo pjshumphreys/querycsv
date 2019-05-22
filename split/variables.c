@@ -8,12 +8,20 @@ struct hash1Entry lookupresult = {0, (long *)(&hash1Codepoints)};
 
 /* hash2 helper variables */
 long codepoints[18];
+#ifdef __Z88DK
 struct hash2Entry entry = {0x0000, 1, &codepoints};
+#else
+struct hash2Entry entry = {0x0000, 1, (long *)(&codepoints)};
+#endif
 struct hash2Entry* retval;
 
 /* hash4 helper varables */
 char hash4letter[7];
+#ifdef __Z88DK
 struct hash4Entry hash4export = {&hash4letter, 0, 0, 0};
+#else
+struct hash4Entry hash4export = {(char *)(&hash4letter), 0, 0, 0};
+#endif
 char * devNull = NULL;
 
 /*dedup string literals */

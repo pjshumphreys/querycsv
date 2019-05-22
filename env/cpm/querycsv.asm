@@ -19,8 +19,7 @@ chkz80:
   inc a  ; make it overflow ie. 10000000
   jp pe, begin-start+0x0100  ; only 8080 resets for odd parity here
   ld de, z80msg  ; print "Z80 CPU required" message
-  ld c, writeStr
-  jp BDOS
+  jr print
 
 begin:
   ld a, 1

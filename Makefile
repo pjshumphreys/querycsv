@@ -20,8 +20,10 @@ makeheaders: makeheaders.c
 gen.h: makeheaders $(SOURCES)
 	./makeheaders $(SOURCES) -h > gen.h
 
-querycsv.c: generateMappings.js $(SOURCES)
+hash3.h: ./generateMappings.js
 	node ./generateMappings.js
+
+querycsv.c: hash3.h $(SOURCES)
 	printf "#include \"querycsv.h\"\n" > querycsv.c
 	cat $(SOURCES) >> querycsv.c
 

@@ -1148,7 +1148,6 @@ static const ${mapping[1].type} ${mapping[0]}[${mapping[1].define}] = `;
     }
     return value
   }), {
-  'def': 'hij',
   '[[': '{\n  {',
   '[': '  {',
   ']]': '}\n}',

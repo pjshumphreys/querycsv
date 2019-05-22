@@ -4,18 +4,9 @@ const fs = require('graceful-fs');
 const readline = require('readline');
 const walk = require('walk');
 const shellEscape = require('shell-escape');
+const matchAll = require('match-all');
 
 var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
-var replaceAll = (str, mapObj) => str.replace(
-    new RegExp(
-        Object.
-          keys(mapObj).
-          map(x => "\\b"+(x.replace(matchOperatorsRe, "\\$&"))+"\\b").
-          join("|"),
-        "gi"
-      ),
-    matched => mapObj[matched]
-  );
 
 const hashMap = {};
 
@@ -142,7 +133,9 @@ function compileParser() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync('zcc +zx -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;sed -i "'+
+      's/jr/jp/gi;'+
+      '" build/querycsv.asm');
 
   splitUpFunctions("querycsv", compileHash2, true);
 
@@ -173,7 +166,12 @@ function compileHash3() {
 function compileHash4a() {
   console.log("compileHash4a");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash4a.c -S -o build/hash4a.asm');
+  execSync(
+    'sed "'+
+      's/struct/const struct/gi;'+
+      '" hash4a.c > build/hash4a.c');
+
+  execSync('zcc +zx -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm');
 
   splitUpFunctions("hash4a",  compileHash4b, true);
 
@@ -182,7 +180,12 @@ function compileHash4a() {
 function compileHash4b() {
   console.log("compileHash4b");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash4b.c -S -o build/hash4b.asm');
+  execSync(
+    'sed "'+
+      's/struct/const struct/gi;'+
+      '" hash4b.c > build/hash4b.c');
+
+  execSync('zcc +zx -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm');
 
   splitUpFunctions("hash4b",  compileHash4c, true);
 
@@ -191,7 +194,12 @@ function compileHash4b() {
 function compileHash4c() {
   console.log("compileHash4c");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash4c.c -S -o build/hash4c.asm');
+  execSync(
+    'sed "'+
+      's/struct/const struct/gi;'+
+      '" hash4c.c > build/hash4c.c');
+
+  execSync('zcc +zx -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm');
 
   splitUpFunctions("hash4c",  addROData, true);
 
@@ -204,8 +212,9 @@ function compileYYParse() {
 function addROData() {
   console.log("addROData");
 
-  execSync(" cat build/ro/i_1*.asm >> build/data.asm && "+
-      'echo "  SECTION code_compiler" >> build/data.asm');
+  execSync(" mv build/ro/i_1hash4*.asm build/ && cat build/ro/i_1*.asm >> build/data.asm && "+
+      'echo "  SECTION code_compiler" >> build/data.asm && mv build/i_1hash4*.asm build/ro/');
+  execSync("sort build/globals.asm | uniq > build/globals2.asm && rm build/globals.asm && mv build/globals2.asm build/globals.asm");
 
 
   var list = [];
@@ -224,7 +233,7 @@ function addROData() {
   walker.on("end", () => {
     list.forEach(updateName);
 
-    packPages();
+    getFunctionSizes();
   });
 }
 
@@ -254,14 +263,88 @@ function updateName(elem) {
   }
 }
 
-function packPages() {
-  console.log("packPages");
+function addDefines(filename) {
+  let arr = [];
+  let notQuit = true;
 
-  /*get the file sizes of each function
+  console.log("addDefines", filename);
+
+  execSync(
+    'printf "\\\n" > ../g/'+filename+'.inc;'+
+    'printf "\\\n" > ../g/'+filename+'2.inc;'+
+    'echo "  INCLUDE \\\"z80_crt0.hdr\\\"" > ../g/'+filename+'.asm;'+
+    'cat '+filename+'.asm >> ../g/'+filename+'.asm;'+
+    'printf " INCLUDE \\\"../globals.asm\\\"\n" >> ../g/'+filename+'.asm;'+
+    'printf " INCLUDE \\\"'+filename+'2.inc\\\"\n" >> ../g/'+filename+'.asm;'+
+    'printf " INCLUDE \\\"'+filename+'.inc\\\"\n" >> ../g/'+filename+'.asm',
+    {
+      cwd:  __dirname+'/build/s'
+    });
+
+  while(notQuit) {
+    notQuit = false;
+
+    try {
+      execSync(
+        'zcc +zx --no-crt -lm -lndos -U__STDC_VERSION__'+
+        ' -o ../obj/'+filename+'.bin ../g/'+filename+'.asm',
+        {
+          cwd:  __dirname+'/build/s'
+        }
+      );
+    }
+    catch(e) {
+      notQuit = true;
+
+      arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString()+ e.stdout.toString(), /symbol '([^']+)/g).toArray())));
+
+      execSync(
+        'rm ../g/'+filename+'2.inc;'+
+        'rm ../g/'+filename+'.inc;'+
+        'printf "\\\n" > ../g/'+filename+'.inc;'+
+        'printf "\\\n" > ../g/'+filename+'2.inc;',
+        {
+          cwd:  __dirname+'/build/s'
+        }
+      );
+
+      arr.forEach(elem => {
+        execSync(
+          'printf "  GLOBAL '+elem+'\n" >> ../g/'+filename+'2.inc;'+
+          'printf ".'+elem+'\n" >> ../g/'+filename+'.inc',
+          {
+            cwd:  __dirname+'/build/s'
+          }
+        );
+      });
+    }
+  }
+
+  return {
+    name: filename,
+    children: arr
+  };
+}
+
+function getFunctionSizes() {
+  console.log("getFunctionSizes");
+
+  /*patch compareCodepoints into the functions that need it (so the table is
+  always in the same page) */
+  execSync("cat build/s/compareCodepoints.asm >> build/s/getBytesCP1252.asm;sed -i 's/_compareCodepoints/compareCP1252/g;s/querycsv/querycsv1/g;' build/s/getBytesCP1252.asm");
+  execSync("cat build/s/compareCodepoints.asm >> build/s/getBytesCommon.asm;sed -i 's/_compareCodepoints/compareCommon/g;s/querycsv/querycsv2/g;' build/s/getBytesCommon.asm");
+  execSync("cat build/s/compareCodepoints.asm >> build/s/getBytesPetscii.asm;sed -i 's/_compareCodepoints/comparePetscii/g;s/querycsv/querycsv3/g;' build/s/getBytesPetscii.asm");
+  execSync("cat build/s/compareCodepoints.asm >> build/s/getBytesAtariST.asm;sed -i 's/_compareCodepoints/compareAtariST/g;s/querycsv/querycsv4/g;' build/s/getBytesAtariST.asm");
+  execSync("rm build/s/compareCodepoints.asm");
+
   var walker = walk.walk('./build/s', {});
 
+  var list = [];
+
   walker.on("file", (root, fileStats, next) => {
-    list.push([fileStats.name, fs.readFileSync("build/s/"+fileStats.name, {encoding: 'utf8'})]);
+    if(/\.asm$/.test(fileStats.name)) {
+      list.push(fileStats.name.replace(/\.asm$/, '').replace(/^_/, ''));
+    }
 
     next();
   });
@@ -271,14 +354,169 @@ function packPages() {
   });
 
   walker.on("end", () => {
+    packPages(list.map(addDefines).reduce((obj, elem) => {
+      elem.children =
+        elem.children
+        .map(elem => elem.replace(/^_/, ''))
+        .filter(name => fs.existsSync(__dirname + '/build/obj/'+name+'.bin'));
 
-  });*/
+      try {
+        elem.size = fs.statSync(__dirname + '/build/obj/'+elem.name+'.bin').size;
+      }
+      catch(e) {}
+
+      obj[elem.name] = elem;
+
+      return obj;
+    }, {}));
+  });
+}
+
+function packPages(tree) {
+  var pages = [[tree['main']]];
+  var remainingSizes = [16384];
+  var currentPageData = {};
+  var currentPageNumber = 0;
+  var placedFunctions = [tree['main']];
+  var currentFunctions = [];
+
+  //place the main function to begin with
+  tree['main'].pageNumber = 0;
+  tree['main'].children.forEach(elem => {
+    currentPageData[elem] = true;
+  });
+
+  for(;;) {
+    //temporarily re-add functions that've already been placed so we can add their children
+    currentFunctions = [].concat(placedFunctions);
+
+    for(var loop = 20; loop; loop--) { //try to keep functions fairly close to
+    //something further up the call stack
+      //find the children of all the current functions in the array.
+      var children = currentFunctions.
+        map(elem => elem.children).
+        reduce((obj, elem) => {
+          obj = obj.concat(elem);
+
+          return obj;
+        }, []).
+        map(elem => tree[elem]);
+
+      //if no children were found then open a new page
+      if(children.length === 0) {
+        break;
+      }
+
+      currentFunctions = currentFunctions.concat(children);
+
+      //sort by size and filter the functions that've already allocated
+      currentFunctions = currentFunctions
+      .sort((a, b) => {
+        //prioritize functions whose parent function is already in the current page
+        const temp = currentPageData.hasOwnProperty(a.name) - currentPageData.hasOwnProperty(b.name);
+
+        if(!temp) {
+          return temp;
+        }
+
+        return a.size - b.size;
+      })
+      .reduce((obj, elem) => {
+        if(!(elem.hasOwnProperty('pageNumber') || obj.seenNames.hasOwnProperty(elem.name))) {
+          obj.seenNames[elem.name] = true;
+          obj.newArr.push(elem);
+        }
+
+        return obj;
+       }, { seenNames: {}, newArr: [] }).newArr;
+
+      //if the array has become empty then all functions were placed
+
+      //place the biggest first. if all of then add the children. if none of the children can
+      for(var i = 0; i < currentFunctions.length; i++) {
+        if(remainingSizes[currentPageNumber] - currentFunctions[i].size > 0) {
+          remainingSizes[currentPageNumber] -= currentFunctions[i].size;
+          pages[currentPageNumber].push(currentFunctions[i]);
+          placedFunctions.push(currentFunctions[i]);
+          currentFunctions[i].pageNumber = currentPageNumber;
+          currentFunctions[i].children.forEach(elem => {
+            currentPageData[elem] = true;
+          });
+        }
+      }
+    }
+
+    //filter out placed functions
+    currentFunctions = currentFunctions.
+    filter(elem => !(elem.hasOwnProperty('pageNumber')));
+
+    //if all functions have been placed then quit
+    if(currentFunctions.length === 0) {
+      break;
+    }
+
+    //otherwise open a new page
+    pages.push([]);
+    remainingSizes.push(16384);
+    currentPageData = {};
+    currentPageNumber++;
+  }
+
+  console.log(JSON.stringify(pages, null, 2));
+
+  /* use a bin packing algorithm to group the functions and
+  produce a binary of each 8k page * /
+  var list = exec(
+      "sh -c '"+
+        "pushd build/obj > /dev/null;"+
+          "find * -type f ! -name build/_yyparse.bin -print0|"+
+          "xargs -0 stat --printf=\"%s %n\\n\"|"+
+          "sort -rh;"+
+        "popd > /dev/null"+
+      "'"
+    );
+
+  var lineReader = readline.createInterface({
+    input: list.stdout
+  });
+
+  var maxSize = 8410;//8277;
+
+  files = [];
+  var totalSizes = [];
+
+  lineReader.on('line', function(line) {
+    var size = parseInt(line.match(/^[0-9]+/)[0], 10);
+    var name = line.replace(/^[0-9]+ /,"");
+    var count =-1;
+
+    if(size > maxSize) {
+      throw "file too big";
+    }
+
+    for(i=0;;i++) {
+      if(i==files.length) {
+        /*the function won't fit in any of the existing pages. Add a new page for it instead * /
+        files.push([]);
+        count++;
+        totalSizes.push(0);
+      }
+
+      if(totalSizes[i]+size < maxSize) {
+        files[i].push(name);
+        totalSizes[i]+=size;
+        break;
+      }
+    }
+  });
+
+  lineReader.on('close', compilePages);
+*/
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
 
-const byteMaps = {
-}
+const byteMaps = {};
 
 /*
 Split the specified assembly file into one file for each function's code
@@ -295,6 +533,10 @@ function splitUpFunctions(filename, callback, append) {
   });
 
   const data = fs.createWriteStream('build/data.asm', {
+    flags: append?'a':'w'
+  });
+
+  const globals = fs.createWriteStream('build/globals.asm', {
     flags: append?'a':'w'
   });
 
@@ -407,7 +649,10 @@ function splitUpFunctions(filename, callback, append) {
     }
 
     else if(/^\tGLOBAL/.test(line)) {
-      /* DO NOTHING */
+      writePause(
+          globals,
+          line+"\n"
+        );
     }
 
     else if(/\bi_1\b/.test(line)) {
@@ -426,13 +671,14 @@ function splitUpFunctions(filename, callback, append) {
   });
 
   lineReader.on('close', function() {
-    j = functionOutputStreams.length + rodataOutputStreams.length + 1;
+    j = functionOutputStreams.length + rodataOutputStreams.length + 2;
 
     data.end(writeFunctionPostfixes);
   });
 
   function writeFunctionPostfixes() {
     code.end(allStreamsClosed);
+    globals.end(allStreamsClosed);
 
     for(i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */

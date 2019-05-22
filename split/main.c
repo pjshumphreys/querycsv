@@ -6,10 +6,10 @@ int main(int argc, char *argv[]) {
     char * temp;
 
     temp = petsciiToUtf8(argv[1]);
-    strncpy(argv[1], temp, 255);
+    strncpy(argv[1], temp, 199);
 
     /* ensure null termination of the string */
-    argv[1][255] = '\0';
+    argv[1][199] = '\0';
 
     free(temp);
   #endif
