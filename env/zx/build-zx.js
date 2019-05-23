@@ -373,8 +373,10 @@ function getFunctionSizes() {
 }
 
 function packPages(tree) {
+  var pageSize = 16384;
+
   var pages = [[tree['main']]];
-  var remainingSizes = [16384];
+  var remainingSizes = [pageSize];
   var currentPageData = {};
   var currentPageNumber = 0;
   var placedFunctions = [tree['main']];
@@ -390,7 +392,7 @@ function packPages(tree) {
     //temporarily re-add functions that've already been placed so we can add their children
     currentFunctions = [].concat(placedFunctions);
 
-    for(var loop = 20; loop; loop--) { //try to keep functions fairly close to
+    for(var loop = 3; loop; loop--) { //try to keep functions fairly close to
     //something further up the call stack
       //find the children of all the current functions in the array.
       var children = currentFunctions.
@@ -457,7 +459,7 @@ function packPages(tree) {
 
     //otherwise open a new page
     pages.push([]);
-    remainingSizes.push(16384);
+    remainingSizes.push(pageSize);
     currentPageData = {};
     currentPageNumber++;
   }
