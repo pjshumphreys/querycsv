@@ -1,9 +1,5 @@
 /* fake program to get the necessary libc functions into 1 memory page */
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
+#include "querycsv.h"
 
 /*
  * strtod implementation.
@@ -11,8 +7,6 @@
  * tidied up and modified to use soft float macros: Paul Humphreys
  * license: public domain
  */
-#include <stdlib.h>
-#include <string.h>
 
 double fltMinusOne = -1.0;
 double fltOne = 1.0;
@@ -325,7 +319,7 @@ void b(char * string, unsigned char * format, ...) {
   free(string);
 }
 
-int main(void) {
+int main(int argc, char * argv[]) {
   b(a, (unsigned char *)a);
   return 0;
 }
