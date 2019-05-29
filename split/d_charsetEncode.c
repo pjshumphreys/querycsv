@@ -55,6 +55,10 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       bytes = (char *)utf16Bytes;
     } break;
 
+    case ENC_ASCII: {
+      getBytes = getBytesAscii;
+    } break;
+
     default: {
       getBytes = getBytesCP1252;
     } break;

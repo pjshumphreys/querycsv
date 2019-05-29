@@ -99,6 +99,8 @@
 #define ENC_PETSCII 13
 #define ENC_ATARIST 14
 #define ENC_BBC 15
+#define ENC_ZX 16
+#define ENC_ASCII 17
 #define ENC_INPUT ENC_UTF8
 #define ENC_OUTPUT ENC_UTF8
 #define ENC_PRINT ENC_UTF8
@@ -139,8 +141,10 @@ it becomes needed and because it's useful for debugging */
     #define fprintf fprintf_w32
     #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
+    #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
     #include <locale.h>  /*we need to call setlocale after setting the
     TZ environment variable for gmtime to work correctly on msdos watcom*/
+
 
     #undef ENC_INPUT
     #undef ENC_OUTPUT

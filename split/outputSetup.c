@@ -1,4 +1,8 @@
 int outputSetup(struct qryData *query) {
+  #if defined(MICROSOFT) && !defined(WINDOWS)
+    union REGS regs;
+  #endif
+
   MAC_YIELD
 
   /* set up the output context */
@@ -35,7 +39,36 @@ int outputSetup(struct qryData *query) {
   /* if we're printing the results, each environment can only
   correctly display its own print encoding */
   else {
-    query->outputEncoding = ENC_PRINT;
+    #if defined(MICROSOFT) && !defined(WINDOWS)
+      regs.x.ax = 0x6601;
+      regs.x.bx = 0;
+
+      int86(0x21, &regs, &regs);
+
+      if(regs.x.cflag != 0) {
+        regs.x.bx = 0;
+      }
+
+      switch(regs.x.bx) {
+        case 437: {
+          query->outputEncoding = ENC_CP437;
+        } break;
+
+        case 850: {
+          query->outputEncoding = ENC_CP850;
+        } break;
+
+        case 1252: {
+          query->outputEncoding = ENC_CP1252;
+        } break;
+
+        default: {
+          query->outputEncoding = ENC_ASCII;
+        } break;
+      }
+    #else
+      query->outputEncoding = ENC_PRINT;
+    #endif
   }
 
   return TRUE;
