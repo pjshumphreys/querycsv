@@ -42,13 +42,10 @@ const functionsList = [
   ['fputc_callee', 3, 0x0001, "farCall" ],
   ['fputs_callee', 3, 0x0001, "farCall" ],
   ['feof', 3, 0x0001, "farCall" ],
+  ['fputc_cons', 3, 0xbcf5, "farCall" ],
   ['fprintf', 3, 0x0001, "farCall" ],
   ['sprintf', 3, 0x0001, "farCall" ],
-  ['vsnprintf', 3, 0x0001, "farCall" ],
-
-  ["_in_word_set_a", 0, 0x0001, "farCall"],
-  ["_in_word_set_b", 0, 0x0001, "farCall"],
-  ["_in_word_set_c", 0, 0x0001, "farCall"]
+  ['vsnprintf', 3, 0x0001, "farCall" ]
 ];
 
 const rodataLabels = [];
@@ -67,6 +64,7 @@ function start() {
       "mkdir -p build/bin;"+
       "mkdir -p build/s;"+
       "mkdir -p build/g;"+
+      "mkdir -p build/h;"+
       "mkdir -p build/ro;"+
       "mkdir -p build/obj;"+
       "mkdir -p build/obj2"
@@ -101,8 +99,10 @@ function compileLexer() {
     '" lexer.c > build/lexer2.h'
   );
 
+  execSync('zcc +zx -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ../../makeheaders -h build/lexer3.c | grep -v __LIB__| grep -v extern | grep -v \\#define| sort |uniq> build/lexer3.h');
 
-  execSync('zcc +zx -U__STDC_VERSION__ lexer2.c -S -o build/lexer.asm');
+
+  execSync('zcc +zx -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm');
 
   splitUpFunctions("lexer", compileParser);
 }
@@ -125,7 +125,10 @@ function compileParser() {
       's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;'+
       '" build/sql2.h');
 
-  execSync('zcc +zx -U__STDC_VERSION__ sql2.c -S -o build/sql.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ../../makeheaders -h build/sql3.c | grep -v __LIB__| grep -v extern | grep -v \\#define| sort| uniq > build/sql3.h');
+
+
+  execSync('zcc +zx -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm');
 
   splitUpFunctions("sql", compileQueryCSV, true);
 }
@@ -133,9 +136,8 @@ function compileParser() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync('zcc +zx -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;sed -i "'+
-      's/jr/jp/gi;'+
-      '" build/querycsv.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;sed -i -E "'+
+      's/jr/jp/gi;s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm');
 
   splitUpFunctions("querycsv", compileHash2, true);
 
@@ -150,7 +152,7 @@ function compileData() {
 function compileHash2() {
   console.log("compileHash2");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm');
 
   splitUpFunctions("hash2",  compileHash3, true);
 }
@@ -158,7 +160,7 @@ function compileHash2() {
 function compileHash3() {
   console.log("compileHash3");
 
-  execSync('zcc +zx -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm');
 
   splitUpFunctions("hash3",  compileHash4a, true);
 }
@@ -171,7 +173,7 @@ function compileHash4a() {
       's/struct/const struct/gi;'+
       '" hash4a.c > build/hash4a.c');
 
-  execSync('zcc +zx -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm');
 
   splitUpFunctions("hash4a",  compileHash4b, true);
 
@@ -185,7 +187,7 @@ function compileHash4b() {
       's/struct/const struct/gi;'+
       '" hash4b.c > build/hash4b.c');
 
-  execSync('zcc +zx -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm');
 
   splitUpFunctions("hash4b",  compileHash4c, true);
 
@@ -199,14 +201,10 @@ function compileHash4c() {
       's/struct/const struct/gi;'+
       '" hash4c.c > build/hash4c.c');
 
-  execSync('zcc +zx -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm');
+  execSync('zcc +zx -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm');
 
   splitUpFunctions("hash4c",  addROData, true);
 
-}
-
-function compileYYParse() {
-  console.log("compileYYParse");
 }
 
 function addROData() {
@@ -263,20 +261,23 @@ function updateName(elem) {
   }
 }
 
-function addDefines(filename) {
+function addDefines(filename, filenames, folderName) {
   let arr = [];
   let notQuit = true;
 
-  console.log("addDefines", filename);
+  console.log("addDefines", filenames);
 
   execSync(
-    'printf "\\\n" > ../g/'+filename+'.inc;'+
-    'printf "\\\n" > ../g/'+filename+'2.inc;'+
-    'echo "  INCLUDE \\\"z80_crt0.hdr\\\"" > ../g/'+filename+'.asm;'+
-    'cat '+filename+'.asm >> ../g/'+filename+'.asm;'+
-    'printf " INCLUDE \\\"../globals.asm\\\"\n" >> ../g/'+filename+'.asm;'+
-    'printf " INCLUDE \\\"'+filename+'2.inc\\\"\n" >> ../g/'+filename+'.asm;'+
-    'printf " INCLUDE \\\"'+filename+'.inc\\\"\n" >> ../g/'+filename+'.asm',
+    'printf "\\\n" > ../'+folderName+'/'+filename+'.inc;'+
+    'printf "\\\n" > ../'+folderName+'/'+filename+'2.inc;'+
+    'echo "  INCLUDE \\\"z80_crt0.hdr\\\"" > ../'+folderName+'/'+filename+'.asm;'+
+    filenames.reduce((obj, elem) => {
+      obj += 'cat '+elem+'.asm >> ../'+folderName+'/'+filename+'.asm;';
+      return obj;
+    }, '') +
+    'printf " INCLUDE \\\"../globals.asm\\\"\n" >> ../'+folderName+'/'+filename+'.asm;'+
+    'printf " INCLUDE \\\"'+filename+'2.inc\\\"\n" >> ../'+folderName+'/'+filename+'.asm;'+
+    'printf " INCLUDE \\\"'+filename+'.inc\\\"\n" >> ../'+folderName+'/'+filename+'.asm',
     {
       cwd:  __dirname+'/build/s'
     });
@@ -286,8 +287,8 @@ function addDefines(filename) {
 
     try {
       execSync(
-        'zcc +zx --no-crt -lm -lndos -U__STDC_VERSION__'+
-        ' -o ../obj/'+filename+'.bin ../g/'+filename+'.asm',
+        'zcc +zx '+(folderName === 'h'?'-m ':'')+'--no-crt -lm -lndos -U__STDC_VERSION__'+
+        ' -o ../obj/'+filename+'.bin ../'+folderName+'/'+filename+'.asm',
         {
           cwd:  __dirname+'/build/s'
         }
@@ -299,10 +300,10 @@ function addDefines(filename) {
       arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString()+ e.stdout.toString(), /symbol '([^']+)/g).toArray())));
 
       execSync(
-        'rm ../g/'+filename+'2.inc;'+
-        'rm ../g/'+filename+'.inc;'+
-        'printf "\\\n" > ../g/'+filename+'.inc;'+
-        'printf "\\\n" > ../g/'+filename+'2.inc;',
+        'rm ../'+folderName+'/'+filename+'2.inc;'+
+        'rm ../'+folderName+'/'+filename+'.inc;'+
+        'printf "\\\n" > ../'+folderName+'/'+filename+'.inc;'+
+        'printf "\\\n" > ../'+folderName+'/'+filename+'2.inc;',
         {
           cwd:  __dirname+'/build/s'
         }
@@ -310,8 +311,14 @@ function addDefines(filename) {
 
       arr.forEach(elem => {
         execSync(
-          'printf "  GLOBAL '+elem+'\n" >> ../g/'+filename+'2.inc;'+
-          'printf ".'+elem+'\n" >> ../g/'+filename+'.inc',
+          'printf "  GLOBAL '+elem+'\n" >> ../'+folderName+'/'+filename+'2.inc;'+
+          (
+            hashMap.hasOwnProperty(elem) && functionsList[hashMap[elem]][2] !== 1 ?
+            'printf "' + elem + ' equ 0x' + ((functionsList[hashMap[elem]][2]+0x10000).
+              toString(16).substr(-4).toUpperCase()) :
+            'printf ".'+elem) +
+
+            '\n" >> ../'+folderName+'/'+filename+'.inc',
           {
             cwd:  __dirname+'/build/s'
           }
@@ -354,7 +361,7 @@ function getFunctionSizes() {
   });
 
   walker.on("end", () => {
-    packPages(list.map(addDefines).reduce((obj, elem) => {
+    packPages(list.map(elem => addDefines(elem, [elem], 'g')).reduce((obj, elem) => {
       elem.children =
         elem.children
         .map(elem => elem.replace(/^_/, ''))
@@ -373,7 +380,10 @@ function getFunctionSizes() {
 }
 
 function packPages(tree) {
-  var pageSize = 16384;
+  /* use a bin packing algorithm to group the functions close
+  to their call-stack parents and produce a binary of each 16k page */
+
+  var pageSize = 16900; //16384;
 
   var pages = [[tree['main']]];
   var remainingSizes = [pageSize];
@@ -464,56 +474,30 @@ function packPages(tree) {
     currentPageNumber++;
   }
 
-  console.log(JSON.stringify(pages, null, 2));
+  //console.log(JSON.stringify(pages, null, 2));
+  var location = 0xbcd4; //call_rom3 -4
 
-  /* use a bin packing algorithm to group the functions and
-  produce a binary of each 8k page * /
-  var list = exec(
-      "sh -c '"+
-        "pushd build/obj > /dev/null;"+
-          "find * -type f ! -name build/_yyparse.bin -print0|"+
-          "xargs -0 stat --printf=\"%s %n\\n\"|"+
-          "sort -rh;"+
-        "popd > /dev/null"+
-      "'"
-    );
+  pages.forEach(elem =>
+    elem.forEach(elem2 => {
+      var a = functionsList[hashMap[elem2.name]];
+      a[1] = elem2.pageNumber;
 
-  var lineReader = readline.createInterface({
-    input: list.stdout
-  });
-
-  var maxSize = 8410;//8277;
-
-  files = [];
-  var totalSizes = [];
-
-  lineReader.on('line', function(line) {
-    var size = parseInt(line.match(/^[0-9]+/)[0], 10);
-    var name = line.replace(/^[0-9]+ /,"");
-    var count =-1;
-
-    if(size > maxSize) {
-      throw "file too big";
-    }
-
-    for(i=0;;i++) {
-      if(i==files.length) {
-        /*the function won't fit in any of the existing pages. Add a new page for it instead * /
-        files.push([]);
-        count++;
-        totalSizes.push(0);
+      if(a[2] === 1) {
+        a[2] = location;
+        location -= 4;
       }
+    })
+  );
 
-      if(totalSizes[i]+size < maxSize) {
-        files[i].push(name);
-        totalSizes[i]+=size;
-        break;
-      }
-    }
+  console.log(JSON.stringify(functionsList, null, 2));
+
+  compilePages(pages);
+}
+
+function compilePages(pages) {
+  pages.forEach((elem, index) => {
+    addDefines('page'+(index+6), elem.map(elem2 => elem2.name), 'h');
   });
-
-  lineReader.on('close', compilePages);
-*/
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
@@ -627,6 +611,9 @@ function splitUpFunctions(filename, callback, append) {
               rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name2+'.asm'));
 
               byteMaps[name2] = rodataOutputStreams.length-1;
+              activeStream = rodataOutputStreams[byteMaps[name2]];
+
+              writePause(activeStream, "IFNDEF "+name+"\n");
             }
 
             activeStream = rodataOutputStreams[byteMaps[name2]];
@@ -638,15 +625,16 @@ function splitUpFunctions(filename, callback, append) {
         if(rodataType == 1 || rodataType == 3) {
           rodataType = 3;
 
-          rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name+(name === 'i_1'?filename:'')+'.asm'));
+          rodataOutputStreams.push(fs.createWriteStream("build/ro/"+name+(name === 'i_1'?'':'')+'.asm'));
 
           /* add to the list of rodata regexes used to add the appropriate rodata to each function */
           rodataLabels.push([name, false, new RegExp("(\\b"+(name==='i_70'?'i_70+':name).replace(matchOperatorsRe, '\\$&')+"\\b)", "m")]);
 
           activeStream = rodataOutputStreams[rodataOutputStreams.length-1];
+          writePause(activeStream, "IFNDEF "+name+"\n");
         }
 
-        writePause(activeStream, line+(name === 'i_1'?filename:'')+"\n");
+        writePause(activeStream, line+(name === 'i_1'?'':'')+"\n");
       }
     }
 
@@ -684,6 +672,7 @@ function splitUpFunctions(filename, callback, append) {
 
     for(i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */
+      writePause(rodataOutputStreams[i], "ENDIF\n");
       rodataOutputStreams[i].end(allStreamsClosed);
     }
 
