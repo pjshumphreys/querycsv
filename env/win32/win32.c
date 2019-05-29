@@ -17,7 +17,11 @@ extern char * devNull;
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 #define ENC_UTF16LE 8
 #define ENC_CP437 1
+#define ENC_CP850 2
+#define ENC_CP1252 3
+#define ENC_ASCII 17
 
+int isHxrt = FALSE;
 int hasUtf8 = FALSE;
 int usingOutput = FALSE;
 int usingError = FALSE;
@@ -36,35 +40,43 @@ int fputs_w32(const char *str, FILE *stream) {
   char* output = NULL;
   wchar_t *wide = NULL;
   HANDLE hnd;
-  unsigned long i;
-  int retval;
+  unsigned long retval;
+  int encoding;
 
   if(
       (stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
       (stream == stderr && usingError && ((hnd = std_err) || TRUE))
     ) {
-    if(
-        hasUtf8 &&
-        (len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0)) &&
-        (wide = (wchar_t *)malloc(len * sizeof(wchar_t))) != NULL &&
-        MultiByteToWideChar(CP_UTF8, 0, str, -1, wide, len)
-    ) {
-      WriteConsoleW(hnd, wide, (DWORD)len, &i, NULL);
+    if(isHxrt) {
+      switch(GetConsoleOutputCP()) {
+        case 437: {
+          encoding = ENC_CP437;
+        } break;
 
-      free(wide);
+        case 850: {
+          encoding = ENC_CP850;
+        } break;
 
-      return (int)len;
+        case 1252: {
+          encoding = ENC_CP1252;
+        } break;
+
+        default: {
+          encoding = ENC_ASCII;
+        } break;
+      }
+
+      output = d_charsetEncode((char *)str, encoding, NULL);
+      retval = fputs(output, stream);
     }
-
-    free(wide);
-
-    output = d_charsetEncode((char *)str, ENC_CP437, NULL);
-
-    retval = fputs(output, stream);
+    else {
+      output = d_charsetEncode((char *)str, ENC_UTF16LE, &len);
+      WriteConsoleW(hnd, (wchar_t*)output, (DWORD)(len/2), &retval, NULL);
+    }
 
     free(output);
 
-    return retval;
+    return (int)retval;
   }
 
   return fputs(str, stream);
@@ -146,10 +158,12 @@ void setupWin32(int *argc, char ***argv) {
     If the program is being run using the HXRT DPMI server
     or doesn't support the UTF-8 codepage then don't use WriteConsoleW
   */
-  if(
-      ((osvi.dwBuildNumber & 0xFFFF) == 2222 && osvi.szCSDVersion[0] == 0) ||
-      !IsValidCodePage(CP_UTF8)
-    ) {
+  if((osvi.dwBuildNumber & 0xFFFF) == 2222 && osvi.szCSDVersion[0] == 0) {
+    isHxrt = TRUE;
+    return;
+  }
+
+  if(!IsValidCodePage(CP_UTF8)) {
     return;
   }
 

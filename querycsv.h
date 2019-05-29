@@ -615,6 +615,10 @@ struct hash2Entry* isInHash2(long codepoint);
     return; \
   } \
   if(c < 0x80) { \
+    if(c < 0x1f) { \
+      codepoints[0] = (long)(map[c+0x80]); \
+      return; \
+    } \
     codepoints[0] = (long)c; \
     return; \
   } \
