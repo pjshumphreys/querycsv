@@ -905,7 +905,7 @@ int openWindow(void) {
     NULL, /* can be NULL */
     window,
     &frame, /* can be NULL */
-    kTXNShowWindowMask|
+    kTXNShowWindowMask|kTXNReadOnlyMask|
     kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
     kOutputTextInUnicodeEncodingMask|
     kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
