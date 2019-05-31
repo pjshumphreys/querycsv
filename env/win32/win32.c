@@ -13,6 +13,7 @@
 #include <wchar.h>
 
 extern char * devNull;
+int strAppend(char c, char **value, size_t *strSize);
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 #define ENC_UTF16LE 8
@@ -20,6 +21,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 #define ENC_CP850 2
 #define ENC_CP1252 3
 #define ENC_ASCII 17
+#define ENC_UNKNOWN 0
+
 
 int isHxrt = FALSE;
 int hasUtf8 = FALSE;
@@ -29,6 +32,9 @@ HANDLE std_out;
 HANDLE std_err;
 char **argv_w32 = NULL;
 char *test = NULL;
+static int consoleEncoding = ENC_UNKNOWN;
+static int lastWasErr = FALSE;
+static int newline = FALSE;
 
 void cleanup_w32(void) {
   free(test);
@@ -41,42 +47,95 @@ int fputs_w32(const char *str, FILE *stream) {
   wchar_t *wide = NULL;
   HANDLE hnd;
   unsigned long retval;
-  int encoding;
 
   if(
       (stream == stdout && usingOutput && ((hnd = std_out) || TRUE)) ||
       (stream == stderr && usingError && ((hnd = std_err) || TRUE))
     ) {
-    if(isHxrt) {
+    if(!isHxrt) {
+      if(newline) {
+        /* I think we don't need to do checks here as we can only
+        get here if WriteConsoleW has already suceeded. Using L"" wide
+        string syntax as on watcom this should compile to be utf-16
+        bytes that WriteConsoleW wants */
+        WriteConsoleW(hnd, L"\n", (DWORD)(1), &retval, NULL);
+        newline = FALSE;
+      }
+
+      output = d_charsetEncode((char *)str, ENC_UTF16LE, &len);
+
+      if(output[len-2] == '\n') {
+        newline = TRUE;
+        len -= 2;
+      }
+
+      if(WriteConsoleW(hnd, (wchar_t*)output, (DWORD)(len/2), &retval, NULL) != 0) {
+        if(newline) {
+          retval++;
+        }
+
+        free(output);
+
+        return (int)retval;
+      }
+      else {
+        free(output);
+        output = NULL;
+
+        newline = FALSE;
+
+        isHxrt = TRUE;
+      }
+    }
+
+    if(consoleEncoding == ENC_UNKNOWN) {
       switch(GetConsoleOutputCP()) {
         case 437: {
-          encoding = ENC_CP437;
+          consoleEncoding = ENC_CP437;
         } break;
 
         case 850: {
-          encoding = ENC_CP850;
+          consoleEncoding = ENC_CP850;
         } break;
 
         case 1252: {
-          encoding = ENC_CP1252;
+          consoleEncoding = ENC_CP1252;
         } break;
 
         default: {
-          encoding = ENC_ASCII;
+          consoleEncoding = ENC_ASCII;
         } break;
       }
+    }
 
-      output = d_charsetEncode((char *)str, encoding, NULL);
-      retval = fputs(output, stream);
+    if(newline) {
+      /* display the newline from before */
+      fputs("\n", lastWasErr ? stderr : stdout);
+
+      newline = FALSE;
+    }
+
+    output = d_charsetEncode((char *)str, consoleEncoding, &len);
+
+    /* eat last trailing newline. If we print something else we'll display it at that time */
+    if(output[len-1] == '\n') {
+      newline = TRUE;
+      lastWasErr = stream == stderr;
+      output[len-1] = '\0';
     }
     else {
-      output = d_charsetEncode((char *)str, ENC_UTF16LE, &len);
-      WriteConsoleW(hnd, (wchar_t*)output, (DWORD)(len/2), &retval, NULL);
+      /*d_charsetEncode (correctly) doesn't null terminate here so we do it ourselves */
+      strAppend('\0', &output, &len);
+    }
+
+    retval = fputs(output, stream);
+
+    if(newline) {
+      retval++;
     }
 
     free(output);
-
-    return (int)retval;
+    return retval;
   }
 
   return fputs(str, stream);

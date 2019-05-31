@@ -37,6 +37,10 @@ int runQuery(char *queryFileName) {
     }
 
     cleanup_matchValues(&query, &match);
+
+    if(query.outputFile == stdout) {
+      fputs(query.newLine, stdout);
+    }
   }
   else {
     if(query.hasGrouping) {
@@ -69,6 +73,10 @@ int runQuery(char *queryFileName) {
       &(query.resultSet),
       &outputResult
     );
+
+    if(query.outputFile == stdout) {
+      fputs(query.newLine, stdout);
+    }
 
     if(query.outputFileName) {
       /* output the number of records returned iff there was an into clause specified */

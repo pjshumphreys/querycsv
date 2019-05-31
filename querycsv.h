@@ -141,17 +141,21 @@ it becomes needed and because it's useful for debugging */
     #define fprintf fprintf_w32
     #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
-    #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
+    int fputs_dos(const char *str, FILE *stream);
+    int fprintf_dos(FILE *stream, const char *format, ...);
+
+    #define fputs fputs_dos
+    #define fprintf fprintf_dos
+    #define YYFPRINTF fprintf_dos   /* for the bison parser */
+
     #include <locale.h>  /*we need to call setlocale after setting the
     TZ environment variable for gmtime to work correctly on msdos watcom*/
 
-
     #undef ENC_INPUT
     #undef ENC_OUTPUT
-    #undef ENC_PRINT
     #define ENC_INPUT ENC_CP437
     #define ENC_OUTPUT ENC_CP437
-    #define ENC_PRINT ENC_CP437
+    /* ENC_PRINT is now utf-8 as we'll do the charset conversion in fputs/fprintf wrapper functions now */
   #endif
 #endif
 

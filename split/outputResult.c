@@ -14,6 +14,8 @@ void outputResult(
 
   MAC_YIELD
 
+  fputsEncoded(query->newLine, outputFile, query->outputEncoding);
+
   if(query->params & PRM_EURO) {
     separator = (query->params & PRM_SPACE) ? "; " : ";";
   }
@@ -81,5 +83,4 @@ void outputResult(
     cleanup_matchValues(query, &columns);
   }
 
-  fputsEncoded(query->newLine, outputFile, query->outputEncoding);
 }

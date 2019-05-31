@@ -112,11 +112,11 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f makeheaders querycsv gen.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h
+	rm -f makeheaders querycsv gen.h ansimap.h atarimap.h cmnmap.h hash3.h petmap.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h
 	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) -exec rm -rf {} \;
 	rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.o \) -exec rm -rf {} \;
-	cd env/dos && find . -maxdepth 1 ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/dos && find . -maxdepth 1 ! -path './dos.c' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/m68kmac && find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.a' ! -path './.finf/Makefile' ! -path './Makefile' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *
 	cd env/powermac && find . -type f ! -path './.finf/Makefile' ! -path './Makefile' ! -path './powermac.h' ! -path './powermac.c' ! -path './mac.c' ! -path './powermac.r' ! -path './size.r' ! -path './carbon.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *

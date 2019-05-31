@@ -61,6 +61,4 @@ void outputHeader(struct qryData *query) {
       }
     }
   }
-
-  fputsEncoded(query->newLine, outputFile, query->outputEncoding);
 }
