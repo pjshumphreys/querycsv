@@ -1,4 +1,4 @@
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
   int argc2;
   char ** argv2;
 
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 
     #ifdef WINDOWS
       setupWin32(&argc2, &argv2);
-    #else
+    #elif defined(__WATCOMC__)
       /* Watcom StdClib on MSDOS needs the TZ environment variable set
       then setlocale to be called to properly calculate gmtime */
 

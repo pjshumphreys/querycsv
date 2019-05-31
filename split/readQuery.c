@@ -114,24 +114,24 @@ int readQuery(char *queryFileName, struct qryData *query) {
       /* otherwise continue processing */
     } break;
 
-    case 1: {
+    case 1:
       /* the input script contained a syntax error. show message and exit */
       fputs("\n", stderr);
-      return EXIT_FAILURE;
-    } break;
 
-    case 2: {
+    return EXIT_FAILURE;
+
+    case 2:
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs("\n", stderr);
-      return EXIT_FAILURE;
-    } break;
 
-    default: {
+    return EXIT_FAILURE;
+
+    default:
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs("\n", stderr);
-      return EXIT_FAILURE;
-    } break;
+
+    return EXIT_FAILURE;
   }
 
 #ifdef MPW_C
@@ -228,24 +228,24 @@ int readQuery(char *queryFileName, struct qryData *query) {
       /* parsing finished sucessfully. continue processing */
     } break;
 
-    case 1: {
+    case 1:
       /* the input script contained a syntax error. show message and exit */
       fputs(errSyntax, stderr);
-      return EXIT_FAILURE;
-    } break;
 
-    case 2: {
+    return EXIT_FAILURE;
+
+    case 2:
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs(errRam, stderr);
-      return EXIT_FAILURE;
-    } break;
 
-    default: {
+    return EXIT_FAILURE;
+
+    default:
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs(errUnknown, stderr);
-      return EXIT_FAILURE;
-    } break;
+
+    return EXIT_FAILURE;
   }
 
   currentResultColumn = query->firstResultColumn;

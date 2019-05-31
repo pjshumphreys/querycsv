@@ -130,6 +130,8 @@ it becomes needed and because it's useful for debugging */
 #endif
 
 #ifdef MICROSOFT
+  #define YY_NO_UNISTD_H 1
+
   #ifdef WINDOWS
     void setupWin32(int * argc, char *** argv);
     int fputs_w32(const char *str, FILE *stream);
@@ -148,8 +150,10 @@ it becomes needed and because it's useful for debugging */
     #define fprintf fprintf_dos
     #define YYFPRINTF fprintf_dos   /* for the bison parser */
 
-    #include <locale.h>  /*we need to call setlocale after setting the
-    TZ environment variable for gmtime to work correctly on msdos watcom*/
+    #ifdef __WATCOMC__
+      #include <locale.h>  /*we need to call setlocale after setting the
+      TZ environment variable for gmtime to work correctly on msdos watcom*/
+    #endif
 
     #undef ENC_INPUT
     #undef ENC_OUTPUT

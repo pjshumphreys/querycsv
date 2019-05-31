@@ -3,59 +3,46 @@ void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
 
   switch(encoding) {
     case ENC_UNKNOWN:
-    case ENC_UTF8: {
+    case ENC_UTF8:
       return &getCodepointsUTF8;
-    } break;
 
-    case ENC_CP437: {
+    case ENC_CP437:
       return &getCodepointsCP437;
-    } break;
 
-    case ENC_CP850: {
+    case ENC_CP850:
       return &getCodepointsCP850;
-    } break;
 
-    case ENC_CP1047: {
+    case ENC_CP1047:
       return &getCodepointsCP1047;
-    } break;
 
-    case ENC_CP1252: {
+    case ENC_CP1252:
       return &getCodepointsCP1252;
-    } break;
 
-    case ENC_UTF16LE: {
+    case ENC_UTF16LE:
       return &getCodepointsUtf16Le;
-    } break;
 
-    case ENC_UTF16BE: {
+    case ENC_UTF16BE:
       return &getCodepointsUtf16Be;
-    } break;
     /*
 
-    case ENC_UTF32LE: {
+    case ENC_UTF32LE:
       return &getCodepointsUTF32LE;
-    } break;
 
-    case ENC_UTF32BE: {
+    case ENC_UTF32BE:
       return &getCodepointsUTF32BE;
-    } break;
     */
 
-    case ENC_PETSCII: {
+    case ENC_PETSCII:
       return &getCodepointsPetscii;
-    } break;
 
-    case ENC_MAC: {
+    case ENC_MAC:
       return &getCodepointsMac;
-    } break;
 
-    case ENC_ATARIST: {
+    case ENC_ATARIST:
       return &getCodepointsAtariST;
-    } break;
 
-    case ENC_BBC: {
+    case ENC_BBC:
       return &getCodepointsBBC;
-    } break;
   }
 
   /* if all else fails, just try using

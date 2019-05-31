@@ -59,23 +59,20 @@ int walkRejectRecord(
         case EXP_GTE:
           return retval == -1;
       }
-    } break;
+    } return FALSE;
 
-    case EXP_AND: {
+    case EXP_AND:
       return
         walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.leftPtr, match) ||
         walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.rightPtr, match);
-    } break;
 
-    case EXP_OR: {
+    case EXP_OR:
       return
         walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.leftPtr, match) &&
         walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.rightPtr, match);
-    } break;
 
-    case EXP_NOT: {
+    case EXP_NOT:
       return walkRejectRecord(currentTable, expressionPtr->unionPtrs.leaves.leftPtr, match) == 0;
-    } break;
 
     case EXP_IN:
     case EXP_NOTIN: {
@@ -105,28 +102,21 @@ int walkRejectRecord(
       }
 
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
-      return expressionPtr->type != EXP_NOTIN;  /* TRUE */
-    } break;
+    } return expressionPtr->type != EXP_NOTIN;  /* TRUE */
 
     case EXP_ISNULL: {
       getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
-
-      return !(expressionPtr->unionPtrs.leaves.leftPtr->isNull);
-    } break;
+    } return !(expressionPtr->unionPtrs.leaves.leftPtr->isNull);
 
     case EXP_NOTNULL: {
       getValue(expressionPtr->unionPtrs.leaves.leftPtr, match);
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
-
-      return expressionPtr->unionPtrs.leaves.leftPtr->isNull;
-    } break;
+    } return expressionPtr->unionPtrs.leaves.leftPtr->isNull;
 
     default: {
       fputs("Invalid search condition\n", stderr);
       exit(EXIT_FAILURE);
-    } break;
+    } return FALSE;
   }
-
-  return FALSE;
 }
