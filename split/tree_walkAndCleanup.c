@@ -7,7 +7,7 @@ void tree_walkAndCleanup(
     void (*callback)(struct qryData *, struct resultColumnValue *, int)
 ) {
   struct resultTree *currentResult;
-  struct resultTree *parentResult;
+  struct resultTree *tempResult;
   int i = 0;
 
   MAC_YIELD
@@ -17,49 +17,80 @@ void tree_walkAndCleanup(
   }
 
   currentResult = *root;
+  *root = NULL;
 
+  /*
+    Convert the binary tree to a doubly linked list so that we can easily
+    navigate backwards and forwards within the result set.
+    We need to be able to do this in order to get select distinct to work properly
+  */
+  /* link[0] becomes the previous result in the list */
+  /* link[1] becomes the next result in the list */
   for( ; ; ) {
-    if(currentResult->link[0]) {
+    if(currentResult->link[0] && currentResult->link[0]->type != TRE_CONVERTED) {
       currentResult->link[0]->parent = currentResult;
       currentResult = currentResult->link[0];
       continue;
     }
-
-    if((currentResult->type) != TRE_FREED) {
-      callback(
-        query,
-        currentResult->columns,
-        i
-      );
-
-      currentResult->type = TRE_FREED;
-      i++;
-    }
-
-    if(currentResult->link[1]) {
+    else if(currentResult->link[1] && currentResult->link[1]->type != TRE_CONVERTED) {
       currentResult->link[1]->parent = currentResult;
       currentResult = currentResult->link[1];
       continue;
     }
 
-    parentResult = currentResult->parent;
+    if(*root == NULL) {
+      *root = currentResult;
+    }
 
-    if(parentResult != NULL) {
-      if(parentResult->link[0] == currentResult) {
-        currentResult = parentResult;
-        free(currentResult->link[0]);
-        currentResult->link[0] = NULL;
-      }
-      else {
-        currentResult = parentResult;
-        free(currentResult->link[1]);
-        currentResult->link[1] = NULL;
-      }
+    currentResult->type = TRE_CONVERTED;
+
+    if(currentResult->link[0]) {
+      currentResult->link[0]->link[1] = currentResult;
     }
-    else {
-      free(currentResult);
-      *root = NULL;
-      return;
+
+    if(currentResult->link[1]) {
+      if(currentResult->parent) {
+        if(currentResult->parent->link[0] == currentResult) {
+          currentResult->parent->link[0] = currentResult->link[1];
+        }
+        else { /* currentResult->parent->link[1] == currentResult*/
+          currentResult->parent->link[1] = currentResult->link[1];
+        }
+      }
+
+      tempResult = currentResult->link[1];
+
+      while(tempResult->link[0]) {
+        tempResult = tempResult->link[0];
+      }
+
+      tempResult->link[0] = currentResult;
+      currentResult->link[1] = tempResult;
     }
+
+    if(currentResult->parent) {
+      currentResult = currentResult->parent;
+      continue;
+    }
+
+    break;
+  }
+
+  /* The tree has now been converted to a doubly linked list. We walk thru
+  it now to clean up the memory and call the callback */
+  currentResult = *root;
+  *root = NULL;
+
+  while(currentResult) {
+    callback(
+      query,
+      currentResult->columns,
+      i++
+    );
+
+    tempResult = currentResult;
+    currentResult = currentResult->link[1];
+
+    free(tempResult);
   }
 }
