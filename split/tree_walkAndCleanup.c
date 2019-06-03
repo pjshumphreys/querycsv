@@ -4,7 +4,7 @@
 void tree_walkAndCleanup(
     struct qryData *query,
     struct resultTree **root,
-    void (*callback)(struct qryData *, struct resultColumnValue *, int)
+    void (*callback)(struct qryData *, struct resultColumnValue *, int, struct resultTree *)
 ) {
   struct resultTree *currentResult;
   struct resultTree *tempResult;
@@ -85,7 +85,8 @@ void tree_walkAndCleanup(
     callback(
       query,
       currentResult->columns,
-      i++
+      i++,
+      currentResult
     );
 
     tempResult = currentResult;

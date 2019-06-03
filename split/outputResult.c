@@ -2,7 +2,8 @@
 void outputResult(
     struct qryData *query,
     struct resultColumnValue *columns,
-    int currentIndex
+    int currentIndex,
+    struct resultTree *item
 ) {
   struct resultColumn *currentResultColumn;
   struct resultColumnValue *field;
@@ -82,5 +83,4 @@ void outputResult(
   if(currentIndex > -1) {
     cleanup_matchValues(query, &columns);
   }
-
 }

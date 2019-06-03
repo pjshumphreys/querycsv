@@ -80,6 +80,7 @@
 #define TRE_BLACK 1
 #define TRE_RED 2
 #define TRE_CONVERTED 3
+#define TRE_SKIP 4
 #define isRed(x) (x != NULL && x->type == TRE_RED)
 
 /* short codes for the character encodings we want to support */

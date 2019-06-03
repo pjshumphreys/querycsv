@@ -67,7 +67,7 @@ int fputs_dos(const char *str, FILE *stream) {
     output = d_charsetEncode((char *)str, consoleEncoding, &len);
 
     /* eat last trailing newline (if we print something else we'll display it then) */
-    if(output[len-1] == '\n') {
+    if(output && output[len-1] == '\n') {
       newline = TRUE;
       lastWasErr = stream == stderr;
       output[len-1] = '\0';

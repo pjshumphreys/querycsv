@@ -1,8 +1,10 @@
 void updateRunningCounts(
     struct qryData *query,
-    struct resultColumnValue *match,
-    int startNewGroup
+    struct resultTree *item
 ) {
+  struct resultTree *tempItem;
+  struct resultColumnValue *match = item->columns;
+
   struct columnRefHashEntry *currentHashEntry;
   struct columnReference *currentReference;
   struct resultColumn *currentResultColumn;
@@ -34,7 +36,7 @@ void updateRunningCounts(
           ) {
 
           /* if query->groupCount = 1 then we're starting a new group */
-          if(startNewGroup) {
+          if(query->groupCount == 1) {
             freeAndZero(currentResultColumn->groupText);
             currentResultColumn->groupNum = ctof(0);
             currentResultColumn->groupCount = 0;
@@ -46,11 +48,12 @@ void updateRunningCounts(
             stringGet((unsigned char **)(&tempString), field, query->params);
 
             /* distinct groupings. only add to the count if the column value hasn't aready been seen */
-            /* TODO: fix this code. we'll need to keep all results until the grouping is finished because of this */
-            /*if(currentResultColumn->groupType > GRP_STAR) {
+            if(currentResultColumn->groupType > GRP_STAR) { /* distinct variants */
               if(query->groupCount > 1) {
+                tempItem = item->link[0];
+
                 for(j = 1; j < query->groupCount; j++) {
-                  stringGet((unsigned char **)(&tempString2), &(match[(currentResultColumn->resultColumnIndex) - (query->columnCount)]), query->params);
+                  stringGet((unsigned char **)(&tempString2), &(tempItem->columns[currentResultColumn->resultColumnIndex]), query->params);
 
                   if(strCompare(
                     (unsigned char **)(&tempString),
@@ -64,12 +67,13 @@ void updateRunningCounts(
                   }
 
                   freeAndZero(tempString2);
+                  tempItem = tempItem->link[0];
                 }
               }
               else {
                 j = query->groupCount;
               }
-            }*/
+            }
 
             switch(currentResultColumn->groupType) {
               case GRP_DIS_COUNT: {

@@ -2,50 +2,39 @@
 void groupResultsInner(
     struct qryData *query,
     struct resultColumnValue *columns,
-    int i
+    int i,
+    struct resultTree *item
 ) {
-  struct resultColumnValue *previousMatch;
+  struct resultTree *tempItem;
 
   MAC_YIELD
 
-  if(i == 0) {
-    updateRunningCounts(query, columns, TRUE);
-
-    if(query->recordCount > 1) {
-      query->match = columns;
-    }
-    else {
-      addGroupedResult(query, columns);
-    }
-
-    return;
-  }
-
-  previousMatch = query->match;
-
-  /* if the current record to look at is identical to the previous one */
-  /* if no group by clause then every record is part of one group */
-  if(
-      query->groupByClause == NULL ||
-      recordCompare(
-        (void *)previousMatch,
-        (void *)columns,
-        (void *)query
-      ) != 0
-    ) {
-    addGroupedResult(query, previousMatch);
-
-    updateRunningCounts(query, columns, TRUE);
-
-    previousMatch = query->match = columns;
-  }
-  else {
-    updateRunningCounts(query, columns, FALSE);
-
+  if(item->type == TRE_SKIP) {
     cleanup_matchValues(query, &columns);
   }
+  else {
+    query->groupCount = 0;
 
-  if(i == query->recordCount - 1) {
-    addGroupedResult(query, previousMatch);
+    updateRunningCounts(query, item);
+
+    /* look at the next item */
+    tempItem = item->link[1];
+
+    /* while the next nth result is part of the same group
+    as this result, add to the number of items to look ahead */
+    while(
+      tempItem &&
+      recordCompare(
+        (void *)columns,
+        (void *)tempItem->columns,
+        (void *)query
+      ) == 0
+    ) {
+      updateRunningCounts(query, tempItem);
+      tempItem->type = TRE_SKIP;
+      tempItem = tempItem->link[1];
+    }
+
+    addGroupedResult(query, columns);
   }
 }

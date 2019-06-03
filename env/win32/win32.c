@@ -64,7 +64,7 @@ int fputs_w32(const char *str, FILE *stream) {
 
       output = d_charsetEncode((char *)str, ENC_UTF16LE, &len);
 
-      if(output[len-2] == '\n') {
+      if(output && output[len-2] == '\n') {
         newline = TRUE;
         len -= 2;
       }
@@ -118,7 +118,7 @@ int fputs_w32(const char *str, FILE *stream) {
     output = d_charsetEncode((char *)str, consoleEncoding, &len);
 
     /* eat last trailing newline. If we print something else we'll display it at that time */
-    if(output[len-1] == '\n') {
+    if(output && output[len-1] == '\n') {
       newline = TRUE;
       lastWasErr = stream == stderr;
       output[len-1] = '\0';
