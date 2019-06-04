@@ -1,0 +1,20 @@
+posix - /dev/null
+Mac OS X - /dev/null
+Mac OS Classic - Dev:Null
+MSDOS - NUL
+Windows - NUL
+Atari TOS - NUL
+Amiga - Nil:
+RiscOS - NULL:
+
+
+
+
+VBCC (Amiga, Atari ST)
+Watcom (DOS, Windows, Linux 32-Bit)
+Norcroft (BBC ARM, RiscOS 26-bit, RiscOS 32-bit)
+MPW (m68k Mac OS, PowerPC MacOS)
+CC65 (Commodore 64)
+z88dk (ZX Spectrum, MSX)
+Emscripten (HTML5)
+Musl-GCC (Linux ARM, Linux 64-bit)
