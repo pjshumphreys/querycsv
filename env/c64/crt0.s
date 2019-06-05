@@ -106,16 +106,22 @@ startUpBegin:
   ; since the banking would make it invisible
   ; it may be a good idea to let exomizer do this in real life
   ldx #0
+  ldy #0
 lp1:
   lda __STARTUP_LOAD__,x
   sta $c000,x
-  dex
+  inx
+  dey
   bne lp1
   inc lp1+2
   inc lp1+5
   lda lp1+5
-  eor #$cf
+  cmp #$cf
+  bcc lp1
+  bne last
+  ldy #$0d
   bne lp1
+last:
   jmp entry
 
 kill:
@@ -623,11 +629,7 @@ __basicoff:
   rts
 
 __basicoff2:
-  ldx #EASYFLASH_16K
-  stx EASYFLASH_CONTROL
-  ldx #$36
-  stx $01
-  cli
+  jsr __basicoff
   jsr ___float_fac_to_float
   sta aRegBackup
   lda currentBank
