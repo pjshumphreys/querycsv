@@ -1,4 +1,10 @@
 mode
+disc
+dir:0.$
+fadfs
+dir :0.$.querycsv.c
+xfer disc adfs
+adfs
 lib $.archc.library
 dir $.querycsv
 spool output
