@@ -8,9 +8,10 @@ const matchAll = require('match-all');
 
 var matchOperatorsRe = /[|\\{}()\[\]^$+*?.]/g;
 
-const hashMap = {};
+const hashMap = { 'myfputc_cons': 0};
 
 const functionsList = [
+  ['myfputc_cons', 3, 0xbcf5, "farCall" ],
   ['abs', 3, 0x0001, "farCall" ],
   ['atol', 3, 0x0001, "farCall" ],
   ['exit', 3, 0x0001, "farCall" ],
@@ -45,7 +46,15 @@ const functionsList = [
   ['fputc_cons', 3, 0xbcf5, "farCall" ],
   ['fprintf', 3, 0x0001, "farCall" ],
   ['sprintf', 3, 0x0001, "farCall" ],
-  ['vsnprintf', 3, 0x0001, "farCall" ]
+  ['vsnprintf', 3, 0x0001, "farCall" ],
+
+  /*variables*/
+  ['heap', 3, 0x0002, "farCall" ],
+  ['returnByte', 3, 0x0002, "farCall" ],
+  ['entry', 3, 0x0002, "farCall" ],
+  ['retval', 3, 0x0002, "farCall" ],
+  ['st_yyparse_yylval', 3, 0x0002, "farCall" ],
+  ['numberEntry', 3, 0x0002, "farCall" ]
 ];
 
 const rodataLabels = [];
@@ -170,7 +179,8 @@ function compileHash4a() {
 
   execSync(
     'sed "'+
-      's/struct/const struct/gi;'+
+      's/static struct hash4Entry/static const struct hash4Entry/gi;'+
+      's/static unsigned short/static const unsigned short/gi;'+
       '" hash4a.c > build/hash4a.c');
 
   execSync('zcc +zx -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm');
@@ -184,7 +194,8 @@ function compileHash4b() {
 
   execSync(
     'sed "'+
-      's/struct/const struct/gi;'+
+      's/static struct hash4Entry/static const struct hash4Entry/gi;'+
+      's/static unsigned short/static const unsigned short/gi;'+
       '" hash4b.c > build/hash4b.c');
 
   execSync('zcc +zx -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm');
@@ -198,7 +209,8 @@ function compileHash4c() {
 
   execSync(
     'sed "'+
-      's/struct/const struct/gi;'+
+      's/static struct hash4Entry/static const struct hash4Entry/gi;'+
+      's/static unsigned short/static const unsigned short/gi;'+
       '" hash4c.c > build/hash4c.c');
 
   execSync('zcc +zx -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm');
@@ -261,7 +273,7 @@ function updateName(elem) {
   }
 }
 
-function addDefines(filename, filenames, folderName) {
+function addDefines(filename, filenames, folderName, pageMode) {
   let arr = [];
   let notQuit = true;
 
@@ -270,7 +282,10 @@ function addDefines(filename, filenames, folderName) {
   execSync(
     'printf "\\\n" > ../'+folderName+'/'+filename+'.inc;'+
     'printf "\\\n" > ../'+folderName+'/'+filename+'2.inc;'+
-    'echo "  INCLUDE \\\"z80_crt0.hdr\\\"" > ../'+folderName+'/'+filename+'.asm;'+
+    'printf "\\\n" > ../'+folderName+'/'+filename+'.asm;'+
+    ( pageMode ?
+    'printf "  SECTION code_compiler\n  org 0xc000\n" >> ../'+folderName+'/'+filename+'.asm;': '')+
+    'printf "  INCLUDE \\\"z80_crt0.hdr\\\"\n" >> ../'+folderName+'/'+filename+'.asm;'+
     filenames.reduce((obj, elem) => {
       obj += 'cat '+elem+'.asm >> ../'+folderName+'/'+filename+'.asm;';
       return obj;
@@ -287,8 +302,8 @@ function addDefines(filename, filenames, folderName) {
 
     try {
       execSync(
-        'zcc +zx '+(folderName === 'h'?'-m ':'')+'--no-crt -lm -lndos -U__STDC_VERSION__'+
-        ' -o ../obj/'+filename+'.bin ../'+folderName+'/'+filename+'.asm',
+        'zcc +zx '+(folderName === 'h'?'-m ':'')+(!pageMode ? '--no-crt': '')+' -pragma-redirect:fputc_cons=_myfputc_cons -lmath48 -lndos -U__STDC_VERSION__'+
+        ' -o ../obj'+(pageMode?'2':'')+'/'+filename+'.bin ../'+folderName+'/'+filename+'.asm',
         {
           cwd:  __dirname+'/build/s'
         }
@@ -310,19 +325,31 @@ function addDefines(filename, filenames, folderName) {
       );
 
       arr.forEach(elem => {
-        execSync(
-          'printf "  GLOBAL '+elem+'\n" >> ../'+folderName+'/'+filename+'2.inc;'+
-          (
-            hashMap.hasOwnProperty(elem) && functionsList[hashMap[elem]][2] !== 1 ?
-            'printf "' + elem + ' equ 0x' + ((functionsList[hashMap[elem]][2]+0x10000).
-              toString(16).substr(-4).toUpperCase()) :
-            'printf ".'+elem) +
+        if(!pageMode || ({ '_': 1, 'i': 1 }).hasOwnProperty(elem.charAt(0))) {
+          const elem2 = elem.replace(/^_/,'');
 
-            '\n" >> ../'+folderName+'/'+filename+'.inc',
-          {
-            cwd:  __dirname+'/build/s'
-          }
-        );
+          execSync(
+            'printf "  GLOBAL '+elem+'\n" >> ../'+folderName+'/'+filename+'2.inc;'+
+            (
+              hashMap.hasOwnProperty(elem2) && functionsList[hashMap[elem2]][2] !== 1 ?
+              'printf "' + elem + ' equ 0x' + ((functionsList[hashMap[elem2]][2]+0x10000).
+                toString(16).substr(-4).toUpperCase()) :
+              'printf ".'+elem) +
+
+              '\n" >> ../'+folderName+'/'+filename+'.inc',
+            {
+              cwd:  __dirname+'/build/s'
+            }
+          );
+        }
+        else {
+          execSync(
+            'printf "  EXTERN '+elem+'\n" >> ../'+folderName+'/'+filename+'2.inc',
+            {
+              cwd:  __dirname+'/build/s'
+            }
+          );
+        }
       });
     }
   }
@@ -383,7 +410,7 @@ function packPages(tree) {
   /* use a bin packing algorithm to group the functions close
   to their call-stack parents and produce a binary of each 16k page */
 
-  var pageSize = 16900; //16384;
+  var pageSize = 16384;
 
   var pages = [[tree['main']]];
   var remainingSizes = [pageSize];
@@ -446,14 +473,16 @@ function packPages(tree) {
 
       //place the biggest first. if all of then add the children. if none of the children can
       for(var i = 0; i < currentFunctions.length; i++) {
-        if(remainingSizes[currentPageNumber] - currentFunctions[i].size > 0) {
-          remainingSizes[currentPageNumber] -= currentFunctions[i].size;
-          pages[currentPageNumber].push(currentFunctions[i]);
-          placedFunctions.push(currentFunctions[i]);
-          currentFunctions[i].pageNumber = currentPageNumber;
-          currentFunctions[i].children.forEach(elem => {
-            currentPageData[elem] = true;
-          });
+        for(var k = currentPageNumber, m = 3; m> 0; k--,m--) {
+          if(remainingSizes[k] - currentFunctions[i].size > 0) {
+            remainingSizes[k] -= currentFunctions[i].size;
+            pages[k].push(currentFunctions[i]);
+            placedFunctions.push(currentFunctions[i]);
+            currentFunctions[i].pageNumber = k;
+            currentFunctions[i].children.forEach(elem => {
+              currentPageData[elem] = true;
+            });
+          }
         }
       }
     }
@@ -496,8 +525,10 @@ function packPages(tree) {
 
 function compilePages(pages) {
   pages.forEach((elem, index) => {
-    addDefines('page'+(index+6), elem.map(elem2 => elem2.name), 'h');
+    addDefines('page'+(index+6), elem.map(elem2 => elem2.name), 'h', true);
   });
+
+  console.log(hashMap);
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
