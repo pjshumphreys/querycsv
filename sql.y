@@ -207,10 +207,29 @@ optional_as_name:
   ;
 
 scalar_exp:
-    scalar_exp COLLATE NAME {
+    scalar_exp COLLATE STRING {
       if($1 != NULL) {
+        $1->caseSensitive = 0;
+        char * result = NULL;
+        char * currentLocation = $3;
+
         /* TODO: Confirm this works correctly in all cases */
-        $1->caseSensitive = (stricmp($3,"_sensitive") == 0);
+        for(;;) {
+          d_strtok(&result, " ,", &currentLocation);
+
+          if(result) {
+            if(stricmp(result, "sensitive") == 0) {
+              $1->caseSensitive |= 1;
+            }
+            else if(stricmp(result, "digits") == 0) {
+              $1->caseSensitive |= 4;
+            }
+
+            continue;
+          }
+
+          break;
+        }
       }
 
       free($3);

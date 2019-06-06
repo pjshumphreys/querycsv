@@ -309,6 +309,7 @@ Just use long ones for that compiler */
 
   /* classic clib z88dk doesn't have ferror. stub it out */
   #define ferror(...) 0
+  #define mystrnicmp strnicmp
 
   double strtod(const char* str, char** endptr);  /* z88dk doesn't
   have strtod, but does have floating point support. We supply our own implementation */

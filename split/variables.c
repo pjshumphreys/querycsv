@@ -35,8 +35,8 @@ char returnByte;
 char * fopen_read = "RB";
 char * fopen_write = "WB";
 #else
-char * fopen_read = "rb";
-char * fopen_write = "wb";
+#define fopen_read "rb"
+#define fopen_write "wb"
 #endif
 
 

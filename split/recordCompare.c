@@ -43,7 +43,7 @@ int recordCompare(
     compare = strCompare(
         (unsigned char **)(&output1),
         (unsigned char **)(&output2),
-        2,    /* orderByClause->expressionPtr->caseSensitive, */
+         orderByClause->expressionPtr->caseSensitive,
         (void (*)(void))getUnicodeChar,
         (void (*)(void))getUnicodeChar
       );

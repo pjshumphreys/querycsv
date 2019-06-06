@@ -29,7 +29,8 @@ struct hash4Entry *getLookupTableEntry(
     unsigned char **str,
     int *lastMatchedBytes,
     void (*get)(void),
-    int firstChar
+    int firstChar,
+    int compareNumbers
 ) {
   struct hash4Entry *temp = NULL, *temp2 = NULL;
   int totalBytes = 0;
@@ -37,7 +38,7 @@ struct hash4Entry *getLookupTableEntry(
 
   MAC_YIELD
 
-  if(isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
+  if(compareNumbers && isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
     return &numberEntry;
   }
 
