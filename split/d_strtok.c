@@ -1,7 +1,15 @@
+/*  d_strtok - tokenise a string without modifying it using dynamic memory allocation
+
+tokenise a string similarly to the c standard lib strtok, but the
+original string pointer is now the third parameter, the string data is
+not modifed but instead that pointer is incremented, and the results are
+allocated/ freed internally by realloc. A pointer to the original string
+must be kept outside this function separate to the one passed as the third
+parameter */
 void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
   char * startLocation = NULL;
   char * location = NULL;
-  char * delimiterTest;
+  char * delimiterTest = delimiters;
   char * retval = NULL;
   size_t strSize = 0;
 
@@ -21,7 +29,6 @@ void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
   }
 
   startLocation = *startFrom;
-  delimiterTest = delimiters;
 
   /* find the first non matching character */
   while(*startLocation) {
@@ -64,14 +71,14 @@ void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
   }
 
   if(strSize) {
-    reallocMsg((void **)&retval, strSize);
+    *startFrom = location;
+
+    reallocMsg((void **)&retval, strSize+1);
 
     strncpy(retval, startLocation, strSize);
 
-    *startFrom = location;
-
     /* NULL terminate the return value */
-    strAppend('\0', &retval, &strSize);
+    retval[strSize] = '\0';
 
     *result = retval;
   }
