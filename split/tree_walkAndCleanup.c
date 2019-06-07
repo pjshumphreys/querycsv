@@ -26,7 +26,7 @@ void tree_walkAndCleanup(
   */
   /* link[0] becomes the previous result in the list */
   /* link[1] becomes the next result in the list */
-  for( ; ; ) {
+  do {
     if(currentResult->link[0] && currentResult->link[0]->type != TRE_CONVERTED) {
       currentResult->link[0]->parent = currentResult;
       currentResult = currentResult->link[0];
@@ -68,13 +68,12 @@ void tree_walkAndCleanup(
       currentResult->link[1] = tempResult;
     }
 
-    if(currentResult->parent) {
-      currentResult = currentResult->parent;
-      continue;
+    if(currentResult->parent == NULL) {
+      break;
     }
 
-    break;
-  }
+    currentResult = currentResult->parent;
+  } while(1);
 
   /* The tree has now been converted to a doubly linked list. We walk thru
   it now to clean up the memory and call the callback */
