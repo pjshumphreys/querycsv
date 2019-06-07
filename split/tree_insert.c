@@ -16,6 +16,7 @@ struct resultTree *tree_double(struct resultTree *root, int dir) {
   return tree_single(root, dir);
 }
 
+/* red black tree insertion code. based upon that found at http://www.eternallyconfuzzled.com/tuts/datastructures/jsw_tut_rbtree.aspx */
 int tree_insert(
     struct qryData *query,
     struct resultColumnValue *columns,
