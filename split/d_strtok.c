@@ -36,8 +36,8 @@ void d_strtok(char** result, char* delimiters, char** startFrom) {
       return;
     }
 
-    /* no delimiters were found */
     if(*delimiterTest == 0) {
+      /* no delimiters were found. we can start looking for a match */
       break;
     }
 
@@ -52,10 +52,7 @@ void d_strtok(char** result, char* delimiters, char** startFrom) {
 
   } while(1);
 
-  /* no delimiters matched. we can start looking for a match */
-  location = startLocation+1;
-  strSize = 1;
-  delimiterTest = delimiters;
+  location = startLocation;
 
   /* keep increasing the count of characters while no delimiters get matched */
   while(*location) {
