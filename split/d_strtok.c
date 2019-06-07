@@ -6,12 +6,12 @@ not modifed but instead that pointer is incremented, and the results are
 allocated/ freed internally by realloc. A pointer to the original string
 must be kept outside this function separate to the one passed as the third
 parameter */
-void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
-  char * startLocation = NULL;
-  char * location = NULL;
+void d_strtok(char** result, char* delimiters, char** startFrom) {
   char * delimiterTest = delimiters;
   char * retval = NULL;
   size_t strSize = 0;
+  char * startLocation;
+  char * location;
 
   if(result == NULL) {
     return;
@@ -31,7 +31,12 @@ void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
   startLocation = *startFrom;
 
   /* find the first non matching character */
-  while(*startLocation) {
+  do {
+    if(*startLocation == 0) {
+      /* no match found. just quit */
+      return;
+    }
+
     if(*startLocation == *delimiterTest) {
       /* a match was found. try the next character */
       startLocation++;
@@ -39,17 +44,18 @@ void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
       continue;
     }
 
-    if(*delimiterTest == 0) {
-      /* no delimiters matched. we can start looking for a match */
-      delimiterTest = delimiters;
-      break;
+    if(*delimiterTest != 0) {/* no delimiters have been found yet. keep trying */
+      delimiterTest++;
+      continue;
     }
 
-    /* no delimiters have been found yet. keep trying */
-    delimiterTest++;
-  }
+    break;
+  } while(1);
 
-  location = startLocation;
+  /* no delimiters matched. we can start looking for a match */
+  location = startLocation+1;
+  strSize = 1;
+  delimiterTest = delimiters;
 
   /* keep increasing the count of characters while no delimiters get matched */
   while(*location) {
@@ -70,16 +76,14 @@ void d_strtok(char** result, unsigned char* delimiters, char** startFrom) {
     delimiterTest++;
   }
 
-  if(strSize) {
-    *startFrom = location;
+  *startFrom = location;
 
-    reallocMsg((void **)&retval, strSize+1);
+  reallocMsg((void **)&retval, strSize+1);
 
-    strncpy(retval, startLocation, strSize);
+  strncpy(retval, startLocation, strSize);
 
-    /* NULL terminate the return value */
-    retval[strSize] = '\0';
+  /* NULL terminate the return value */
+  retval[strSize] = '\0';
 
-    *result = retval;
-  }
+  *result = retval;
 }

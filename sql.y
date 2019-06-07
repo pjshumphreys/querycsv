@@ -209,27 +209,7 @@ optional_as_name:
 scalar_exp:
     scalar_exp COLLATE STRING {
       if($1 != NULL) {
-        $1->caseSensitive = 0;
-        char * result = NULL;
-        char * currentLocation = $3;
-
-        /* TODO: Confirm this works correctly in all cases */
-        for(;;) {
-          d_strtok(&result, " ,", &currentLocation);
-
-          if(result) {
-            if(stricmp(result, "sensitive") == 0) {
-              $1->caseSensitive |= 1;
-            }
-            else if(stricmp(result, "digits") == 0) {
-              $1->caseSensitive |= 4;
-            }
-
-            continue;
-          }
-
-          break;
-        }
+        $1->caseSensitive = parse_collate($3);
       }
 
       free($3);
