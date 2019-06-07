@@ -1,4 +1,4 @@
-int fgets_d(char** ws, FILE* stream) {
+int d_fgets(char** ws, FILE* stream) {
   char buf[80];
   char* newWs = NULL;
   char* potentialNewWs = NULL;
