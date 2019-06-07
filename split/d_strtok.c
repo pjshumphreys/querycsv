@@ -37,7 +37,7 @@ void d_strtok(char** result, char* delimiters, char** startFrom) {
       return;
     }
 
-    /* no delimiters were foun*/
+    /* no delimiters were found */
     if(*delimiterTest == 0) {
       break;
     }
@@ -70,11 +70,10 @@ void d_strtok(char** result, char* delimiters, char** startFrom) {
       location++;
       strSize++;
       delimiterTest = delimiters;
-
-      continue;
     }
-
-    delimiterTest++;
+    else {
+      delimiterTest++;
+    }
   }
 
   *startFrom = location;
