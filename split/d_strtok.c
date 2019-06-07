@@ -22,8 +22,7 @@ void d_strtok(char** result, char* delimiters, char** startFrom) {
   if(
     delimiters == NULL ||
     startFrom == NULL ||
-    *startFrom == NULL ||
-    **startFrom == '\0'
+    *startFrom == NULL
   ) {
     return;
   }
