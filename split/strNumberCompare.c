@@ -66,7 +66,7 @@ int strNumberCompare(char *input1, char *input2) {
           string1 = input1;
           string2 = input2;
 
-          for( ; ; ) {
+          do {
             if(do1) {
               if(decimalNotFound1 && (*string1 == '.' || *string1 == ',')) {
                 decimalNotFound1 = FALSE;
@@ -119,7 +119,7 @@ int strNumberCompare(char *input1, char *input2) {
 
               return 0;
             }
-          }
+          } while(1);
         }
         else {
           compare = -1;

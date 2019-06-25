@@ -35,13 +35,18 @@ int main(int argc, char **argv) {
       /* timezone data to the date functions) */
       setlocale(LC_ALL, TDB_LOCALE);
     #endif
-  #else
+  #endif
+
+  #if defined(__unix__) || defined(__LINUX__)
     #ifdef __WATCOMC__
       /* On the linux version of watcom vsnprintf still
       works as it does on WIN32/MSDOS (i.e. it's broken). fall back to the
       fprintf approach */
       devNull = "/dev/null";
     #endif
+
+    /* for unix, setlocale makes sure ncursesw is used */
+    setlocale(LC_ALL, TDB_LOCALE);
   #endif
 
   #ifdef __CC_NORCROFT

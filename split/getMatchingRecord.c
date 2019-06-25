@@ -1,15 +1,19 @@
 
 int clause1(struct inputTable *currentInputTable) {
+  int c;
 
   MAC_YIELD
 
-  if(endOfFile(currentInputTable->fileStream)) {
+  c = fgetc(currentInputTable->fileStream);
+  ungetc(c, currentInputTable->fileStream);
+
+  if(c != EOF) {
     return TRUE;
   }
 
-  else if (currentInputTable->isLeftJoined && currentInputTable->noLeftRecord) {
+  if (currentInputTable->isLeftJoined && currentInputTable->noLeftRecord) {
     return TRUE;
-  };
+  }
 
   return FALSE;
 }
@@ -21,10 +25,12 @@ int clause2(struct inputTable *currentInputTable, struct resultColumnValue *colu
   if((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData->value, "") == 0) {
     return TRUE;
   }
-  else if((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData->value, "\\N") == 0) {
+
+  if((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData->value, "\\N") == 0) {
     return TRUE;
   }
-  else if((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData->value, "NULL") == 0) {
+
+  if((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData->value, "NULL") == 0) {
     return TRUE;
   }
 

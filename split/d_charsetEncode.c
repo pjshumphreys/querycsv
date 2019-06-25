@@ -68,7 +68,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   if(bytesStored == NULL) {
     temp = 0;
 
-    for( ; ; ) {
+    do {
       /* call getUnicodeCharFast */
       codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
@@ -85,7 +85,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       }
 
       s += bytesMatched;
-    }
+    } while(1);
   }
 
   /* if bytesStored is initially non zero, it means limit to read at most that many characters from the source. a trailing null byte isn't added */
@@ -93,7 +93,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
     bytesToStore = (int)*bytesStored;
     *bytesStored = 0;
 
-    for( ; ; ) {
+    do {
       if(bytesToStore < 1) {
         return buffer;
       }
@@ -115,7 +115,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
 
       bytesToStore -= bytesMatched;
       s += bytesMatched;
-    }
+    } while(1);
   }
 
   /* get until a null byte in the source. a trailing null byte isn't added */

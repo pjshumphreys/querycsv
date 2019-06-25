@@ -1,0 +1,10 @@
+
+
+
+CC=/opt/cross/bin/arm-linux-musleabi-gcc ./configure --host=arm-linux --with-shared --enable-widec --with-build-cppflags=-D_GNU_SOURCE --without-cxx-binding
+
+make HOSTCC=gcc CXX=/usr/local/musl/bin/musl-gcc
+
+
+readelf -d term.x64
+objdump -T term.x64

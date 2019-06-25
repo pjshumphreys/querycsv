@@ -1,0 +1,50 @@
+posix - use ioctl sioswinch and terminfo codes. use a virtual 80 columns. if isatty is false just quit.
+
+dos - output vt100 get cursor position code. wait .1 of a second and if there's an approprate response use it to
+determine screen size.
+if file or not special CON device then just quit.
+otherwise, check video mode. set it to 07h if its 07h or 0fh. otherwise set it to 03h. screen dimensions are 80x25
+use 10h services to control cursor
+
+windows - use win32 functions to get/update screen size and control cursor. if not console output just quit.
+
+cpm - if msx, use F3B0h and F3B1h to determine screen dimensions and use vt52 codes with a virtual 32 columns.
+otherwise, if vt100 is detected, use vt100 codes to determine screen size. use a virtual 80 columns
+otherwise, ask the user how many columns their screen has, then just display line by line
+
+bbcarm - check screen mode. if mode 2 or 5 then set mode 6. determine screen size using current mode. use adm3a codes
+
+zx - use hardcoded 32x24 mode and update sysvars to control print position
+
+c64 - use hardcoded 40x25 and and update sysvars to control print position. support for c128 80 column mode?
+
+atarist - use vt52 codes and hardcoded 80x24
+
+amiga - use vt100 codes, but check if window is resized somehow. always use a virtual 80 columns
+
+riscos - just display the whole file in 80 columns using taskwindow. add a help menu option to the launcher
+
+macos, powermac - open the help file in a separate window with no formatting but with word wrap.
+                  load the text from the resource fork
+
+
+virtual column size makes use of horizontal scolling
+
+
+on disk line lookup table format (maybe this could be created dynamically as the file is read?)
+--------------------------------
+1 byte - chars in line. this is 255 for the last line
+1 byte - number of chars to seek backward to reach the beginning of the previous line.
+         this is 0 for the first line.
+
+
+32 character line
+++++++++++++++++++++++++++++++++
+================================
+
+Display help file (Y/N) ?
+
+Display columns (80) ?
+
+Press Q to quit the program.
+Press other keys to continue.

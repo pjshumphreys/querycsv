@@ -53,7 +53,7 @@ void getCodepointsUTF8(
     codepoints[++byteIndex] = (long)c;
   }
 
-  for( ; ; ) {  /* not a real loop. We only need it to be
+  do {  /* not a real loop. We only need it to be
     able to use the break statement */
     /* if the current byte offset is a valid utf-8 character that's not
     overlong or decomposable then return it */
@@ -167,10 +167,7 @@ void getCodepointsUTF8(
         byteIndex--;
       }
     }
-
-    /* don't really loop. */
-    break;
-  }
+  } while(0); /* don't really loop. */
 
   /* dump out the bytes matched, converting each to a separate codepoint */
   if(c == EOF) {

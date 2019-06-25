@@ -21,7 +21,7 @@ int strCompare(
     caseSensitive &= ~(4);
   }
 
-  for( ; ; ) {  /* we'll quit from this function via other means */
+  do {  /* we'll quit from this function via other means */
     /* check if we've reached the end of string 2 */
     if(*offset2 == 0) {
       /* if string2 is on the slower version of getUnicodeChar, */
@@ -249,5 +249,5 @@ int strCompare(
         offset2 += bytesMatched2;
       }
     }
-  }
+  } while(1);
 }

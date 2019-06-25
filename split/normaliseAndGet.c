@@ -34,7 +34,7 @@ int normaliseAndGet(
     *offset += bytesRead;
   }
 
-  for( ; ; ) {  /* the get a codepoint code will break out of this loop */
+  do {  /* the get a codepoint code will break out of this loop */
     /* while there are still unexamined codepoints in the buffer */
     while(i != bufferLength) {
       if(isCombiningChar(codepointBuffer[i]) == 0) {
@@ -141,7 +141,7 @@ int normaliseAndGet(
       bufferLength += entry->length;
       entry = NULL;
     }
-  }
+  } while(1);
 
   if(i > 1) {
     /* TODO: qsort the combining characters that preceed this codepoint */

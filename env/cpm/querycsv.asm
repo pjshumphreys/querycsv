@@ -23,7 +23,13 @@ chkz80:
 
 begin:
   ld a, 1
-  ld c, 06fh
+  ld c, 0x0c
+  call BDOS    ; Get cp/m version
+  cp 0x22      ; msx pretends to be cp/m 2.2, but has extra (different to cp/m 3) bdos calls available anyway
+  jr nz, CPM
+
+  ld a, 1
+  ld c, 0x6f
   call BDOS    ; Get MSX-DOS version
   or a
   jr nz, CPM

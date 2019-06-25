@@ -61,7 +61,7 @@ int tree_insert(
     g = p = NULL;
     q = t->link[1] = *root;
 
-    for( ; ; ) {
+    do {
       if(q == NULL) {
         /* Insert new node at the bottom */
         p->link[dir] = q = newResult;
@@ -100,7 +100,7 @@ int tree_insert(
 
       g = p, p = q;
       q = q->link[dir];
-    }
+    } while(1);
 
     /* Update root */
     *root = head.link[1];

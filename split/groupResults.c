@@ -9,7 +9,7 @@ void groupResults(struct qryData *query) {
   query->resultSet = NULL;
 
   /* populate query->resultSet with the grouped results,
-    while clearing up to memory of the original result set */
+    while cleaning up the memory of the original result set */
   tree_walkAndCleanup(
     query,
     &(resultsOrig),
