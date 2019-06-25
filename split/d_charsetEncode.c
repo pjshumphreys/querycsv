@@ -119,7 +119,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
   }
 
   /* get until a null byte in the source. a trailing null byte isn't added */
-  for( ; ; ) {
+  do {
     /* call getUnicodeCharFast */
     codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
@@ -136,5 +136,5 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
     }
 
     s += bytesMatched;
-  }
+  } while(1);
 }

@@ -127,6 +127,7 @@ it becomes needed and because it's useful for debugging */
 
   /* used as posix doesn't have stricmp */
   #include <strings.h>
+  #include <locale.h>
   #define stricmp strcasecmp
 #endif
 
