@@ -53,7 +53,7 @@ typedef void* yyscan_t;
 %token GROUP HAVING IN INTO
 %token IS JOIN LEFT LIKE NULLX ON
 %token ORDER OPTIONS
-%token SELECT
+%token SELECT SORT
 %token THEN
 %token WHEN WHERE
 %token COLUMNS NEXT VALUE DATE NOW
@@ -496,6 +496,7 @@ opt_having_clause:
 opt_order_by_clause:
     /* empty */
   | ORDER BY ordering_spec
+  | SORT BY ordering_spec
   ;
 
 ordering_spec:
