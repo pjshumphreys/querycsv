@@ -16,12 +16,10 @@ struct hash2Entry entry = {0x0000, 1, (long *)(&codepoints)};
 struct hash2Entry* retval;
 
 /* hash4 helper varables */
-char hash4letter[7];
-#ifdef __Z88DK
-struct hash4Entry hash4export = {&hash4letter, 0, 0, 0};
-#else
-struct hash4Entry hash4export = {(char *)(&hash4letter), 0, 0, 0};
-#endif
+struct hash4Entry hash4export = {NULL, 0, 0, 0};
+struct hash4Entry entry1Internal = {NULL, 0, 0, 0};
+struct hash4Entry entry2Internal = {NULL, 0, 0, 0};
+
 char * devNull = NULL;
 
 /*dedup string literals */

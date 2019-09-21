@@ -1,6 +1,6 @@
 %includes
 %compare-strncmp
-%define lookup-function-name in_word_set_ci
+%define lookup-function-name in_word_set_c
 %struct-type
 struct hash4Entry {
   const char *name;

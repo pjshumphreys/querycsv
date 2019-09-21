@@ -25,6 +25,7 @@ struct hash4Entry * clause4(unsigned char **offset, int totalBytes2) {
 }
 
 struct hash4Entry *getLookupTableEntry(
+    struct hash4Entry *entry,
     unsigned char **offset,
     unsigned char **str,
     int *lastMatchedBytes,
@@ -64,7 +65,13 @@ struct hash4Entry *getLookupTableEntry(
   if(temp2 != NULL) {
     /* copy the match data into the output */
     *lastMatchedBytes = totalBytes;
+
+    entry->script = temp2->script;
+    entry->index = temp2->index;
+    entry->islower = temp2->islower;
+
+    return entry;
   }
 
-  return temp2;
+  return NULL;
 }

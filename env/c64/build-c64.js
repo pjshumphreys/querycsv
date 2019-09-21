@@ -391,9 +391,10 @@ function compileParser() {
   console.log('compileParser');
 
   execSync(
-    'sed "'+
+    'sed -e"'+
       's/YY_INITIAL_VALUE \(static YYSTYPE yyval_default;\)//g;'+
-      's/define YY_LAC_ESTABLISH/define YY_LAC_OESTABLISH/g;'+
+      's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
+      's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_OESTABLISH/g;'+
       's/%s/%S/g;'+
       's/%d/%D/g;'+
       's/%lu/%LU/g;'+
@@ -558,6 +559,14 @@ function compileHash3And4() {
     ).toString(), 10);
 
   execSync(
+    'sed -e"'+
+      '1s/^/extern struct hash4Entry hash4export;\\n#include \\"cc65iso.h\\"\\n/;' +
+      's/static struct hash4Entry/static const struct hash4Entry/gi;' +
+      's/static unsigned short/static const unsigned short/gi;' +
+      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
+      '" hash4a.h > hash4a2.h');
+
+  execSync(
       "cl65 -T -t c64 "+
       "-o build/obj2/hash4a.bin "+
       "-Ln build/obj2/hash4a.lbl "+
@@ -569,6 +578,14 @@ function compileHash3And4() {
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_a'+
       ' build/obj2/hash4a.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
+
+  execSync(
+    'sed -e"'+
+      '1s/^/extern struct hash4Entry hash4export;\\n#include \\"cc65iso.h\\"\\n/;' +
+      's/static struct hash4Entry/static const struct hash4Entry/gi;' +
+      's/static unsigned short/static const unsigned short/gi;' +
+      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
+      '" hash4b.h > hash4b2.h');
 
   execSync(
       "cl65 -T -t c64 "+
@@ -583,6 +600,15 @@ function compileHash3And4() {
       'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_b'+
       ' build/obj2/hash4b.lbl|sed -n \\"s/al \\([^ ]*\\).*/\\1/p\\"))|bc"'
     ).toString(), 10);
+
+  execSync(
+    'sed -e"'+
+      '1s/^/extern struct hash4Entry hash4export;\\n#include \\"cc65iso.h\\"\\n/;' +
+      's/static struct hash4Entry/static const struct hash4Entry/gi;' +
+      's/static unsigned short/static const unsigned short/gi;' +
+      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
+      '" hash4c.h > hash4c2.h');
+
 
   execSync(
       "cl65 -T -t c64 "+
@@ -1112,8 +1138,10 @@ function glueTogetherBinary() {
 
   execSync('dd if=/dev/zero bs=1 count='+remainder+' | tr "\\000" "\\377" > build/padding.bin');
 
+  console.log("glueTogetherBinary 2");
   execSync("cat build/padding.bin build/maindata.bin build/floatlibdata.bin build/libcdata.bin build/data.bin build/obj2/yyparse.bin > build/output.bin");
 
+  console.log("glueTogetherBinary 3");
   execSync('dd if=/dev/zero bs=1 count=8192 | tr "\\000" "\\377" > build/8k.bin');
 
   execSync("cat build/8k.bin build/querycsv.bin >build/full.bin");

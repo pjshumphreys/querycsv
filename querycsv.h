@@ -397,10 +397,6 @@ Just use long ones for that compiler */
       d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
       convert doubles to strings */
   #endif
-
-  #define in_word_set_a in_word_set_ai
-  #define in_word_set_b in_word_set_bi
-  #define in_word_set_c in_word_set_ci
 #endif
 
 /* translatable strings */

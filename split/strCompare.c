@@ -62,11 +62,11 @@ int strCompare(
         /* read a character from string 2 */
         char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset2, str2, 0, &bytesMatched2, get2);
 
-        if((entry1 = getLookupTableEntry(&offset1, str1, &bytesMatched1, get1, firstChar, compareNumbers))) {
+        if((entry1 = getLookupTableEntry(&entry1Internal, &offset1, str1, &bytesMatched1, get1, firstChar, compareNumbers))) {
           /* the first character is in the lookup table */
 
           if(char2 != 0x34F) {
-            if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
+            if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
               /* compare the lookup table entries */
 
               if(entry1->script == entry2->script) {
@@ -120,7 +120,7 @@ int strCompare(
           }
         }
         else if(char2 != 0x34F) {
-          if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))){
+          if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))){
             if(char1 != entry2->script) {
               return (char1 > entry2->script) ? 1: -1;
             }
@@ -162,7 +162,7 @@ int strCompare(
       char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset1, str1, 0, &bytesMatched2, get2);
 
       if(char2 != 0x34F) {
-        if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
+        if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
           /* both characters have been found and are in the lookup table. compare the lookup table entries           */
 
           if(entry1->script == entry2->script) {
@@ -222,7 +222,7 @@ int strCompare(
       if(char2 != 0x34F) {
         /* the first or both characters were not in the lookup table. */
         /* compare the code point then successive combining characters */
-        if((entry2 = getLookupTableEntry(&offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers)) && char1 != entry2->script) {
+        if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers)) && char1 != entry2->script) {
           return (char1 > entry2->script) ? 1: -1;
         }
         /* compare codepoints */
