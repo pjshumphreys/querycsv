@@ -56,5 +56,5 @@ void getCodepointsUtf16Be(
   }
 
   *arrLength = 1;
-  codepoints[0] = 0x10000 + ((highSurrogate - 0xD800) << 10) + (lowSurrogate - 0xDC00);
+  codepoints[0] = 0x10000 + ((((long)highSurrogate) - 0xD800) << 10) + (((long)lowSurrogate) - 0xDC00);
 }

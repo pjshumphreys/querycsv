@@ -560,7 +560,6 @@ function compileHash3And4() {
 
   execSync(
     'sed -e"'+
-      '1s/^/extern struct hash4Entry hash4export;\\n#include \\"cc65iso.h\\"\\n/;' +
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
       's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
@@ -581,7 +580,6 @@ function compileHash3And4() {
 
   execSync(
     'sed -e"'+
-      '1s/^/extern struct hash4Entry hash4export;\\n#include \\"cc65iso.h\\"\\n/;' +
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
       's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
@@ -603,7 +601,6 @@ function compileHash3And4() {
 
   execSync(
     'sed -e"'+
-      '1s/^/extern struct hash4Entry hash4export;\\n#include \\"cc65iso.h\\"\\n/;' +
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
       's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
@@ -1024,7 +1021,7 @@ function packPages() {
     input: list.stdout
   });
 
-  var maxSize = 8410;//8277;
+  var maxSize = 8341;//8277;
 
   files = [];
   var totalSizes = [];

@@ -30,7 +30,7 @@ org 0xe60e
 
   ld hl, pageLocationsEnd-1
 
-  ; free all allocated ram
+; free all allocated ram
 freeLoop:
   ld a, (hl)
   cp 255 ; special code that indicates to always load from disk
@@ -60,7 +60,7 @@ freeExit:
   cp 2
   jr nz, skipMoveBack
 
-  ; restore the a$ basic variable size
+; restore the a$ basic variable size
   ld bc, 0
   ld hl, (argName)
 
@@ -89,7 +89,7 @@ skipMoveBack:
   ld hl, (hlBackup)
   ld a, h
   or l
-  jp z, nopush
+    jp z, nopush
   push hl
 
 nopush:
