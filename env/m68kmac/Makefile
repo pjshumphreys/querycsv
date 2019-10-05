@@ -7,11 +7,11 @@ MAKEFILE        = Makefile
 ¥MondoBuild¥    = {MAKEFILE}  # Make blank to avoid rebuilds when makefile is modified
 
 ObjDir          = :
-Includes        = 
+Includes        =
 
 Sym-68K         = -sym on
 
-COptions        = {Includes} {Sym-68K} -model far -opt space 
+COptions        = {Includes} {Sym-68K} -model far -opt space
 
 
 ### Source Files ###
@@ -85,6 +85,7 @@ QueryCSV  ÄÄ  {ObjFiles-68K} {LibFiles-68K} {¥MondoBuild¥}
 	If "{Sym-68K}" =~ /-sym Å[nNuU]Å/
 		ILinkToSYM {Targ}.NJ -mf -sym 3.2 -c 'sade'
 	End
+	SetFile {Targ} -a b
 
 QueryCSV  ÄÄ  {¥MondoBuild¥}
 	Rez -rd {RezFiles} -o {Targ} -append
