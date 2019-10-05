@@ -33,26 +33,34 @@
 
 #else
 
+#include <Types.h>
 #include <Quickdraw.h>
-#include <MacWindows.h>
+#include <Fonts.h>
+#include <Controls.h>
+#include <Menus.h>
+#include <TextEdit.h>
 #include <Dialogs.h>
-#include <Menus.h>
-#include <ToolUtils.h>
-#include <Devices.h>
-#include <Drag.h>
-#include <AppleEvents.h>
-#include <Gestalt.h>
-#include <DiskInit.h>
-#include <Resources.h>
-#include <TextUtils.h>
-#include <Menus.h>
-#include <ControlDefinitions.h>
 #include <Scrap.h>
+#include <ToolUtils.h>
+#include <Memory.h>
+#include <Files.h>
+#include <DiskInit.h>
+#include <Packages.h>
+#include <Resources.h>
+#include <Devices.h>
+#include <Events.h>
+#include <Gestalt.h>
+#include <ControlDefinitions.h>
+#include <StandardFile.h>
+
 
 #endif
 
 #include <Traps.h>
 
+void restoreSettings(void);
+void saveSettings(void);
+void PsPStrCopy(StringPtr p1, StringPtr p2);
 int main(void);
 void setupMLTE(void);
 void alertUser(short error);
@@ -428,6 +436,7 @@ pascal OSErr openItems(AEDescList * docList) {
 
   FSSpec      theFSSpec;
   Size        actualSize;
+  Str255      str;
 
   if(
       (result = AECountItems(docList, &itemsInList)) != noErr ||
@@ -449,9 +458,9 @@ pascal OSErr openItems(AEDescList * docList) {
     )) == noErr &&
     (result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID)) == noErr
   ) {
-    reallocMsg((void**)&progArg, 64);  //SFReply.fName is a STR63, plus 1 for the null character
-    p2cstrcpy(progArg, theFSSpec.name);
-    reallocMsg((void**)&progArg, strlen(progArg)+1);
+    memcpy((char*)&str, ((char *)&(theFSSpec.name)), sizeof(Str255));
+    p2cstr(str);
+    progArg = mystrdup((char*)str);
 
     windowNotOpen = FALSE;
   }
@@ -549,7 +558,6 @@ void setupMenus(void) {
   MenuRef menu;
   MenuHandle myMenus[5];
   int i;
-  long result;
 
   myMenus[appleM] = GetMenu(mApple);
 
@@ -575,14 +583,14 @@ void setupMenus(void) {
       Gestalt(gestaltMenuMgrAttr, &result) == noErr &&
       (result & gestaltMenuMgrAquaLayoutMask) != 0
     ) {
-    menu = GetMenuHandle(mFile);
+    menu = GetMHandle(mFile);
     DeleteMenuItem(menu, mFileQuit);
     macOSVersion = 0x1000;
     devNull = "/dev/null";  /* needed as the carbon build can run on OS X */
   }
 #endif
 
-  menu = GetMenuHandle(mFont);
+  menu = GetMHandle(mFont);
   AppendResMenu(menu, 'FONT');
 
   DrawMenuBar();
@@ -595,38 +603,54 @@ void restoreSettings(void) {
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh = GetString(rZoomPrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)fontName, (void *)*strh, 256);
-    p2cstr(fontName);
-    windowZoomed = atoi((char *)fontName);
+    HLock((Handle)strh);
+    memcpy((void *)&fontName, (void *)*strh, 256);
+    HUnlock((Handle)strh);
+    p2cstr((unsigned char *)&fontName);
+    windowZoomed = atoi((char*)&fontName);
     ReleaseResource((Handle)strh);
   }
 
   //font size (in a bit of a roundabout way but I know this'll work)
   strh = GetString(rFontSizePrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)fontName, (void *)*strh, 256);
-    p2cstr(fontName);
-    fontSizeIndex = atoi((char *)fontName);
+    HLock((Handle)strh);
+    memcpy((void *)&fontName, (void *)*strh, 256);
+    HUnlock((Handle)strh);
+    p2cstr((unsigned char *)&fontName);
+    fontSizeIndex = atoi((char *)&fontName);
     ReleaseResource((Handle)strh);
   }
 
   //font name
   strh = GetString(rFontPrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)fontName, (void *)*strh, 256);
+    HLock((Handle)strh);
+    PsPStrCopy(*strh, (StringPtr)&fontName);
+    HUnlock((Handle)strh);
     ReleaseResource((Handle)strh);
   }
 }
 
+void PsPStrCopy(StringPtr p1, StringPtr p2) {
+  register short len;
+
+  len = *p2++ = *p1++;
+  while( --len >= 0 ) {
+    *p2++ = *p1++;
+  }
+}
+
 void saveSettings(void) {
-  Str255 str;
   StringHandle strh;
-  StringHandle strh2;
+  char str[256];
 
   //font name
   strh = GetString(rFontPrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)*strh, (void *)fontName, 256);
+    HLock((Handle)strh);
+    PsPStrCopy((StringPtr)&fontName, *strh);
+    HUnlock((Handle)strh);
     ChangedResource((Handle)strh);
     WriteResource((Handle)strh);
     ReleaseResource((Handle)strh);
@@ -634,25 +658,29 @@ void saveSettings(void) {
 
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
-  strh2 = GetString(rZoomPrefStr);
-  if(strh2 != (StringHandle) NULL) {
-    sprintf((char *)str, "%d", windowZoomed);
-    c2pstr((char *)str);
-    memcpy((void *)*strh2, (void *)str, 256);
-    ChangedResource((Handle)strh2);
-    WriteResource((Handle)strh2);
-    ReleaseResource((Handle)strh2);
+  strh = GetString(rZoomPrefStr);
+  if(strh != (StringHandle) NULL) {
+    sprintf((char *)&str, "%d", windowZoomed);
+    c2pstr((char *)&str);
+    HLock((Handle)strh);
+    PsPStrCopy((StringPtr)&str, *strh);
+    HUnlock((Handle)strh);
+    ChangedResource((Handle)strh);
+    WriteResource((Handle)strh);
+    ReleaseResource((Handle)strh);
   }
 
   //font size (in a bit of a roundabout way but I know this'll work)
-  strh2 = GetString(rFontSizePrefStr);
-  if(strh2 != (StringHandle) NULL) {
-    sprintf((char *)str, "%d", fontSizeIndex);
-    c2pstr((char *)str);
-    memcpy((void *)*strh2, (void *)str, 256);
-    ChangedResource((Handle)strh2);
-    WriteResource((Handle)strh2);
-    ReleaseResource((Handle)strh2);
+  strh = GetString(rFontSizePrefStr);
+  if(strh != (void *)NULL) {
+    sprintf((char *)&str, "%d", fontSizeIndex);
+    c2pstr((char *)&str);
+    HLock((Handle)strh);
+    PsPStrCopy((StringPtr)&str, *strh);
+    HUnlock((Handle)strh);
+    ChangedResource((Handle)strh);
+    WriteResource((Handle)strh);
+    ReleaseResource((Handle)strh);
   }
 }
 
@@ -663,11 +691,11 @@ void adjustMenus(int setStyles) {
   Boolean found = FALSE;
   Str255 currentFontName;
 
-  menu = GetMenuHandle(mFile);
+  menu = GetMHandle(mFile);
   if(mainWindowPtr) {
     DisableMenuItem(menu, mFileOpen);
 
-    menu = GetMenuHandle(mEdit);
+    menu = GetMHandle(mEdit);
     EnableMenuItem(menu, mEditSelectAll);
 
     if(isSelectionEmpty()) {
@@ -678,9 +706,9 @@ void adjustMenus(int setStyles) {
     }
   }
 
-  menu = GetMenuHandle(mFont);
-  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
-    GetMenuItemText(menu, i, currentFontName);
+  menu = GetMHandle(mFont);
+  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+    GetItem(menu, i, currentFontName);
 
     if(!found && EqualString(fontName, currentFontName, TRUE, TRUE)) {
       SetItemMark(menu, i, checkMark);
@@ -697,7 +725,7 @@ void adjustMenus(int setStyles) {
   }
 
   if(!found) {
-    GetMenuItemText(menu, 1, fontName);
+    GetItem(menu, 1, fontName);
     SetItemMark(menu, 1, checkMark);
 
     if(setStyles) {
@@ -706,9 +734,9 @@ void adjustMenus(int setStyles) {
   }
 
   found = FALSE;
-  menu = GetMenuHandle(mSize);
+  menu = GetMHandle(mSize);
 
-  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
+  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
       SetItemMark(menu, i, checkMark);
 
@@ -763,10 +791,10 @@ void adjustTE(WindowPtr window) {
   TEScroll(
     te->viewRect.left -
     te->destRect.left -
-    GetControlValue(((DocumentPeek) window)->docHScroll),
+    GetCtlValue(((DocumentPeek) window)->docHScroll),
     te->viewRect.top -
     te->destRect.top -
-    (GetControlValue(((DocumentPeek) window)->docVScroll) * lineHeight),
+    (GetCtlValue(((DocumentPeek) window)->docVScroll) * lineHeight),
     handle
   );
 }
@@ -790,8 +818,8 @@ void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean can
   short oldValue, oldMax, value, max, lines;
   TEPtr te = *docTE;
 
-  oldValue = GetControlValue(control);
-  oldMax = GetControlMaximum(control);
+  oldValue = GetCtlValue(control);
+  oldMax = GetCtlMax(control);
 
   if(isVert) {
     lines = te->nLines;
@@ -810,7 +838,7 @@ void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean can
     max = 0;
   }
 
-  SetControlMaximum(control, max);
+  SetCtlMax(control, max);
 
   if(isVert) {
     value = (te->viewRect.top - te->destRect.top) / lineHeight;
@@ -826,7 +854,7 @@ void adjustHV(Boolean isVert, ControlHandle control, TEHandle docTE, Boolean can
     value = max;
   }
 
-  SetControlValue(control, value);
+  SetCtlValue(control, value);
 
   if(
       canRedraw ||
@@ -937,8 +965,8 @@ pascal ProcPtr GetOldClikLoop(void) {
 void commonAction(ControlHandle control, short *amount) {
   short value, max;
 
-  value = GetControlValue(control);        /* get current value */
-  max = GetControlMaximum(control);        /* and maximum value */
+  value = GetCtlValue(control);        /* get current value */
+  max = GetCtlMax(control);        /* and maximum value */
   *amount = value - *amount;
 
   if(*amount < 0) {
@@ -948,7 +976,7 @@ void commonAction(ControlHandle control, short *amount) {
     *amount = max;
   }
 
-  SetControlValue(control, *amount);
+  SetCtlValue(control, *amount);
   *amount = value - *amount;    /* calculate the real change */
 }
 
@@ -965,21 +993,18 @@ pascal void VActionProc(ControlHandle control, short part) {
     te = *handle;
 
     switch(part) {
-      case kControlUpButtonPart:        /* one line */
-      case kControlDownButtonPart: {
+      case inUpButton:        /* one line */
+      case inDownButton: {
         amount = 1;
       } break;
 
-      case kControlPageUpPart:          /* one page */
-      case kControlPageDownPart: {
+      case inPageUp:          /* one page */
+      case inPageDown: {
         amount = (te->viewRect.bottom - te->viewRect.top) / lineHeight;
       } break;
     }
 
-    if(
-        part == kControlDownButtonPart ||
-        part == kControlPageDownPart
-    ) {
+    if(part == inDownButton || part == inPageDown) {
       amount = -amount;                /* reverse direction for a downer */
     }
 
@@ -995,7 +1020,6 @@ pascal void VActionProc(ControlHandle control, short part) {
   Determines how much to change the value of the horizontal scrollbar by and how
   much to scroll the TE record.
 */
-#pragma segment Main
 pascal void HActionProc(ControlHandle control, short part) {
   short       amount;
   WindowPtr   window;
@@ -1008,21 +1032,18 @@ pascal void HActionProc(ControlHandle control, short part) {
     te = *handle;
 
     switch(part) {
-      case kControlUpButtonPart:                /* a few pixels */
-      case kControlDownButtonPart: {
+      case inUpButton:                /* a few pixels */
+      case inDownButton: {
         amount = kButtonScroll;
       } break;
 
-      case kControlPageUpPart:                        /* a page */
-      case kControlPageDownPart: {
+      case inPageUp:                        /* a page */
+      case inPageDown: {
         amount = te->viewRect.right - te->viewRect.left;
       } break;
     }
 
-    if(
-        part == kControlDownButtonPart ||
-        part == kControlPageDownPart
-    ) {
+    if(part == inDownButton || part == inPageDown) {
       amount = -amount;   /* reverse direction */
     }
 
@@ -1121,12 +1142,12 @@ void contentClick(WindowPtr window, EventRecord *event) {
           /* do nothing for viewRect case */
         } break;
 
-        case kControlIndicatorPart: {
-          value = GetControlValue(control);
+        case inThumb: {
+          value = GetCtlValue(control);
           part = TrackControl(control, mouse, NULL);
 
           if(part != 0) {
-            value -= GetControlValue(control);
+            value -= GetCtlValue(control);
 
             /* value now has CHANGE in value; if value changed, scroll */
             if(value != 0) {
@@ -1251,7 +1272,7 @@ int openWindow(void) {
     alertUser(eNoWindow);
 
     // get rid of the storage if it is never used
-    DisposePtr(storage);
+    DisposPtr(storage);
 
     return FALSE;
   }
@@ -1269,7 +1290,7 @@ int openWindow(void) {
   getTERect(window, &viewRect);
   destRect = viewRect;
   destRect.right = destRect.left + kMaxDocWidth;
-  doc->docTE = TEStyleNew(&destRect, &viewRect);
+  doc->docTE = TEStylNew(&destRect, &viewRect);
   proceed = doc->docTE != NULL;
 
   if(proceed) {
@@ -1428,7 +1449,7 @@ void setFont(SInt16 menuItem) {
   TEHandle handle;
   short res;
 
-  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
+  GetItem(GetMHandle(mFont), menuItem, fontName);
 
   if(mainWindowPtr) {
     handle = getTEHandle(mainWindowPtr);
@@ -1505,7 +1526,7 @@ void menuSelect(long mResult) {
       else {
         /* all non-About items in this menu are Desk Accessories */
         /* type Str255 is an array in MPW 3 */
-        GetMenuItemText(GetMenuHandle(mApple), theItem, daName);
+        GetItem(GetMHandle(mApple), theItem, daName);
         OpenDeskAcc(daName);
       }
 #endif
@@ -1729,13 +1750,12 @@ void macYield(void) {
 }
 
 #if TARGET_API_MAC_TOOLBOX
-#include <StandardFile.h>
-
 void openFileDialog(void) {
   Point where;
   unsigned const char prompt = '\0';
   OSType typeList = 'TEXT';
   SFReply reply;
+  Str255 str;
 
   where.h = where.v = 70;
 
@@ -1743,9 +1763,9 @@ void openFileDialog(void) {
 
   if(reply.good && SetVol(NULL, reply.vRefNum) == noErr) {
     //SFReply.fName is a STR63, plus 1 for the null character
-    reallocMsg((void **)&progArg, 64);
-    p2cstrcpy(progArg, reply.fName);
-    reallocMsg((void **)&progArg, strlen(progArg)+1);
+    memcpy(&str, reply.fName, sizeof(Str255));
+    p2cstr(str);
+    progArg = mystrdup((char*)&str);
 
     windowNotOpen = FALSE;
   }
@@ -2017,6 +2037,8 @@ int main(void) {
       loopTick();
     }
   }
+
+  ExitToShell();
 
   return EXIT_SUCCESS; //macs don't do anything with the return value
 }
