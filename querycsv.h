@@ -183,6 +183,10 @@ it becomes needed and because it's useful for debugging */
     int stricmp(const char *str1, const char *str2);
   #endif
 
+  void macYield(void);
+  #undef MAC_YIELD
+  #define MAC_YIELD macYield();
+
   int fputs_mac(const char *str, FILE *stream);
   int fprintf_mac(FILE *stream, const char *format, ...);
   #define fputs fputs_mac

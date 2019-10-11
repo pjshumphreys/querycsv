@@ -1769,10 +1769,15 @@ void loopTick(void) {
 }
 
 void macYield(void) {
-  loopTick(); // get one event
+  static int countr = 0;
 
-  if(quit) {
-    ExitToShell();
+  if(countr++ > 500) {
+    countr = 0;
+    loopTick(); // get one event
+
+    if(quit) {
+      ExitToShell();
+    }
   }
 }
 
@@ -1969,8 +1974,6 @@ int fputs_mac(const char *str, FILE *stream) {
     len = fputs(str, stream);
   }
 
-  macYield();
-
   return len;
 }
 
@@ -2027,8 +2030,6 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
     retval = vfprintf(stream, format, args);
     va_end(args);
   }
-
-  macYield();
 
   return retval;
 }
