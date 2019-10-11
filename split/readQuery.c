@@ -134,36 +134,34 @@ int readQuery(char *queryFileName, struct qryData *query) {
     return EXIT_FAILURE;
   }
 
-#ifdef MPW_C
-  /* Macs swap 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
-  if(query->outputFileName && !(query->params & PRM_MAC)) {
-    if(query->params & PRM_UNIX) {
+  if(query->outputEncoding == ENC_CP1047) {
+    query->newLine = "\302\205";
+  }
+  else if(query->outputFileName == NULL) {
+    query->newLine = "\n";
+  }
+  #if defined(MPW_C) && !defined(RETRO68)
+    /* MPW swaps 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
+    else if(query->params & PRM_UNIX) {
       query->newLine = "\r";
     }
-    else if(query->outputEncoding == ENC_CP1047) {
-      if(!(query->params & PRM_POSTGRES)) {
-        query->newLine = "\302\205";
-      }
+    else if(query->params & PRM_MAC) {
+      query->newLine = "\n";
     }
     else {
       query->newLine = "\n\r";
     }
-  }
-#else
-  if(query->outputFileName && !(query->params & PRM_UNIX)) {
-    if(query->params & PRM_MAC) {
-      query->newLine = "\r";
+  #else
+    else if(query->params & PRM_UNIX) {
+      query->newLine = "\n";
     }
-    else if(query->outputEncoding == ENC_CP1047) {
-      if(!(query->params & PRM_POSTGRES)) {
-        query->newLine = "\302\205";
-      }
+    else if(query->params & PRM_MAC) {
+      query->newLine = "\r";
     }
     else {
       query->newLine = "\r\n";
     }
-  }
-#endif
+  #endif
 
   /* set query->firstInputTable to actually be the first input table. */
   if(query->secondaryInputTable != NULL) {

@@ -1848,21 +1848,39 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
       }
 
       switch(startPoint[lineChars]) {
-        case '\r': {
-          startPoint[lineChars] = '\n';
+        #ifdef RETRO68
+          case '\n': {
+            startPoint[lineChars] = '\r';
 
-          if(startPoint[lineChars+1] == '\n') {
-            skipByte = TRUE;
-          }
+            lineChars++;
+            charsLeft--;
+          } break;
 
-          lineChars++;
-          charsLeft--;
-        } break;
+          case '\r': {
+            if(startPoint[lineChars+1] == '\n') {
+              skipByte = TRUE;
+            }
 
-        case '\n': {
-          lineChars++;
-          charsLeft--;
-        } break;
+            lineChars++;
+            charsLeft--;
+          } break;
+        #else
+          case '\r': {
+            startPoint[lineChars] = '\n';
+
+            if(startPoint[lineChars+1] == '\n') {
+              skipByte = TRUE;
+            }
+
+            lineChars++;
+            charsLeft--;
+          } break;
+
+          case '\n': {
+            lineChars++;
+            charsLeft--;
+          } break;
+        #endif
 
         case '\0': {
           charsLeft--;
@@ -1912,7 +1930,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == '\r' && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
@@ -1966,22 +1984,22 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   #endif
 
   if(stream == stdout || stream == stderr) {
-    #ifdef HAS_VSNPRINTF
+    #ifdef RETRO68
       va_start(args, format);
       newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
       va_end(args);
     #else
-    if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
-      return FALSE;
-    }
+      if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
+        return FALSE;
+      }
 
-    //get the space needed for the new string
-    va_start(args, format);
-    newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
-    va_end(args);
+      //get the space needed for the new string
+      va_start(args, format);
+      newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
+      va_end(args);
 
-    //close the file. We don't need to look at the return code as we were writing to /dev/null
-    fclose(pFile);
+      //close the file. We don't need to look at the return code as we were writing to /dev/null
+      fclose(pFile);
     #endif
 
     //Create a new block of memory with the correct size rather than using realloc
