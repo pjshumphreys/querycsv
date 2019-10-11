@@ -101,10 +101,13 @@ pascal OSErr appleEventQuit(
 void openFileDialog(void);
 void setFont(SInt16 menuItem);
 void setFontSize(SInt16 menuItem);
+int isSelectionEmpty(void);
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
 #if TARGET_API_MAC_TOOLBOX
+#ifndef RETRO68
 #define GetWindowPort(w) w
+#endif
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
 
@@ -128,7 +131,7 @@ extern char * devNull;
   A reference to our assembly language routine that gets attached to the clikLoop
   field of our TE record.
 */
-extern pascal void AsmClikLoop(void);
+extern pascal void ASMCLIKLOOP(void);
 /*
   gMac is used to hold the result of a SysEnvirons call. This makes
   it convenient for any routine to check the environment. It is
@@ -632,6 +635,30 @@ void restoreSettings(void) {
   }
 }
 
+#ifdef RETRO68
+void fsetfileinfo_absolute(
+    const char *filename,
+    unsigned long newcreator,
+    unsigned long newtype
+  ) {
+  OSErr err;
+  Str255 pFile;
+  FInfo fndrInfo;
+
+  strncpy(&pFile[1], filename, 255);
+  pFile[0] = strlen(filename);
+
+  err = HGetFInfo(0, 0, pFile, &fndrInfo);
+
+  if(err == noErr) {
+    fndrInfo.fdType = (OSType)newtype;
+    fndrInfo.fdCreator = (OSType)newcreator;
+
+    HSetFInfo(0, 0, pFile, &fndrInfo);
+  }
+}
+#endif
+
 void PsPStrCopy(StringPtr p1, StringPtr p2) {
   register short len;
 
@@ -768,7 +795,7 @@ void saveWindow(WindowPtr window) {
 
   wind = (Handle)GetResource('WIND', rDocWindow);
 
-  LocalToGlobal(&((Point)windRect));
+  LocalToGlobal(&(*(Point *)&(windRect).top));
 
   HLock(wind);
   rptr = (Rect *) *wind;
@@ -1278,7 +1305,7 @@ int openWindow(void) {
   }
 
   //set the port (Mac OS boilerplate?)
-  SetPort(GetWindowPort(window));
+  SetPort((GrafPtr)GetWindowPort(window));
 
   //  cast the window instance into a DocumentPeek structure,
   //  so we can set up the TextEdit related fields
@@ -1302,7 +1329,7 @@ int openWindow(void) {
     //It seems our substitute routine has to be written in
     //assembly language as "registers need to be mucked with" (???)
     doc->docClik = (ProcPtr) (*doc->docTE)->clickLoop;
-    (*doc->docTE)->clickLoop = (TEClickLoopUPP) AsmClikLoop;
+    (*doc->docTE)->clickLoop = (TEClickLoopUPP) ASMCLIKLOOP;
 
     // Attempt to setup vertical scrollbar control
     doc->docVScroll = GetNewControl(rVScroll, window);
@@ -1934,9 +1961,16 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   int retval;
   size_t newSize;
   char* newStr = NULL;
+  #ifndef HAS_VSNPRINTF
   FILE * pFile;
+  #endif
 
   if(stream == stdout || stream == stderr) {
+    #ifdef HAS_VSNPRINTF
+      va_start(args, format);
+      newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+      va_end(args);
+    #else
     if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
       return FALSE;
     }
@@ -1948,6 +1982,7 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
 
     //close the file. We don't need to look at the return code as we were writing to /dev/null
     fclose(pFile);
+    #endif
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure

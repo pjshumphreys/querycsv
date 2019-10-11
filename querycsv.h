@@ -169,13 +169,16 @@ it becomes needed and because it's useful for debugging */
   /* void macYield(void);
   #define MAC_YIELD macYield(); */
   #define YY_NO_UNISTD_H 1
+  #ifdef RETRO68
+    #define HAS_VSNPRINTF
+  #endif
 
   /* Mac style newlines by default */
   #undef PRM_DEFAULT
   #define PRM_DEFAULT PRM_BLANK | PRM_MAC
 
   /* macs don't have stricmp, so we provide our own implementation */
-  #ifdef __unix__
+  #if defined(__unix__) || defined(RETRO68)
     #undef stricmp
     int stricmp(const char *str1, const char *str2);
   #endif
@@ -191,20 +194,25 @@ it becomes needed and because it's useful for debugging */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
-  #if TARGET_API_MAC_CARBON
-    FILE *fopen_mac(const char *filename, const char *mode);
+
+  #if TARGET_API_MAC_CARBON || defined(RETRO68)
     void fsetfileinfo_absolute(
       const char *filename,
       unsigned long newcreator,
       unsigned long newtype
     );
+  #else
+    #define fsetfileinfo_absolute fsetfileinfo
+  #endif
+
+  #if TARGET_API_MAC_CARBON
+    FILE *fopen_mac(const char *filename, const char *mode);
     #define fopen fopen_mac
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_UTF16BE
   #else
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_MAC
-    #define fsetfileinfo_absolute fsetfileinfo
   #endif
 #endif
 
