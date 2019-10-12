@@ -166,9 +166,8 @@ it becomes needed and because it's useful for debugging */
 #endif
 
 #ifdef MPW_C
-  /* void macYield(void);
-  #define MAC_YIELD macYield(); */
   #define YY_NO_UNISTD_H 1
+
   #ifdef RETRO68
     #define HAS_VSNPRINTF
   #endif
@@ -182,10 +181,6 @@ it becomes needed and because it's useful for debugging */
     #undef stricmp
     int stricmp(const char *str1, const char *str2);
   #endif
-
-  void macYield(void);
-  #undef MAC_YIELD
-  #define MAC_YIELD macYield();
 
   int fputs_mac(const char *str, FILE *stream);
   int fprintf_mac(FILE *stream, const char *format, ...);
@@ -215,6 +210,10 @@ it becomes needed and because it's useful for debugging */
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_UTF16BE
   #else
+    void macYield(void);
+    #undef MAC_YIELD
+    #define MAC_YIELD macYield();
+
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_MAC
   #endif

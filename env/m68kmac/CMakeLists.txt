@@ -1,3 +1,4 @@
+# mac2unix *
 # cmake . -DCMAKE_TOOLCHAIN_FILE=[path to Retro68-build]/toolchain/m68k-apple-macos/cmake/retro68.toolchain.cmake
 
 cmake_minimum_required(VERSION 2.8)

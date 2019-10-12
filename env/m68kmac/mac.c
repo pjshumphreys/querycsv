@@ -1815,6 +1815,11 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   TEHandle handle;
   char *encoded = NULL;
   short res;
+  #ifdef RETRO68
+    const char nl = '\r';
+  #else
+    const char nl = '\n';
+  #endif
 
   if(!mainWindowPtr) {
     return;
@@ -1935,7 +1940,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\r' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == nl && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
@@ -1982,8 +1987,9 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   int retval;
   size_t newSize;
   char* newStr = NULL;
-  #ifndef HAS_VSNPRINTF
-  FILE * pFile;
+
+  #ifndef RETRO68
+    FILE * pFile;
   #endif
 
   if(stream == stdout || stream == stderr) {
