@@ -47,7 +47,7 @@ void updateRunningCounts(
           if(field->isNull == FALSE) {
             stringGet((unsigned char **)(&tempString), field, query->params);
 
-            /* distinct groupings. only add to the count if the column value hasn't aready been seen */
+            /* distinct groupings. only add to the count if the column value hasn't already been seen */
             if(currentResultColumn->groupType > GRP_STAR) { /* distinct variants */
               if(query->groupCount > 1) {
                 tempItem = item->link[0];
@@ -58,7 +58,7 @@ void updateRunningCounts(
                   if(strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&tempString2),
-                    TRUE,
+                    2,
                     (void (*)(void))getUnicodeChar,
                     (void (*)(void))getUnicodeChar
                   ) == 0) {

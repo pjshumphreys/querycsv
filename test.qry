@@ -1,4 +1,4 @@
 select names
 from 'test.csv' as test encoding 'utf-8'
-order by names
+order by names collate 'upper accents'
 --into 'output.txt'

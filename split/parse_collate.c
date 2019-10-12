@@ -9,11 +9,17 @@ int parse_collate(char* currentLocation) {
       return retval;
     }
 
-    if(stricmp(result, "sensitive") == 0) {
+    if(stricmp(result, "lower") == 0) {
       retval |= 1;
+    }
+    else if(stricmp(result, "accents") == 0) {
+      retval |= 2;
     }
     else if(stricmp(result, "digits") == 0) {
       retval |= 4;
+    }
+    else if(stricmp(result, "upper") == 0) {
+      retval |= 8;
     }
 
   } while(1);

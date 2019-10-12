@@ -5,6 +5,14 @@ int strCompare(
     void (*get1)(void),
     void (*get2)(void)
 ) {
+  /*
+    caseSensitive is a bitfield that has the following meaning
+    8 - if true then non lower case letters come first
+    4 - compare numbers as individual characters
+    2 - if true then accented letters come after the base letter. implies bit 1 automatically. otherwise treated the same.
+    1 - if true then lower case letters come first. otherwise treated the same
+  */
+
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
   struct hash4Entry *entry1 = NULL, *entry2 = NULL;
@@ -12,6 +20,7 @@ int strCompare(
   int bytesMatched1 = 0, bytesMatched2 = 0;
   int accentcheck = 0, combinerResult;
   int compareNumbers = TRUE;
+  int upperCaseFirst = FALSE;
 
   MAC_YIELD
 
@@ -19,6 +28,16 @@ int strCompare(
   if(caseSensitive & 4) {
     compareNumbers = FALSE;
     caseSensitive &= ~(4);
+  }
+
+  /* we specified uppercase should come first */
+  if(caseSensitive & 8) {
+    upperCaseFirst = TRUE;
+    caseSensitive &= ~(8);
+
+    if(caseSensitive == 0) {
+      caseSensitive = 1;
+    }
   }
 
   do {  /* we'll quit from this function via other means */
@@ -75,7 +94,13 @@ int strCompare(
                   comparison = strNumberCompare((char *)offset1, (char *)offset2);
                 }
                 else if(caseSensitive == 1) {
-                  comparison = entry1->index - entry2->index;
+                  if(upperCaseFirst && entry1->script == 127) {
+                    comparison = (entry1->index - (entry1->islower) + (entry1->islower == 0 ? 1 : 0)) -
+                      (entry2->index - (entry2->islower) + (entry2->islower == 0 ? 1 : 0));
+                  }
+                  else {
+                    comparison = entry1->index - entry2->index;
+                  }
                 }
                 else {
                   comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
@@ -171,7 +196,13 @@ int strCompare(
               comparison = strNumberCompare((char *)offset1, (char *)offset2);
             }
             else if(caseSensitive == 1) {
-              comparison = entry1->index - entry2->index;
+              if(upperCaseFirst && entry1->script == 127) {
+                comparison = (entry1->index - (entry1->islower) + (entry1->islower == 0 ? 1 : 0)) -
+                  (entry2->index - (entry2->islower) + (entry2->islower == 0 ? 1 : 0));
+              }
+              else {
+                comparison = entry1->index - entry2->index;
+              }
             }
             else {
               comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
