@@ -95,8 +95,8 @@ int strCompare(
                 }
                 else if(caseSensitive == 1) {
                   if(upperCaseFirst && entry1->script == 127) {
-                    comparison = (entry1->index - (entry1->islower) + (entry1->islower == 0 ? 1 : 0)) -
-                      (entry2->index - (entry2->islower) + (entry2->islower == 0 ? 1 : 0));
+                    comparison = (entry1->index - (entry1->islower) + (entry1->islower == 0 ? 1 : entry1->index == 188 ? 2 : 0)) -
+                      (entry2->index - (entry2->islower) + (entry2->islower == 0 ? 1 : entry2->index == 188 ? 2 : 0));
                   }
                   else {
                     comparison = entry1->index - entry2->index;
@@ -197,8 +197,8 @@ int strCompare(
             }
             else if(caseSensitive == 1) {
               if(upperCaseFirst && entry1->script == 127) {
-                comparison = (entry1->index - (entry1->islower) + (entry1->islower == 0 ? 1 : 0)) -
-                  (entry2->index - (entry2->islower) + (entry2->islower == 0 ? 1 : 0));
+                comparison = (entry1->index - (entry1->islower) + (entry1->islower == 0 ? 1 : entry1->index == 188 ? 2 : 0)) -
+                  (entry2->index - (entry2->islower) + (entry2->islower == 0 ? 1 : entry2->index == 188 ? 2 : 0));
               }
               else {
                 comparison = entry1->index - entry2->index;
