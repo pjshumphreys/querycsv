@@ -7,6 +7,7 @@ int strCompare(
 ) {
   /*
     caseSensitive is a bitfield that has the following meaning
+    16 - if true then interleave hiragana and katakana
     8 - if true then non lower case letters come first
     4 - compare numbers as individual characters
     2 - if true then accented letters come after the base letter. implies bit 1 automatically. otherwise treated the same.
@@ -21,6 +22,8 @@ int strCompare(
   int accentcheck = 0, combinerResult;
   int compareNumbers = TRUE;
   int upperCaseFirst = FALSE;
+  int mergeKana = FALSE;
+  int kanacheck = 0;
 
   MAC_YIELD
 
@@ -40,6 +43,12 @@ int strCompare(
     }
   }
 
+  /* we specified uppercase should come first */
+  if(caseSensitive & 16) {
+    mergeKana = TRUE;
+    caseSensitive &= ~(16);
+  }
+
   do {  /* we'll quit from this function via other means */
     /* check if we've reached the end of string 2 */
     if(*offset2 == 0) {
@@ -49,6 +58,13 @@ int strCompare(
       /* if they both are null then the strings are equal. otherwise string 2 is lesser */
       if(*offset1 == 0) {
         if(accentcheck == 0) {
+          if(kanacheck == 1) {
+            kanacheck = 2;
+            offset1 = *str1;
+            offset2 = *str2;
+            continue;
+          }
+
           return 0;
         }
         else {
@@ -107,6 +123,25 @@ int strCompare(
 
                   if((entry1->index - entry2->index) != 0 && caseSensitive == 2) {
                     accentcheck = 1;
+                  }
+                }
+
+                if(comparison != 0) {
+                  return (comparison > 0) ? 1 : -1;
+                }
+              }
+              else if (mergeKana && (
+                (entry1->script == 12448 ? 12353 : entry1->script) ==
+                (entry2->script == 12448 ? 12353 : entry2->script))
+              ) {
+                if(kanacheck == 2) {
+                  comparison = entry1->index - entry2->index;
+                }
+                else {
+                  comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
+
+                  if(comparison == 0 && (entry1->index - entry2->index)) {
+                    kanacheck = 1;
                   }
                 }
 
@@ -214,6 +249,25 @@ int strCompare(
 
             if(comparison != 0) {
               return comparison > 0 ? 1 : -1;
+            }
+          }
+          else if (mergeKana && (
+            (entry1->script == 12448 ? 12353 : entry1->script) ==
+            (entry2->script == 12448 ? 12353 : entry2->script))
+          ) {
+            if(kanacheck == 2) {
+              comparison = entry1->index - entry2->index;
+            }
+            else {
+              comparison = (entry1->index - (entry1->islower)) - (entry2->index - (entry2->islower));
+
+              if(comparison == 0 && (entry1->index - entry2->index)) {
+                kanacheck = 1;
+              }
+            }
+
+            if(comparison != 0) {
+              return (comparison > 0) ? 1 : -1;
             }
           }
           else {

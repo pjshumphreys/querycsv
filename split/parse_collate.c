@@ -24,6 +24,9 @@ int parse_collate(char* currentLocation) {
     else if(stricmp(result, "upper") == 0) {
       retval |= 8;
     }
+    else if(stricmp(result, "kana") == 0) {
+      retval |= 16;
+    }
 
   } while(1);
 }
