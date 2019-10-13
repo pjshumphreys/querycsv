@@ -121,8 +121,8 @@ it becomes needed and because it's useful for debugging */
 
   #ifndef __WATCOMC__
     int vsnprintf(char *s, size_t n, const char *format, va_list arg);
-    #define HAS_VSNPRINTF   /* this function intentionally never works
-    properly on watcom (for source compatability with the windows version) */
+    #define HAS_VSNPRINTF   /* this function intentionally doesn't work
+    properly on watcom (to have source compatability with the windows version) */
   #endif
 
   /* used as posix doesn't have stricmp */
@@ -153,8 +153,8 @@ it becomes needed and because it's useful for debugging */
     #define YYFPRINTF fprintf_dos   /* for the bison parser */
 
     #ifdef __WATCOMC__
-      #include <locale.h>  /*we need to call setlocale after setting the
-      TZ environment variable for gmtime to work correctly on msdos watcom*/
+      #include <locale.h>  /* we need to call setlocale after setting the
+      TZ environment variable for gmtime to work correctly on msdos watcom */
     #endif
 
     #undef ENC_INPUT
@@ -266,7 +266,7 @@ Just use long ones for that compiler */
     #undef PRM_DEFAULT
     #define PRM_DEFAULT PRM_BLANK | PRM_UNIX
 
-    #include <unixlib.h> /*for chdir? */
+    #include <unixlib.h> /* for chdir */
 
     void setupRiscOS(int *argc, char ***argv);  /* additional stuff needed at start up */
 
