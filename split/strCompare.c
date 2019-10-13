@@ -65,7 +65,7 @@ int strCompare(
           }
         }
 
-        if(kanacheck == 1) {
+        if(kanacheck) {
           kanacheck = 2;
         }
 
