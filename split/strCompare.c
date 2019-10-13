@@ -57,26 +57,25 @@ int strCompare(
 
       /* if they both are null then the strings are equal. otherwise string 2 is lesser */
       if(*offset1 == 0) {
-        if(accentcheck == 0) {
-          if(kanacheck == 1) {
-            kanacheck = 2;
-            offset1 = *str1;
-            offset2 = *str2;
-            continue;
-          }
-
-          return 0;
-        }
-        else {
+        if(accentcheck) {
           /* a difference just on the accents on a letter were found. re-compare with accent checking enabled. */
           accentcheck = 2;
           if(caseSensitive == 2) {
             caseSensitive = 1;
           }
+        }
+
+        if(kanacheck == 1) {
+          kanacheck = 2;
+        }
+
+        if(accentcheck || kanacheck) {
           offset1 = *str1;
           offset2 = *str2;
           continue;
         }
+
+        return 0;
       }
 
       return 1;
