@@ -33,26 +33,34 @@
 
 #else
 
+#include <Types.h>
 #include <Quickdraw.h>
-#include <MacWindows.h>
+#include <Fonts.h>
+#include <Controls.h>
+#include <Menus.h>
+#include <TextEdit.h>
 #include <Dialogs.h>
-#include <Menus.h>
-#include <ToolUtils.h>
-#include <Devices.h>
-#include <Drag.h>
-#include <AppleEvents.h>
-#include <Gestalt.h>
-#include <DiskInit.h>
-#include <Resources.h>
-#include <TextUtils.h>
-#include <Menus.h>
-#include <ControlDefinitions.h>
 #include <Scrap.h>
+#include <ToolUtils.h>
+#include <Memory.h>
+#include <Files.h>
+#include <DiskInit.h>
+#include <Packages.h>
+#include <Resources.h>
+#include <Devices.h>
+#include <Events.h>
+#include <Gestalt.h>
+#include <ControlDefinitions.h>
+#include <StandardFile.h>
+
 
 #endif
 
 #include <Traps.h>
 
+void restoreSettings(void);
+void saveSettings(void);
+void PsPStrCopy(StringPtr p1, StringPtr p2);
 int main(void);
 void setupMLTE(void);
 void alertUser(short error);
@@ -93,10 +101,13 @@ pascal OSErr appleEventQuit(
 void openFileDialog(void);
 void setFont(SInt16 menuItem);
 void setFontSize(SInt16 menuItem);
+int isSelectionEmpty(void);
 
 #define TARGET_API_MAC_TOOLBOX (!TARGET_API_MAC_CARBON)
 #if TARGET_API_MAC_TOOLBOX
+#ifndef RETRO68
 #define GetWindowPort(w) w
+#endif
 QDGlobals qd;   /* qd is needed by the Macintosh runtime */
 #endif
 
@@ -414,6 +425,7 @@ pascal OSErr openItems(AEDescList * docList) {
 
   FSSpec      theFSSpec;
   Size        actualSize;
+  Str255      str;
 
   FSRef       theFSRef;
   char* fileName = NULL;
@@ -499,9 +511,9 @@ pascal OSErr openItems(AEDescList * docList) {
     )) == noErr &&
     (result = HSetVol(0, theFSSpec.vRefNum, theFSSpec.parID)) == noErr
   ) {
-    reallocMsg((void**)&progArg, 64);  //SFReply.fName is a STR63, plus 1 for the null character
-    p2cstrcpy(progArg, theFSSpec.name);
-    reallocMsg((void**)&progArg, strlen(progArg)+1);
+    memcpy((char*)&str, ((char *)&(theFSSpec.name)), sizeof(Str255));
+    p2cstr(str);
+    progArg = mystrdup((char*)str);
 
     windowNotOpen = FALSE;
   }
@@ -625,14 +637,14 @@ void setupMenus(void) {
       Gestalt(gestaltMenuMgrAttr, &result) == noErr &&
       (result & gestaltMenuMgrAquaLayoutMask) != 0
     ) {
-    menu = GetMenuHandle(mFile);
+    menu = GetMHandle(mFile);
     DeleteMenuItem(menu, mFileQuit);
     macOSVersion = 0x1000;
     devNull = "/dev/null";  /* needed as the carbon build can run on OS X */
   }
 #endif
 
-  menu = GetMenuHandle(mFont);
+  menu = GetMHandle(mFont);
   AppendResMenu(menu, 'FONT');
 
   DrawMenuBar();
@@ -645,38 +657,54 @@ void restoreSettings(void) {
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
   strh = GetString(rZoomPrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)fontName, (void *)*strh, 256);
-    p2cstr(fontName);
-    windowZoomed = atoi((char *)fontName);
+    HLock((Handle)strh);
+    memcpy((void *)&fontName, (void *)*strh, 256);
+    HUnlock((Handle)strh);
+    p2cstr((unsigned char *)&fontName);
+    windowZoomed = atoi((char*)&fontName);
     ReleaseResource((Handle)strh);
   }
 
   //font size (in a bit of a roundabout way but I know this'll work)
   strh = GetString(rFontSizePrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)fontName, (void *)*strh, 256);
-    p2cstr(fontName);
-    fontSizeIndex = atoi((char *)fontName);
+    HLock((Handle)strh);
+    memcpy((void *)&fontName, (void *)*strh, 256);
+    HUnlock((Handle)strh);
+    p2cstr((unsigned char *)&fontName);
+    fontSizeIndex = atoi((char *)&fontName);
     ReleaseResource((Handle)strh);
   }
 
   //font name
   strh = GetString(rFontPrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)fontName, (void *)*strh, 256);
+    HLock((Handle)strh);
+    PsPStrCopy(*strh, (StringPtr)&fontName);
+    HUnlock((Handle)strh);
     ReleaseResource((Handle)strh);
   }
 }
 
+void PsPStrCopy(StringPtr p1, StringPtr p2) {
+  register short len;
+
+  len = *p2++ = *p1++;
+  while( --len >= 0 ) {
+    *p2++ = *p1++;
+  }
+}
+
 void saveSettings(void) {
-  Str255 str;
   StringHandle strh;
-  StringHandle strh2;
+  char str[256];
 
   //font name
   strh = GetString(rFontPrefStr);
   if(strh != (StringHandle) NULL) {
-    memcpy((void *)*strh, (void *)fontName, 256);
+    HLock((Handle)strh);
+    PsPStrCopy((StringPtr)&fontName, *strh);
+    HUnlock((Handle)strh);
     ChangedResource((Handle)strh);
     WriteResource((Handle)strh);
     ReleaseResource((Handle)strh);
@@ -684,25 +712,29 @@ void saveSettings(void) {
 
   //whether the window is zoomed (in a bit of a roundabout way but I know this'll work).
   //The non zoomed window dimensions are loaded from & saved to the 'WIND' resource
-  strh2 = GetString(rZoomPrefStr);
-  if(strh2 != (StringHandle) NULL) {
-    sprintf((char *)str, "%d", windowZoomed);
-    c2pstr((char *)str);
-    memcpy((void *)*strh2, (void *)str, 256);
-    ChangedResource((Handle)strh2);
-    WriteResource((Handle)strh2);
-    ReleaseResource((Handle)strh2);
+  strh = GetString(rZoomPrefStr);
+  if(strh != (StringHandle) NULL) {
+    sprintf((char *)&str, "%d", windowZoomed);
+    c2pstr((char *)&str);
+    HLock((Handle)strh);
+    PsPStrCopy((StringPtr)&str, *strh);
+    HUnlock((Handle)strh);
+    ChangedResource((Handle)strh);
+    WriteResource((Handle)strh);
+    ReleaseResource((Handle)strh);
   }
 
   //font size (in a bit of a roundabout way but I know this'll work)
-  strh2 = GetString(rFontSizePrefStr);
-  if(strh2 != (StringHandle) NULL) {
-    sprintf((char *)str, "%d", fontSizeIndex);
-    c2pstr((char *)str);
-    memcpy((void *)*strh2, (void *)str, 256);
-    ChangedResource((Handle)strh2);
-    WriteResource((Handle)strh2);
-    ReleaseResource((Handle)strh2);
+  strh = GetString(rFontSizePrefStr);
+  if(strh != (void *)NULL) {
+    sprintf((char *)&str, "%d", fontSizeIndex);
+    c2pstr((char *)&str);
+    HLock((Handle)strh);
+    PsPStrCopy((StringPtr)&str, *strh);
+    HUnlock((Handle)strh);
+    ChangedResource((Handle)strh);
+    WriteResource((Handle)strh);
+    ReleaseResource((Handle)strh);
   }
 }
 
@@ -713,11 +745,11 @@ void adjustMenus(int setStyles) {
   Boolean found = FALSE;
   Str255 currentFontName;
 
-  menu = GetMenuHandle(mFile);
+  menu = GetMHandle(mFile);
   if(mainWindowPtr) {
     DisableMenuItem(menu, mFileOpen);
 
-    menu = GetMenuHandle(mEdit);
+    menu = GetMHandle(mEdit);
     EnableMenuItem(menu, mEditSelectAll);
 
     if(isSelectionEmpty()) {
@@ -728,9 +760,9 @@ void adjustMenus(int setStyles) {
     }
   }
 
-  menu = GetMenuHandle(mFont);
+  menu = GetMHandle(mFont);
   for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
-    GetMenuItemText(menu, i, currentFontName);
+    GetItem(menu, i, currentFontName);
 
     if(!found && EqualString(fontName, currentFontName, TRUE, TRUE)) {
       SetItemMark(menu, i, checkMark);
@@ -747,7 +779,7 @@ void adjustMenus(int setStyles) {
   }
 
   if(!found) {
-    GetMenuItemText(menu, 1, fontName);
+    GetItem(menu, 1, fontName);
     SetItemMark(menu, 1, checkMark);
 
     if(setStyles) {
@@ -756,7 +788,7 @@ void adjustMenus(int setStyles) {
   }
 
   found = FALSE;
-  menu = GetMenuHandle(mSize);
+  menu = GetMHandle(mSize);
 
   for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
@@ -790,7 +822,7 @@ void saveWindow(WindowPtr window) {
 
   wind = (Handle)GetResource('WIND', rDocWindow);
 
-  LocalToGlobal(&((Point)windRect));
+  LocalToGlobal(&(*(Point *)&(windRect).top));
 
   HLock(wind);
   rptr = (Rect *) *wind;
@@ -1032,7 +1064,7 @@ void setFont(SInt16 menuItem) {
   TXNObject object;
   short res;
 
-  GetMenuItemText(GetMenuHandle(mFont), menuItem, fontName);
+  GetItem(GetMHandle(mFont), menuItem, fontName);
 
   if(mainWindowPtr) {
     getTXNObject(mainWindowPtr, &object);
@@ -1117,7 +1149,7 @@ void menuSelect(long mResult) {
       else {
         /* all non-About items in this menu are Desk Accessories */
         /* type Str255 is an array in MPW 3 */
-        GetMenuItemText(GetMenuHandle(mApple), theItem, daName);
+        GetItem(GetMHandle(mApple), theItem, daName);
         OpenDeskAcc(daName);
       }
 #endif
@@ -1333,10 +1365,15 @@ void loopTick(void) {
 }
 
 void macYield(void) {
-  loopTick(); // get one event
+  static int countr = 0;
 
-  if(quit) {
-    ExitToShell();
+  if(countr++ > 500) {
+    countr = 0;
+    loopTick(); // get one event
+
+    if(quit) {
+      ExitToShell();
+    }
   }
 }
 
@@ -1445,6 +1482,11 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   size_t len;
   short res;
   wchar_t *wide = NULL;
+  #ifdef RETRO68
+    const char nl = '\r';
+  #else
+    const char nl = '\n';
+  #endif
 
   if(!mainWindowPtr) {
     return;
@@ -1490,21 +1532,39 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
       }
 
       switch(startPoint[lineChars]) {
-        case '\r': {
-          startPoint[lineChars] = '\n';
+        #ifdef RETRO68
+          case '\n': {
+            startPoint[lineChars] = '\r';
 
-          if(startPoint[lineChars+1] == '\n') {
-            skipByte = TRUE;
-          }
+            lineChars++;
+            charsLeft--;
+          } break;
 
-          lineChars++;
-          charsLeft--;
-        } break;
+          case '\r': {
+            if(startPoint[lineChars+1] == '\n') {
+              skipByte = TRUE;
+            }
 
-        case '\n': {
-          lineChars++;
-          charsLeft--;
-        } break;
+            lineChars++;
+            charsLeft--;
+          } break;
+        #else
+          case '\r': {
+            startPoint[lineChars] = '\n';
+
+            if(startPoint[lineChars+1] == '\n') {
+              skipByte = TRUE;
+            }
+
+            lineChars++;
+            charsLeft--;
+          } break;
+
+          case '\n': {
+            lineChars++;
+            charsLeft--;
+          } break;
+        #endif
 
         case '\0': {
           charsLeft--;
@@ -1571,7 +1631,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
     }
 
     //allocate another line if one is needed
-    if(startPoint[lineChars-1] == '\n' && lastLine->lineLength != 0) {
+    if(startPoint[lineChars-1] == nl && lastLine->lineLength != 0) {
       lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
 
       if(lastLine->nextLine == NULL) {
@@ -1606,8 +1666,6 @@ int fputs_mac(const char *str, FILE *stream) {
     len = fputs(str, stream);
   }
 
-  macYield();
-
   return len;
 }
 
@@ -1616,20 +1674,29 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   int retval;
   size_t newSize;
   char* newStr = NULL;
-  FILE * pFile;
+
+  #ifndef RETRO68
+    FILE * pFile;
+  #endif
 
   if(stream == stdout || stream == stderr) {
-    if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
-      return FALSE;
-    }
+    #ifdef RETRO68
+      va_start(args, format);
+      newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+      va_end(args);
+    #else
+      if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
+        return FALSE;
+      }
 
-    //get the space needed for the new string
-    va_start(args, format);
-    newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
-    va_end(args);
+      //get the space needed for the new string
+      va_start(args, format);
+      newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
+      va_end(args);
 
-    //close the file. We don't need to look at the return code as we were writing to /dev/null
-    fclose(pFile);
+      //close the file. We don't need to look at the return code as we were writing to /dev/null
+      fclose(pFile);
+    #endif
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
@@ -1656,8 +1723,6 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
     retval = vfprintf(stream, format, args);
     va_end(args);
   }
-
-  macYield();
 
   return retval;
 }
@@ -1823,6 +1888,8 @@ int main(void) {
       loopTick();
     }
   }
+
+  ExitToShell();
 
   return EXIT_SUCCESS; //macs don't do anything with the return value
 }
