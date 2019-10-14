@@ -39,7 +39,12 @@ void tree_walkAndCleanup(
     }
 
     if(*root == NULL) {
-      *root = currentResult;
+      if(currentResult->parent && currentResult->parent->link[1] == currentResult) {
+       *root = currentResult->parent;
+      }
+      else {
+        *root = currentResult;
+      }
     }
 
     currentResult->type = TRE_CONVERTED;
