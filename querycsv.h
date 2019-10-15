@@ -204,16 +204,16 @@ it becomes needed and because it's useful for debugging */
     #define fsetfileinfo_absolute fsetfileinfo
   #endif
 
+  void macYield(void);
+  #undef MAC_YIELD
+  #define MAC_YIELD macYield();
+
   #if TARGET_API_MAC_CARBON
     FILE *fopen_mac(const char *filename, const char *mode);
     #define fopen fopen_mac
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_UTF16BE
   #else
-    void macYield(void);
-    #undef MAC_YIELD
-    #define MAC_YIELD macYield();
-
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_MAC
   #endif

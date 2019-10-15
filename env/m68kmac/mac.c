@@ -1233,6 +1233,8 @@ void growWindow(WindowPtr window, EventRecord *event) {
   DocumentPeek doc;
   TEHandle     handle;
 
+  windowZoomed = 0;
+
   //set up limiting values
   tempRect = getScreenBounds();
 
@@ -1769,10 +1771,9 @@ void loopTick(void) {
 }
 
 void macYield(void) {
-  static int countr = 0;
+  EventRecord event;
 
-  if(countr++ > 500) {
-    countr = 0;
+  if(EventAvail(-1, &event)) {
     loopTick(); // get one event
 
     if(quit) {

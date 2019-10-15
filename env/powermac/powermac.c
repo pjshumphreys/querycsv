@@ -899,6 +899,8 @@ void closeWindow(WindowPtr window) {
 void growWindow(WindowPtr window, EventRecord *event) {
   TXNObject object;
 
+  windowZoomed = 0;
+
   if(isApplicationWindow(window)) {
     TXNGrowWindow(*getTXNObject(window, &object), event);
   }
@@ -937,7 +939,7 @@ int openWindow(void) {
     NULL, /* can be NULL */
     window,
     &frame, /* can be NULL */
-    kTXNShowWindowMask|kTXNReadOnlyMask|
+    kTXNShowWindowMask|
     kTXNWantHScrollBarMask|kTXNWantVScrollBarMask|
     kOutputTextInUnicodeEncodingMask|
     kTXNSaveStylesAsSTYLResourceMask|kTXNDrawGrowIconMask,
@@ -1365,10 +1367,9 @@ void loopTick(void) {
 }
 
 void macYield(void) {
-  static int countr = 0;
+  EventRecord event;
 
-  if(countr++ > 500) {
-    countr = 0;
+  if(EventAvail(-1, &event)) {
     loopTick(); // get one event
 
     if(quit) {
