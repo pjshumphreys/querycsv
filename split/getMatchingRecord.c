@@ -1,11 +1,10 @@
 
 int clause1(struct inputTable *currentInputTable) {
   int c;
-  int byteLength;
 
   MAC_YIELD
 
-  c = getCurrentCodepoint(currentInputTable, &byteLength);
+  c = getCurrentCodepoint(currentInputTable, NULL);
 
   if(c != MYEOF) {
     return TRUE;
