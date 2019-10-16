@@ -1,13 +1,13 @@
 
 int clause1(struct inputTable *currentInputTable) {
   int c;
+  int byteLength;
 
   MAC_YIELD
 
-  c = fgetc(currentInputTable->fileStream);
-  ungetc(c, currentInputTable->fileStream);
+  c = getCurrentCodepoint(currentInputTable, &byteLength);
 
-  if(c != EOF) {
+  if(c != MYEOF) {
     return TRUE;
   }
 
