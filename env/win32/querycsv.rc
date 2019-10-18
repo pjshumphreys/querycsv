@@ -1,0 +1,14 @@
+#include <windows.h>
+#include <commctrl.h>
+#include <richedit.h>
+#include "resource.h"
+
+//
+// Icon resources
+//
+LANGUAGE 0, SUBLANG_NEUTRAL
+IDI_ICON1          ICON           "qcsv32.ico"
+
+
+LANGUAGE 0, SUBLANG_NEUTRAL
+IDI_ICON2          ICON           "qcsv16.ico"
