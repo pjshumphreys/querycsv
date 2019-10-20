@@ -2,7 +2,7 @@
 #include <wincon.h>
 #include <fcntl.h>
 #include <io.h>
-//#include <direct.h>
+#include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <shellapi.h>
@@ -247,7 +247,7 @@ void setupWin32(int *argc, char ***argv) {
   //cut up the string. we can't use CommandLineToArgvW as it doesn't work in older versions of win32. behaviour should be as described on "the old new thing"
   for(i = 0, j = 0; i < sizeNeeded; ) {
     switch(test[i]) {
-      case '\\':
+      case '\\': {
         if(maybeNewField) {
           argc_w32++;
           maybeNewField = FALSE;
@@ -268,9 +268,9 @@ void setupWin32(int *argc, char ***argv) {
           i++;
           j++;
         }
-      break;
+      } break;
 
-      case ' ':
+      case ' ': {
         if(notInQuotes) {
            test[j] = '\0';
            maybeNewField = TRUE;
@@ -284,18 +284,19 @@ void setupWin32(int *argc, char ***argv) {
         }
         i++;
         j++;
-      break;
+      } break;
 
-      case '"':
+      case '"': {
         notInQuotes = !notInQuotes;
         i++;
-      break;
+      } break;
 
-      case '\0':
+      case '\0': {
+        test[j] = '\0';
         i++;
-      break;
+      } break;
 
-      default:
+      default: {
         if(maybeNewField) {
           argc_w32++;
           maybeNewField = FALSE;
@@ -303,7 +304,7 @@ void setupWin32(int *argc, char ***argv) {
         test[j] = test[i];
         i++;
         j++;
-      break;
+      } break;
     }
   }
 
@@ -329,6 +330,30 @@ void setupWin32(int *argc, char ***argv) {
 
   *argc = argc_w32;
   *argv = argv_w32;
+}
+
+int chdir_w32(const char *dirname) {
+  int len;
+  wchar_t *wide = NULL;
+  int retval;
+
+  if(hasUtf8) {
+    len = MultiByteToWideChar(CP_UTF8, 0, dirname, -1, NULL, 0);
+
+    if((wide = (wchar_t*)malloc(sizeof(wchar_t)*len)) == NULL) {
+      return NULL;
+    }
+
+    MultiByteToWideChar(CP_UTF8, 0, dirname, -1, wide, len);
+
+    retval = _wchdir(wide);
+
+    free(wide);
+
+    return retval;
+  }
+
+  return _chdir(dirname);
 }
 
 FILE *fopen_w32(const char *filename, const char *mode) {

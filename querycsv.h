@@ -126,6 +126,7 @@ it becomes needed and because it's useful for debugging */
   #endif
 
   /* used as posix doesn't have stricmp */
+  #include <unistd.h> /* for _chdir */
   #include <strings.h>
   #include <locale.h>
   #define stricmp strcasecmp
@@ -138,8 +139,10 @@ it becomes needed and because it's useful for debugging */
     void setupWin32(int * argc, char *** argv);
     int fputs_w32(const char *str, FILE *stream);
     int fprintf_w32(FILE *stream, const char *format, ...);
+    int chdir_w32(const char *dirname);
     FILE *fopen_w32(const char *filename, const char *mode);
 
+    #define chdir chdir_w32
     #define fputs fputs_w32
     #define fopen fopen_w32
     #define fprintf fprintf_w32
@@ -148,6 +151,7 @@ it becomes needed and because it's useful for debugging */
     int fputs_dos(const char *str, FILE *stream);
     int fprintf_dos(FILE *stream, const char *format, ...);
 
+    #define chdir _chdir
     #define fputs fputs_dos
     #define fprintf fprintf_dos
     #define YYFPRINTF fprintf_dos   /* for the bison parser */

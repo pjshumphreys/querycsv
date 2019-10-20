@@ -1,7 +1,7 @@
 #include "sql.h"
 #include "lexer.h"
 
-int readQuery(char *queryFileName, struct qryData *query) {
+int readQuery(char *origFileName, struct qryData *query) {
   FILE *queryFile = NULL;
   void *scanner = NULL;
   struct inputTable *currentInputTable;
@@ -13,17 +13,29 @@ int readQuery(char *queryFileName, struct qryData *query) {
   char* errSyntax = TDB_PARSER_SYNTAX;
   char* errRam = TDB_PARSER_USED_ALL_RAM;
   char* errUnknown = TDB_PARSER_UNKNOWN;
-
-  MAC_YIELD
+  char* queryFileName = NULL;
 
   /* read the query file and create the data structures we'll need */
   /* ///////////////////////////////////////////////////////////// */
+
+/* on windows or posix change the current directory so filenames in the query file are relative to it */
+#if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) && !(defined(EMSCRIPTEN) || defined(MPW_C))
+  if(!d_fullpath(origFileName, &queryFileName)) {
+    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+    return EXIT_FAILURE;
+  }
+#else
+  queryFileName = mystrdup(origFilename);
+#endif
+
+  MAC_YIELD
 
   /* attempt to open the input file */
 
   queryFile = skipBom(queryFileName, NULL, &initialEncoding);
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+    free(queryFileName);
     return EXIT_FAILURE;
   }
 
@@ -76,6 +88,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     if(queryFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      free(queryFileName);
       return EXIT_FAILURE;
     }
 
@@ -108,6 +121,7 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
       /* Quit early if a command was run */
       if(query->commandMode) {
+        free(queryFileName);
         return EXIT_SUCCESS;
       }
 
@@ -116,21 +130,13 @@ int readQuery(char *queryFileName, struct qryData *query) {
 
     case 1:
       /* the input script contained a syntax error. show message and exit */
-      fputs("\n", stderr);
-
-    return EXIT_FAILURE;
-
     case 2:
       /* the input script parsing exhausted memory storage space. show message and exit */
-      fputs("\n", stderr);
-
-    return EXIT_FAILURE;
-
     default:
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs("\n", stderr);
-
+      free(queryFileName);
     return EXIT_FAILURE;
   }
 
@@ -199,6 +205,8 @@ int readQuery(char *queryFileName, struct qryData *query) {
   query->parseMode = 1;
 
   queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+  free(queryFileName); /* not needed any more */
+
   if(queryFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
     return EXIT_FAILURE;
@@ -229,20 +237,17 @@ int readQuery(char *queryFileName, struct qryData *query) {
     case 1:
       /* the input script contained a syntax error. show message and exit */
       fputs(errSyntax, stderr);
-
     return EXIT_FAILURE;
 
     case 2:
       /* the input script parsing exhausted memory storage space. show message and exit */
       fputs(errRam, stderr);
-
     return EXIT_FAILURE;
 
     default:
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
       fputs(errUnknown, stderr);
-
     return EXIT_FAILURE;
   }
 
