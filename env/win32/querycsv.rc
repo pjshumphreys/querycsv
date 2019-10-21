@@ -6,11 +6,6 @@
 //
 // Icon resources
 //
-LANGUAGE 0, SUBLANG_NEUTRAL
-IDI_ICON1          ICON           "qcsv16.ico"
 
 LANGUAGE 0, SUBLANG_NEUTRAL
-IDI_ICON2          ICON           "qcsv32.ico"
-
-LANGUAGE 0, SUBLANG_NEUTRAL
-IDI_ICON3          ICON           "qcsv48.ico"
+IDI_ICON1          ICON           "querycsv.ico"
