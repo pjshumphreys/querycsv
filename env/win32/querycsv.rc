@@ -1,7 +1,12 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <richedit.h>
-#include "resource.h"
+
+#ifndef IDC_STATIC
+#define IDC_STATIC (-1)
+#endif
+
+#define IDI_ICON1                               100
 
 //
 // Icon resources
