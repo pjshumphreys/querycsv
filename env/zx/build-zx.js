@@ -247,18 +247,32 @@ function compileHash4c() {
 
 /* compile the data segment to a memory page.
 (this will be appended to each memory page at the same address in high memory) */
-function compileTextConstants() {
-  console.log('compileData');
-}
+let pageSize;
 
 function addROData() {
   console.log('addROData');
 
   /* build the global data but exclude the hash4 strings */
-  execSync(' mv build/ro/i_1hash4*.asm build/ && cat build/ro/i_1*.asm >> build/data.asm && ' +
-      'echo "  SECTION code_compiler" >> build/data.asm && mv build/i_1hash4*.asm build/ro/'
+  execSync(' mv build/ro/i_1hash4*.asm build/ && cat build/ro/i_1*.asm >> build/rodata.asm && ' +
+      'echo "  SECTION code_compiler" >> build/rodata.asm && rm build/ro/i_1*.asm && mv build/i_1hash4*.asm build/ro/'
     );
 
+  execSync('z80asm -b build/rodata.asm');
+  const rodataSize = fs.statSync("build/rodata.bin").size;
+  pageSize = 16384 - rodataSize;
+  execSync(`z80asm -b -m -r=${65535 - rodataSize} build/rodata.asm`);
+
+  fs.readFileSync("build/rodata.map", 'utf8').replace(/(i_1[a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, function() {
+    var arr = [].slice.call(arguments, 0);
+    var extras = arr.splice(-2);
+
+    fs.writeFileSync(`build/ro/${arr[1]}.asm`, `IFNDEF ${arr[1]}
+    ${arr[1]} = \$${arr[2]}
+ENDIF
+`,'utf8');
+  });
+
+  /* de-duplicate global variables */
   execSync('sort build/globals.asm | uniq > build/globals2.asm &&' +
       ' rm build/globals.asm && mv build/globals2.asm build/globals.asm'
     );
@@ -468,8 +482,6 @@ function packPages(tree) {
   /* use a bin packing algorithm to group the functions close
   to their call-stack parents and produce a binary of each 16k page */
 
-  const pageSize = 16384;
-
   const pages = [[tree['main']]];
   const remainingSizes = [pageSize];
   let currentPageData = {};
@@ -506,7 +518,7 @@ function packPages(tree) {
 
       currentFunctions = currentFunctions.concat(children);
 
-      // sort by size and filter the functions that've already allocated
+      // sort by size and filter the functions that've already been allocated
       currentFunctions = currentFunctions
         .sort((a, b) => {
           // prioritize functions whose parent function is already in the current page
@@ -526,8 +538,6 @@ function packPages(tree) {
 
           return obj;
         }, { seenNames: {}, newArr: [] }).newArr;
-
-      // if the array has become empty then all functions were placed
 
       // place the biggest first. if all of then add the children. if none of the children can
       for(let i = 0; i < currentFunctions.length; i++) {
@@ -588,8 +598,15 @@ function compilePages(pages) {
     addDefines('page' + (index + 6), elem.map(elem2 => elem2.name), 'h', true);
   });
 
+  //end of the runtime of this build-zx.js file. Log what we did for now
   console.log(hashMap);
 }
+
+
+
+
+
+
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
 

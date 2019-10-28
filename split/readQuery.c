@@ -25,7 +25,7 @@ int readQuery(char *origFileName, struct qryData *query) {
     return EXIT_FAILURE;
   }
 #else
-  queryFileName = mystrdup(origFilename);
+  queryFileName = mystrdup(origFileName);
 #endif
 
   MAC_YIELD

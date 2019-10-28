@@ -22,6 +22,8 @@ struct hash4Entry entry2Internal = {NULL, 0, 0, 0};
 
 char * devNull = NULL;
 
+const double minusOne = -1;
+
 /*dedup string literals */
 const char* TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
 const char* TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;

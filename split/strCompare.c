@@ -1,3 +1,15 @@
+int clause5(int script1, int script2) {
+  if(script1 == 12448) {
+    script1 = 12353;
+  }
+
+  if(script2 == 12448) {
+    script2 = 12353;
+  }
+
+  return script1 == script2;
+}
+
 int strCompare(
     unsigned char **str1,
     unsigned char **str2,
@@ -17,13 +29,20 @@ int strCompare(
   unsigned char *offset1 = *str1, *offset2 = *str2;
   long char1 = 0, char2 = 0;
   struct hash4Entry *entry1 = NULL, *entry2 = NULL;
-  int firstChar = TRUE, comparison = 0, char1found = FALSE;
-  int bytesMatched1 = 0, bytesMatched2 = 0;
-  int accentcheck = 0, combinerResult;
-  int compareNumbers = TRUE;
-  int upperCaseFirst = FALSE;
-  int mergeKana = FALSE;
-  int kanacheck = 0;
+  int firstChar = TRUE;
+  int compareNumbers;
+  int combinerResult;
+  int comparison;
+  int char1found;
+  int bytesMatched1;
+  int bytesMatched2;
+  int accentcheck;
+  int upperCaseFirst;
+  int mergeKana;
+  int kanacheck;
+
+  comparison = char1found = bytesMatched1 = bytesMatched2 =
+  accentcheck = kanacheck = 0;
 
   MAC_YIELD
 
@@ -31,6 +50,9 @@ int strCompare(
   if(caseSensitive & 4) {
     compareNumbers = FALSE;
     caseSensitive &= ~(4);
+  }
+  else {
+    compareNumbers = TRUE;
   }
 
   /* we specified uppercase should come first */
@@ -42,11 +64,17 @@ int strCompare(
       caseSensitive = 1;
     }
   }
+  else {
+    upperCaseFirst = FALSE;
+  }
 
   /* we specified uppercase should come first */
   if(caseSensitive & 16) {
     mergeKana = TRUE;
     caseSensitive &= ~(16);
+  }
+  else {
+    mergeKana = FALSE;
   }
 
   do {  /* we'll quit from this function via other means */
@@ -129,10 +157,7 @@ int strCompare(
                   return (comparison > 0) ? 1 : -1;
                 }
               }
-              else if (mergeKana && (
-                (entry1->script == 12448 ? 12353 : entry1->script) ==
-                (entry2->script == 12448 ? 12353 : entry2->script))
-              ) {
+              else if (mergeKana && clause5(entry1->script, entry2->script)) {
                 if(kanacheck == 2) {
                   comparison = entry1->index - entry2->index;
                 }
@@ -250,10 +275,7 @@ int strCompare(
               return comparison > 0 ? 1 : -1;
             }
           }
-          else if (mergeKana && (
-            (entry1->script == 12448 ? 12353 : entry1->script) ==
-            (entry2->script == 12448 ? 12353 : entry2->script))
-          ) {
+          else if (mergeKana && clause5(entry1->script, entry2->script)) {
             if(kanacheck == 2) {
               comparison = entry1->index - entry2->index;
             }
