@@ -1,3 +1,18 @@
+/*
+  we'll need to generate the loaders and c library pages 5 times
+
+  esxdos 48k
+  esxdos 128k
+  residos 48k
+  residos 128k
+  plus3dos 128k
+
+all other pages should be sharable
+*/
+
+
+
+
 const childProcess = require('child_process');
 const execSync = childProcess.execSync;
 const fs = require('graceful-fs');
@@ -19,7 +34,6 @@ const functionsList = [
   ['exit', 3, 0x0001, 'farCall'],
   ['_strtod', 3, 0x0001, 'farCall'],
   ['mallinit', 3, 0x0001, 'farCall'],
-  ['sbrk_callee', 3, 0x0001, 'farCall'],
   ['malloc', 3, 0x0001, 'farCall'],
   ['free', 3, 0x0001, 'farCall'],
   ['realloc_callee', 3, 0x0001, 'farCall'],
@@ -45,13 +59,12 @@ const functionsList = [
   ['fputc_callee', 3, 0x0001, 'farCall'],
   ['fputs_callee', 3, 0x0001, 'farCall'],
   ['feof', 3, 0x0001, 'farCall'],
-  ['fputc_cons', 3, 0xbcf5, 'farCall'],
   ['fprintf', 3, 0x0001, 'farCall'],
   ['sprintf', 3, 0x0001, 'farCall'],
   ['vsnprintf', 3, 0x0001, 'farCall'],
 
   /* variables */
-  ['heap', 3, 0x0002, 'farCall'],
+  ['_heap', 3, 0x0002, 'farCall'],
   ['returnByte', 3, 0x0002, 'farCall'],
   ['entry', 3, 0x0002, 'farCall'],
   ['retval', 3, 0x0002, 'farCall'],
@@ -88,6 +101,16 @@ function start() {
 
 function compileLibC() {
   console.log('compileLibC');
+
+  //plus3dos
+  execSync('zcc +zx -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ libc.c myfputc_cons.asm -m -o qrycsv03.ovl');
+
+  //residos
+  execSync('zcc +zx -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ libc.c myfputc_cons.asm -m -o qrycsv04.ovl');
+
+  //esxdos
+  execSync('zcc +zx -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ libc.c myfputc_cons.asm -m -o qrycsv05.ovl');
+
 
   compileLexer();
 }
@@ -259,7 +282,7 @@ function addROData() {
 
   execSync('z80asm -b build/rodata.asm');
   const rodataSize = fs.statSync("build/rodata.bin").size;
-  pageSize = 16384 - rodataSize;
+  pageSize = 16200 - rodataSize;
   execSync(`z80asm -b -m -r=${65535 - rodataSize} build/rodata.asm`);
 
   fs.readFileSync("build/rodata.map", 'utf8').replace(/(i_1[a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, function() {

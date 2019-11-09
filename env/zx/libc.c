@@ -13,6 +13,7 @@ double fltOne = 1.0;
 double fltTen = 10.0;
 double fltSmall;
 int fltNotInited = 1;
+long heap;
 
 double pow10a(int exp) {
   int sign = 0;
@@ -261,6 +262,13 @@ int main(int argc, char* argv[]) {
 }
 */
 
+void * memcpy_zx(void * destination, const void * source, size_t num) {
+  return memcpy(destination, source, num);
+}
+
+void * memset_zx(void * ptr, int value, size_t num) {
+  return memset(ptr, value, num);
+}
 
 char * a = "%d";
 
@@ -269,7 +277,9 @@ void b(char * string, unsigned char * format, ...) {
   va_list args2;
 
   FILE* test;
-  int num;
+  long num;
+
+  num = atol(string);
 
   mallinit();
   sbrk(24000, 4000);
@@ -282,14 +292,15 @@ void b(char * string, unsigned char * format, ...) {
   strcpy(string, a);
   fgets(string, 1, stdin);
   num = strcmp(a, string);
+  num = stricmp(a, string);
   num = strncmp(a, string, 3);
   num = strlen(string);
   string = strstr(string, a);
 
-  memset(string, 0, 4);
+  memset_zx(string, 0, 4);
   strcat(string, a);
   strncat(string, a, 3);
-  memcpy(string+1, string, 2);
+  memcpy_zx(string+1, string, 2);
   memmove(string+1, string, 2);
 
   fprintf(test, a, 1);
@@ -321,5 +332,7 @@ void b(char * string, unsigned char * format, ...) {
 
 int main(int argc, char * argv[]) {
   b(a, (unsigned char *)a);
+  exit(0);
+
   return 0;
 }

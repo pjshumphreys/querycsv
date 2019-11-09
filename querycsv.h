@@ -6,10 +6,36 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
+
+#ifdef __Z88DK
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF
+
+  /* classic clib z88dk doesn't have ferror. stub it out */
+  #define ferror(...) 0
+  #define mystrnicmp strnicmp
+
+  double strtod(const char* str, char** endptr);  /* z88dk doesn't
+  have strtod, but does have floating point support. We supply our own implementation */
+
+  /*
+  z88dk doesn't have bsearch, but it does have l_bsearch.
+  employ some macro magic to smooth things over.
+  */
+  #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
+
+  #ifndef FLEXINT_H
+    #include <stdint.h>
+  #endif
+
+  #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
+as long as the function using them uses the __stdc calling convention */
+#endif
+
+#include <stdarg.h>
 
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
@@ -317,28 +343,6 @@ Just use long ones for that compiler */
   #define ENC_OUTPUT ENC_ATARIST
   #undef ENC_PRINT
   #define ENC_PRINT ENC_ATARIST
-#endif
-
-#ifdef __Z88DK
-  #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF
-
-  /* classic clib z88dk doesn't have ferror. stub it out */
-  #define ferror(...) 0
-  #define mystrnicmp strnicmp
-
-  double strtod(const char* str, char** endptr);  /* z88dk doesn't
-  have strtod, but does have floating point support. We supply our own implementation */
-
-  /*
-  z88dk doesn't have bsearch, but it does have l_bsearch.
-  employ some macro magic to smooth things over.
-  */
-  #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
-
-  #ifndef FLEXINT_H
-    #include <stdint.h>
-  #endif
 #endif
 
 /* ugly hacks to raise the game of cc65 */

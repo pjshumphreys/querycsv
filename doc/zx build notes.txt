@@ -1,10 +1,10 @@
-pull together just the rodata that should be at the end of all pages
+pull together just the rodata that should be at the end of all pages DONE
 
 
-locate it at the end of memory
+locate it at the end of memory DONE
 
 
-reduce the bin packing size of all pages, which by default is 16384, by the size of the rodata.bin file
+reduce the bin packing size of all pages, which by default is 16384, by the size of the rodata.bin file DONE
 
 
 figure how functions in a memory pages won't directly reference other functions in the same page. maybe I
