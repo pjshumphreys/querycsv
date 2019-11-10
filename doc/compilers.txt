@@ -1,6 +1,7 @@
 vbcc (amiga/atarist)
 cc65 (c64)
-basilisk+mpw (m68kmac)
+z88dk (zx spectrum)
+basilisk+retro68 (m68kmac)
 sheepshaver+mpw (powermac)
 rpcemu+norcroft (risc os)
 emscripten (html5)
@@ -8,4 +9,4 @@ gcc (linux/mac os x)
 wine+open watcom (dos/windows)
 
 
-disk images should be created for riscos, amiga, m68kmac and powermac. This is because the filesystems contain additional metadata needed for executables to work correctly and that info can't be put into a windows zip file.
+disk images should be created for amiga. This is because the filesystems contain additional metadata needed for executables to work correctly and that info can't be put into a windows zip file.

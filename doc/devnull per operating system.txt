@@ -12,8 +12,10 @@ RiscOS - NULL:
 
 VBCC (Amiga, Atari ST)
 Watcom (DOS, Windows, Linux 32-Bit)
-Norcroft (BBC ARM, RiscOS 26-bit, RiscOS 32-bit)
-MPW (m68k Mac OS, PowerPC MacOS)
+Norcroft 2 (BBC ARM)
+Norcroft (RiscOS 32-bit)
+Retro68 (m68k Mac OS)
+MPW (PowerPC MacOS)
 CC65 (Commodore 64)
 z88dk (ZX Spectrum, MSX)
 Emscripten (HTML5)

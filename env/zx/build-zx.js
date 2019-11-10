@@ -10,9 +10,6 @@
 all other pages should be sharable
 */
 
-
-
-
 const childProcess = require('child_process');
 const execSync = childProcess.execSync;
 const fs = require('graceful-fs');
@@ -62,15 +59,22 @@ const functionsList = [
   ['fprintf', 3, 0x0001, 'farCall'],
   ['sprintf', 3, 0x0001, 'farCall'],
   ['vsnprintf', 3, 0x0001, 'farCall'],
-
-  /* variables */
-  ['_heap', 3, 0x0002, 'farCall'],
-  ['returnByte', 3, 0x0002, 'farCall'],
-  ['entry', 3, 0x0002, 'farCall'],
-  ['retval', 3, 0x0002, 'farCall'],
-  ['st_yyparse_yylval', 3, 0x0002, 'farCall'],
-  ['numberEntry', 3, 0x0002, 'farCall']
 ];
+
+/* variables */
+var defines = {
+  '_st_yyparse_yylval': 0
+  '_entry': 0,
+  '_codepoints': 0,
+  '_hash4export': 0,
+  '_entry1Internal': 0,
+  '_entry2Internal': 0,
+  '_devNull': 0,
+  '_numberEntry': 0,
+  '_i': 0,
+  '_retval': 0,
+  '_returnByte': 0
+};
 
 const rodataLabels = [];
 
@@ -103,14 +107,44 @@ function compileLibC() {
   console.log('compileLibC');
 
   //plus3dos
-  execSync('zcc +zx -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ libc.c myfputc_cons.asm -m -o qrycsv03.ovl');
+  execSync('zcc +zx -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
+  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
+  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ data.asm libc.c '+
+  'myfputc_cons.asm -m -o qrycsv01.ovl');
 
-  //residos
-  execSync('zcc +zx -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ libc.c myfputc_cons.asm -m -o qrycsv04.ovl');
+  //residos 48k
+  execSync('zcc +zx -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
+  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
+  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ data.asm libc.c '+
+  'myfputc_cons.asm -m -o qrycsv02.ovl');
 
-  //esxdos
-  execSync('zcc +zx -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ libc.c myfputc_cons.asm -m -o qrycsv05.ovl');
+  //residos 128k
+  execSync('zcc +zx -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
+  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
+  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ data.asm libc.c '+
+  'myfputc_cons.asm -m -o qrycsv03.ovl');
 
+  //esxdos 48k
+  execSync('zcc +zx -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
+  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
+  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ data.asm libc.c '+
+  'myfputc_cons.asm -m -o qrycsv04.ovl');
+
+  //esxdos 128k
+  execSync('zcc +zx -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
+  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
+  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ data.asm libc.c '+
+  'myfputc_cons.asm -m -o qrycsv05.ovl');
 
   compileLexer();
 }
@@ -660,7 +694,7 @@ function splitUpFunctions(filename, callback, append) {
   if(!append) {
     writePause(
       data,
-      '\tSECTION\tdata_compiler\n'
+      '\tSECTION\tBSS\n'
     );
   }
 

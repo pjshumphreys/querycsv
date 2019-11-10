@@ -10,7 +10,7 @@ what is mint (unix compatability layer like unixlib on riscos? non rom enhanced 
 what is gemdos (set of msdos api like generic syscalls)
 what is bios/xbios (syscalls for atari specific hardware control that suppliment gemdos)
 what is VDI (Virtual Device Interface) (like mswindows gdi?)
-what is AES (Application Environment Services) (window creation and widget set? multitasking?)
+what is AES (Application Environment Services) (window creation and widget set)
 gem desktop (an application that uses aes to present windows to manage files)
 
 

@@ -8,11 +8,11 @@
  * license: public domain
  */
 
-double fltMinusOne = -1.0;
-double fltOne = 1.0;
-double fltTen = 10.0;
+const double fltMinusOne = -1.0;
+const double fltOne = 1.0;
+const double fltTen = 10.0;
 double fltSmall;
-int fltNotInited = 1;
+int fltInited;
 long heap;
 
 double pow10a(int exp) {
@@ -49,9 +49,9 @@ double strtod(const char *str, char **end) {
 
   a = p = str;
 
-  if(fltNotInited) {
+  if(fltInited == 0) {
     fltSmall = pow10a(-309);
-    fltNotInited = 0;
+    fltInited = 1;
   }
 
   /*skip white space */
