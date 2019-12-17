@@ -63,7 +63,7 @@ dorom2:
   push af
   ld a, (usingBanks)
 
-  ;test for 0
+  ;test whether usingBanks is 0
   inc a
   dec a
   jr z, doromnopage

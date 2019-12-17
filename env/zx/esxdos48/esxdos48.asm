@@ -28,16 +28,16 @@ include "globals.inc"
   push af
   push bc
   ld c, DIVMMC
-  ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  ld a, 0b10000000 ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
   ld a, 0x2000
   ld b, a
-  ld a, 10000100b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
+  ld a, 0b10000100 ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
   out (c), a
   ld a, 0x2000
   inc a
   ld 0x2000, a
-  ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  ld a, 0b10000000 ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
   ld a, 0x2000
   xor b   ; iff is different then only 32k available
@@ -55,150 +55,54 @@ include "globals.inc"
   defb 0x03 ; out of memory
 
 has128k:
-  pop bc
-  pop af
   ei
 
   ld a, 1
   ld (usingBanks), a
 
-; copy all the data from this page to elsewhere in the memory map
-;copydata:
-  ld hl, page2page
-  ld de, origin
-  ld bc, page2pageend-page2page
+  ; copy page to page code to somewhere in ram
+  ld hl, 0xc000  ; Pointer to the source
+  ld de, 0x4000  ; Pointer to the destination
+  ld bc, 0x1b00  ; Number of bytes to move
   ldir
 
-  di
-  exx
-  ld (exhlBackup), hl      ; save BASIC's HL'
-  exx
-  ei
+  ;put the string constants at the top of ram (in each of pages 0,1,3,4,6,7 for esxdos 128k)
 
-  ld hl, jumpback
-  ld (lastCall+1), hl
+  ;pager and atexit code into ram somewhere
+  ld hl, 0xc000  ; Pointer to the source
+  ld de, 0x4000  ; Pointer to the destination
+  ld bc, 0x1b00  ; Number of bytes to move
+  ldir
 
-  ld a, 4  ; how many loads to do
-  push af
-
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 112  ; ceil(223/2)
-  ld c, 1
-  ld (bcBackup), bc
-  ld hl, 0xec20+223
-  ld (hlBackup), hl
-  ld hl, first
-
-Loop:
-  ld d, (hl)
-  inc hl
-  ld e, (hl)
+  ;copy 6 16k pages into shadow ram ((128k-32k)/16k)
+  push hl
   push de
-  inc hl
-  djnz Loop
-  dec c
-  jr nz, Loop
-  ld a, 7  ; which page to go to
-  ld bc, (bcBackup)
-  ld hl, (hlBackup)
-  jp 0xbd00
-jumpback:
-  pop af
-  dec a
-  push af
-  cp 3
-  jr z, secondcopy
-  cp 2
-  jr z, thirdcopy
-  cp 1
-  jr z, fourthcopy
-
-  pop af
-  jr inf
-
-secondcopy:
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 228
-  ld c, 1
-  ld (bcBackup), bc
-  ld hl, 0xf511+455
-  ld (hlBackup), hl
-  ld hl, second
-  jr Loop
-
-thirdcopy:
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 192
-  ld c, 1
-  ld (bcBackup), bc
-  ld hl, 0xe438+383
-  ld (hlBackup), hl
-  ld hl, third
-  jr Loop
-
-fourthcopy:
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 57
-  ld c, 1
-  ld (bcBackup), bc
-  ld hl, 0xe60e+113
-  ld (hlBackup), hl
-  ld hl, fourth
-  jr Loop
-
-inf:
-  ; restore the interrupt mode 2 bytes
-  ld b, 255
-  ld hl, 0xbd00
-intSetup:
-  ld (hl), 0xbe
-  inc hl
-  djnz intSetup
-
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
-  di
-  ld a, 0xbd
-  ld i, a
-  im 2  ; Set Interrupt Mode 2
-  ei
-
-  ;copy 6 16k pages into shadow ram ((128k-32k)/16k) until either we've done all banks or we can't allocate any more memory
   ld hl, pageLocations+6
   ld de, 0x0006  ; start at page 6
+  ld a, 5
 loopAlloc:
-  ld a, (hl)
-  push de
-  push hl
-  cp 0
-  jr z, startup3
-  ld iy, RESI_ALLOC   ; get free bank
-  call doresi
-  jr nc, startup2   ; call failed if Fc=0
-  pop hl
-  pop de
   ld (hl), a  ; save for later
+  push af
+  and 0b10000000
+  out (c), a
+  pop af
 
   ;load the data into the page
   call loadFromDisk2
 
   inc hl
   inc de
-  jr loopAlloc
+  inc a
+  cp 15
+  jr nz, loopAlloc
 
-startup3:
-  ld a, (defaultBank)  ; bank obtained by RESI_ALLOC
-  call mypager  ; switch it in to $0000-$3fff
-
-startup2:
   pop de
   pop hl
+  ld a, 0b10000100 ; go to the page we'll be using as extra heap space
+  out (c), a
+  pop bc
+  pop af
 
-failed:
   ; get the filename to load from basic variable a$
   ; zx_getstraddr:
   ld d, 'A'
@@ -267,26 +171,11 @@ startup:
 
   jp atexit
 
+mypager
+
 bcBackup:
   defw 0x0000
 
-first:
-  binary "fputc_cons_first.bin"
-  defb 0
-
-second:
-  binary "fputc_cons_second.bin"
-
-third:
-  binary "fputc_cons_third.bin"
-
-fourth:
-  binary "atexit.bin"
-
-page2page:
-  binary "pager_part1.bin"
-  binary "pager_part2.bin"
-page2pageend:
 
 start:
   INCLUDE "crt/classic/crt_section.asm"
