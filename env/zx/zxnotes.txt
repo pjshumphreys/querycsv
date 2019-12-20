@@ -1,0 +1,58 @@
+doresi
+dodos
+call_rom3 ; run code from basic rom
+atexit ; call at any time to quit back to the basic command prompt, optionally with an error code
+farCall ; call a function in another memory page
+loadPage
+printNoFile
+printLn
+fputc_cons
+
+(any additional functions)
+
+; the table ends at 0xbfff
+
+
+
+
+lookup table
+------------
+
+; layout
+jsr farCall
+defb (page number)
+jsr farCall
+defb (page number)
+
+ld (hlBackup), hl
+ld (bcBackup), bc
+ld (deBackup), de
+pop hl
+
+ld bc, (currentPage)
+push bc
+
+ld bc, farRet
+push bc
+
+push af
+ld bc, (hl)
+ld a, b
+ld (currentPage), a
+
+ld de, jumpTableStart
+sbc hl, de
+
+;shift right 1 bits (divide by 2)
+srl h
+rr l
+
+ld de, lookupTableStart
+add hl, de
+pop af
+
+push hl
+ld de, (deBackup)
+ld bc, (bcBackup)
+ld hl, (hlBackup)
+ret

@@ -7,32 +7,34 @@ NXTLIN equ  0x5c55
 org 0xc000
   jp hello
 
+  ld bc, newProgEnd-newProg
+  ld de, newProg
+
+loadBasic:
   ;set NEWPPC to $000a
-  ld de, $000a
-  ld (NEWPPC), de
+  ld hl, $000a
+  ld (NEWPPC), hl
 
   ;set NSPPC to 0
+  push af
   ld a, 0
   ld (NSPPC), a
+  pop af
 
-  ;set VARS to prog + (newProgEnd-newProg) - 1
+  ;set VARS to prog + (newProgEnd-newProg)
   ld hl, (PROG)
-  ld bc, newProgEnd-newProg
   add hl, bc
-  dec hl
   ld (VARS), hl
 
-  ;set NXTLIN to prog + (newProgEnd-newProg) - 3
+  ;set NXTLIN to prog + (newProgEnd-newProg) - 2
   dec hl
   dec hl
   ld (NXTLIN), hl
 
   ;copy the new program
   ld hl, (PROG)
-  ld de, newProg
-  ;ld bc, newProgEnd-newProg
+  ex de, hl
   ldir
-
   ret
 
 newProg:
