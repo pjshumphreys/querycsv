@@ -108,8 +108,8 @@ loop:
   ld a, (de)
   or a
   jr z, exit
-  ;ld b, a
-  ld c, a
+  ld b, a
+  ;ld c, a
   push bc
   call fputc_cons
   pop bc

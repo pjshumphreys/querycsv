@@ -6,7 +6,7 @@ export ZCCCFG:=$(HOME)/z88dk/lib/config
 .SECONDARY:
 
 .PHONY: all
-all: querycsv.tap qrycsv03.ovl
+all: qrycsv03.ovl
 
 ###############################################################################
 # Poor man's dependencies: Let all files depend from all header files
@@ -15,16 +15,6 @@ all: querycsv.tap qrycsv03.ovl
 ###############################################################################
 # create a crt image from a binary image
 #
-
-querycsv.bin: querycsv.asm
-	z80asm -b querycsv.asm
-
-querycsv.bas: querycsv.bin
-	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "{BE}23635+256*{BE}23636+51"\n30 REM' > querycsv.bas
-	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\{\1\}/g" >> querycsv.bas
-
-querycsv.tap: querycsv.bas
-	./bas2tap -a10 -squerycsv querycsv.bas querycsv.tap
 
 #qrycsv01.ovl:
 

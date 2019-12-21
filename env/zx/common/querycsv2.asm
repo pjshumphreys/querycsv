@@ -1,8 +1,4 @@
-port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
-bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
-
-ERR_NR equ 0x5c3a   ; BASIC system variables
-ERR_SP equ 0x5c3d
+ERR_SP equ 0x5c3d  ; BASIC system variables
 PROG equ 0x5c53
 NEWPPC equ 0x5c42
 NSPPC equ 0x5c44
@@ -12,6 +8,8 @@ NXTLIN equ  0x5c55
 RST_HOOK equ 8
 __ESXDOS_SYS_M_GETSETDRV equ 0x89
 HOOK_VERSION equ 0xfc
+
+include "equs.inc"
 
 org 0xc000
   jp hello  ; jump to the placeholder payload if all this is successful
@@ -27,7 +25,7 @@ memoryType:
 
 hello:
   ld de, helloMsg
-  jp printLn
+  jp printLn2
 
 helloMsg:
   defb "Hello, World!\n", 0
@@ -87,28 +85,28 @@ esxcont:
   call reenter
 
   ; copy all the pieces of code we'll need to continue with into the right places
-  ld hl, printLn
-  ld de, 0xC000-printLnEnd+printLn
-  ld bc, printLnEnd-printLn
+  ld hl, printLn2
+  ld de, 0xC000-printLn2End+printLn2
+  ld bc, printLn2End-printLn2
   di
   ldir
   ei
 
   pop af
-  ld (0xbfe5), a ; save default drive for later
+  ld (defaultDrive), a ; save default drive for later
 
   ld hl, dosload_esxdos
-  ld de, 0xC000-printLnEnd+printLn-dosload_esxdosEnd+dosload_esxdos
-  ld (0xbffe), de
+  ld de, 0xC000-printLn2End+printLn2-dosload_esxdosEnd+dosload_esxdos
+  ld (dosload+1), de
   ld bc, dosload_esxdosEnd-dosload_esxdos
   di
   ldir
   ei
 
-  ld hl, fputc_con_rst
-  ld de, 0xC000-printLnEnd+printLn-dosload_esxdosEnd+dosload_esxdos-fputc_con_rstEnd+fputc_con_rst
-  ld (0xbff8), de
-  ld bc, fputc_con_rstEnd-fputc_con_rst
+  ld hl, fputc_cons_rst
+  ld de, 0xC000-printLn2End+printLn2-dosload_esxdosEnd+dosload_esxdos-fputc_cons_rstEnd+fputc_cons_rst
+  ld (fputc_cons+1), de
+  ld bc, fputc_cons_rstEnd-fputc_cons_rst
   di
   ldir
   ei
@@ -119,11 +117,11 @@ esxcont:
   jr nz, esxgot128
 
   ld a, 0x04  ; '4'
-  jp 0xbffd ; dosload
+  jp dosload
 
 esxgot128:
   ld a, 0x05  ; '5'
-  jp 0xbffd ; dosload
+  jp dosload
 
 ;-------------------------------------
 ; resicheck
@@ -163,33 +161,33 @@ resicont:
   call reenter
 
   ; copy all the pieces of code we'll need to continue with into the right places
-  ld hl, printLn
-  ld de, 0xC000-printLnEnd+printLn
-  ld bc, printLnEnd-printLn
+  ld hl, printLn2
+  ld de, 0xC000-printLn2End+printLn2
+  ld bc, printLn2End-printLn2
   di
   ldir
   ei
 
-  ld hl, dosload
-  ld de, 0xC000-printLnEnd+printLn-dosloadEnd+dosload
-  ld (0xbffe), de
-  ld bc, dosloadEnd-dosload
+  ld hl, dosload_residos
+  ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos
+  ld (dosload+1), de
+  ld bc, dosload_residosEnd-dosload_residos
   di
   ldir
   ei
 
   ld hl, dodos_residos
-  ld de, 0xC000-printLnEnd+printLn-dosloadEnd+dosload-dodos_residosEnd+dodos_residos
-  ld (0xbffb), de
+  ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_residosEnd+dodos_residos
+  ld (dodos+1), de
   ld bc, dodos_residosEnd-dodos_residos
   di
   ldir
   ei
 
-  ld hl, fputc_con_rst
-  ld de, 0xC000-printLnEnd+printLn-dosloadEnd+dosload-dodos_residosEnd+dodos_residos-fputc_con_rstEnd+fputc_con_rst
-  ld (0xbff8), de
-  ld bc, fputc_con_rstEnd-fputc_con_rst
+  ld hl, fputc_cons_rst
+  ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_residosEnd+dodos_residos-fputc_cons_rstEnd+fputc_cons_rst
+  ld (fputc_cons+1), de
+  ld bc, fputc_cons_rstEnd-fputc_cons_rst
   di
   ldir
   ei
@@ -200,11 +198,11 @@ resicont:
   jr nz, resigot128
 
   ld a, 0x02  ; '2'
-  jp 0xbffd ; dosload
+  jp dosload
 
 resigot128:
   ld a, 0x03  ; '3'
-  jp 0xbffd ; dosload
+  jp dosload
 
 ;-------------------------------------
 ; plus3check
@@ -222,39 +220,39 @@ plus3check:
   call reenter
 
   ; copy all the pieces of code we'll need to continue with into the right places
-  ld hl, printLn
-  ld de, 0xC000-printLnEnd+printLn
-  ld bc, printLnEnd-printLn
+  ld hl, printLn2
+  ld de, 0xC000-printLn2End+printLn2
+  ld bc, printLn2End-printLn2
   di
   ldir
   ei
 
-  ld hl, dosload
-  ld de, 0xC000-printLnEnd+printLn-dosloadEnd+dosload
-  ld (0xbffe), de
-  ld bc, dosloadEnd-dosload
+  ld hl, dosload_residos
+  ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos
+  ld (dosload+1), de
+  ld bc, dosload_residosEnd-dosload_residos
   di
   ldir
   ei
 
   ld hl, dodos_plus3
-  ld de, 0xC000-printLnEnd+printLn-dosloadEnd+dosload-dodos_plus3End+dodos_plus3
-  ld (0xbffb), de
+  ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_plus3End+dodos_plus3
+  ld (dodos+1), de
   ld bc, dodos_plus3End-dodos_plus3
   di
   ldir
   ei
 
-  ld hl, fputc_con_rst
-  ld de, 0xC000-printLnEnd+printLn-dosloadEnd+dosload-dodos_plus3End+dodos_plus3-fputc_con_rstEnd+fputc_con_rst
-  ld (0xbff8), de
-  ld bc, fputc_con_rstEnd-fputc_con_rst
+  ld hl, fputc_cons_rst
+  ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_plus3End+dodos_plus3-fputc_cons_rstEnd+fputc_cons_rst
+  ld (fputc_cons+1), de
+  ld bc, fputc_cons_rstEnd-fputc_cons_rst
   di
   ldir
   ei
 
   ld a, 0x01  ; overlay page '1'
-  jp 0xbffd ; dosload
+  jp dosload
 
 plus3fail:
   ; if its not then show a message
@@ -313,9 +311,9 @@ failProg:
   defb $00, $0a, $39, $00, $f5, $22, "Either ESXDOS, ResiDOS v1.40+ or PLUS3DOS is required", $22, $0d, $ff, $0d, $80
 failProgEnd:
 
-fputc_con_rst:
-  binary "fputc_con_rst.bin"
-fputc_con_rstEnd:
+fputc_cons_rst:
+  binary "fputc_cons_rst.bin"
+fputc_cons_rstEnd:
 
 dodos_plus3:
   binary "dodos_plus3.bin"
@@ -325,14 +323,14 @@ dodos_residos:
   binary "dodos_residos.bin"
 dodos_residosEnd:
 
-dosload:
+dosload_residos:
   binary "dosload.bin"
-dosloadEnd:
+dosload_residosEnd:
 
 dosload_esxdos:
   binary "dosload_esxdos.bin"
 dosload_esxdosEnd:
 
-printLn:
+printLn2:
   binary "printLn.bin"
-printLnEnd:
+printLn2End:
