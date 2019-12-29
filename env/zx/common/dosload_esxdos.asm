@@ -9,10 +9,15 @@ include "equs.inc"
 ; esxload
 
 esxload:
-  ;convert 8 bit int to ascii.
-  scf ; set carry flag
-  ccf ; invert carry flag (to make it be not set)
-  daa ; bcd correct register A
+  ;convert 8 bit int to 2 ascii bytes and update filename.
+  ld c, a  ; Original (hex) number
+  ld b, 8  ; How many bits
+  xor a   ; Output (BCD) number, starts at 0
+bcdloop:
+  sla c   ; shift c into carry
+  adc a, a
+  daa     ; Decimal adjust a, so shift = BCD x2 plus carry
+  djnz bcdloop  ; Repeat for 8 bits
   ld b, a
   rra
   rra

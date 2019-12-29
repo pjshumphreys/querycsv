@@ -26,11 +26,15 @@ org 0xc000
   ld hl, mypager2
   ld (mypager+1), hl
 
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
   ; update atexit jump
   ld hl, 0x2100 ; ld hl, $00...
   ld (atexit), hl
   ld hl, 0x00cd ; ...00; call
-  ld a, l
+  ld a, h
   ld (atexit+2), hl
   ld hl, jp_rom3
   ld (atexit+4), hl
@@ -45,12 +49,12 @@ org 0xc000
   ld a, 4  ; how many loads to do
   push af
 
-  xor a
+  ld a, 7
   ld (destinationHighBank), a  ; which page to go to
-  ld b, 110  ; ceil(220/2)
-  ld c, 1
+  ld b, [[firstEnd - first] % 512] / 2
+  ld c, [[firstEnd - first] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xec20+220
+  ld hl, 0xec20 - first + firstEnd - 1
   ld (hlBackup), hl
   ld hl, first
 
@@ -63,7 +67,8 @@ Loop:
   djnz Loop
   dec c
   jr nz, Loop
-  ld a, 7  ; which page to go back to
+  xor a  ; which page to go back to
+  ld (bankmBackup), a
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   jp 0xbd00
@@ -82,28 +87,28 @@ jumpback:
   jr inf
 
 secondcopy:
-  ld b, 231
-  ld c, 1
+  ld b, [[secondEnd - second] % 512] / 2
+  ld c, [[secondEnd - second] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xf511+461
+  ld hl, 0xf511 - second + secondEnd - 1
   ld (hlBackup), hl
   ld hl, second
   jr Loop
 
 thirdcopy:
-  ld b, 192
-  ld c, 1
+  ld b, [[thirdEnd - third] % 512] / 2
+  ld c, [[thirdEnd - third] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xe438+383
+  ld hl, 0xe438 - third + thirdEnd - 1
   ld (hlBackup), hl
   ld hl, third
   jr Loop
 
 fourthcopy:
-  ld b, 59
-  ld c, 1
+  ld b, [[fourthEnd - fourth] % 512] / 2
+  ld c, [[fourthEnd - fourth] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xe60e+118
+  ld hl, 0xe60e - fourth + fourthEnd - 1
   ld (hlBackup), hl
   ld hl, fourth
   jr Loop
@@ -263,16 +268,19 @@ startup:
 
 first:
   binary "fputc_cons_first.bin"
+firstEnd:
 
 second:
   binary "fputc_cons_second.bin"
-  defb 0
+secondEnd:
 
 third:
   binary "fputc_cons_third.bin"
+thirdEnd:
 
 fourth:
   binary "atexit.bin"
+fourthEnd:
 
 page2page:
   binary "pager.bin"

@@ -211,9 +211,12 @@ cr_1:
   ld (chrloc), hl
   ret
 
+if ASMPC % 2 != 0
+  defb 0
+endif
+
 SECTION second
 org 0xf511
-
 
 ; This nastily inefficient table is the code table for the routines
 ; Done this way for future! Expansion
@@ -568,6 +571,11 @@ clear_loop:
   pop ix
   pop hl
   ret
+
+if ASMPC % 2 != 0
+  defb 0
+endif
+
 
   SECTION third
   org 0xe438

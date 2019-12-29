@@ -10,6 +10,7 @@ PUBLIC defaultBank
 PUBLIC defaultDrive
 PUBLIC destinationHighBank
 PUBLIC skip_count
+PUBLIC isr
 
 PUBLIC pagename
 
@@ -23,7 +24,6 @@ PUBLIC port1
 PUBLIC bankm
 PUBLIC ERR_NR
 PUBLIC SCR_CT
-PUBLIC __sgoioblk
 
 ;-------------------------------------
 ;printNoFile
@@ -75,25 +75,8 @@ exhlBackup:
 spBackup:
   defw 0
 
-CRT_ENABLE_STDIO = 1
-__CRT_KEY_CAPS_LOCK = 6
-__CRT_KEY_DEL = 12
-
-PUBLIC  __sgoioblk
-PUBLIC  __sgoioblk_end
-PUBLIC  __FOPEN_MAX
-DEFC    CLIB_FOPEN_MAX = 10
-defc    __FOPEN_MAX = CLIB_FOPEN_MAX
-
-GLOBAL __CRT_KEY_CAPS_LOCK
-GLOBAL __CRT_KEY_DEL
-
 _heap:
   defb 0, 0, 0, 0
-
-__sgoioblk:
-  defs CLIB_FOPEN_MAX * 10      ;stdio control block
-__sgoioblk_end:        ;end of stdio control block
 
 ;---------------------------------
 ; call_rom3

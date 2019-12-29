@@ -4,9 +4,12 @@ org 0xbd00
   di
   push af
   ld a, (bankm)  ; get current switch state
-  ld (bankmBackup), a
   and 0xf8  ; also want RAM page
   push hl
+  ld hl, bankmBackup
+  or (hl)
+  ld (bankmBackup), a
+  and 0xf8
   ld hl, destinationHighBank
   or (hl)
   pop hl
@@ -64,3 +67,9 @@ loadFromDisk2:
   pop hl
   pop de
   ret
+
+defs 0x101 - ASMPC, 0xbf
+
+mypager2:
+  ret ; just return until the proper paging code is installed into this location
+  defs 31, 0xaa
