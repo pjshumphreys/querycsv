@@ -1,53 +1,56 @@
-include "page2page.map"
-include "pager.map"
+include "residos128.inc"
 
+VARS equ 0x5c4b
+
+DOS_SET_1346 equ 0x013f
 RESI_GETPAGER equ 0x031c
 RESI_FINDBASIC equ 0x0322
 RESI_ALLOC equ 0x0325
 
-DOS_SET_1346 equ 0x013f
-
-VARS equ 0x5c4b
-
 org 0xc000
-
-CRT_ENABLE_STDIO = 1
-__CRT_KEY_CAPS_LOCK = 6
-__CRT_KEY_DEL = 12
-
-GLOBAL _heap
-GLOBAL fputc_cons
-GLOBAL dodos
-GLOBAL __CRT_KEY_CAPS_LOCK
-GLOBAL __CRT_KEY_DEL
-
-include "globals.inc"
-
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
-  ld hl, page2page
-  ld de, origin
-  ld bc, page2pageend-page2page
-  ldir
+  ld hl, page2page ; source
+  ld de, farCall ; destination
+  ld (farcall+1), de ; update the farcall address
+  ld bc, page2pageend-page2page ; size
 
   di
+  ldir
   exx
   ld (exhlBackup), hl      ; save BASIC's HL'
   exx
   ei
 
+  ;update the mypager jump
+  ld hl, mypager2
+  ld (mypager+1), hl
+
+  ; update atexit jump
+  ld hl, 0x2100 ; ld hl, $00...
+  ld (atexit), hl
+  ld hl, 0x00cd ; ...00; call
+  ld a, l
+  ld (atexit+2), hl
+  ld hl, jp_rom3
+  ld (atexit+4), hl
+
+  ;update fputc_cons jump
+  ld (fputc_cons), a ; put 0xcd (call) into the fputc_cons location
+  ld (fputc_cons+1), hl ; put jp_rom3 address here
+
   ld hl, jumpback
-  ld (lastCall+1), hl
+  ld (jumptoit+1), hl
 
   ld a, 4  ; how many loads to do
   push af
 
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 112  ; ceil(223/2)
+  xor a
+  ld (destinationHighBank), a  ; which page to go to
+  ld b, 110  ; ceil(220/2)
   ld c, 1
   ld (bcBackup), bc
-  ld hl, 0xec20+223
+  ld hl, 0xec20+220
   ld (hlBackup), hl
   ld hl, first
 
@@ -60,7 +63,7 @@ Loop:
   djnz Loop
   dec c
   jr nz, Loop
-  ld a, 7  ; which page to go to
+  ld a, 7  ; which page to go back to
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   jp 0xbd00
@@ -79,19 +82,15 @@ jumpback:
   jr inf
 
 secondcopy:
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 228
+  ld b, 231
   ld c, 1
   ld (bcBackup), bc
-  ld hl, 0xf511+455
+  ld hl, 0xf511+461
   ld (hlBackup), hl
   ld hl, second
   jr Loop
 
 thirdcopy:
-  ld a, 0  ; which page to go back to
-  push af
   ld b, 192
   ld c, 1
   ld (bcBackup), bc
@@ -101,12 +100,10 @@ thirdcopy:
   jr Loop
 
 fourthcopy:
-  ld a, 0  ; which page to go back to
-  push af
-  ld b, 57
+  ld b, 59
   ld c, 1
   ld (bcBackup), bc
-  ld hl, 0xe60e+113
+  ld hl, 0xe60e+118
   ld (hlBackup), hl
   ld hl, fourth
   jr Loop
@@ -116,9 +113,13 @@ inf:
   ld b, 255
   ld hl, 0xbd00
 intSetup:
-  ld (hl), 0xbe
+  ld (hl), 0xbf
   inc hl
   djnz intSetup
+
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
 
   ; switch to interrupt mode 2 so we can use the iy register and
   ; ram at 0x0000-0x2000 with interrupts enabled
@@ -135,7 +136,8 @@ intSetup:
   call dodos
 
   ; setup the residos pager
-  ld de, mypager  ; location for paging routine
+  ld de, 0xbd00 - 32; mypager  ; location for paging routine
+  ld (mypager+1), de  ; update the jump table record
   ld iy, RESI_GETPAGER  ; +3DOS call ID
   call doresi
   jr nc, failed  ; call failed if Fc=0
@@ -151,9 +153,6 @@ intSetup:
   jr nc, failed  ; call failed if Fc=0
   ld (defaultBank), a  ; save for later
 
-  ld a, 1
-  ld (usingBanks), a
-
   ;copy the pages into shadow ram until either we've done all banks or we can't allocate any more memory
   ld hl, pageLocations+6
   ld de, 0x0006  ; start at page 6
@@ -161,14 +160,14 @@ loopAlloc:
   ld a, (hl)
   push de
   push hl
-  cp 0
+  cp 0  ; Exit the loop if all pages could be stored in lo ram
   jr z, startup3
   ld iy, RESI_ALLOC   ; get free bank
   call doresi
   jr nc, startup2   ; call failed if Fc=0
   pop hl
   pop de
-  ld (hl), a  ; save for later
+  ld (hl), a  ; save the page number that was returned to us for later
 
   ;load the data into the page
   call loadFromDisk2
@@ -240,6 +239,14 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
+  ;setup standard streams
+  ld hl, __sgoioblk + 2
+  ld (hl), 19 ;stdin
+  ld hl, __sgoioblk + 12
+  ld (hl), 21 ;stdout
+  ld hl, __sgoioblk + 22
+  ld (hl), 21 ;stderr
+
   ; clear the second screen (and switch to it at the same time)
   ld bc, 0x0c0c
   push bc
@@ -254,15 +261,12 @@ startup:
 
   jp atexit
 
-bcBackup:
-  defw 0x0000
-
 first:
   binary "fputc_cons_first.bin"
-  defb 0
 
 second:
   binary "fputc_cons_second.bin"
+  defb 0
 
 third:
   binary "fputc_cons_third.bin"
@@ -271,9 +275,6 @@ fourth:
   binary "atexit.bin"
 
 page2page:
-  binary "pager_part1.bin"
-  binary "pager_part2.bin"
+  binary "pager.bin"
+  binary "page2page.bin"
 page2pageend:
-
-start:
-  INCLUDE "crt/classic/crt_section.asm"

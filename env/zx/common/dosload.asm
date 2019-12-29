@@ -13,18 +13,21 @@ dosload2:
   push  hl      ; save BASIC's HL'
   exx
 
-  ;convert 8 bit int to ascii. This doesn't filter out ":;<=>?" characters, but the jump table just won't have values that convert to these in it so it's not a problem
+  ;convert 8 bit int to ascii.
+  scf ; set carry flag
+  ccf ; invert carry flag (to make it be not set)
+  daa ; bcd correct register A
   ld b, a
   rra
   rra
   rra
   rra
-  and 0x0f
-  add 0x30
+  and 0b00001111
+  or 0x30
   ld c, a
   ld a, b
-  and 0x0f
-  add 0x30
+  and 0b00001111
+  or 0x30
   ld b, a
   ld (pagename+6), bc
 
@@ -43,8 +46,8 @@ dosload2:
   pop af
 
   ; Get the address of the header in +3DOS memory.
-  ld b, 0  ; file id 0
   ld hl, destinationHighBank
+  ld b, 0  ; file id 0
   ld c, (hl)  ; ram page that's specified in the page queue
   ld de, 16384  ; amount of data to load
   ld hl, 0xc000

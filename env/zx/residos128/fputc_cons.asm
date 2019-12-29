@@ -11,9 +11,7 @@
 ;
 ; djm 3/3/2000
 
-port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
-bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
-
+include "../common/equs.inc"
 
   SECTION first
 
@@ -32,7 +30,7 @@ org 0xec20
   ex af, af'
   ld a, (flags)
   and a
-  jp z, putit_out1 ;no parameters pending
+  jr z, putit_out1 ;no parameters pending
 ; Set up so dump into params so first param is at highest posn
   ld l, a
   ld h, 0
@@ -324,6 +322,7 @@ cls:
   ld a, (bankm)  ; system variable that holds current switch state
   or 8
   ld (bankm), a  ; must keep system variable up to date (very important)
+  ld (bankmBackup), a  ; must keep system variable up to date (very important)
   ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
   out (c), a
   ei

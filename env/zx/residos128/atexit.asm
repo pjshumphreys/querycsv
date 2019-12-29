@@ -2,14 +2,17 @@ include "pager.map"
 
 RESI_DEALLOC equ 0x0328
 
-
 org 0xe60e
-
   ld (hlBackup), hl
 
   ;save return location for later
   pop hl
   ld (deBackup), hl
+
+  di
+  ld a, (bankm)
+  ld (bankmBackup), a
+  call switchPage
 
   ; copy page 7 screen ram to screen 5
   ld hl, 0xc000  ; Pointer to the source
@@ -17,15 +20,13 @@ org 0xe60e
   ld bc, 0x1b00  ; Number of bytes to move
   ldir
 
-  ; turn off using the extra banks when paging
-  xor a  ; ld a, 0
-  ld (usingBanks), a
-
   ; switch back to the basic bank
-  di
   ld a, (basicBank)
   ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
   call mypager
+
+  ;xor a  ; ld a, 0
+  ;ld (usingBanks), a
   ei
 
   ld hl, pageLocationsEnd-1
@@ -84,12 +85,11 @@ exitMoveBack:
   ld (hl), b
 
 skipMoveBack:
-
   ; if hlBackup is non zero, push it onto the stack
   ld hl, (hlBackup)
   ld a, h
   or l
-    jp z, nopush
+  jp z, nopush
   push hl
 
 nopush:

@@ -11,49 +11,28 @@
 ;
 ; djm 3/3/2000
 
+port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
+bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
+
+
   SECTION first
 
   __zx_32col_font equ 0x1d00
-  __zx_32col_udgs equ 0x1c00
+  __zx_32col_udgs equ 0xeb00
 
 ;
 ; Entry: a= char to print
 ;
-org 0x10
-jp fputc_cons_rst
+org 0x0100
 
-org 0x38
-  push af
-  push hl
-
-  ld hl, (_FRAMES) ; frames
-  inc hl
-  ld (_FRAMES), hl
-  ld a, h
-  or l
-  jp nz, interrupt_end
-  ld hl, _FRAMES + 2
-  inc (hl)
-
-interrupt_end:
-  pop hl ; End of interrrupt
-  pop af
-  ei
-  ret
-
-fputc_cons_rst:
-  jr fputc_cons_cont
-
-fputc_cons:
+; fputc_cons:
   ld hl, 2
   add hl, sp
   ld a, (hl)
-
-fputc_cons_cont:
   ex af, af'
   ld a, (flags)
   and a
-  jp z, putit_out1 ;no parameters pending
+  jr z, putit_out1 ;no parameters pending
 ; Set up so dump into params so first param is at highest posn
   ld l, a
   ld h, 0
@@ -203,7 +182,7 @@ just_calculate:
   ld a, h
   and 0x18
   or 0x40 ;for first screen?
-  ;;or 0xC0 ; for second screen?
+  ;or 0xC0 ; for second screen?
   ld h, a
   ret
 
@@ -234,6 +213,10 @@ cr_1:
   ld (chrloc), hl
   ret
 
+;SECTION second
+;org 0xf511
+
+
 ; This nastily inefficient table is the code table for the routines
 ; Done this way for future! Expansion
 
@@ -248,10 +231,10 @@ code_table:
   defw beep ; 7 - BEL
   defw left ; 8 - BS
   defw right ; 9 - HT
-  defw down ;10 - LF
+  defw cr ;13 - CR (+NL)
   defw up ;11 - UP
   defw cls ;12 = FF (and HOME)
-  defw cr ;13 - CR (+NL)
+  defw down ;10 - LF
   defw noop ;14
   defw noop ;15
   defw setink ;16 - ink
@@ -328,8 +311,10 @@ down:
 cls:
   ld hl, 0
   ld (chrloc), hl
-  ld hl, 49152;16384
-  ld de, 49153;16385
+;  ld hl, 49152;16384
+;  ld de, 49153;16385
+  ld hl, 16384
+  ld de, 16385
   ld bc, 6144
   ld (hl), l
   ldir
@@ -351,7 +336,7 @@ beep:
   push de
   ld hl, $0300 ; parameters for the beep
   ld de, $0030
-  call beeper ; call BEEPER
+  call 0x03b5 ; call BEEPER
   pop de
   pop hl
   ret
@@ -489,6 +474,7 @@ nomult:
   ld (chrloc), hl
   ret
 
+; SECTION bss_clib
 chrloc equ 0x5c84
 
 ; Attribute to use
@@ -511,6 +497,8 @@ params:
 ; Bit 1 = scroll disabled
 control_flags:
   defb 0
+
+; SECTION data_clib
 
 print_routine:
   defw print32
@@ -573,8 +561,10 @@ clear_loop:
   dec a
   jr nz, clear_loop
 
-  ld hl, $4000+6880;$C000+6880
-  ld de, $4000+6881;$C000+6881
+;  ld hl, $C000+6880;$4000+6880
+;  ld de, $C000+6881;$4000+6881
+  ld hl, $4000+6880
+  ld de, $4000+6881
   ld bc, 31
   ld a, (__zx_console_attr)
   ld (hl), a
@@ -584,62 +574,8 @@ clear_loop:
   pop hl
   ret
 
-beeper:
-  di
-  ld a,l
-  srl l
-  srl l
-
-  cpl
-  and 3
-  ld c, a
-  ld b, 0
-  ld ix, beepcode
-
-  add ix,bc
-
-  ld a,(bordcr)
-  and 0x38
-  rrca
-  rrca
-  rrca
-  or 0x08
-
-beepcode:
-  nop
-  nop
-  nop
-  inc b
-  inc c
-
-beepcode2:
-  dec c
-  jr nz, beepcode2
-  ld c, 0x3f
-  dec b
-  jp nz, beepcode2
-  xor 0x10
-  out (0xfe),a
-  ld b, h
-  ld c, a
-  bit 4, a
-  jr nz, beepagain
-  ld a,d
-  or e
-  jr z, beepend
-  ld a,c
-  ld c,l
-  dec de
-  jp (ix)
-
-beepagain:
-  ld c,l
-  inc c
-  jp (ix)
-
-beepend:
-  ei
-  ret
+;  SECTION third
+;  org 0xe438
 
 zx_rowtab:
   defw 0x4000
@@ -834,4 +770,3 @@ zx_rowtab:
   defw 0x55E0
   defw 0x56E0
   defw 0x57E0
-

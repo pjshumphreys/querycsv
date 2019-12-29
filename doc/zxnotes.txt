@@ -20,39 +20,36 @@ lookup table
 
 ; layout
 jsr farCall
-defb (page number)
+defb (pagenumber)
 jsr farCall
-defb (page number)
+defb (pagenumber)
 
 ld (hlBackup), hl
 ld (bcBackup), bc
-ld (deBackup), de
-pop hl
+pop hl ; (hl) contains virtual page number to use
 
-ld bc, (currentPage)
+ld bc, (currentVirtualPage)
 push bc
 
 ld bc, farRet
 push bc
 
 push af
-ld bc, (hl)
-ld a, b
-ld (currentPage), a
+ld a, (hl)
+ld (currentVirtualPage), a
 
-ld de, jumpTableStart
-sbc hl, de
+ld bc, jumpTableStart+3
+sbc hl, bc
 
 ;shift right 1 bits (divide by 2)
 srl h
 rr l
 
-ld de, lookupTableStart
-add hl, de
+ld bc, lookupTableStart
+add hl, bc
 pop af
 
 push hl
-ld de, (deBackup)
 ld bc, (bcBackup)
 ld hl, (hlBackup)
 ret

@@ -17,14 +17,13 @@ port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
 bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
 ERR_NR equ 0x5c3a   ; BASIC system variables
 SCR_CT equ 0x5c8c
-invalidFile equ 13
+RST_HOOK equ 8
 
 PUBLIC port1
 PUBLIC bankm
 PUBLIC ERR_NR
 PUBLIC SCR_CT
-
-org 0xbf5f
+PUBLIC __sgoioblk
 
 ;-------------------------------------
 ;printNoFile
@@ -36,8 +35,13 @@ printNoFile:
   call printLn
 
   ; quit with Invalid I/O device error
-  ld hl, invalidFile ; +13
+  ld hl, invalidFile
   jp atexit
+
+invalidFile:
+  ; trigger an 'invalid file name' error
+  rst RST_HOOK
+  defb 0x0e ; invalid file name
 
 noopen:
   defb "Couldn't open "
@@ -45,7 +49,70 @@ pagename:
   defb "qrycsv00.ovl", 0, 0
 
 ;---------------------------------
+; more variables
+
+programName:
+  defb "querycsv", 0
+
+argv:
+  defw programName
+argName:
+  defw 0x0000
+  defw 0x0000
+
+defaultDrive:
+  defb 0
+
+skip_count:
+  defb 0
+
+deBackup:
+  defw 0
+
+exhlBackup:
+  defw 0
+
+spBackup:
+  defw 0
+
+CRT_ENABLE_STDIO = 1
+__CRT_KEY_CAPS_LOCK = 6
+__CRT_KEY_DEL = 12
+
+PUBLIC  __sgoioblk
+PUBLIC  __sgoioblk_end
+PUBLIC  __FOPEN_MAX
+DEFC    CLIB_FOPEN_MAX = 10
+defc    __FOPEN_MAX = CLIB_FOPEN_MAX
+
+GLOBAL __CRT_KEY_CAPS_LOCK
+GLOBAL __CRT_KEY_DEL
+
+_heap:
+  defb 0, 0, 0, 0
+
+__sgoioblk:
+  defs CLIB_FOPEN_MAX * 10      ;stdio control block
+__sgoioblk_end:        ;end of stdio control block
+
+;---------------------------------
 ; call_rom3
+jp_rom3:
+  ld (hlBackup), hl
+  pop hl
+  call call_rom3a
+  ld hl, (hlBackup)
+  jr call_rom3b
+
+call_rom3a:
+  push de
+  ld d, (hl)
+  inc hl
+  ld e, (hl)
+  ld (jumptoit+1), de
+  inc hl
+  pop de
+  ret
 
 call_rom3:
   pop hl
@@ -58,6 +125,7 @@ call_rom3:
   pop de
   push hl
 
+call_rom3b:
   push af
   di
   ld a, (basicBank)
@@ -83,9 +151,6 @@ call_rom3:
   pop af
   ret
 
-jumptoit:
-  jp $0000
-
 ;---------------------------------
 ; switchPage
 
@@ -96,6 +161,39 @@ switchPage:
   out (c), a  ; RAM page 7 to top and DOS ROM
   pop bc
   ret
+
+;--------------------------------------------
+; isr jump vector - here in case we need it
+
+isr: ; this must be at exactly 0xbfbf (ie 0xc000 - 0x41 or 65 bytes from the end of printLn.asm)
+  jp exit ; just return for now. This jump table entry will get changed later.
+
+;-------------------------------------
+; variables
+
+bcBackup:
+  defw 0
+
+hlBackup:
+  defw 0
+
+bankmBackup:
+  defb 0
+
+destinationHighBank:
+  defb 0
+
+defaultBank:
+  defb 0
+
+basicBank:
+  defb 0
+
+loadVirtualPage:
+  defb 0
+
+currentVirtualPage:
+  defb 0
 
 ;-------------------------------------
 ;printLn
@@ -116,31 +214,7 @@ loop:
   inc de
   jr loop
 exit:
-  ret
-
-;-------------------------------------
-; variables
-
-skip_count:
-  defb 0
-
-defaultDrive:
-  defb 0
-
-bankmBackup:
-  defb 0
-
-currentPage:
-  defb 0
-
-destinationHighBank:
-  defb 0
-
-defaultBank:
-  defb 0
-
-basicBank:
-  defb 0
+  ret   ; printLn = 21 bytes
 
 ;-----------------------------
 ; generic jump table
@@ -151,19 +225,25 @@ mypager:
 doresi:
   jp exit ; just return for now. This jump table entry will get changed later.
 
+dodos:
+  jp exit ; just return for now. This jump table entry will get changed later.
+
 atexit:
   jp exit ; just return for now. This jump table entry will get changed later.
+  ld hl, 0 ; making space for later
+  defw 0xe60e  ; atexit location in page 7. making space to use call call_rom3 later
 
 farcall:
   jp exit ; just return for now. This jump table entry will get changed later.
 
 fputc_cons:
   jp exit ; just return for now. This jump table entry will get changed later.
-
-dodos:
-  jp exit ; just return for now. This jump table entry will get changed later.
+  defw 0xec20  ; fputc_cons location in page 7. making space to use call call_rom3 later
 
 dosload:
   jp exit ; just return for now. This jump table entry will get changed later.
+
+jumptoit:
+  jp $0000
 
 pageStart: ; This must be equal to 0xc000

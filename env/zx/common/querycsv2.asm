@@ -5,7 +5,6 @@ NSPPC equ 0x5c44
 VARS equ 0x5c4b
 NXTLIN equ  0x5c55
 
-RST_HOOK equ 8
 __ESXDOS_SYS_M_GETSETDRV equ 0x89
 HOOK_VERSION equ 0xfc
 
@@ -168,9 +167,12 @@ resicont:
   ldir
   ei
 
-  ld hl, dosload_residos
   ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos
   ld (dosload+1), de
+  ld hl, 5
+  add hl, de
+  ld (doresi+1), hl
+  ld hl, dosload_residos
   ld bc, dosload_residosEnd-dosload_residos
   di
   ldir
@@ -268,11 +270,11 @@ reenter:
   ld de, newProg
 
 loadBasic:
-  ;set NEWPPC to $000a
+  ;set NEWPPC to $000a (line 10)
   ld hl, $000a
   ld (NEWPPC), hl
 
-  ;set NSPPC to 0
+  ;set NSPPC to 0 (first statement on line 10)
   push af
   ld a, 0
   ld (NSPPC), a

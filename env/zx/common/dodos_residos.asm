@@ -1,4 +1,3 @@
-RST_HOOK equ 8
 HOOK_PACKAGE equ 0xfb
 
 PKG_RESIDOS equ 0

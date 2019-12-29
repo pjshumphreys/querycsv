@@ -1,5 +1,3 @@
-RST_HOOK equ 8
-
 F_OPEN equ 0x9a
 F_CLOSE equ 0x9b
 F_READ equ 0x9d
@@ -11,18 +9,21 @@ include "equs.inc"
 ; esxload
 
 esxload:
-  ;convert 8 bit int to ascii. This doesn't filter out ":;<=>?" characters, but the jump table just won't have values that convert to these in it so it's not a problem
+  ;convert 8 bit int to ascii.
+  scf ; set carry flag
+  ccf ; invert carry flag (to make it be not set)
+  daa ; bcd correct register A
   ld b, a
   rra
   rra
   rra
   rra
-  and 15
-  add 0x30
+  and 0b00001111
+  or 0x30
   ld c, a
   ld a, b
-  and 15
-  add 0x30
+  and 0b00001111
+  or 0x30
   ld b, a
   ld (pagename+6), bc
 
