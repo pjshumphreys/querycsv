@@ -95,7 +95,7 @@ pageLocationsEnd:
 
 lookupTable:
   ;include "lookupTable.inc"
-  defw $0000
+  defw $c000
 lookupTableEnd:
 
 ;------------------------------------------------------

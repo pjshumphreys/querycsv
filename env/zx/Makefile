@@ -1,48 +1,41 @@
-SHELL := /bin/bash
-export PATH:=$(PATH):$(HOME)/z88dk/bin
-export ZCCCFG:=$(HOME)/z88dk/lib/config
+all: querycsv.tap qrycsv03.ovl
 
-# do not remove intermediate targets
-.SECONDARY:
+#querycsv.tap: qrycsv06.ovl
+querycsv.tap:
+	cd common && make
+	cp common/querycsv.tap .
 
-.PHONY: all
-all: qrycsv03.ovl
-
-###############################################################################
-# Poor man's dependencies: Let all files depend from all header files
-#
-
-###############################################################################
-# create a crt image from a binary image
-#
+#qrycsv00.ovl:
+#	cp qrycsv00.bin qrycsv00.ovl
 
 #qrycsv01.ovl:
+#	cd plus3dos && make
+#	cp plus3dos/qrycsv01.ovl .
 
 #qrycsv02.ovl:
+#	cd residos48 && make
+#	cp residos48/qrycsv02.ovl .
 
-qrycsv03.ovl: libc.c crt0.asm residos128/atexit.asm residos128/fputc_cons.asm residos128/page2page.asm residos128/residos128.asm residos128/pager.asm
-	z80asm -b --split-bin residos128/fputc_cons.asm
-	printf 'origin equ 0xc000' > residos128/part1.inc
-	z80asm -b residos128/pager.asm
-	printf 'origin equ 0xbd00-0x' > residos128/part1.inc
-	printf "%x\n" `stat -c "%s" residos128/pager_part1.bin` >> residos128/part1.inc
-	z80asm -b -m residos128/pager.asm
-	z80asm -b -m residos128/page2page.asm
-	z80asm -b -m residos128/atexit.asm
-	sed -i '/^__/d' residos128/page2page.map
-	dd conv=notrunc if=residos128/page2page.bin of=residos128/pager_part2.bin
-	zcc +zx -DRESIDOS -lp3 -lm -m --no-crt residos128/residos128.asm libc.c -bn qrycsv03.ovl
-	dd if=/dev/zero bs=1 count=$$((16384-`wc -c < qrycsv03.ovl`)) >> qrycsv03.ovl
+qrycsv03.ovl: querycsv.tap
+	cd residos128 && make
+	cp residos128/qrycsv03.ovl .
 
 #qrycsv04.ovl:
-#  zcc +zx -DRESIDOS -U__STDC_VERSION__ -lp3 -lm -m --no-crt querycsv.c strtod.c -S
+#	cd esxdos48 && make
+#	cp esxdos48/qrycsv04.ovl .
 
 #qrycsv05.ovl:
+#	cd esxdos128 && make
+#	cp esxdos128/qrycsv05.ovl .
 
-#qrycsv06.ovl:
+#qrycsv06.ovl: libc.c lexer2.c sql2.c
+#	node ./build-zx.js
 
-.PHONY: clean
 clean:
-	cd residos128 && find -not -name "*.asm" -delete
-	rm -rf querycsv.o querycsv.bin querycsv.bas querycsv.tap qrycsv03.ovl
-
+	cd common && make clean
+#	cd plus3dos && make clean
+#	cd residos48 && make clean
+	cd residos128 && make clean
+#	cd esxdos48 && make clean
+#	cd esxdos128 && make clean
+	rm -rf querycsv.tap *.ovl
