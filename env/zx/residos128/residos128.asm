@@ -141,7 +141,7 @@ intSetup:
   call dodos
 
   ; setup the residos pager
-  ld de, 0xbd00 - 32; mypager  ; location for paging routine
+  ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
   ld iy, RESI_GETPAGER  ; +3DOS call ID
   call doresi

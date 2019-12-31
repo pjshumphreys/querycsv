@@ -169,18 +169,18 @@ resicont:
 
   ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos
   ld (dosload+1), de
-  ld hl, 5
-  add hl, de
-  ld (doresi+1), hl
   ld hl, dosload_residos
   ld bc, dosload_residosEnd-dosload_residos
   di
   ldir
   ei
 
-  ld hl, dodos_residos
   ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_residosEnd+dodos_residos
   ld (dodos+1), de
+  ld hl, 5
+  add hl, de
+  ld (doresi+1), hl
+  ld hl, dodos_residos
   ld bc, dodos_residosEnd-dodos_residos
   di
   ldir
