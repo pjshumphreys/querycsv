@@ -7,6 +7,11 @@ RESI_GETPAGER equ 0x031c
 RESI_FINDBASIC equ 0x0322
 RESI_ALLOC equ 0x0325
 
+HOOK_PACKAGE equ 0xfb
+PKG_RESIDOS equ 0
+ERR_NR equ 0x5c3a   ; BASIC system variables
+RST_HOOK equ 8
+
 org 0xc000
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
@@ -31,9 +36,9 @@ org 0xc000
   ld (isr+1), hl
 
   ; update atexit jump
-  ld hl, 0x2100 ; ld hl, $00...
+  ld hl, 0x0021 ; ld hl, $00...
   ld (atexit), hl
-  ld hl, 0x00cd ; ...00; call
+  ld hl, 0xcd00 ; ...00; call
   ld a, h
   ld (atexit+2), hl
   ld hl, jp_rom3
@@ -114,26 +119,6 @@ fourthcopy:
   jr Loop
 
 inf:
-  ; restore the interrupt mode 2 bytes
-  ld b, 255
-  ld hl, 0xbd00
-intSetup:
-  ld (hl), 0xbf
-  inc hl
-  djnz intSetup
-
-  ld (hl), 0xbf ; unroll the last 2 loop iterations
-  inc hl
-  ld (hl), 0xbf
-
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
-  di
-  ld a, 0xbd
-  ld i, a
-  im 2  ; Set Interrupt Mode 2
-  ei
-
   ; shrink the workspaces to only use page 6
   ld de, 0x601c ; just first half of page 6
   ld hl, 0x7c04 ; just second half of page 6
@@ -144,17 +129,17 @@ intSetup:
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
   ld iy, RESI_GETPAGER  ; +3DOS call ID
-  call doresi
+  call doresi3
   jr nc, failed  ; call failed if Fc=0
 
   ; get the number of the basic rom
   ld iy, RESI_FINDBASIC
-  call doresi
+  call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (basicBank), a  ; save for later
 
   ld iy, RESI_ALLOC  ; get free bank
-  call doresi
+  call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (defaultBank), a  ; save for later
 
@@ -190,6 +175,26 @@ startup2:
   pop hl
 
 failed:
+  ; restore the interrupt mode 2 bytes
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbf
+  inc hl
+  djnz intSetup
+
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
+
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
+
   ; get the filename to load from basic variable a$
   ; zx_getstraddr:
   ld d, 'A'
@@ -226,7 +231,9 @@ found2:
   push hl
   pop de
   inc hl
+  di
   ldir
+  ei
   xor a
   ld (de), a  ; null terminate the string
   ld a, 3
@@ -265,6 +272,16 @@ startup:
   call _main2
 
   jp atexit
+
+doresi3:  ; special startup version that doesn't swap out memory until the relevant page numbers have been obtained
+  exx
+  ld b, PKG_RESIDOS
+  push iy
+  pop hl
+  rst RST_HOOK
+  defb HOOK_PACKAGE
+  ld iy, ERR_NR
+  ret
 
 first:
   binary "fputc_cons_first.bin"
