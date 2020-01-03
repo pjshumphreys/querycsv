@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-I also avoid global and static variables when I can as I feel it eases testing for me. 
+I also avoid global and static variables when I can as I feel it eases testing for me.
 
 ## Contributing
 
@@ -114,4 +114,4 @@ I can be reached at [querycsv@gmail.com](mailto:querycsv@gmail.com)
 
 ## License
 
-QueryCSV is MIT licensed and is copyright (c) 2015-2019 Paul Humphreys
+QueryCSV is MIT licensed and is copyright (c) 2015-2020 Paul Humphreys
