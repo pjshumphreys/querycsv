@@ -37,7 +37,7 @@ hash4c.c: hash4c.gperf
 	gperf hash4c.gperf > hash4c.c
 
 hash2.c: UnicodeData.txt generate_hash2.js dcompose.json hash2iT.h hash2outT.h hash2T.h
-	npm install graceful-fs strip-json-comments readline walk shell-escape
+	npm install graceful-fs strip-json-comments readline walk shell-escape cheerio normalize-html-whitespace
 	node ./generate_hash2.js
 	cp hash2T.h hash2.c
 

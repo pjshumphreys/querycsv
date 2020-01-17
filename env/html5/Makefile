@@ -58,10 +58,10 @@ worker.js: emcc.js workermain.js
 	cat emcc.js workermain.js >> worker.js
 
 helper.js: prefix.js helper.c postfix.js
-	source ~/emsdk_portable/emsdk_env.sh; emcc -O2 --closure 0 --minify 0 -s WASM=0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s RESERVED_FUNCTION_POINTERS=2 -s "EXPORTED_FUNCTIONS=['_folderExists','_rmrf','_addFile','_getEntries','_malloc','UTF8ToString']" -s "EXTRA_EXPORTED_RUNTIME_METHODS=['addFunction','ccall','Pointer_stringify']" helper.c --pre-js prefix.js --post-js postfix.js -o helper.js
+	source ~/emsdk/emsdk_env.sh; emcc -O2 --closure 0 --minify 0 -s WASM=0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s RESERVED_FUNCTION_POINTERS=2 -s "EXPORTED_FUNCTIONS=['_folderExists','_rmrf','_addFile','_getEntries','_malloc','UTF8ToString']" -s "EXTRA_EXPORTED_RUNTIME_METHODS=['addFunction','ccall','UTF8ToString']" helper.c --pre-js prefix.js --post-js postfix.js -o helper.js
 
 emcc.js: prefix.js lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c emcc.c postfix.js
-	source ~/emsdk_portable/emsdk_env.sh; emcc -O2 --closure 0 -s WASM=0 --minify 0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s "EXPORTED_FUNCTIONS=['_wrapmain','_malloc','UTF8ToString']"  -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','print','printErr']" lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c emcc.c --pre-js prefix.js --post-js postfix.js -o emcc.js
+	source ~/emsdk/emsdk_env.sh; emcc -O2 --closure 0 -s WASM=0 --minify 0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s "EXPORTED_FUNCTIONS=['_wrapmain','_malloc','UTF8ToString']"  -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','print','printErr']" lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c emcc.c --pre-js prefix.js --post-js postfix.js -o emcc.js
 
 build/apple-touch-icon-114x114-precomposed.png: icon.svg
 	mkdir -p build

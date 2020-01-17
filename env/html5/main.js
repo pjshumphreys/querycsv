@@ -62,7 +62,7 @@
 
     addListEntry = Module.addFunction(function(name, type, modified, size) {
       var a, b;
-      name = Module.Pointer_stringify(name);
+      name = Module.UTF8ToString(name);
 
       if(type === 1) {
         $('<li><button type="button" class="folder" data-filepath="'+currentPath+name+'/">'+
