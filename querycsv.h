@@ -410,7 +410,7 @@ Just use long ones for that compiler */
     #define fdiv(_f,_a) ((_f)/(_a))
     #define fcmp(_d,_s) ((_d)!=(_s))
     #define ctof(_s) ((double)(_s))
-    #define fneg(_f) ((_f)*(minusOne))
+    #define fneg(_f) (-(_f))
     #define ftostr(_f,_a) (_a) != (_a) ? \
       d_sprintf((_f), "NaN") : \
       d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
