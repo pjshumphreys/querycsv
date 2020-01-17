@@ -374,7 +374,7 @@ function compileLexer() {
         's/flex_int32_t yy_rule_can_match_eol/flex_int8_t yy_rule_can_match_eol/g;'+
         's/flex_int16_t yy_accept/flex_int8_t yy_accept/g;'+
         's/yy_ec\\[YY_SC_TO_UI(\\*yy_cp)\\]/yy_ec2(YY_SC_TO_UI(*yy_cp))/g;'+
-        's/yy_nxt\\[yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c\\]/yy_nxt2\\(yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c)/g;'+
+        's/yy_nxt\\[yy_base\\[yy_current_state\\] + yy_c\\]/yy_nxt2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;'+
         's/yy_chk\\[yy_base\\[yy_current_state\\] + yy_c\\]/yy_chk2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;'+
         's/yy_accept\\[yy_current_state\\]/yy_accept2\\(yy_current_state\\)/g;'+
       '" lexer.c > build/lexer2.h'
