@@ -1159,7 +1159,7 @@ function glueTogetherBinary() {
     execSync("cat build/8k.bin ./build/obj2/hash2in"+i+".bin >> build/full.bin");
   }
 
-  execSync("bin2efcrt build/full.bin querycsv.crt");
+  execSync("./bin2efcrt build/full.bin querycsv.crt");
 
   //all done (hooray!)
 }
