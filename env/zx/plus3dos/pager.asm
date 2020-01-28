@@ -352,19 +352,21 @@ found4:
   pop bc
   ret
 
-switchPage:
-  di
-  ld a, d
-  ld (currentVirtualPage), a
-  ld a, (bankm)  ; system variable that holds current switch state
-  and 0xf8
-  or d
-  xor e
-  ld (bankm), a  ; must keep system variable up to date (very important)
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-  out (c), a
-  ei
-  ret
+;---------------------------------
+; switchPage - switch the virtual page to the one specified in the accumulator
+;switchPage:
+;  di
+;  ld a, d
+;  ld (currentVirtualPage), a
+;  ld a, (bankm)  ; system variable that holds current switch state
+;  and 0xf8
+;  or d
+;  xor e
+;  ld (bankm), a  ; must keep system variable up to date (very important)
+;  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+;  out (c), a
+;  ei
+;  ret
 
 ;------------------------------------------------------
 

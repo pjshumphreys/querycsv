@@ -33,7 +33,7 @@ helloMsg:
 ; initialLoad
 
 initialLoad:
-  ;check for the presence of residos. if it's not there then fall thru to the esxdos check
+  ;check for residos. if it's not present then continue on to the check for esxdos
   ld a,(0x12a0)
   cp 0xcf
   jr nz, esxcheck

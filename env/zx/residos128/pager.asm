@@ -78,6 +78,9 @@ pageQueue:
 
 ;------------------------------------------------
 
+basicBank2:
+  defb 0b00000000 ; -1 - stores the page that contains the basic rom
+
 pageLocations:
   ; 255 to load from disk or whatever value resi_alloc gave us
   defb 0b00000000 ; 00 - stores the page that contains the interrupt code and extra storage ram
@@ -277,7 +280,7 @@ __sgoioblk:
 __sgoioblk_end:        ;end of stdio control block
 
 ;------------------------------------
-; array of function trampolines and virtul page numbers
+; array of function trampolines and virtual page numbers
 
 funcstart:  ; the array of jp xxxx instructions and page numbers
   ;include "functions.inc"

@@ -15,10 +15,10 @@ RST_HOOK equ 8
 org 0xc000
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
-  ld hl, page2page ; source
-  ld de, farCall ; destination
+  ld hl, page2page ; hl = source address for ldir
+  ld de, farCall ; de = destination address for ldir
   ld (farcall+1), de ; update the farcall address
-  ld bc, page2pageend-page2page ; size
+  ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
 
   di
   ldir
@@ -27,35 +27,14 @@ org 0xc000
   exx
   ei
 
-  ;update the mypager jump
-  ld hl, mypager2
-  ld (mypager+1), hl
-
-  ;update the isr jump
-  ld hl, isr2
-  ld (isr+1), hl
-
-  ; update atexit jump
-  ld hl, 0x0021 ; ld hl, $00...
-  ld (atexit), hl
-  ld hl, 0xcd00 ; ...00; call
-  ld a, h
-  ld (atexit+2), hl
-  ld hl, jp_rom3
-  ld (atexit+4), hl
-
-  ;update fputc_cons jump
-  ld (fputc_cons), a ; put 0xcd (call) into the fputc_cons location
-  ld (fputc_cons+1), hl ; put jp_rom3 address here
+  ld a, 7
+  ld (destinationHighBank), a  ; which high bank to go to (bank 7)
 
   ld hl, jumpback
   ld (jumptoit+1), hl
 
   ld a, 4  ; how many loads to do
   push af
-
-  ld a, 7
-  ld (destinationHighBank), a  ; which page to go to
   ld b, [[firstEnd - first] % 512] / 2
   ld c, [[firstEnd - first] / 512] + 1
   ld (bcBackup), bc
@@ -72,10 +51,10 @@ Loop:
   djnz Loop
   dec c
   jr nz, Loop
-  xor a  ; which page to go back to
-  ld (bankmBackup), a
-  ld bc, (bcBackup)
-  ld hl, (hlBackup)
+  xor a  ; zero out the accumulator
+  ld (bankmBackup), a ; jump back to page 0
+  ld bc, (bcBackup) ; restore bc
+  ld hl, (hlBackup) ; restore hl
   jp 0xbd00
 jumpback:
   pop af
@@ -132,25 +111,27 @@ inf:
   call doresi3
   jr nc, failed  ; call failed if Fc=0
 
-  ; get the number of the basic rom
+  ; get the low bank number of the basic rom
   ld iy, RESI_FINDBASIC
   call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (basicBank), a  ; save for later
+  ld (basicBank2), a ; copy used to terminate the unload loop run at exit
 
-  ld iy, RESI_ALLOC  ; get free bank
+  ld iy, RESI_ALLOC  ; get free low bank
   call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (defaultBank), a  ; save for later
+  ld (pageLocations), a ; ensure the defulat bank memory is freed atexit
 
-  ;copy the pages into shadow ram until either we've done all banks or we can't allocate any more memory
+  ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
   ld hl, pageLocations+6
   ld de, 0x0006  ; start at page 6
 loopAlloc:
   ld a, (hl)
   push de
   push hl
-  cp 0  ; Exit the loop if all pages could be stored in lo ram
+  cp 0  ; Exit the loop if all pages could be stored in low banks
   jr z, startup3
   ld iy, RESI_ALLOC   ; get free bank
   call doresi
@@ -159,7 +140,7 @@ loopAlloc:
   pop de
   ld (hl), a  ; save the page number that was returned to us for later
 
-  ;load the data into the page
+  ;load the data into the low bank
   call loadFromDisk2
 
   inc hl
@@ -171,8 +152,8 @@ startup3:
   call mypager  ; switch it in to $0000-$3fff
 
 startup2:
-  pop de
   pop hl
+  pop de
 
 failed:
   ; restore the interrupt mode 2 bytes
@@ -187,6 +168,10 @@ intSetup:
   inc hl
   ld (hl), 0xbf
 
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
   ; switch to interrupt mode 2 so we can use the iy register and
   ; ram at 0x0000-0x2000 with interrupts enabled
   di
@@ -194,6 +179,27 @@ intSetup:
   ld i, a
   im 2  ; Set Interrupt Mode 2
   ei
+
+  ; update atexit jump
+  ld hl, 0x0021 ; ld hl, $00...
+  ld (atexit), hl
+  ld hl, 0xcd00 ; ...00; call
+  ld (atexit+2), hl
+  ld hl, jp_rom3
+  ld (atexit+4), hl
+
+  ;update fputc_cons jump
+  ld a, 0xcd ; 0xcd = call instruction
+  ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ld (fputc_cons+1), hl ; put jp_rom3 address here
+
+  ;setup standard streams
+  ld hl, __sgoioblk + 2
+  ld (hl), 19 ;stdin
+  ld hl, __sgoioblk + 12
+  ld (hl), 21 ;stdout
+  ld hl, __sgoioblk + 22
+  ld (hl), 21 ;stderr
 
   ; get the filename to load from basic variable a$
   ; zx_getstraddr:
@@ -217,6 +223,7 @@ loop:
   pop de
   jr loop
 
+; convert the Pascal string into a C string
 found2:
   inc hl
   ld c, (hl)
@@ -236,14 +243,11 @@ found2:
   ei
   xor a
   ld (de), a  ; null terminate the string
-  ld a, 3
-  ld (currentVirtualPage), a
   ld bc, 2
   jr startup
 
 notFound2:
   ld bc, 1
-  ; ret
 
 startup:
   ld hl, argv
@@ -251,25 +255,32 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
-  ;setup standard streams
-  ld hl, __sgoioblk + 2
-  ld (hl), 19 ;stdin
-  ld hl, __sgoioblk + 12
-  ld (hl), 21 ;stdout
-  ld hl, __sgoioblk + 22
-  ld (hl), 21 ;stderr
-
   ; clear the second screen (and switch to it at the same time)
   ld bc, 0x0c0c
   push bc
   call fputc_cons
   pop bc
-  pop bc
-  pop hl
-  push hl
-  push bc
 
-  call _main2
+  ld bc, 0x0707
+  push bc
+  call fputc_cons
+  pop bc
+
+  ld bc, 0x4141
+  push bc
+  call fputc_cons
+  pop bc
+
+  ld bc, 0x4242
+  push bc
+  call fputc_cons
+  pop bc
+
+  ;start running main function
+  ;push atexit ; return to the atexit function
+  ;ld a, 6
+  ;ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ;jp _main2
 
   jp atexit
 

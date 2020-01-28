@@ -60,10 +60,13 @@ argName:
   defw 0x0000
   defw 0x0000
 
-defaultDrive:
+_heap:
+  defb 0, 0, 0, 0
+
+defaultDrive: ; the default drive letter used by esxdos
   defb 0
 
-skip_count:
+skip_count: ; variable used by fputc_cons_rst. Located here so the code itself can be relocatable
   defb 0
 
 deBackup:
@@ -75,34 +78,26 @@ exhlBackup:
 spBackup:
   defw 0
 
-_heap:
-  defb 0, 0, 0, 0
-
 ;---------------------------------
 ; call_rom3
 jp_rom3:
   ld (hlBackup), hl
   pop hl
-  call call_rom3a
+  push de
+  ld e, (hl)
+  inc hl
+  ld d, (hl)
+  ld (jumptoit+1), de
+  pop de
   ld hl, (hlBackup)
   jr call_rom3b
-
-call_rom3a:
-  push de
-  ld d, (hl)
-  inc hl
-  ld e, (hl)
-  ld (jumptoit+1), de
-  inc hl
-  pop de
-  ret
 
 call_rom3:
   pop hl
   push de
-  ld d, (hl)
-  inc hl
   ld e, (hl)
+  inc hl
+  ld d, (hl)
   ld (jumptoit+1), de
   inc hl
   pop de
@@ -116,7 +111,7 @@ call_rom3b:
 
   ld a, (bankm)  ; RAM/ROM switching system variable
   ld (bankmBackup), a
-  or 7  ; want RAM page 7
+  or 0x17  ; want RAM page 7 and basic rom
   call switchPage
   ei
   pop af
@@ -135,7 +130,8 @@ call_rom3b:
   ret
 
 ;---------------------------------
-; switchPage
+; switchPage - switch the high bank to the one specified in the accumulator
+; the de and hl registers will be left intact
 
 switchPage:
   ld (bankm), a  ; keep system variables up to date
@@ -145,8 +141,8 @@ switchPage:
   pop bc
   ret
 
-;--------------------------------------------
-; isr jump vector - here in case we need it
+;------------------------------------------------
+; isr jump vector - added just in case we need it
 
 isr: ; this must be at exactly 0xbfbf (ie 0xc000 - 0x41 or 65 bytes from the end of printLn.asm)
   jp exit ; just return for now. This jump table entry will get changed later.
@@ -160,22 +156,25 @@ bcBackup:
 hlBackup:
   defw 0
 
+;0x0000-0x4000 mb02 banks
+basicBank:    ; stores an identifier for the basic rom at 0x0000-0x4000
+  defb 0
+
+defaultBank:  ; stores an identifier for the scratchpad working memory at 0x0000-0x4000.
+  defb 0
+
+;0xc000-0xffff zx 128k banks
 bankmBackup:
   defb 0
 
-destinationHighBank:
+destinationHighBank: ; The physical 128k memory bank (0-7) that data should be copied into
   defb 0
 
-defaultBank:
+;0xc000-0xffff virtual pages
+loadVirtualPage: ; which virtual page to load into 0xc000-0xffff
   defb 0
 
-basicBank:
-  defb 0
-
-loadVirtualPage:
-  defb 0
-
-currentVirtualPage:
+currentVirtualPage: ; which virtual page currently is loaded into the memory at 0xc000-0xffff
   defb 0
 
 ;-------------------------------------
@@ -214,7 +213,9 @@ dodos:
 atexit:
   jp exit ; just return for now. This jump table entry will get changed later.
   ld hl, 0 ; making space for later
-  defw 0xe60e  ; atexit location in page 7. making space to use call call_rom3 later
+  ;ld hl, 0
+  ;call call_rom3
+  defw 0xe60e  ; atexit location in page 7.
 
 farcall:
   jp exit ; just return for now. This jump table entry will get changed later.

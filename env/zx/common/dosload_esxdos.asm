@@ -6,7 +6,8 @@ FA_READ equ 0x01
 include "equs.inc"
 
 ;-----------------------------
-; esxload
+; esxload - load a 16kb file "qrycsvXX.ovl" (where XX is the number in the accumulator converted to decimal) into ram at 0xc000-0xffff.
+; This version is used for esxdos
 
 esxload:
   ;convert 8 bit int to 2 ascii bytes and update filename.

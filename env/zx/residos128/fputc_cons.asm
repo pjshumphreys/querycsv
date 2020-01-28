@@ -24,7 +24,7 @@ include "../common/equs.inc"
 org 0xec20
 
 ; fputc_cons:
-  ld hl, 2
+  ld hl, 4
   add hl, sp
   ld a, (hl)
   ex af, af'
@@ -321,11 +321,13 @@ cls:
   ld (hl), a
   ld bc, 767
   ldir
+  ld a, (bankmBackup)  ; system variable that holds current switch state
+  or 8
+  ld (bankmBackup), a  ; must keep system variable up to date (very important)
   di
   ld a, (bankm)  ; system variable that holds current switch state
   or 8
   ld (bankm), a  ; must keep system variable up to date (very important)
-  ld (bankmBackup), a  ; must keep system variable up to date (very important)
   ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
   out (c), a
   ei

@@ -1,7 +1,6 @@
 ; 6 of the zx spectrum 128k pages are available, plus another 6 in shadow ram
 ; we test to see if more than 32k is available and assume 128k is if the test succeeds
 
-
 include "page2page.map"
 include "pager.map"
 
@@ -23,7 +22,7 @@ GLOBAL __CRT_KEY_DEL
 
 include "globals.inc"
 
-  ; check to see if divmmc 128k is available. Fail if it isn't
+  ; check to see if 128k of divmmc memory is available. Fail if it isn't
   di
   push af
   push bc

@@ -1,10 +1,9 @@
 include "equs.inc"
 
-; (char to print)
+; (char to print) this function is written to only use jr instructions to make it be relocatable code
 fputc_cons_rom_rst:
   ld hl, 2
   add hl, sp
-
   ld b, (hl)
   ld hl, skip_count
   ld a, (hl)

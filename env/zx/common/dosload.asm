@@ -6,7 +6,8 @@ DOS_ABANDON equ 0x010c
 include "equs.inc"
 
 ;--------------------------------
-; dosload - used for both plus3 dos and residos
+; dosload - load a 16kb file "qrycsvXX.ovl" (where XX is the number in the accumulator converted to decimal) into ram at 0xc000-0xffff.
+; This version is used for both plus3 dos and residos
 
 dosload2:
   exx
