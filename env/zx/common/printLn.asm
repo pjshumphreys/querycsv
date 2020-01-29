@@ -113,19 +113,16 @@ call_rom3b:
   ld (bankmBackup), a
   or 0x17  ; want RAM page 7 and basic rom
   call switchPage
-  ei
   pop af
 
   call jumptoit
 
   push af
   di
+  ld a, (defaultBank) ; low page 0
+  call mypager  ; switch it in to $0000-$3fff
   ld a, (bankmBackup) ; go back to whichever page was switched in before
   call switchPage
-
-  ld a, (defaultBank) ; page 0
-  call mypager  ; switch it in to $0000-$3fff
-  ei
   pop af
   ret
 
@@ -139,6 +136,7 @@ switchPage:
   ld bc, port1  ; port used for horiz ROM switch and RAM paging
   out (c), a  ; RAM page 7 to top and DOS ROM
   pop bc
+  ei ; enable interupts here so the ret statement below can quit the entire program with interupts enabled. This makes the code a few bytes smaller as well
   ret
 
 ;------------------------------------------------

@@ -17,6 +17,7 @@ org 0xbd00
   or (hl)
   pop hl  ; restore hl
   call switchPage
+  di
   pop af
 
 Loop2:
@@ -33,7 +34,6 @@ Loop2:
   ld a, (bankmBackup)  ; get bankm state to restore
   call switchPage
   pop af
-  ei
   jp jumptoit
 
 ;---------------------------------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ loadFromDisk2:
   ;and 0xf8
   or 1
   call switchPage
+  di
 
   ld a, d
   call dosload  ; dosload re-enables interupts before it returns back to here...
@@ -66,7 +67,6 @@ loadFromDisk2:
 
   ld a, (bankmBackup)
   call switchPage
-  ei
 
   pop hl
   pop de

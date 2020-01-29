@@ -5,9 +5,8 @@ RESI_DEALLOC equ 0x0328
 org 0xe60e
   ld (hlBackup), hl
 
-  ;save return location for later
-  pop hl
-  ld (deBackup), hl
+  ; restore stack pointer
+  ld sp, (spBackup)
 
   ; copy page 7 screen ram to screen 5
   ld hl, 0xc000  ; Pointer to the source
@@ -44,10 +43,6 @@ freeSkip:
   dec hl
   jr freeLoop
 freeExit:
-
-  ; restore stack pointer
-  ld sp, (spBackup)
-
   ; restore 'hl values
   exx
   ld hl, (exhlBackup)      ; restore BASIC's HL'
@@ -83,6 +78,9 @@ exitMoveBack:
   ld (hl), b
 
 skipMoveBack:
+  ;pop hl
+  ;ld (deBackup), hl
+
   ; if hlBackup is non zero, push it onto the stack
   ld hl, (hlBackup)
   ld a, h
@@ -92,22 +90,18 @@ skipMoveBack:
 
 nopush:
   ;restore return location
-  ld hl, (deBackup)
-  push hl
+  ;ld hl, (deBackup)
+  ;push hl
 
   ; reload virtual page 3 back into high bank 0 so we can easily run the program again
-  ld a, 3 ; load virtual page 3
   xor a ; load into page 0
   ld (destinationHighBank), a
+  ld a, 3 ; load virtual page 3
   call dosload
 
   ; disable second screen, switch to high bank 0 then exit
   di
+  ld bc, 0  ; return 0 to basic
   ld a, (bankm)
   and 0xf0  ;disable second screen and go to page 0
-  ld (bankm), a  ; keep system variables up to date
-  ld bc, 0x7ffd  ; port used for horiz ROM switch and RAM paging
-  out (c), a  ; RAM page 7 to top and DOS ROM
-  ei
-  ld bc, 0  ; return 0 to basic
-  ret
+  jp switchPage

@@ -305,6 +305,7 @@ loadFromDisk2:
   push de
   ld de, 0x0100
   call switchPage
+  di
   pop de
   push de
 

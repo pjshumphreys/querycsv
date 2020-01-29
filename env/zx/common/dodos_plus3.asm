@@ -18,7 +18,6 @@ dodos_plus3:
   res 4, a  ; and DOS ROM
   di
   call switchPage
-  ei
   pop af
 
   call jumptoit2  ; go sub routine address in IY
@@ -27,7 +26,6 @@ dodos_plus3:
   ld a, (bankmBackup)
   di
   call switchPage
-  ei
   pop af
 
   ld iy, ERR_NR

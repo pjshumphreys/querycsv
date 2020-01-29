@@ -60,7 +60,6 @@ bcdloop:
   or (hl)
 
   call switchPage
-  ei
   pop af
 
   push ix
@@ -74,7 +73,6 @@ bcdloop:
   di
   ld a, (bankmBackup)
   call switchPage
-  ei
 
   pop af
   ;ld a, handle           ; a  = file handler
@@ -88,7 +86,6 @@ esxexit:
   di
   ld a, (bankmBackup)
   call switchPage
-  ei
 
   pop af
   ;ld a, handle           ; a  = file handler

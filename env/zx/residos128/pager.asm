@@ -166,6 +166,7 @@ found:
 found4:
   ld e, 0
   call switchPage
+  di
   ret
 
 copyLoToHi:
@@ -184,6 +185,7 @@ copyLoToHi:
   and 0b11111000
   or d
   call switchPage
+  di
 
   ; copy memory from the range of 0x0000-0x1fff to the least recently used page
   ld hl, 0x0  ; Pointer to the source
@@ -232,7 +234,6 @@ atexit2:
   ld a, (bankm)
   and 0b11110000
   call switchPage
-  ei
 
   ; reload the startup page so we can jump to it directly from basic next time
   ld a, 3

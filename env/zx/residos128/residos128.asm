@@ -122,7 +122,7 @@ inf:
   call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (defaultBank), a  ; save for later
-  ld (pageLocations), a ; ensure the defulat bank memory is freed atexit
+  ld (pageLocations), a ; ensure the default bank memory is freed at exit
 
   ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
   ld hl, pageLocations+6

@@ -51,8 +51,19 @@ bcdloop:
   jr nc, finish  ; exit if error
   pop af
 
-  ; Get the address of the header in +3DOS memory.
+  ;switch high page
+  push af
+  di
+  ld a, (bankm)  ; RAM/ROM switching system variable
+  ld (bankmBackup), a
+  and 0xf8  ; reset bits for page 0
   ld hl, destinationHighBank
+  or (hl)
+
+  call switchPage
+  pop af
+
+  ; Get the address of the header in +3DOS memory.
   ld b, 0  ; file id 0
   ld c, (hl)  ; ram page that's specified in the page queue
   ld de, 16384  ; amount of data to load
@@ -60,6 +71,11 @@ bcdloop:
   ld iy, DOS_READ  ; +3DOS call ID
   call dodos
   push af  ; close the file either way, but keep any error code for later
+
+  ;switch back high page
+  di
+  ld a, (bankmBackup)
+  call switchPage
 
   ; Close the file
   ld b, 0  ; file 0
@@ -73,7 +89,7 @@ bcdloop:
   call dodos
 
 finish:
-  ld a, 0
+  xor a ; ld a, 0
   ld (pagename+12), a
 
   pop af  ; restore error code
