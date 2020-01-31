@@ -225,22 +225,6 @@ farRet:
 
 ;-----------------------------------------
 
-atexit2:
-  call call_rom3
-  defw 0xe60e ; atexit3
-
-  ; switch in page 0 and disable the secondary screen
-  di
-  ld a, (bankm)
-  and 0b11110000
-  call switchPage
-
-  ; reload the startup page so we can jump to it directly from basic next time
-  ld a, 3
-  jp dosload  ; call dosload then ret
-
-;-----------------------------------------
-
 FRAMES equ 0x5c78
 
 isr2:

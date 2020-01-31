@@ -24,9 +24,9 @@ qrycsv03.ovl: querycsv.tap
 #	cd esxdos48 && make
 #	cp esxdos48/qrycsv04.ovl .
 
-#qrycsv05.ovl:
-#	cd esxdos128 && make
-#	cp esxdos128/qrycsv05.ovl .
+qrycsv05.ovl:
+	cd esxdos128 && make
+	cp esxdos128/qrycsv05.ovl .
 
 #qrycsv06.ovl: libc.c lexer2.c sql2.c
 #	node ./build-zx.js
@@ -37,5 +37,5 @@ clean:
 #	cd residos48 && make clean
 	cd residos128 && make clean
 #	cd esxdos48 && make clean
-#	cd esxdos128 && make clean
+	cd esxdos128 && make clean
 	rm -rf querycsv.tap *.ovl

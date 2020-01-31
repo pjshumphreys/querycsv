@@ -2,6 +2,10 @@ include "esxdos128.inc"
 
 VARS equ 0x5c4b
 
+DIVMMC equ 0xe3
+
+RST_HOOK equ 8
+
 org 0xc000
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
@@ -90,22 +94,22 @@ inf:
   ld c, DIVMMC
   ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
-  ld a, (0x2000)
+  ld a, 0x2000
   ld b, a
   ld a, 10000100b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
   out (c), a
-  ld a, (0x2000)
+  ld a, 0x2000
   inc a
-  ld (0x2000), a
+  ld 0x2000, a
   ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
-  ld a, (0x2000)
+  ld a, 0x2000
   xor b   ; iff is different then only 32k available
   jr z, has128k
 
   ; only 32k available
   ld a, b  ;put back the original value
-  ld (0x2000), a
+  ld 0x2000, a
   xor a ; ld a, 0 ; regular speccy layout
   ;ld (basicBank), a  ; not needed as the values here will already be 0
   ;ld (defaultBank), a

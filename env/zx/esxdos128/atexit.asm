@@ -1,58 +1,27 @@
 include "pager.map"
 
-RESI_DEALLOC equ 0x0328
-
-
 org 0xe60e
-
   ld (hlBackup), hl
 
-  ;save return location for later
-  pop hl
-  ld (deBackup), hl
+  ; restore stack pointer
+  ld sp, (spBackup)
 
   ; copy page 7 screen ram to screen 5
   ld hl, 0xc000  ; Pointer to the source
   ld de, 0x4000  ; Pointer to the destination
   ld bc, 0x1b00  ; Number of bytes to move
+  di
   ldir
 
-  ; turn off using the extra banks when paging
-  xor a  ; ld a, 0
-  ld (usingBanks), a
-
-  ; switch back to the basic bank
-  di
+  ; switch back to the basic bank and disable the extra memory
   ld a, (basicBank)
+  ld (defaultBank), a   ; disable the extra memory
   ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
   call mypager
+
+  ;switch back to interrupt mode 0
+  im 0
   ei
-
-  ld hl, pageLocationsEnd-1
-
-; free all allocated ram
-freeLoop:
-  ld a, (hl)
-  cp 255 ; special code that indicates to always load from disk
-  jr z, freeSkip
-  cp b ; if the current bank is the basic bank then exit the loop
-  jr z, freeExit
-  push bc
-  push hl
-  ld iy, RESI_DEALLOC
-  call doresi
-  pop hl
-  pop bc
-freeSkip:
-  dec hl
-  jr freeLoop
-freeExit:
-
-  ; restore stack pointer and 'hl values
-  exx
-  ld hl, (exhlBackup)      ; restore BASIC's HL'
-  ld sp, (spBackup)
-  exx
 
   pop bc  ; get argc
   ld a, c
@@ -84,20 +53,30 @@ exitMoveBack:
   ld (hl), b
 
 skipMoveBack:
+  ;pop hl
+  ;ld (deBackup), hl
 
   ; if hlBackup is non zero, push it onto the stack
   ld hl, (hlBackup)
   ld a, h
   or l
-    jp z, nopush
+  jp z, nopush
   push hl
 
 nopush:
   ;restore return location
-  ld hl, (deBackup)
-  push hl
+  ;ld hl, (deBackup)
+  ;push hl
 
-  ;switch back to regular interrupts
-  im 0
+  ; reload virtual page 3 back into high bank 0 so we can easily run the program again
+  xor a ; load into page 0
+  ld (destinationHighBank), a
+  ld a, 5 ; load virtual page 5
+  call dosload
 
-  ret  ; appx 113 bytes
+  ; disable second screen, switch to high bank 0 then exit
+  di
+  ld bc, 0  ; return 0 to basic
+  ld a, (bankm)
+  and 0xf0  ;disable second screen and go to page 0
+  jp switchPage
