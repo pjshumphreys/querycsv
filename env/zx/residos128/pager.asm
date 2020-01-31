@@ -14,6 +14,7 @@ PUBLIC argv
 PUBLIC fputc_cons
 PUBLIC atexit
 PUBLIC isr
+PUBLIC call_rom3
 PUBLIC jp_rom3
 PUBLIC __sgoioblk
 

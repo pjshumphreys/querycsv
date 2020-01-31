@@ -10,6 +10,10 @@ org 0xc000
   ld (farcall+1), de ; update the farcall address
   ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
 
+  di
+  ldir
+  ei
+
   ld a, 7
   ld (destinationHighBank), a  ; which high bank to go to (bank 7)
 
@@ -81,6 +85,9 @@ fourthcopy:
   jr Loop
 
 inf:
+  ld a, 1
+  ld (destinationHighBank), a  ; which high bank to go to (bank 1)
+
   ; setup the residos pager (already copied into place)
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
@@ -106,7 +113,7 @@ inf:
   ; only 32k available
   ld a, b  ;put back the original value
   ld (0x2000), a
-  xor a ; ld a, 0 ; regular speccy layout
+  xor a ; ld a, 0 ; put back regular speccy layout
   ;ld (basicBank), a  ; not needed as the values here will already be 0
   ;ld (defaultBank), a
   out (c), a
@@ -114,8 +121,9 @@ inf:
   jr startup3
 
 has128k:
-  ;xor a   ; ld a, 0   ; not needed as the values here will already be 0 
-  ;ld (basicBank), a
+  xor a ; ld a, 0 ; put back regular speccy layout
+  out (c), a
+  ;ld (basicBank), a  ; not needed as the values here will already be 0
   ld a, 10000100b
   ld (defaultBank), a
   ei
@@ -176,12 +184,12 @@ intSetup:
   ld hl, 0x0021 ; ld hl, $00...
   ld (atexit), hl
   ld hl, 0xcd00 ; ...00; call
+  ld a, h
   ld (atexit+2), hl
   ld hl, jp_rom3
   ld (atexit+4), hl
 
   ;update fputc_cons jump
-  ld a, 0xcd ; 0xcd = call instruction
   ld (fputc_cons), a ; put instruction into the fputc_cons location
   ld (fputc_cons+1), hl ; put jp_rom3 address here
 

@@ -98,6 +98,9 @@ fourthcopy:
   jr Loop
 
 inf:
+  ld a, 1
+  ld (destinationHighBank), a  ; which high bank to go to (bank 1)
+
   ; shrink the workspaces to only use page 6
   ld de, 0x601c ; just first half of page 6
   ld hl, 0x7c04 ; just second half of page 6
@@ -184,12 +187,12 @@ intSetup:
   ld hl, 0x0021 ; ld hl, $00...
   ld (atexit), hl
   ld hl, 0xcd00 ; ...00; call
+  ld a, h
   ld (atexit+2), hl
   ld hl, jp_rom3
   ld (atexit+4), hl
 
   ;update fputc_cons jump
-  ld a, 0xcd ; 0xcd = call instruction
   ld (fputc_cons), a ; put instruction into the fputc_cons location
   ld (fputc_cons+1), hl ; put jp_rom3 address here
 

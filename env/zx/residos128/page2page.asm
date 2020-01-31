@@ -40,17 +40,17 @@ Loop2:
 ;loadFromDisk2 - loads virtual pages into low banks during program startup so that they can be quickly retrieved later
 
 loadFromDisk2:
-  push de ; de contains the virtual page number we want to load into the low bank
-  push hl ; (hl) contains the low bank number we obtained from calling RESI_ALLOC
   di
   ld a, (bankm)
-  ld (bankmBackup), a
-  ;and 0xf8
-  or 1
+  and 0xf8
+  or 1  ; high ram page 1
   call switchPage
   di
 
-  ld a, d
+  push de ; de contains the virtual page number we want to load into the low bank
+  push hl ; (hl) contains the low bank number we obtained from calling RESI_ALLOC
+
+  ld a, e
   call dosload  ; dosload re-enables interupts before it returns back to here...
   di ; ... so disable interrupts again
 
@@ -65,12 +65,12 @@ loadFromDisk2:
   ld bc, 16384 ; bc = number of bytes to copy for ldir
   ldir
 
-  ld a, (bankmBackup)
-  call switchPage
-
   pop hl
   pop de
-  ret
+
+  ld a, (bankm)
+  and 0xf8  ; high ram page 0
+  jp switchPage
 
 ;---------------------------------------
 ; pad the output binary out to the proper size.

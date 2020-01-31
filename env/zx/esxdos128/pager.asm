@@ -12,6 +12,7 @@ PUBLIC argv
 PUBLIC fputc_cons
 PUBLIC atexit
 PUBLIC isr
+PUBLIC call_rom3
 PUBLIC jp_rom3
 PUBLIC __sgoioblk
 
@@ -107,6 +108,27 @@ lookupTableEnd:
 
 ;------------------------------------------------------
 
+found:
+  ; if yes, make it the most recently used, switch to it then jump to the proper location
+  dec hl
+  ld d, (hl)
+  push de
+  push hl
+  pop de
+  dec hl
+  inc de
+  lddr
+  pop de
+  inc hl
+  ld (hl), d
+  inc hl
+  ld (hl), e
+found4:
+  ld e, 0
+  call switchPage
+  di
+  ret
+
 changePage:  ; is the virtual page currently in a ram page?
 
   ; save bc as we'll be using lddr that corrupts it
@@ -150,28 +172,8 @@ notFound:
   cp 255  ; 255 = load from disk
   jr nz, copyLoToHi
   call dosload
-  ; jr found
+  jr found
 
-found:
-  ; if yes, make it the most recently used, switch to it then jump to the proper location
-  dec hl
-  ld d, (hl)
-  push de
-  push hl
-  pop de
-  dec hl
-  inc de
-  lddr
-  pop de
-  inc hl
-  ld (hl), d
-  inc hl
-  ld (hl), e
-found4:
-  ld e, 0
-  call switchPage
-  di
-  ret
 
 copyLoToHi:
   ;if it is in overlay ram, disable interupts, switch in the proper overlay ram and the least recently used page, copy the data, make it the most recently used, switch to it then jump to the proper location.

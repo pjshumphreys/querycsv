@@ -33,8 +33,18 @@ bcdloop:
   ld b, a
   ld (pagename+6), bc
 
-  push ix
+  ;switch high page
+  push hl
+  di
+  ld a, (bankm)  ; RAM/ROM switching system variable
+  ld (bankmBackup), a
+  and 0xf8  ; reset bits for page 0
+  ld hl, destinationHighBank
+  or (hl)
+  call switchPage
+  pop hl
 
+  push ix
   ld hl, pagename
   push hl
   pop ix
@@ -48,38 +58,23 @@ bcdloop:
 
   ; ld a, filehandle  ; a  = the file handler
   ld ix, 0xc000  ; ix = address where to store what is read
-  ld bc, 0x4000  ; bc = bytes to read
-
-  ;switch high page
-  push af
-  di
-  ld a, (bankm)  ; RAM/ROM switching system variable
-  ld (bankmBackup), a
-  and 0xf8  ; reset bits for page 0
-  ld hl, destinationHighBank
-  or (hl)
-
-  call switchPage
-  pop af
-
   push ix
   pop hl
-
+  ld bc, 0x4000  ; bc = bytes to read
   rst RST_HOOK
   defb F_READ
   jr c, esxexit
-
-  ;switch back high page
-  di
-  ld a, (bankmBackup)
-  call switchPage
 
   pop af
   ;ld a, handle           ; a  = file handler
   rst RST_HOOK
   defb F_CLOSE
   pop ix
-  ret
+
+  ;switch back high page
+  di
+  ld a, (bankmBackup)
+  jp switchPage
 
 esxexit:
   ;switch back high page
@@ -92,6 +87,11 @@ esxexit:
   rst RST_HOOK
   defb F_CLOSE
   pop ix
+
+  ;switch back high page
+  di
+  ld a, (bankmBackup)
+  call switchPage
 
 esxend:
   ;jp printNoFile
