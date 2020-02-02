@@ -10,6 +10,10 @@
 #include <string.h>
 #include <time.h>
 
+#ifndef FLEXINT_H
+  #include <stdint.h>
+#endif
+
 #ifdef __Z88DK
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF
@@ -26,10 +30,6 @@
   employ some macro magic to smooth things over.
   */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
-
-  #ifndef FLEXINT_H
-    #include <stdint.h>
-  #endif
 
   #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
 as long as the function using them uses the __stdc calling convention */

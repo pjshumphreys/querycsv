@@ -4,20 +4,23 @@
 #define printfd(...)
 
 void isInHash2_0(void) {
-  i = 0;
-
   int index = (int)(entry.codepoint - 160);
 
+  i = 0;
+
   if(hash2_[index] == NULL) {
-    return NULL;
+    retval = NULL;
+    return;
   }
 
   while(hash2_[index][i] != 0) {
-    entry.codepoints[i] = hash2_[index][i];
+    codepoints[i] = hash2_[index][i];
     i++;
   }
 
   entry.length = i;
+
+  retval = &entry;
 }
 
 void isInHash2_1(void) {
@@ -29,6 +32,30 @@ void isInHash2_1(void) {
   int length;
 
   FILE * fp = fopen("qrycsv00.ovl", "rb");
+
+  char * path = NULL;
+  char * result = NULL;
+  char * filename = NULL;
+
+  /* search the path for the data file if its not found in the current working directory */
+  if(fp == NULL && (path = getenv("PATH")) != NULL) {
+    do {
+      d_strtok(&result, ";", &path);
+
+      if(result == NULL) {
+        break;
+      }
+
+      d_sprintf(&filename, "%s\\qrycsv00.ovl", result);
+      fp = fopen(filename, "rb");
+      freeAndZero(filename);
+
+      if(fp != NULL) {
+        freeAndZero(result);
+        break;
+      }
+    } while (1);
+  }
 
   if(fp == NULL) {
     fputs("Couldn't open qrycsv00.ovl\n", stderr);
