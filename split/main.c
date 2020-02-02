@@ -34,6 +34,9 @@ int main(int argc, char **argv) {
       /* set the locale (among other things, this applies the */
       /* timezone data to the date functions) */
       setlocale(LC_ALL, TDB_LOCALE);
+
+      origWd = getcwd(NULL, PATH_MAX+1);
+      atexit(atexit_dos);
     #endif
   #endif
 

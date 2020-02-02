@@ -174,6 +174,8 @@ it becomes needed and because it's useful for debugging */
     #define fprintf fprintf_w32
     #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
+    #include <direct.h>   /* for getcwd */
+    void atexit_dos(void);
     int fputs_dos(const char *str, FILE *stream);
     int fprintf_dos(FILE *stream, const char *format, ...);
 

@@ -13,5 +13,5 @@ c64
 +---------------+
 | 0xD000-0xDFFF | memory mapped I/O devices
 +---------------+
-| 0xC000-0xFFFF | kernal rom
+| 0xE000-0xFFFF | kernal rom
 +---------------+

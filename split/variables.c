@@ -21,6 +21,7 @@ struct hash4Entry entry1Internal = {NULL, 0, 0, 0};
 struct hash4Entry entry2Internal = {NULL, 0, 0, 0};
 
 char * devNull = NULL;
+char * origWd = NULL;
 
 /*dedup string literals */
 const char* TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;

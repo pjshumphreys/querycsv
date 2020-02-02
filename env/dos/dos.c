@@ -2,11 +2,16 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
+#include <direct.h>
 
 #define FALSE 0
 #define TRUE  1
 
+#define freeAndZero(p) { free(p); p = 0; }
+
 extern char * devNull;
+extern char * origWd;
+
 int strAppend(char c, char **value, size_t *strSize);
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
@@ -20,6 +25,11 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
 static int lastWasErr = FALSE;
 static int newline = FALSE;
 static int consoleEncoding = ENC_UNKNOWN;
+
+void atexit_dos(void) {
+  chdir(origWd);
+  freeAndZero(origWd);
+}
 
 /* eat the last newline emitted as dos will add one back */
 int fputs_dos(const char *str, FILE *stream) {

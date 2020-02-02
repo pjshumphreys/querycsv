@@ -31,11 +31,20 @@ void isInHash2_1(void) {
   int hasMatch = 0;
   int length;
 
-  FILE * fp = fopen("qrycsv00.ovl", "rb");
+  FILE * fp;
 
   char * path = NULL;
   char * result = NULL;
   char * filename = NULL;
+
+  if(origWd != NULL) {
+    d_sprintf(&filename, "%s\\qrycsv00.ovl", origWd);
+    fp = fopen(filename, "rb");
+    freeAndZero(filename);
+  }
+  else {
+    fp = fopen("qrycsv00.ovl", "rb");
+  }
 
   /* search the path for the data file if its not found in the current working directory */
   if(fp == NULL && (path = getenv("PATH")) != NULL) {
