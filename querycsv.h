@@ -10,7 +10,7 @@
 #include <string.h>
 #include <time.h>
 
-#ifndef FLEXINT_H
+#if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
   #include <stdint.h>
 #endif
 
