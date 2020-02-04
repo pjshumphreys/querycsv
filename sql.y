@@ -95,53 +95,43 @@ command_or_select:
     opt_into_clause
   | COLUMNS STRING optional_encoding opt_into_clause {
       queryData->commandMode = 1;
-
+      queryData->inputFileName = $2;
       queryData->CMD_ENCODING = $3;
-
-      runCommand(queryData, $2);
 
       YYACCEPT;
     }
   | OUTPUT STRING optional_encoding opt_into_clause {
       queryData->commandMode = 5;
-
+      queryData->inputFileName = $2;
       queryData->CMD_ENCODING = $3;
-
-      runCommand(queryData, $2);
 
       YYACCEPT;
     }
   | NEXT STRING optional_encoding INTNUM opt_into_clause {
       queryData->commandMode = 2;
+      queryData->inputFileName = $2;
+      queryData->CMD_ENCODING = $3;
 
       queryData->CMD_OFFSET = atol($4);
       free($4);
-
-      queryData->CMD_ENCODING = $3;
-
-      runCommand(queryData, $2);
 
       YYACCEPT;
     }
   | VALUE STRING optional_encoding INTNUM INTNUM opt_into_clause {
       queryData->commandMode = 3;
-
-      queryData->CMD_COLINDEX = atol($5);
-      free($5);
+      queryData->inputFileName = $2;
+      queryData->CMD_ENCODING = $3;
 
       queryData->CMD_OFFSET = atol($4);
       free($4);
 
-      queryData->CMD_ENCODING = $3;
-
-      runCommand(queryData, $2);
+      queryData->CMD_COLINDEX = atol($5);
+      free($5);
 
       YYACCEPT;
     }
   | DATE opt_into_clause {
       queryData->commandMode = 4;
-
-      runCommand(queryData, NULL);
 
       YYACCEPT;
     }

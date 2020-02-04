@@ -3,7 +3,7 @@ int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t *retval) {
 
   MAC_YIELD
 
-  if(*retval) {
+  if(retval) {
     nfdLength = *retval;
   }
 

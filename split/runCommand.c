@@ -1,4 +1,4 @@
-void runCommand(struct qryData *query, char *inputText) {
+void runCommand(struct qryData *query) {
   MAC_YIELD
 
   /* set up the output context */
@@ -8,19 +8,19 @@ void runCommand(struct qryData *query, char *inputText) {
   else switch(query->commandMode) {
     case 1: {
       /* get the number of columns in a file */
-      query->CMD_RETVAL = getColumnCount(query, inputText);
+      query->CMD_RETVAL = getColumnCount(query, query->inputFileName);
     } break;
 
     case 2: {
       /* get the file offset of the start of the next record in a file */
-      query->CMD_RETVAL = getNextRecordOffset(query, inputText, query->CMD_OFFSET);
+      query->CMD_RETVAL = getNextRecordOffset(query, query->inputFileName, query->CMD_OFFSET);
     } break;
 
     case 3: {
       /* get the unescaped value of column X of the record starting at the file offset */
       query->CMD_RETVAL = getColumnValue(
         query,
-        inputText,
+        query->inputFileName,
         query->CMD_OFFSET,
         query->CMD_COLINDEX);
     } break;
@@ -36,7 +36,7 @@ void runCommand(struct qryData *query, char *inputText) {
         fputsEncoded(output, query->outputFile, query->outputEncoding);
 
         if(query->outputFile == stdout) {
-          fputs(query->newLine, stdout);
+          fputsEncoded(query->newLine, stdout, query->outputEncoding);
         }
 
         /* free the string data */
@@ -49,9 +49,9 @@ void runCommand(struct qryData *query, char *inputText) {
 
     case 5: {
       /* just output the entire file that's specified, so we can convert between character encodings */
-      query->CMD_RETVAL = outputFile(query, inputText);
+      query->CMD_RETVAL = outputFile(query, query->inputFileName);
     } break;
   }
 
-  freeAndZero(inputText);
+  freeAndZero(query->inputFileName);
 }

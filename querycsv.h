@@ -554,6 +554,7 @@ struct qryData {
   int groupCount;
   int useGroupBy;
   int params;
+  char *inputFileName;
   int inputEncoding;
   void (*getCodepoints)(FILE *, long *, int *, int *);
   int outputEncoding;

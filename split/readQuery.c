@@ -77,6 +77,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   query->recordCount = 0;
   query->groupCount = 0;
   query->params = PRM_DEFAULT;
+  query->inputFileName = NULL;
   query->outputFileName = NULL;
   query->outputEncoding = ENC_OUTPUT;
   query->columnReferenceHashTable = hash_createTable(32);
@@ -151,14 +152,6 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   switch(parserReturn) {
     case 0: {
       /* parsing finished sucessfully. */
-
-      /* Quit early if a command was run */
-      if(query->commandMode) {
-        free(queryFileName);
-        return EXIT_SUCCESS;
-      }
-
-      /* otherwise continue processing */
     } break;
 
     case 1:
@@ -201,6 +194,15 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
       query->newLine = "\r\n";
     }
   #endif
+
+  /* Quit early if a command was run */
+  if(query->commandMode) {
+    runCommand(query);
+    free(queryFileName);
+    return EXIT_SUCCESS;
+  }
+
+  /* otherwise continue processing */
 
   /* set query->firstInputTable to actually be the first input table. */
   if(query->secondaryInputTable != NULL) {
