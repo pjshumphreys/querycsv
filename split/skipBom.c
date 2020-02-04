@@ -11,7 +11,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
   if(file != NULL) {
     /* skip over the bom if present */
-    switch(fgetc(file)) {
+    switch((c = fgetc(file))) {
       case 0: {  /* maybe UTF-32BE */
         if(
             fgetc(file) == 0 &&

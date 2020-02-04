@@ -1,14 +1,14 @@
 int inputSeek(
     struct qryData *query,
     char *inputFileName,
-    long offset,
+    long *offset,
     FILE **inputFile
 ) {
   long temp = 0;
 
   MAC_YIELD
 
-  /* attempt to open the input file */
+  /* Attempt to open the input file and update the character encoding if the file has a BOM */
   *inputFile = skipBom(inputFileName, &temp, &(query->CMD_ENCODING));
 
   if(*inputFile == NULL) {
@@ -16,8 +16,8 @@ int inputSeek(
     return EXIT_FAILURE;
   }
 
-  if(offset == 0) {
-    offset = temp;
+  if(*offset == 0) {
+    *offset = temp;
   }
   else {
     fclose(*inputFile);
@@ -31,7 +31,7 @@ int inputSeek(
     }
 
     /* seek to offset */
-    if(myfseek(*inputFile, offset, SEEK_SET) != 0) {
+    if(myfseek(*inputFile, *offset, SEEK_SET) != 0) {
       fputs(TDB_COULDNT_SEEK, stderr);
 
       fclose(*inputFile);

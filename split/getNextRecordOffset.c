@@ -9,7 +9,7 @@ int getNextRecordOffset(
 
   MAC_YIELD
 
-  if(inputSeek(query, inputFileName, offset, &inputFile) == EXIT_FAILURE) {
+  if(inputSeek(query, inputFileName, &offset, &inputFile) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 

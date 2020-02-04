@@ -9,10 +9,11 @@ int getColumnValue(
   size_t strSize = 0;
   int currentColumn = 0;
   struct inputTable table;
+  int gotColumn;
 
   MAC_YIELD
 
-  if(inputSeek(query, inputFileName, offset, &inputFile) == EXIT_FAILURE) {
+  if(inputSeek(query, inputFileName, &offset, &inputFile) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 
@@ -25,19 +26,25 @@ int getColumnValue(
 
   /* get the text of the specified csv column (if available). */
   /* if it's not available we'll return an empty string */
-  while(
-        ++currentColumn != columnIndex ?
-        getCsvColumn(&table, NULL, NULL, NULL, NULL, TRUE, query->newLine):
-        (getCsvColumn(&table, &output, &strSize, NULL, NULL, TRUE, query->newLine) && FALSE)
-      ) {
+  for(;
+      currentColumn != columnIndex &&
+      (gotColumn = getCsvColumn(&table, NULL, NULL, NULL, NULL, TRUE, query->newLine)) == TRUE;
+      currentColumn++
+  ) {
     /* get next column */
   }
 
-  /* output the value */
-  fputsEncoded(output, query->outputFile, query->outputEncoding);
+  if(gotColumn) {
+    getCsvColumn(&table, &output, &strSize, NULL, NULL, TRUE, query->newLine);
+  }
 
-  /* free the string memory */
-  freeAndZero(output);
+  if(output) {
+    /* output the value */
+    fputsEncoded(output, query->outputFile, query->outputEncoding);
+
+    /* free the string memory */
+    freeAndZero(output);
+  }
 
   /* close the input file and return */
   fclose(inputFile);

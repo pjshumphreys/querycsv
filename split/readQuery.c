@@ -1,7 +1,7 @@
 #include "sql.h"
 #include "lexer.h"
 
-int readQuery(char *origFileName, struct qryData *query) {
+int readQuery(char *origFileName, struct qryData *query, int queryType) {
   FILE *queryFile = NULL;
   void *scanner = NULL;
   struct inputTable *currentInputTable;
@@ -18,25 +18,51 @@ int readQuery(char *origFileName, struct qryData *query) {
   /* read the query file and create the data structures we'll need */
   /* ///////////////////////////////////////////////////////////// */
 
-/* on windows or posix change the current directory so filenames in the query file are relative to it */
-#if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) && !(defined(EMSCRIPTEN) || defined(MPW_C))
-  if(!d_fullpath(origFileName, &queryFileName)) {
-    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    return EXIT_FAILURE;
-  }
-#else
-  queryFileName = mystrdup(origFileName);
-#endif
+  #if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) && !(defined(EMSCRIPTEN) || defined(MPW_C))
+    size_t strSize = 0;
+    int c;
 
-  MAC_YIELD
+    MAC_YIELD
 
-  /* attempt to open the input file */
+    /* if the input file can't be rewound then load it into a string then read from that instead */
+    if(queryType == 1 && (queryFile = fopen(origFileName, "rb"))) {
+      if(fseek(queryFile, 0, SEEK_SET)) {
+        queryType = 0;
 
-  queryFile = skipBom(queryFileName, NULL, &initialEncoding);
-  if(queryFile == NULL) {
-    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    free(queryFileName);
-    return EXIT_FAILURE;
+        while((c = fgetc(queryFile)) != EOF) {
+          strAppend(c, &queryFileName, &strSize);
+        }
+
+        strAppend(0, &queryFileName, &strSize);
+
+        origFileName = queryFileName;
+      }
+
+      fclose(queryFile);
+    }
+  #else
+    MAC_YIELD
+  #endif
+
+  if(queryType == 1) {
+    #if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) && !(defined(EMSCRIPTEN) || defined(MPW_C))
+      /* on windows or posix change the current directory so filenames in the query file are relative to it */
+      if(!d_fullpath(origFileName, &queryFileName)) {
+        fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+        return EXIT_FAILURE;
+      }
+    #else
+      queryFileName = mystrdup(origFileName);
+    #endif
+
+    /* attempt to open the input file */
+    queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+
+    if(queryFile == NULL) {
+      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      free(queryFileName);
+      return EXIT_FAILURE;
+    }
   }
 
   /* setup the initial values in the queryData structure */
@@ -68,7 +94,12 @@ int readQuery(char *origFileName, struct qryData *query) {
   yylex_init_extra(query, &scanner);
 
   /* feed our script file into the scanner structure */
-  yyset_in(queryFile, scanner);
+  if(queryType == 1) {
+    yyset_in(queryFile, scanner);
+  }
+  else {
+    yy_scan_string(origFileName, scanner);
+  }
 
   /* parse the script file into the query data structure. */
   /* the parser will set up the contents of qryData as necessary */
@@ -80,39 +111,41 @@ int readQuery(char *origFileName, struct qryData *query) {
   scanner = NULL;
 
   /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
-  fclose(queryFile);
-
-  if(parserReturn == 0 && query->inputEncoding != ENC_UNKNOWN) {
-    /* the input file specified its own encoding. rewind and parse again */
-    queryFile = skipBom(queryFileName, NULL, &initialEncoding);
-
-    if(queryFile == NULL) {
-      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-      free(queryFileName);
-      return EXIT_FAILURE;
-    }
-
-    /*specify the getter to use*/
-    query->getCodepoints = chooseGetter(query->inputEncoding);
-
-    /* setup reentrant flex scanner data structure */
-    yylex_init_extra(query, &scanner);
-
-    /* feed our script file into the scanner structure */
-    yyset_in(queryFile, scanner);
-
-    /* do the first parser pass again using the proper encoding */
-    parserReturn = yyparse(query, scanner);
-
-    /* clean up the re-entrant flex scanner */
-    yylex_destroy(scanner);
-    scanner = NULL;
-
-    /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
+  if(queryType == 1) {
     fclose(queryFile);
-  }
-  else {
-    query->inputEncoding = initialEncoding;
+
+    if(parserReturn == 0 && query->inputEncoding != ENC_UNKNOWN) {
+      /* the input file specified its own encoding. rewind and parse again */
+      queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+
+      if(queryFile == NULL) {
+        fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+        free(queryFileName);
+        return EXIT_FAILURE;
+      }
+
+      /*specify the getter to use*/
+      query->getCodepoints = chooseGetter(query->inputEncoding);
+
+      /* setup reentrant flex scanner data structure */
+      yylex_init_extra(query, &scanner);
+
+      /* feed our script file into the scanner structure */
+      yyset_in(queryFile, scanner);
+
+      /* do the first parser pass again using the proper encoding */
+      parserReturn = yyparse(query, scanner);
+
+      /* clean up the re-entrant flex scanner */
+      yylex_destroy(scanner);
+      scanner = NULL;
+
+      /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
+      fclose(queryFile);
+    }
+    else {
+      query->inputEncoding = initialEncoding;
+    }
   }
 
   switch(parserReturn) {
@@ -204,19 +237,26 @@ int readQuery(char *origFileName, struct qryData *query) {
   /* get set up for the second stage (populating the rest of the qryData structure using the cached data from stage 1) */
   query->parseMode = 1;
 
-  queryFile = skipBom(queryFileName, NULL, &initialEncoding);
-  free(queryFileName); /* not needed any more */
+  if(queryType == 1) {
+    queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+    free(queryFileName); /* not needed any more */
 
-  if(queryFile == NULL) {
-    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    return EXIT_FAILURE;
+    if(queryFile == NULL) {
+      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      return EXIT_FAILURE;
+    }
   }
 
   /* setup reentrant flex scanner data structure */
   yylex_init_extra(query, &scanner);
 
   /* feed our script file into the scanner structure */
-  yyset_in(queryFile, scanner);
+  if(queryType == 1) {
+    yyset_in(queryFile, scanner);
+  }
+  else {
+    yy_scan_string(origFileName, scanner);
+  }
 
   parserReturn = yyparse(query, scanner);
 
@@ -224,7 +264,9 @@ int readQuery(char *origFileName, struct qryData *query) {
   yylex_destroy(scanner);
 
   /* close the query file */
-  fclose(queryFile);
+  if(queryType == 1) {
+    fclose(queryFile);
+  }
 
   /* parse the script file into the query data structure. */
   /* the parser will set up the contents of qryData as necessary */

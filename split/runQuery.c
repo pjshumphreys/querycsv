@@ -1,10 +1,10 @@
-int runQuery(char *queryFileName) {
+int runQuery(char *queryFileName, int queryIsntString) {
   struct qryData query;
   struct resultColumnValue* match = NULL;
 
   MAC_YIELD
 
-  if(readQuery(queryFileName, &query) == EXIT_FAILURE) {
+  if(readQuery(queryFileName, &query, queryIsntString) == EXIT_FAILURE) {
     return EXIT_FAILURE;
   }
 

@@ -47,7 +47,7 @@ typedef void* yyscan_t;
 /* literal keyword tokens */
 
 %token ALL AS ASC BY CASE
-%token COMMAND CONCAT
+%token CONCAT
 %token DESC DISTINCT ELSE ENCODING
 %token END FROM
 %token GROUP HAVING IN INTO
@@ -56,7 +56,7 @@ typedef void* yyscan_t;
 %token SELECT SORT
 %token THEN
 %token WHEN WHERE
-%token COLUMNS NEXT VALUE DATE NOW
+%token COLUMNS NEXT VALUE DATE OUTPUT NOW
 
 %token <intval> AMMSC
 %token <strval> NAME STRING
@@ -85,12 +85,6 @@ main_file:
   | opt_params command_or_select;
 
 command_or_select:
-    COMMAND command_types opt_into_clause {
-      runCommand(queryData, $2);
-
-      YYACCEPT;
-    }
-  |
     SELECT
     scalar_exp_commalist
     opt_from_clause
@@ -99,80 +93,57 @@ command_or_select:
     opt_having_clause
     opt_order_by_clause
     opt_into_clause
-  ;
-
-command_types:
-    COLUMNS '(' STRING ')' {
+  | COLUMNS STRING optional_encoding opt_into_clause {
       queryData->commandMode = 1;
 
-      queryData->CMD_ENCODING = ENC_DEFAULT;
+      queryData->CMD_ENCODING = $3;
 
-      $$ = $3;
+      runCommand(queryData, $2);
+
+      YYACCEPT;
     }
-  | COLUMNS '(' STRING ',' STRING ')' {
-      queryData->commandMode = 1;
+  | OUTPUT STRING optional_encoding opt_into_clause {
+      queryData->commandMode = 5;
 
-      if((queryData->CMD_ENCODING = parse_encoding(queryData, $5)) == ENC_UNSUPPORTED) {
-        YYABORT;
-      }
+      queryData->CMD_ENCODING = $3;
 
-      $$ = $3;
+      runCommand(queryData, $2);
+
+      YYACCEPT;
     }
-
-  | NEXT '(' STRING ',' INTNUM ')' {
+  | NEXT STRING optional_encoding INTNUM opt_into_clause {
       queryData->commandMode = 2;
 
-      queryData->CMD_OFFSET = atol($5);
-      free($5);
+      queryData->CMD_OFFSET = atol($4);
+      free($4);
 
-      queryData->CMD_ENCODING = ENC_DEFAULT;
+      queryData->CMD_ENCODING = $3;
 
-      $$ = $3;
+      runCommand(queryData, $2);
+
+      YYACCEPT;
     }
-  | NEXT '(' STRING ',' STRING ',' INTNUM ')' {
-      queryData->commandMode = 2;
-
-      queryData->CMD_OFFSET = atol($7);
-      free($7);
-
-      if((queryData->CMD_ENCODING = parse_encoding(queryData, $5)) == ENC_UNSUPPORTED) {
-        YYABORT;
-      }
-
-      $$ = $3;
-    }
-  | VALUE '(' STRING ',' INTNUM ',' INTNUM ')' {
+  | VALUE STRING optional_encoding INTNUM INTNUM opt_into_clause {
       queryData->commandMode = 3;
 
-      queryData->CMD_COLINDEX = atol($7);
-      free($7);
-
-      queryData->CMD_OFFSET = atol($5);
+      queryData->CMD_COLINDEX = atol($5);
       free($5);
 
-      queryData->CMD_ENCODING = ENC_DEFAULT;
+      queryData->CMD_OFFSET = atol($4);
+      free($4);
 
-      $$ = $3;
+      queryData->CMD_ENCODING = $3;
+
+      runCommand(queryData, $2);
+
+      YYACCEPT;
     }
-  | VALUE '(' STRING ',' STRING ',' INTNUM ',' INTNUM ')' {
-      queryData->commandMode = 3;
-
-      queryData->CMD_COLINDEX = atol($9);
-      free($9);
-
-      queryData->CMD_OFFSET = atol($7);
-      free($7);
-
-      if((queryData->CMD_ENCODING = parse_encoding(queryData, $5)) == ENC_UNSUPPORTED) {
-        YYABORT;
-      }
-
-      $$ = $3;
-    }
-  | DATE {
+  | DATE opt_into_clause {
       queryData->commandMode = 4;
 
-      $$ = NULL;
+      runCommand(queryData, NULL);
+
+      YYACCEPT;
     }
   ;
 

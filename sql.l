@@ -45,12 +45,12 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 (?i:ENCODING)   TOK(ENCODING)
 (?i:CASE)   TOK(CASE)
 (?i:COLLATE)    TOK(COLLATE)
-(?i:COMMAND)    { BEGIN(commands); return COMMAND; }
-<commands>(?i:COLUMNS)    { BEGIN(INITIAL); return COLUMNS; }
-<commands>(?i:NEXT)   { BEGIN(INITIAL); return NEXT; }
-<commands>(?i:VALUE)    { BEGIN(INITIAL); return VALUE; }
-<commands>(?i:DATE)   { BEGIN(INITIAL); return DATE; }
-<commands>[^ \t\r\n]    { yyless(0); BEGIN(INITIAL); }
+(?i:OUTPUT)    { TOK(OUTPUT) }
+(?i:COLUMNS)    { TOK(COLUMNS) }
+(?i:NEXT)   { TOK(NEXT) }
+(?i:VALUE)    { TOK(VALUE) }
+(?i:DATE)   { TOK(DATE) }
+(?i:NOW)   { TOK(NOW) }
 
 (?i:CONCAT)   TOK(CONCAT)
 (?i:DESC)   TOK(DESC)

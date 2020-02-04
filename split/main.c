@@ -35,7 +35,10 @@ int main(int argc, char **argv) {
       /* timezone data to the date functions) */
       setlocale(LC_ALL, TDB_LOCALE);
 
+      /* store the original working directory so we can load qrycsv00.ovl properly */
       origWd = getcwd(NULL, PATH_MAX+1);
+
+      /* set the working directory back to its orginal value at exit */
       atexit(atexit_dos);
     #endif
   #endif
@@ -62,7 +65,10 @@ int main(int argc, char **argv) {
 
   /* identify whether to run a script or display the usage message */
   if(argc2 == 2) {
-    return runQuery(argv2[1]);
+    return runQuery(argv2[1], TRUE);
+  }
+  else if (argc2 == 3 && strcmp("-c", argv2[1]) == 0) {
+    return runQuery(argv2[2], FALSE);
   }
 
   /* something else. print an error message and quit */

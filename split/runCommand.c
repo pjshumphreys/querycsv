@@ -34,7 +34,10 @@ void runCommand(struct qryData *query, char *inputText) {
       if((retval = getCurrentDate(&output))) {
         /* print the timestamp */
         fputsEncoded(output, query->outputFile, query->outputEncoding);
-        fputsEncoded("\n", query->outputFile, query->outputEncoding);
+
+        if(query->outputFile == stdout) {
+          fputs(query->newLine, stdout);
+        }
 
         /* free the string data */
         freeAndZero(output);
@@ -43,6 +46,11 @@ void runCommand(struct qryData *query, char *inputText) {
       /* quit */
       query->CMD_RETVAL = (retval == 0 ? EXIT_FAILURE : EXIT_SUCCESS);
     } return;
+
+    case 5: {
+      /* just output the entire file that's specified, so we can convert between character encodings */
+      query->CMD_RETVAL = outputFile(query, inputText);
+    } break;
   }
 
   freeAndZero(inputText);

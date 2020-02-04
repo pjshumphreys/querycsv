@@ -23,6 +23,58 @@ void isInHash2_0(void) {
   retval = &entry;
 }
 
+FILE* datafile = NULL;
+
+void openDat(void) {
+  char * path = NULL;
+  char * result = NULL;
+  char * filename = NULL;
+
+  if(origWd != NULL) {
+    datafile = fopen("qrycsv00.ovl", "rb");
+  }
+
+  /* search the path for the data file if its not found in the current working directory */
+  if(datafile == NULL) {
+    result = mystrdup(origWd);
+
+    do {
+      if(result == NULL) {
+        break;
+      }
+
+      d_sprintf(&filename, "%s\\qrycsv00.ovl", result);
+      datafile = fopen(filename, "rb");
+      freeAndZero(filename);
+
+      /* z88dk can't handle "||" and "&&" in the same expression. */
+      /* Just repeat the code for the sake of simplicity */
+      #ifdef __Z88DK
+      if(datafile != NULL) {
+        freeAndZero(result);
+        break;
+      }
+      #endif
+
+      if(
+      #ifndef __Z88DK
+        datafile != NULL ||
+      #endif
+      (path == NULL && (path = getenv("PATH")) == NULL)) {
+        freeAndZero(result);
+        break;
+      }
+
+      d_strtok(&result, ";", &path);
+    } while (1);
+  }
+
+  if(datafile == NULL) {
+    fputs("Couldn't open qrycsv00.ovl\n", stderr);
+    exit(EXIT_FAILURE);
+  }
+}
+
 void isInHash2_1(void) {
   int32_t lookFor = (int32_t)entry.codepoint;
 
@@ -31,69 +83,36 @@ void isInHash2_1(void) {
   int hasMatch = 0;
   int length;
 
-  FILE * fp;
-
-  char * path = NULL;
-  char * result = NULL;
-  char * filename = NULL;
-
-  if(origWd != NULL) {
-    d_sprintf(&filename, "%s\\qrycsv00.ovl", origWd);
-    fp = fopen(filename, "rb");
-    freeAndZero(filename);
+  if(datafile == NULL) {
+    openDat();
   }
   else {
-    fp = fopen("qrycsv00.ovl", "rb");
+    fseek(datafile, 0, SEEK_SET);
   }
 
-  /* search the path for the data file if its not found in the current working directory */
-  if(fp == NULL && (path = getenv("PATH")) != NULL) {
-    do {
-      d_strtok(&result, ";", &path);
-
-      if(result == NULL) {
-        break;
-      }
-
-      d_sprintf(&filename, "%s\\qrycsv00.ovl", result);
-      fp = fopen(filename, "rb");
-      freeAndZero(filename);
-
-      if(fp != NULL) {
-        freeAndZero(result);
-        break;
-      }
-    } while (1);
-  }
-
-  if(fp == NULL) {
-    fputs("Couldn't open qrycsv00.ovl\n", stderr);
-    exit(EXIT_FAILURE);
-  }
-
-  for(;;) {
+  do {
     /* get the current codepoint */
     printfd("1 %d ", current);
-    fread(&current, sizeof(int32_t), 1, fp);
+    fread(&current, sizeof(int32_t), 1, datafile);
     printfd("%d %d\n", current, lookFor);
 
     if(current == lookFor) {
       /* skip left value */
-      fread(&current, sizeof(int32_t), 1, fp);
+      fread(&current, sizeof(int32_t), 1, datafile);
       printfd("2 %d\n", current);
 
       /* skip right value */
-      fread(&current, sizeof(int32_t), 1, fp);
+      fread(&current, sizeof(int32_t), 1, datafile);
       printfd("3 %d\n", current);
 
       /* read length */
-      fread(&shortVar, 1, 1, fp);
+      fread(&shortVar, 1, 1, datafile);
       printfd("4 %d\n", shortVar);
 
       entry.length = shortVar;
 
       for(length = 0; length != shortVar; length++) {
-        fread(&current, sizeof(int32_t), 1, fp);
+        fread(&current, sizeof(int32_t), 1, datafile);
 
         printfd("5 %d\n", current);
         codepoints[length] = current;
@@ -104,7 +123,7 @@ void isInHash2_1(void) {
     }
     else if(current > lookFor) {
       /* read left value */
-      fread(&current, sizeof(int32_t), 1, fp);
+      fread(&current, sizeof(int32_t), 1, datafile);
       printfd("6 %d\n", current);
 
       if(current == -1) {
@@ -112,16 +131,16 @@ void isInHash2_1(void) {
         break;
       }
       else {
-        fseek(fp, current, SEEK_SET);
+        fseek(datafile, current, SEEK_SET);
       }
     }
     else {
       /* skip left value */
-      fread(&current, sizeof(int32_t), 1, fp);
+      fread(&current, sizeof(int32_t), 1, datafile);
       printfd("7 %d\n", current);
 
       /* read right value */
-      fread(&current, sizeof(int32_t), 1, fp);
+      fread(&current, sizeof(int32_t), 1, datafile);
       printfd("8 %d\n", current);
 
       if(current == -1) {
@@ -129,12 +148,10 @@ void isInHash2_1(void) {
         break;
       }
       else {
-        fseek(fp, current, SEEK_SET);
+        fseek(datafile, current, SEEK_SET);
       }
     }
-  }
-
-  fclose(fp);
+  } while (1);
 
   if(hasMatch) {
     printfd("match length: %d\n", length);

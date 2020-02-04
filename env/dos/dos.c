@@ -11,7 +11,7 @@
 
 extern char * devNull;
 extern char * origWd;
-
+extern FILE * datafile;
 int strAppend(char c, char **value, size_t *strSize);
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
@@ -29,6 +29,9 @@ static int consoleEncoding = ENC_UNKNOWN;
 void atexit_dos(void) {
   chdir(origWd);
   freeAndZero(origWd);
+  if(datafile != NULL) {
+    fclose(datafile);
+  }
 }
 
 /* eat the last newline emitted as dos will add one back */
