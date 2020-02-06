@@ -90,6 +90,14 @@ int parse_encoding2(char *encoding) {
     return ENC_BBC;
   }
 
+  else if(mystrnicmp("zx", encoding, 3) == 0) {
+    return ENC_ZX;
+  }
+
+  else if(mystrnicmp("tsw", encoding, 4) == 0) {
+    return ENC_TSW;
+  }
+
   fprintf(stderr, TDB_INVALID_ENCODING, encoding);
 
   return ENC_UNSUPPORTED;

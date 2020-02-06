@@ -8,14 +8,13 @@ void outputResult(
   struct resultColumn *currentResultColumn;
   struct resultColumnValue *field;
   int firstColumn = TRUE, j = 0;
-  FILE *outputFile = query->outputFile;
   char *separator;
   char *string = NULL;
   char *string2 = NULL;
 
   MAC_YIELD
 
-  fputsEncoded(query->newLine, outputFile, query->outputEncoding);
+  fputsEncoded(query->newLine, query);
 
   if(query->params & PRM_EURO) {
     separator = (query->params & PRM_SPACE) ? "; " : ";";
@@ -33,7 +32,7 @@ void outputResult(
 
     if(currentResultColumn->isHidden == FALSE) {
       if(!firstColumn) {
-        fputsEncoded(separator, outputFile, query->outputEncoding);
+        fputsEncoded(separator, query);
       }
       else {
         firstColumn = FALSE;
@@ -43,17 +42,17 @@ void outputResult(
 
       if(field->isNull == TRUE) {
         if(query->params & PRM_POSTGRES) {
-          fputsEncoded("\\N", outputFile, query->outputEncoding);
+          fputsEncoded("\\N", query);
         }
         else if(query->params & PRM_NULL) {
-          fputsEncoded("NULL", outputFile, query->outputEncoding);
+          fputsEncoded("NULL", query);
         }
       }
       else {
         stringGet((unsigned char **)(&string), field, query->params);
 
         if(query->params & PRM_POSTGRES) {
-          outputPostgresEscapes(string, outputFile, query->outputEncoding);
+          outputPostgresEscapes(string, query);
         }
         else {
           /* need to properly re-escape fields that need it */
@@ -61,15 +60,15 @@ void outputResult(
               (query->params & PRM_QUOTE) ||
               needsEscaping(string, query->params)
           ) {
-            fputsEncoded("\"", outputFile, query->outputEncoding);
+            fputsEncoded("\"", query);
             if((string2 = strReplace("\"", "\"\"", string))) {
-              fputsEncoded(string2, outputFile, query->outputEncoding);
+              fputsEncoded(string2, query);
             }
-            fputsEncoded("\"", outputFile, query->outputEncoding);
+            fputsEncoded("\"", query);
             freeAndZero(string2);
           }
           else {
-            fputsEncoded(string, outputFile, query->outputEncoding);
+            fputsEncoded(string, query);
           }
         }
       }

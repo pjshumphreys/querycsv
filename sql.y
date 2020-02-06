@@ -139,7 +139,13 @@ command_or_select:
 
 opt_params:
   | OPTIONS STRING ';' {
-      readParams(queryData, $2);
+      parse_params(queryData, $2);
+    }
+  ;
+
+into_options:
+  | OPTIONS STRING {
+      parse_params(queryData, $2);
     }
   ;
 
@@ -494,12 +500,6 @@ opt_into_clause:
       else {
         free($2);
       }
-    }
-  ;
-
-into_options:
-  | OPTIONS STRING {
-      readParams(queryData, $2);
     }
   ;
 %%

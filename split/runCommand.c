@@ -33,10 +33,10 @@ void runCommand(struct qryData *query) {
       /* get the current date as a string */
       if((retval = getCurrentDate(&output))) {
         /* print the timestamp */
-        fputsEncoded(output, query->outputFile, query->outputEncoding);
+        fputsEncoded(output, query);
 
         if(query->outputFile == stdout) {
-          fputsEncoded(query->newLine, stdout, query->outputEncoding);
+          fputsEncoded(query->newLine, query);
         }
 
         /* free the string data */

@@ -1,7 +1,6 @@
 void outputHeader(struct qryData *query) {
   int firstColumn = TRUE;
   struct resultColumn *currentResultColumn;
-  FILE *outputFile;
   char *separator;
   char *string2 = NULL;
 
@@ -19,8 +18,6 @@ void outputHeader(struct qryData *query) {
     return;
   }
 
-  outputFile = query->outputFile;
-
   /* write column headers to the output file */
   for(
       currentResultColumn = query->firstResultColumn;
@@ -30,7 +27,7 @@ void outputHeader(struct qryData *query) {
 
     if(currentResultColumn->isHidden == FALSE) {
       if(!firstColumn) {
-        fputsEncoded(separator, outputFile, query->outputEncoding);
+        fputsEncoded(separator, query);
       }
       else {
         firstColumn = FALSE;
@@ -38,24 +35,23 @@ void outputHeader(struct qryData *query) {
 
       /* strip over the leading underscore */
       if(query->params & PRM_POSTGRES) {
-        outputPostgresEscapes((currentResultColumn->resultColumnName)+1, outputFile, query->outputEncoding);
+        outputPostgresEscapes((currentResultColumn->resultColumnName)+1, query);
       }
       else {
         if(query->params & PRM_QUOTE) {
-          fputsEncoded("\"", outputFile, query->outputEncoding);
+          fputsEncoded("\"", query);
 
           if((string2 = strReplace("\"", "\"\"", (currentResultColumn->resultColumnName)+1))) {
-            fputsEncoded(string2, outputFile, query->outputEncoding);
+            fputsEncoded(string2, query);
           }
 
-          fputsEncoded("\"", outputFile, query->outputEncoding);
+          fputsEncoded("\"", query);
           freeAndZero(string2);
         }
         else {
           fputsEncoded(
             (currentResultColumn->resultColumnName)+1,
-            outputFile,
-            query->outputEncoding
+            query
           );
         }
       }

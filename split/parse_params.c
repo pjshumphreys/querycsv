@@ -1,4 +1,4 @@
-void readParams(struct qryData *queryData, char *string) {
+void parse_params(struct qryData *queryData, char *string) {
   int params;
   char* i;
 
@@ -46,6 +46,11 @@ void readParams(struct qryData *queryData, char *string) {
         params &= ~PRM_BLANK;
       break;
 
+      case 's':
+      case 'S':
+        params |= PRM_SPACE;
+      break;
+
       case 'p':
       case 'P':
         params |= PRM_POSTGRES;
@@ -65,9 +70,9 @@ void readParams(struct qryData *queryData, char *string) {
         params |= PRM_NULL;
       break;
 
-      case 's':
-      case 'S':
-        params |= PRM_SPACE;
+      case 't':
+      case 'T':
+        params |= PRM_TASWORD;
       break;
     }
 

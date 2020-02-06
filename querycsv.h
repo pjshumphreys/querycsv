@@ -101,6 +101,7 @@ as long as the function using them uses the __stdc calling convention */
 #define PRM_NULL 128  /* import/export unquoted text NULL as NULL */
 #define PRM_POSTGRES 256  /* import/export using postgres text files */
 #define PRM_EURO 512  /* import/export with ";" as delimiter rather than "," */
+#define PRM_TASWORD 1024  /* pad newlines and EOF with spaces if outputting to tasword format. Uses extra space but makes editing easier */
 #define PRM_DEFAULT PRM_BLANK  /* default parametters */
 
 #define TRE_BLACK 1
@@ -128,6 +129,13 @@ as long as the function using them uses the __stdc calling convention */
 #define ENC_BBC 15
 #define ENC_ZX 16
 #define ENC_ASCII 17
+/* Tasword 2 file format. Same as the ZX (spectrum) character
+ * set but with hard-coded line lengths of 64 characters.
+ * Newlines and EOF are stored as graphics characters and space
+ * padded as necessary. Files also have a maximum size constraint
+ * which will cause the program to abort if exceeded */
+#define ENC_TSW 18
+
 #define ENC_INPUT ENC_UTF8
 #define ENC_OUTPUT ENC_UTF8
 #define ENC_PRINT ENC_UTF8
@@ -558,6 +566,7 @@ struct qryData {
   int inputEncoding;
   void (*getCodepoints)(FILE *, long *, int *, int *);
   int outputEncoding;
+  int outputOffset;
   char *outputFileName;
   char *newLine;
   FILE *outputFile;

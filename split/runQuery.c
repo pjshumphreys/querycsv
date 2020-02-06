@@ -39,7 +39,7 @@ int runQuery(char *queryFileName, int queryIsntString) {
     cleanup_matchValues(&query, &match);
 
     if(query.outputFile == stdout) {
-      fputsEncoded(query.newLine, stdout, query.outputEncoding);
+      fputsEncoded(query.newLine, &query);
     }
   }
   else {
@@ -75,7 +75,7 @@ int runQuery(char *queryFileName, int queryIsntString) {
     );
 
     if(query.outputFile == stdout) {
-      fputsEncoded(query.newLine, stdout, query.outputEncoding);
+      fputsEncoded(query.newLine, &query);
     }
 
     if(query.outputFileName) {

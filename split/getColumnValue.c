@@ -40,7 +40,7 @@ int getColumnValue(
 
   if(output) {
     /* output the value */
-    fputsEncoded(output, query->outputFile, query->outputEncoding);
+    fputsEncoded(output, query);
 
     /* free the string memory */
     freeAndZero(output);

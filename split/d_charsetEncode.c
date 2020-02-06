@@ -45,6 +45,14 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
       getBytes = getBytesBBC;
     } break;
 
+    case ENC_ZX: {
+      getBytes = getBytesZX;
+    } break;
+
+    case ENC_TSW: {
+      getBytes = getBytesTSW;
+    } break;
+
     case ENC_UTF16LE: {
       getBytes = getBytesUtf16Le;
       bytes = (char *)utf16Bytes;

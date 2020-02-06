@@ -14,6 +14,8 @@ int outputSetup(struct qryData *query) {
     query->outputFile = stdout;
   }
 
+  query->outputOffset = 0;
+
   /* if we aren't writing to stdout we may need or want to write a byte order mark */
   if(query->outputFile != stdout) {
     switch(query->outputEncoding) {
@@ -28,7 +30,7 @@ int outputSetup(struct qryData *query) {
       case ENC_UTF16BE:
       case ENC_UTF32LE:
       case ENC_UTF32BE: {
-        fputsEncoded("\xEF\xBB\xBF", query->outputFile, query->outputEncoding);
+        fputsEncoded("\xEF\xBB\xBF", query);
       }
     }
   }

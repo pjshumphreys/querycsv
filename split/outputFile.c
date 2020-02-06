@@ -3,7 +3,6 @@ int outputFile(
     char *inputFileName
 ) {
   FILE *inputFile = NULL;
-  int columnCount = 1;
   char * outText = NULL;
   struct inputTable table;
   size_t byteLength = 0;
@@ -39,7 +38,7 @@ int outputFile(
 
       default: {
         if(byteLength) {
-          fputsEncoded(query->newLine, query->outputFile, query->outputEncoding);
+          fputsEncoded(query->newLine, query);
           freeAndZero(outText);
           byteLength = 0;
         }
@@ -48,7 +47,7 @@ int outputFile(
 
     strAppendUTF8(c, (unsigned char **)(&outText), &byteLength);
     strAppend(0, &outText, &byteLength);
-    fputsEncoded(outText, query->outputFile, query->outputEncoding);
+    fputsEncoded(outText, query);
     freeAndZero(outText);
     byteLength = 0;
     getNextCodepoint(&table);

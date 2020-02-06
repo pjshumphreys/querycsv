@@ -1101,6 +1101,37 @@ const mappings = {
     ]
   },
 
+  zxBytes: {
+    type: 'struct codepointToByte',
+    define: 'SIZE_ZXBYTES',
+    filename: 'zxmap',
+    values: [
+      [0x00A3, 0x60],
+      [0x00A9, 0x7F],
+      [0x2191, 0x5E],
+
+      [0x2580, 0x83], // Upper half block
+      [0x2584, 0x8C], // Lower half block
+      [0x2588, 0x8F], // Full block
+      [0x258C, 0x8A], // Left half block
+
+      [0x2590, 0x85], // Right half block
+      [0x2596, 0x88], // Quadrant lower left
+      [0x2597, 0x84], // Quadrant lower right
+      [0x2598, 0x82], // Quadrant upper left
+
+      [0x2599, 0x8E], // Quadrant upper left and lower left and lower right
+      [0x259A, 0x86], // Quadrant upper left and lower right
+      [0x259B, 0x8B], // Quadrant upper left and upper right and lower left
+      [0x259C, 0x87], // Quadrant upper left and upper right and lower right
+
+      [0x259D, 0x81], // Quadrant upper right
+      [0x259E, 0x89], // Quadrant upper right and lower left
+      [0x259F, 0x8D], // Quadrant upper right and lower left and lower right
+      [0x25A1, 0x80]  // white square
+    ]
+  },
+
   petsciiBytes: {
     type: 'struct codepointToByte',
     define: 'SIZE_PETSCIIBYTES',

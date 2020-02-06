@@ -166,7 +166,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
     return EXIT_FAILURE;
   }
 
-  if(query->outputEncoding == ENC_CP1047) {
+  if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047) {
     query->newLine = "\302\205";
   }
   else if(query->outputFileName == NULL) {

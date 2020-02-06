@@ -39,6 +39,7 @@ on the c64 build, the format specifiers need to be in uppercase */
 #define TDB_PRESS_A_KEY "\nPress any key to continue\n"
 #define TDB_NAME "unknown or ambiguous column name (" S_STRING ")\n"
 #define TDB_NAME_NAME "unknown or ambiguous column name (" S_STRING "." S_STRING ")\n"
+#define TDB_FILE_SIZE_EXCEEDED "Output file size limit exceeded\n"
 #define TDB_FILENAME "filename:"
 #define TDB_NOT_FOUND "not found"
 #define TDB_ENCODING "encoding:"

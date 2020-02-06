@@ -32,7 +32,7 @@ int getColumnCount(
   /* output the number of columns we counted */
   d_sprintf(&outText, D_STRING, columnCount);
 
-  fputsEncoded(outText, query->outputFile, query->outputEncoding);
+  fputsEncoded(outText, query);
 
   freeAndZero(outText);
 

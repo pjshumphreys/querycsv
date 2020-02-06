@@ -28,7 +28,7 @@ int getNextRecordOffset(
   /* get current file position */
   d_sprintf(&outText, LD_STRING, offset);
 
-  fputsEncoded(outText, query->outputFile, query->outputEncoding);
+  fputsEncoded(outText, query);
 
   freeAndZero(outText);
 

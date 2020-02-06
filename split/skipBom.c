@@ -30,6 +30,23 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
         }
       } break;
 
+      case 1: {  /* maybe a PETSCII load address */
+        if(
+            fgetc(file) == 8
+        ) {
+          if(offset) {
+            *offset = 2;
+          }
+
+          if(encoding) {
+            *encoding = ENC_PETSCII;
+          }
+
+          return file;
+        }
+      } break;
+
+
       case 239: { /* maybe utf-8 bom */
         if(
             fgetc(file) == 187 &&

@@ -30,19 +30,22 @@ void openDat(void) {
   char * result = NULL;
   char * filename = NULL;
 
-  if(origWd != NULL) {
+  if(origWd == NULL) {
     datafile = fopen("qrycsv00.ovl", "rb");
+
+    if(datafile != NULL) {
+      return;
+    }
+
+    result = mystrdup(""); /* Look in the root directory of the current drive */
+  }
+  else {
+    result = mystrdup(origWd);
   }
 
   /* search the path for the data file if its not found in the current working directory */
   if(datafile == NULL) {
-    result = mystrdup(origWd);
-
     do {
-      if(result == NULL) {
-        break;
-      }
-
       d_sprintf(&filename, "%s\\qrycsv00.ovl", result);
       datafile = fopen(filename, "rb");
       freeAndZero(filename);
@@ -57,16 +60,17 @@ void openDat(void) {
       #endif
 
       if(
-      #ifndef __Z88DK
-        datafile != NULL ||
-      #endif
-      (path == NULL && (path = getenv("PATH")) == NULL)) {
+        #ifndef __Z88DK
+          datafile != NULL ||
+        #endif
+        (path == NULL && (path = getenv("PATH")) == NULL)
+      ) {
         freeAndZero(result);
         break;
       }
 
       d_strtok(&result, ";", &path);
-    } while (1);
+    } while (result != NULL);
   }
 
   if(datafile == NULL) {

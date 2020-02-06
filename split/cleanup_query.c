@@ -113,6 +113,18 @@ void cleanup_query(struct qryData *query) {
   free(query->dateString);
 
   if(query->outputFileName) {
+    if(query->outputEncoding == ENC_TSW &&  query->outputOffset % 64 != 0) {
+      /* add EOF byte and padding with spaces */
+      i = 64 - (query->outputOffset % 64);
+
+      fputc(143, query->outputFile);
+      i--;
+
+      while(i--) {
+        fputc(32, query->outputFile);
+      }
+    }
+
     fclose(query->outputFile);
 
     #ifdef MPW_C

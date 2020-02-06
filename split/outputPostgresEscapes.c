@@ -1,4 +1,4 @@
-void outputPostgresEscapes(char* string, FILE * outputFile, int outputEncoding) {
+void outputPostgresEscapes(char* string, struct qryData *query) {
   char *string2 = string;
   char *string3 = NULL;
   size_t strSize = 0;
@@ -50,6 +50,6 @@ void outputPostgresEscapes(char* string, FILE * outputFile, int outputEncoding) 
 
   strAppend('\0', &string3, &strSize);
 
-  fputsEncoded(string3, outputFile, outputEncoding);
+  fputsEncoded(string3, query);
   free(string3);
 }

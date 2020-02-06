@@ -10,7 +10,7 @@ void getBytesBBC(
 
     /* just cast the codepoint to a byte for ascii control codes and symbols */
     if(codepoint < 0x80 && codepoint != 0x60) {
-      *bytes = 0;
+      *bytes = NULL;
       return;
     }
 
