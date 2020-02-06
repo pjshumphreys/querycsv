@@ -40,13 +40,18 @@ void getCodepointsZXCommon(
 
   *arrLength = *byteLength = 1;
 
+  /* Don't return any other bytes after MYEOF has been returned */
+  if(codepoints[0] == MYEOF) {
+    return;
+  }
+
   c = fgetc(stream);
 
   if(isTsw) {
     if(c == 0x80) {
       codepoints[0] = 0x85;
       return;
-    } 
+    }
 
     if(c == 0x8f) {
       *byteLength = 2;
@@ -64,14 +69,14 @@ void getCodepointsZXCommon(
           codepoints[0] = MYEOF;
         } return;
       }
-    } 
+    }
   }
-  
+
   if(c == EOF) {
     codepoints[0] = MYEOF;
     return;
   }
-  
+
   if(c < 0x7F) {
     if(c == 0x5E) {
       codepoints[0] = 0x2191;
@@ -82,7 +87,7 @@ void getCodepointsZXCommon(
       codepoints[0] = 0xA3;
       return;
     }
-  
+
     codepoints[0] = (long)c;
   }
   else {
@@ -95,7 +100,7 @@ void getCodepointsZXCommon(
       codepoints[0] = zx[c - 0x80];
       return;
     }
-    
+
     codepoints[0] = 0xA9;
   }
 }
