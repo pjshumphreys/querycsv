@@ -91,7 +91,7 @@ int tree_insert(
       }
 
       last = dir;
-      dir = recordCompare(columns, q->columns, query) < 0;
+      dir = recordCompare(columns, q->columns, query) < 1;
 
       /* Update helpers */
       if(g != NULL) {
