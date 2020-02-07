@@ -129,22 +129,45 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 
   /* get until a null byte in the source. a trailing null byte isn't added */
   do {
-    if(query != NULL && query->params & PRM_INSERT) {
-      if(query->codepointsInLine > 64) {
-        codepoint = getUnicodeCharFast((unsigned char *)((query->newLine)+1), &bytesMatched);
-        bytesMatched = 0;
+    if(query == NULL || !(query->params & (PRM_INSERT | PRM_REMOVE))) {
+      /* call getUnicodeCharFast */
+      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
 
-        query->codepointsInLine = 0;
+      if(codepoint == 0) {
+        return buffer;
       }
-      else if(query->codepointsInLine == 64) {
-        codepoint = getUnicodeCharFast((unsigned char *)(query->newLine), &bytesMatched);
-        bytesMatched = 0;
+    }
+    else {
+      if(query->params & PRM_INSERT) {
+        if(query->codepointsInLine == 65) {
+          codepoint = getUnicodeCharFast((unsigned char *)((query->newLine)+1), &bytesMatched);
+          bytesMatched = 0;
 
-        if((query->newLine)[1] == 0) { /* newLine can only be \r\n in this case */
           query->codepointsInLine = 0;
         }
+        else if(query->codepointsInLine == 64) {
+          codepoint = getUnicodeCharFast((unsigned char *)(query->newLine), &bytesMatched);
+          bytesMatched = 0;
+
+          if((query->newLine)[1] == 0) { /* newLine can only be \r\n in this case */
+            query->codepointsInLine = 0;
+          }
+          else {
+            query->codepointsInLine += 1;
+          }
+        }
         else {
-          query->codepointsInLine += 1;
+          codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
+
+          if(codepoint == 0) {
+            return buffer;
+          }
+          else if(codepoint == 0x0A || codepoint == 0x0D || codepoint == 0x85) {
+            query->codepointsInLine = 0;
+          }
+          else {
+            query->codepointsInLine += 1;
+          }
         }
       }
       else {
@@ -153,8 +176,29 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
         if(codepoint == 0) {
           return buffer;
         }
-        else if(codepoint == 0x0A || codepoint == 0x0D || codepoint == 0x85) {
+        else if(query->codepointsInLine == 65) {
+          if(codepoint == 0x0A) {
+            query->codepointsInLine = 0;
+            s += bytesMatched;
+            continue;
+          }
+
+          query->codepointsInLine = 1;
+        }
+        else if(query->codepointsInLine == 64) {
+          /* skip newline characters on the 64 codepoint boundary */
+          if(codepoint == 0x0D) {
+            query->codepointsInLine += 1;
+            s += bytesMatched;
+            continue;
+          }
+
           query->codepointsInLine = 0;
+
+          if(codepoint == 0x0A || codepoint == 0x85) {
+            s += bytesMatched;
+            continue;
+          }
         }
         else {
           query->codepointsInLine += 1;
@@ -168,14 +212,6 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
         strAppendUTF8(codepoint, &buffer, bytesStored);
         s += bytesMatched;
         continue;
-      }
-    }
-    else {
-      /* call getUnicodeCharFast */
-      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
-
-      if(codepoint == 0) {
-        return buffer;
       }
     }
 

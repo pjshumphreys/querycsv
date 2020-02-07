@@ -79,6 +79,11 @@ void parse_params(struct qryData *queryData, char *string) {
       case 'Q':
         params |= PRM_QUOTE;
       break;
+
+      case 'r':
+      case 'R': {
+        params |= PRM_REMOVE;
+      } break;
     }
 
     i++;

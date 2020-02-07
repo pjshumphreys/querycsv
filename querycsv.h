@@ -103,6 +103,7 @@ as long as the function using them uses the __stdc calling convention */
 #define PRM_EURO 512  /* import/export with ";" as delimiter rather than "," */
 #define PRM_TASWORD 1024  /* pad newlines and EOF with spaces if outputting to tasword format. Uses extra space but makes editing easier */
 #define PRM_INSERT 2048  /* insert a new line after 64 non newline codepoints on the output file. Used to convert tasword 2 files to something more readable */
+#define PRM_REMOVE 4096  /* remove a new line codepoint sequence when it starts on the 65th codepoint on a line. */
 #define PRM_DEFAULT PRM_BLANK  /* default parametters */
 
 #define TRE_BLACK 1
