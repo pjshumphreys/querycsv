@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
       /* store the original working directory so we can load qrycsv00.ovl properly */
       origWd = getcwd(NULL, PATH_MAX+1);
 
-      /* set the working directory back to its orginal value at exit */
+      /* set the working directory back to its original value at exit */
       atexit(atexit_dos);
     #endif
   #endif

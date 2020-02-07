@@ -5,24 +5,22 @@ int fputsEncoded(char *str, struct qryData *query) {
   int offset = query->outputOffset;
 
   MAC_YIELD
-
-  switch(query->outputEncoding) {
-    case ENC_UTF8: {
-      retval = fputs(str, query->outputFile);
-    } break;
-
+  if(query->outputEncoding == ENC_UTF8 && !(query->params & PRM_INSERT)) {
+    retval = fputs(str, query->outputFile);
+  }
+  else switch(query->outputEncoding) {
     /* Tasword 2 format accounting stuff */
     case ENC_TSW: {
       bytesStored = 0;
 
       /* Tasword 2 is a file only representation. switch to regular zx spectrum format if outputting to the screen */
       if(query->outputFile == stdout) {
-        encoded = d_charsetEncode(str, ENC_ZX, &bytesStored);
+        encoded = d_charsetEncode(str, ENC_ZX, &bytesStored, query);
       }
       else {
-        encoded = d_charsetEncode(str, ENC_TSW, &bytesStored);
+        encoded = d_charsetEncode(str, ENC_TSW, &bytesStored, query);
 
-        if(bytesStored == 1 || (unsigned char)(encoded[bytesStored-2]) != 143) { /* 143 = escape newlines and EOF character */
+        if(bytesStored == 1 || (unsigned char)(encoded[bytesStored-2]) != 143) { /* 143 = escape newline and pseudo EOF characters */
           if(
             (unsigned char)(encoded[bytesStored-1]) == 128 &&  /* if the output string ends in an encoded newline character... */
             query->params & PRM_TASWORD && /* ...and we specified we want to space pad newlines... */
@@ -47,9 +45,7 @@ int fputsEncoded(char *str, struct qryData *query) {
 
       retval += fwrite(encoded, sizeof(char), bytesStored, query->outputFile);
       free(encoded);
-
-      break;
-    }
+    } break;
 
     case ENC_PETSCII: {
       if(offset == 0) {
@@ -61,7 +57,7 @@ int fputsEncoded(char *str, struct qryData *query) {
     default: {
       bytesStored = 0;
 
-      encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored);
+      encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
       retval += fwrite(encoded, sizeof(char), bytesStored, query->outputFile);
       free(encoded);
     } break;

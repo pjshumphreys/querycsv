@@ -80,6 +80,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   query->inputFileName = NULL;
   query->outputFileName = NULL;
   query->outputEncoding = ENC_OUTPUT;
+  query->codepointsInLine = 0;
   query->columnReferenceHashTable = hash_createTable(32);
   query->firstInputTable = NULL;
   query->secondaryInputTable = NULL;

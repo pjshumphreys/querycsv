@@ -54,22 +54,20 @@ void outputResult(
         if(query->params & PRM_POSTGRES) {
           outputPostgresEscapes(string, query);
         }
-        else {
+        else if(
+            (query->params & PRM_QUOTE) ||
+            needsEscaping(string, query->params)
+        ) {
           /* need to properly re-escape fields that need it */
-          if(
-              (query->params & PRM_QUOTE) ||
-              needsEscaping(string, query->params)
-          ) {
-            fputsEncoded("\"", query);
-            if((string2 = strReplace("\"", "\"\"", string))) {
-              fputsEncoded(string2, query);
-            }
-            fputsEncoded("\"", query);
-            freeAndZero(string2);
+          fputsEncoded("\"", query);
+          if((string2 = strReplace("\"", "\"\"", string))) {
+            fputsEncoded(string2, query);
           }
-          else {
-            fputsEncoded(string, query);
-          }
+          fputsEncoded("\"", query);
+          freeAndZero(string2);
+        }
+        else {
+          fputsEncoded(string, query);
         }
       }
     }

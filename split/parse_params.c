@@ -36,14 +36,15 @@ void parse_params(struct qryData *queryData, char *string) {
         params |= PRM_BOM;
       break;
 
-      case 'q':
-      case 'Q':
-        params |= PRM_QUOTE;
-      break;
+      case 'i':
+      case 'I': {
+        params |= PRM_INSERT;
+      } break;
 
-      case 'c':
-      case 'C':
-        params &= ~PRM_BLANK;
+      case 'n':
+      case 'N':
+        params &= ~PRM_POSTGRES;
+        params |= PRM_NULL;
       break;
 
       case 's':
@@ -64,15 +65,19 @@ void parse_params(struct qryData *queryData, char *string) {
         params |= PRM_EURO;
       } break;
 
-      case 'n':
-      case 'N':
-        params &= ~PRM_POSTGRES;
-        params |= PRM_NULL;
+      case 'c':
+      case 'C':
+        params &= ~PRM_BLANK;
       break;
 
       case 't':
       case 'T':
         params |= PRM_TASWORD;
+      break;
+
+      case 'q':
+      case 'Q':
+        params |= PRM_QUOTE;
       break;
     }
 

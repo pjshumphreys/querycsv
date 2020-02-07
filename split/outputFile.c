@@ -26,7 +26,7 @@ int outputFile(
   getNextCodepoint(&table);
 
   /* read bytes until end of file occurs */
-  while((c = getCurrentCodepoint(&table, NULL)) != MYEOF) {
+  while((c = getCurrentCodepoint(&table, NULL)) != MYEOF || byteLength) {
     /* perform newline translation */
     switch(c) {
       case 0x0A:
@@ -35,22 +35,22 @@ int outputFile(
         strAppendUTF8(c, (unsigned char **)(&outText), &byteLength);
         getNextCodepoint(&table);
       } continue;
-
-      default: {
-        if(byteLength) {
-          fputsEncoded(query->newLine, query);
-          freeAndZero(outText);
-          byteLength = 0;
-        }
-      } break;
     }
 
-    strAppendUTF8(c, (unsigned char **)(&outText), &byteLength);
-    strAppend(0, &outText, &byteLength);
-    fputsEncoded(outText, query);
-    freeAndZero(outText);
-    byteLength = 0;
-    getNextCodepoint(&table);
+    if(byteLength) {
+      fputsEncoded(query->newLine, query);
+      freeAndZero(outText);
+      byteLength = 0;
+    }
+
+    if(c != MYEOF) {
+      strAppendUTF8(c, (unsigned char **)(&outText), &byteLength);
+      strAppend(0, &outText, &byteLength);
+      fputsEncoded(outText, query);
+      freeAndZero(outText);
+      byteLength = 0;
+      getNextCodepoint(&table);
+    }
   }
 
   if(query->outputFile == stdout) {

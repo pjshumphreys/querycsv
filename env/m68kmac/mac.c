@@ -119,7 +119,7 @@ int realmain(int argc, char **argv);
 
 #define ENC_MAC 4
 #define ENC_UTF16BE 9
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 char* mystrdup(const char* s);
 void reallocMsg(void **mem, size_t size);
 
@@ -1833,7 +1833,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   theStyle.tsFace = isBold?bold:normal;
   theStyle.tsSize = doGetSize(fontSizeIndex);
 
-  encoded = d_charsetEncode((char *)buffer, ENC_MAC, &charsLeft);
+  encoded = d_charsetEncode((char *)buffer, ENC_MAC, &charsLeft, NULL);
   startPoint = encoded;
 
   //first run initialization

@@ -8,7 +8,7 @@ extern const unsigned short petscii[128];
 char* mystrdup(const char* s);
 int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t *retval);
 int d_sprintf(char **str, char *format, ...);
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 
 #define ENC_PETSCII 13
 #define TRUE 1
@@ -56,7 +56,7 @@ int fputs_c64(const char *str, FILE *stream) {
   if(stream == stdout || stream == stderr) {
     bytesStored = 0;
 
-    encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored);
+    encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored, NULL);
     fwrite(encoded, sizeof(char), bytesStored, stream);
     free(encoded);
 
@@ -104,7 +104,7 @@ int fprintf_c64(FILE *stream, const char *format, ...) {
 
 FILE *fopen_c64(const char *filename, const char *mode) {
   FILE * retval;
-  char * encoded = d_charsetEncode((char *)filename, ENC_PETSCII, NULL);
+  char * encoded = d_charsetEncode((char *)filename, ENC_PETSCII, NULL, NULL);
 
   retval = fopen(encoded, mode);
 

@@ -1,4 +1,4 @@
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query) {
   char * buffer = NULL;
   long codepoint;
   int i;
@@ -96,7 +96,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
     } while(1);
   }
 
-  /* if bytesStored is initially non zero, it means limit to read at most that many characters from the source. a trailing null byte isn't added */
+  /* if bytesStored is initially non zero, it means limit to read at most that
+   * many characters from the source. a trailing null byte isn't added */
   if(*bytesStored != 0) {
     bytesToStore = (int)*bytesStored;
     *bytesStored = 0;
@@ -128,11 +129,54 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored) {
 
   /* get until a null byte in the source. a trailing null byte isn't added */
   do {
-    /* call getUnicodeCharFast */
-    codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
+    if(query != NULL && query->params & PRM_INSERT) {
+      if(query->codepointsInLine > 64) {
+        codepoint = getUnicodeCharFast((unsigned char *)((query->newLine)+1), &bytesMatched);
+        bytesMatched = 0;
 
-    if(codepoint == 0) {
-      return buffer;
+        query->codepointsInLine = 0;
+      }
+      else if(query->codepointsInLine == 64) {
+        codepoint = getUnicodeCharFast((unsigned char *)(query->newLine), &bytesMatched);
+        bytesMatched = 0;
+
+        if((query->newLine)[1] == 0) { /* newLine can only be \r\n in this case */
+          query->codepointsInLine = 0;
+        }
+        else {
+          query->codepointsInLine += 1;
+        }
+      }
+      else {
+        codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
+
+        if(codepoint == 0) {
+          return buffer;
+        }
+        else if(codepoint == 0x0A || codepoint == 0x0D || codepoint == 0x85) {
+          query->codepointsInLine = 0;
+        }
+        else {
+          query->codepointsInLine += 1;
+        }
+      }
+
+      /* The encoding is only ever utf-8 with d_charsetEncode if the
+       * 'insert a newline' mode is enabled. in this case don't bother
+       * calling the getBytes function but just call strAppendUTF8 instead */
+      if(encoding == ENC_UTF8) {
+        strAppendUTF8(codepoint, &buffer, bytesStored);
+        s += bytesMatched;
+        continue;
+      }
+    }
+    else {
+      /* call getUnicodeCharFast */
+      codepoint = getUnicodeCharFast((unsigned char *)s, &bytesMatched);
+
+      if(codepoint == 0) {
+        return buffer;
+      }
     }
 
     /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */

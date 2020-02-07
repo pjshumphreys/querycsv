@@ -119,7 +119,7 @@ int realmain(int argc, char **argv);
 
 #define ENC_MAC 4
 #define ENC_UTF16BE 9
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 char* mystrdup(const char* s);
 void reallocMsg(void **mem, size_t size);
 
@@ -1613,7 +1613,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
       );
 
       len = lineChars;
-      wide = (wchar_t *)d_charsetEncode(startPoint, ENC_UTF16BE, &len);
+      wide = (wchar_t *)d_charsetEncode(startPoint, ENC_UTF16BE, &len, NULL);
 
       TXNSetData(
         object,

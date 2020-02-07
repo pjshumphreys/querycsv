@@ -37,23 +37,21 @@ void outputHeader(struct qryData *query) {
       if(query->params & PRM_POSTGRES) {
         outputPostgresEscapes((currentResultColumn->resultColumnName)+1, query);
       }
+      else if(query->params & PRM_QUOTE) {
+        fputsEncoded("\"", query);
+
+        if((string2 = strReplace("\"", "\"\"", (currentResultColumn->resultColumnName)+1))) {
+          fputsEncoded(string2, query);
+        }
+
+        fputsEncoded("\"", query);
+        freeAndZero(string2);
+      }
       else {
-        if(query->params & PRM_QUOTE) {
-          fputsEncoded("\"", query);
-
-          if((string2 = strReplace("\"", "\"\"", (currentResultColumn->resultColumnName)+1))) {
-            fputsEncoded(string2, query);
-          }
-
-          fputsEncoded("\"", query);
-          freeAndZero(string2);
-        }
-        else {
-          fputsEncoded(
-            (currentResultColumn->resultColumnName)+1,
-            query
-          );
-        }
+        fputsEncoded(
+          (currentResultColumn->resultColumnName)+1,
+          query
+        );
       }
     }
   }

@@ -15,7 +15,7 @@
 extern char * devNull;
 int strAppend(char c, char **value, size_t *strSize);
 
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 #define ENC_UTF16LE 8
 #define ENC_CP437 1
 #define ENC_CP850 2
@@ -62,7 +62,7 @@ int fputs_w32(const char *str, FILE *stream) {
         newline = FALSE;
       }
 
-      output = d_charsetEncode((char *)str, ENC_UTF16LE, &len);
+      output = d_charsetEncode((char *)str, ENC_UTF16LE, &len, NULL);
 
       if(output && output[len-2] == '\n') {
         newline = TRUE;
@@ -115,7 +115,7 @@ int fputs_w32(const char *str, FILE *stream) {
       newline = FALSE;
     }
 
-    output = d_charsetEncode((char *)str, consoleEncoding, &len);
+    output = d_charsetEncode((char *)str, consoleEncoding, &len, NULL);
 
     /* eat last trailing newline. If we print something else we'll display it at that time */
     if(output && output[len-1] == '\n') {

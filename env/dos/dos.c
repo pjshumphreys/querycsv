@@ -14,7 +14,7 @@ extern char * origWd;
 extern FILE * datafile;
 int strAppend(char c, char **value, size_t *strSize);
 
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored);
+char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 #define ENC_UTF16LE 8
 #define ENC_CP437 1
 #define ENC_CP850 2
@@ -77,7 +77,7 @@ int fputs_dos(const char *str, FILE *stream) {
       newline = FALSE;
     }
 
-    output = d_charsetEncode((char *)str, consoleEncoding, &len);
+    output = d_charsetEncode((char *)str, consoleEncoding, &len, NULL);
 
     /* eat last trailing newline (if we print something else we'll display it then) */
     if(output && output[len-1] == '\n') {
