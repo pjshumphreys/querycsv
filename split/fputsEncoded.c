@@ -20,7 +20,7 @@ int fputsEncoded(char *str, struct qryData *query) {
       else {
         encoded = d_charsetEncode(str, ENC_TSW, &bytesStored, query);
 
-        if(bytesStored) {
+        if(bytesStored) { /* 2 if statements here as z88dk can't handle && and || in the same expression */
           if(bytesStored == 1 || (unsigned char)(encoded[bytesStored-2]) != 143) { /* 143 = escape newline and pseudo EOF characters */
             if(
               (unsigned char)(encoded[bytesStored-1]) == 128 &&  /* if the output string ends in an encoded newline character... */
@@ -40,7 +40,15 @@ int fputsEncoded(char *str, struct qryData *query) {
         /* tasword 2 format files must not exceed 20480 bytes (320 x 64 byte lines) as they would overrun
          * into tasword's machine code. Abort the program we try to generate this much output */
         if((offset + bytesStored) > 20480) {
-          fwrite(TDB_FILE_SIZE_EXCEEDED, sizeof(char), sizeof(TDB_FILE_SIZE_EXCEEDED), stderr);
+          fwrite(
+            TDB_FILE_SIZE_EXCEEDED,
+            1,
+            /* sizeof runs at compile time rather than run time (which is what we want) */
+            /* but it does include the null terminator in the length (which we don't want). */
+            /* Hopefully the expession below will be optimised out by the compiler. */
+            sizeof(TDB_FILE_SIZE_EXCEEDED)-1,
+            stderr
+          );
           exit(EXIT_FAILURE);
         }
       }
