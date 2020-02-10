@@ -49,7 +49,12 @@ void getCodepointsZXCommon(
 
   if(isTsw) {
     if(c == 0x80) {
-      codepoints[0] = 0x85;
+      codepoints[0] = 0x0A;
+      return;
+    }
+
+    if(c < 0x20) {
+      codepoints[0] = 0x20;
       return;
     }
 

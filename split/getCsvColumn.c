@@ -59,9 +59,7 @@ int getCsvColumn(
               getNextCodepoint(table);
               c = getCurrentCodepoint(table, &byteLength);
             }
-          } /* fall thru */
 
-          case 3: { /* EBCDIC newline */
             if(canEnd) {
               exitCode = 2;
             }
@@ -179,10 +177,6 @@ int getCsvColumn(
             strAppendUTF8(c, (unsigned char**)value, strSize);
             minRight = *strSize;
           }
-        } break;
-
-        case 0x85: { /* EBCDIC newline */
-          state = 3;
         } break;
 
         case MYEOF: {
@@ -340,7 +334,6 @@ int getCsvColumn(
           state = 3;
         } break;
 
-        case 0x85:  /* EBCDIC newline */
         case MYEOF: {
           exitCode = 2;
         } break;

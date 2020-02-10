@@ -167,15 +167,12 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
     return EXIT_FAILURE;
   }
 
-  if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047) {
-    query->newLine = "\302\205";
-  }
-  else if(query->outputFileName == NULL) {
+  if(query->outputFileName == NULL) {
     query->newLine = "\n";
   }
   #if defined(MPW_C) && !defined(RETRO68)
     /* MPW swaps 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
-    else if(query->params & PRM_UNIX) {
+    else if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047 || query->params & PRM_UNIX) {
       query->newLine = "\r";
     }
     else if(query->params & PRM_MAC) {
@@ -185,7 +182,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
       query->newLine = "\n\r";
     }
   #else
-    else if(query->params & PRM_UNIX) {
+    else if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047 || query->params & PRM_UNIX) {
       query->newLine = "\n";
     }
     else if(query->params & PRM_MAC) {

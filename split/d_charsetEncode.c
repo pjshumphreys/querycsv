@@ -176,7 +176,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
           return buffer;
         }
 
-        if(codepoint == 0x0A || codepoint == 0x0D || codepoint == 0x85) {
+        if(codepoint == 0x0A || codepoint == 0x0D) {
           query->codepointsInLine = 0;
         }
         else {
@@ -209,7 +209,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
           continue;
         }
 
-        if(codepoint == 0x0A || codepoint == 0x85) {
+        if(codepoint == 0x0A) {
           query->codepointsInLine = 0;
           s += bytesMatched;
           continue;
@@ -218,7 +218,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
         query->codepointsInLine = -1;
       }
 
-      if(codepoint == 0x0D || codepoint == 0x0A || codepoint == 0x85) {
+      if(codepoint == 0x0D || codepoint == 0x0A) {
         query->codepointsInLine = 0;
       }
       else {

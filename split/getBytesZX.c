@@ -14,33 +14,21 @@ void getBytesZXCommon(
     *byteLength = 1;
 
     /* just cast the codepoint to a byte for basic ascii */
-    if(codepoint < 0x86) {
+    if(codepoint < 0x80) {
       switch(codepoint) {
+        case 0x0A: {  /* \n */
+          returnByte = 0x80;
+          *bytes = &returnByte;
+        } return;
+        
         case 0x5E:    /* ^ */
         case 0x60:    /* ` */
-        case 0x7F:    /* DEL */
-        case 0x80:
-        case 0x81:
-        case 0x82:
-        case 0x83:
-        case 0x84: {
+        case 0x7F: {  /* DEL */
           returnByte = 0x3f;  /* ascii question mark */
           *bytes = &returnByte;
         } return;
 
-        case 0x85: {
-          if(isTSW) {
-            returnByte = 0x80;  /* tasword 2 newline */
-          }
-          else {
-            returnByte = 0x3f;  /* ascii question mark */
-          }
-
-          *bytes = &returnByte;
-          return;
-        }
-
-        default: {  /* DEL */
+        default: {
           *bytes = NULL;
         } return;
       }
