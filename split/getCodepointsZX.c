@@ -20,8 +20,6 @@ static const unsigned QCSV_SHORT zx[16] = {
   0x2588  /* Full block */
 };
 
-
-
 void getCodepointsZXCommon(
     FILE *stream,
     long *codepoints,
@@ -46,6 +44,11 @@ void getCodepointsZXCommon(
   }
 
   c = fgetc(stream);
+
+  if(c == EOF) {
+    codepoints[0] = MYEOF;
+    return;
+  }
 
   if(isTsw) {
     if(c == 0x80) {
@@ -75,11 +78,6 @@ void getCodepointsZXCommon(
         } return;
       }
     }
-  }
-
-  if(c == EOF) {
-    codepoints[0] = MYEOF;
-    return;
   }
 
   if(c < 0x7F) {

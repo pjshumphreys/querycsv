@@ -22,17 +22,25 @@ int fputsEncoded(char *str, struct qryData *query) {
 
         if(bytesStored) { /* 2 if statements here as z88dk can't handle && and || in the same expression */
           if(bytesStored == 1 || (unsigned char)(encoded[bytesStored-2]) != 143) { /* 143 = escape newline and pseudo EOF characters */
-            if(
-              (unsigned char)(encoded[bytesStored-1]) == 128 &&  /* if the output string ends in an encoded newline character... */
-              query->params & PRM_TASWORD && /* ...and we specified we want to space pad newlines... */
-              (offset + bytesStored) % 64 != 0 /* and padding needs to be added */
-            ) {
-              /* add padding with spaces */
-              retval = 64 - ((offset + bytesStored) % 64);
+            /* if the output string ends in an encoded newline character... */
+            if((unsigned char)(encoded[bytesStored-1]) == 128) {
+              /* replaces newlines with spaces if PRM_REMOVE is set */
+              if(query->params & PRM_REMOVE) {
+                encoded[bytesStored-1] = ' ';
+              }
 
-              do {
-                strAppend(' ', &encoded, &bytesStored);
-              } while(--retval);
+              if(
+                query->params & PRM_TASWORD && /* ...and we specified we want to space pad newlines... */
+                (offset + bytesStored) % 64 != 0 /* and padding needs to be added */
+              ) {
+
+                /* add padding with spaces */
+                retval = 64 - ((offset + bytesStored) % 64);
+
+                do {
+                  strAppend(' ', &encoded, &bytesStored);
+                } while(--retval);
+              }
             }
           }
         }

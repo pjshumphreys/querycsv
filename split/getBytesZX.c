@@ -16,11 +16,6 @@ void getBytesZXCommon(
     /* just cast the codepoint to a byte for basic ascii */
     if(codepoint < 0x80) {
       switch(codepoint) {
-        case 0x0A: {  /* \n */
-          returnByte = 0x80;
-          *bytes = &returnByte;
-        } return;
-        
         case 0x5E:    /* ^ */
         case 0x60:    /* ` */
         case 0x7F: {  /* DEL */
@@ -29,7 +24,18 @@ void getBytesZXCommon(
         } return;
 
         default: {
-          *bytes = NULL;
+          if(codepoint > 0x1f || !isTSW) {
+            *bytes = NULL;
+            return;
+          }
+          else if(codepoint == 0x0a) {
+            returnByte = 0x80;  /* tasword 2 newline */
+          }
+          else {
+            returnByte = 0x20;  /* ascii space */
+          }
+
+          *bytes = &returnByte;
         } return;
       }
     }
@@ -77,5 +83,5 @@ void getBytesTSW(
     char **bytes,
     int *byteLength
 ) {
-  getBytesZXCommon(codepoint, bytes, byteLength, TRUE);  
+  getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
 }
