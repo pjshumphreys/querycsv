@@ -334,7 +334,7 @@ int main(int argc, char ** argv) {
       
       case 4: {
         if(codepoints[0] == 0x0a) {
-          fputs("]", output);
+          fputc(']', output);
           state = 1;
         }
         else {
