@@ -117,7 +117,8 @@ void cleanup_query(struct qryData *query) {
       /* add EOF byte and padding with spaces */
       i = 64 - (query->outputOffset % 64);
 
-      fputc(143, query->outputFile);
+      fputc(query->params & PRM_REMOVE ? 32 : 143, query->outputFile);
+
       i--;
 
       while(i--) {
