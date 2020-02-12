@@ -1,5 +1,5 @@
 select names
 from 'test.csv' as test
-where names collate sensitive = 'Þfoo'
+where names collate 'sensitive' = 'Þfoo'
 order by names
 

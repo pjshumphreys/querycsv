@@ -1,4 +1,4 @@
-select [group], max(value) as max_value, sum(value) as sum_value, count(distinct value), count(value) as count_value,  min(value) as min_value, avg(distinct value) as avg_value
+select [group], max([value]) as max_value, sum([value]) as sum_value, count(distinct [value]), count([value]) as count_value,  min([value]) as min_value, avg(distinct [value]) as avg_value
 from 'test11.csv' as test
 group by [group]
 order by [group] desc

@@ -1,1 +1,1 @@
-command next('test1.csv',0)
+next 'test1.csv' 0

@@ -5,6 +5,6 @@ from
 left join './test1.csv' as mao on yum.abc = mao.abc
 join './test1.csv' as hob on yum.abc = hob.abc
 where
-  yum.def collate sensitive = 'ah-ha' or 1.0=1.0
+  yum.def collate 'sensitive' = 'ah-ha' or 1.0=1.0
 into
   './foo.csv'

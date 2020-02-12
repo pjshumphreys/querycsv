@@ -1,1 +1,1 @@
-command value('test1.csv',0,2)
+value 'test1.csv' 0 2
