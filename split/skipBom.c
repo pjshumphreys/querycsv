@@ -193,7 +193,9 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
     file = fopen(filename, fopen_read);
 
-    myfseek(file, internalOffset, SEEK_SET);
+    if(file) {
+      myfseek(file, internalOffset, SEEK_SET);
+    }
   }
 
   return file;
