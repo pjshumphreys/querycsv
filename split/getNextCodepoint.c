@@ -12,10 +12,6 @@ int getNextCodepoint(struct inputTable* table) {
           &(table->arrLength),
           &(table->byteLength)
         );
-
-      if(table->codepoints[0] == 0x1a) {
-        table->codepoints[0] = MYEOF;
-      }
     }
 
     (table->cpIndex) = 0;
