@@ -162,7 +162,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             NULL,
             NULL,
             NULL,
-            !(query->params & PRM_TRIM),
+            !(currentInputTable->options & PRM_TRIM),
             query->newLine
           )) {
           /* do nothing */

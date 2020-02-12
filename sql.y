@@ -139,13 +139,13 @@ command_or_select:
 
 opt_params:
   | OPTIONS STRING ';' {
-      parse_params(queryData, $2);
+      queryData->params = parse_params(queryData, $2, queryData->params);
     }
   ;
 
 into_options:
   | OPTIONS STRING {
-      parse_params(queryData, $2);
+      queryData->params = parse_params(queryData, $2, queryData->params);
     }
   ;
 
@@ -322,6 +322,9 @@ table_references:
     STRING AS NAME from_options optional_encoding {
       parse_tableFactor(queryData, FALSE, $1, $3, $4, $5);
     }
+  | STRING from_options optional_encoding {
+      parse_tableFactor(queryData, FALSE, $1, mystrdup("_table"), $2, $3);
+    }
   | join_table
   ;
 
@@ -335,9 +338,9 @@ join_table:
   ;
 
 from_options:
-    /* empty */ { $$ = PRM_BLANK; }
+    /* empty */ { $$ = PRM_DEFAULT; }
   | OPTIONS STRING {
-      $$ = readInputOptions(queryData, $2);
+      $$ = parse_params(queryData, $2, PRM_DEFAULT);
     }
   ;
 

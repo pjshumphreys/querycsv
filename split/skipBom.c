@@ -4,22 +4,62 @@
 FILE *skipBom(const char *filename, long* offset, int* encoding) {
   FILE *file;
   int c;
+  int internalOffset = 0;
 
   MAC_YIELD
+
+  if(offset) {
+    internalOffset = *offset;
+  }
 
   file = fopen(filename, fopen_read);
 
   if(file != NULL) {
     /* skip over the bom if present */
-    switch((c = fgetc(file))) {
+    c = fgetc(file);
+
+    /* if the file encoding is unknown and a 128 byte zx spectrum PLUS3DOS header is found then skip it */
+    if(
+        encoding &&
+        *encoding == ENC_UNKNOWN &&
+        c == 'P'
+    ) {
+      if(
+          (c = fgetc(file)) == 'L' &&
+          (c = fgetc(file)) == 'U' &&
+          (c = fgetc(file)) == 'S' &&
+          (c = fgetc(file)) == '3' &&
+          (c = fgetc(file)) == 'D' &&
+          (c = fgetc(file)) == 'O' &&
+          (c = fgetc(file)) == 'S'
+      ) {
+        internalOffset = 128;
+
+        /* skip past the first 128 bytes (including the 8 we just read) */
+        myfseek(file, 120, SEEK_SET);
+      }
+      else {
+        fclose(file);
+
+        file = fopen(filename, fopen_read);
+
+        internalOffset = 0;
+      }
+
+      c = fgetc(file);
+    }
+
+    switch(c) {
       case 0: {  /* maybe UTF-32BE */
         if(
             fgetc(file) == 0 &&
             fgetc(file) == 254 &&
             fgetc(file) == 255
         ) {
+          internalOffset += 4;
+
           if(offset) {
-            *offset = 4;
+            *offset = internalOffset;
           }
 
           if(encoding) {
@@ -34,8 +74,10 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
         if(
             fgetc(file) == 8
         ) {
+          internalOffset += 2;
+
           if(offset) {
-            *offset = 2;
+            *offset = internalOffset;
           }
 
           if(encoding) {
@@ -52,8 +94,10 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
             fgetc(file) == 187 &&
             fgetc(file) == 191
         ) {
+          internalOffset += 3;
+
           if(offset) {
-            *offset = 3;
+            *offset = internalOffset;
           }
 
           if(encoding) {
@@ -66,8 +110,10 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
       case 254: { /* maybe UTF-16BE */
         if(fgetc(file) == 255) {
+          internalOffset += 2;
+
           if(offset) {
-            *offset = 2;
+            *offset = internalOffset;
           }
 
           if(encoding) {
@@ -84,8 +130,10 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
             fgetc(file) == 0 &&
             fgetc(file) == 0
           ) { /* UTF-32LE */
+            internalOffset += 4;
+
             if(offset) {
-              *offset = 4;
+              *offset = internalOffset;
             }
 
             if(encoding) {
@@ -100,8 +148,10 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
             fgetc(file);
             fgetc(file);
 
+            internalOffset += 2;
+
             if(offset) {
-              *offset = 2;
+              *offset = internalOffset;
             }
 
             if(encoding) {
@@ -127,14 +177,14 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
       } /*fall thru */
 
       default: {
-        if(encoding && *encoding == ENC_DEFAULT) {
+        if(encoding && (*encoding == ENC_DEFAULT || *encoding == ENC_UNKNOWN)) {
           *encoding = ENC_INPUT;
         }
       }
     }
 
     if(offset) {
-      *offset = 0;
+      *offset = internalOffset;
     }
 
     /* the byte order mark was not found, and calling ungetc multiple times is not */
@@ -142,6 +192,8 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
     fclose(file);
 
     file = fopen(filename, fopen_read);
+
+    myfseek(file, internalOffset, SEEK_SET);
   }
 
   return file;

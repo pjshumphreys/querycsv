@@ -8,17 +8,13 @@ Files=../../querycsv.c#6071
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=test10.qry%%%test.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
+Program arguments=test.qry%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
 Program uri=../../querycsv%%%querycsv%%%ttyraw%%%listdir
 Run in terminal=2
-Working directories=../../../../test%%%../../.%%%.%%%.%%%test%%%.
+Working directories=../../../../.%%%../../../../test%%%../../.%%%.%%%.%%%test%%%.
 
 [Project Manager]
 Expand=posix
-
-[Debugger]
-Watch=currentPosition%%%lineHeadLength + lineTailLength%%%sequence%%%sequenceLength
-Stop at beginning=2
 
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized
@@ -27,3 +23,7 @@ BuildArgs/Default=--enable-maintainer-mode
 BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
 BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
+
+[Debugger]
+Watch=currentPosition%%%lineHeadLength + lineTailLength%%%sequence%%%sequenceLength
+Stop at beginning=2

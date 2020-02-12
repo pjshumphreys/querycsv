@@ -92,18 +92,22 @@ as long as the function using them uses the __stdc calling convention */
 
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_BOM 1    /* output a utf-8 byte order mark before the file contents. UTF-16 and 32 always get a BOM */
-#define PRM_UNIX 2    /* output unix newlines in the output file */
-#define PRM_MAC 4    /* output mac newlines in the output file */
-#define PRM_SPACE 8   /* put a space before each column value that's not the first */
-#define PRM_TRIM 16    /* left trim and right trim whitespace from each column value */
-#define PRM_QUOTE 32  /* always double quote non null values */
-#define PRM_BLANK 64  /* import/export unquoted empty strings as NULL */
-#define PRM_NULL 128  /* import/export unquoted text NULL as NULL */
-#define PRM_POSTGRES 256  /* import/export using postgres text files */
-#define PRM_EURO 512  /* import/export with ";" as delimiter rather than "," */
-#define PRM_TASWORD 1024  /* pad newlines and EOF with spaces if outputting to tasword format. Uses extra space but makes editing easier */
-#define PRM_INSERT 2048  /* insert a new line after 64 non newline codepoints on the output file. Used to convert tasword 2 files to something more readable */
-#define PRM_REMOVE 4096  /* remove a new line codepoint sequence when it starts on the 65th codepoint on a line. */
+#define PRM_UNIX 2    /* put unix newlines in the output file */
+#define PRM_MAC 4    /* put mac newlines in the output file */
+#define PRM_SPACE 8   /* put a space before each column value that's not the first into the output file */
+#define PRM_QUOTE 16  /* always double quote non null values on export */
+#define PRM_TASWORD 32  /* pad newlines and EOF with spaces if outputting to tasword format. Uses extra space but makes editing easier */
+#define PRM_INSERT 64  /* insert a new line after 64 non newline codepoints on the output file. Used to convert tasword 2 files to something more readable */
+#define PRM_REMOVE 128  /* remove a new line codepoint sequence when it starts on the 65th codepoint on a line in the output file. */
+
+/* input or input/output parameters */
+#define PRM_HEADER 256  /* skip the first 128 bytes in a file on input. Used if a file has a plus3dos header */
+#define PRM_TRIM 512    /* left trim and right trim whitespace from each column value on import */
+#define PRM_BLANK 1024  /* import/export unquoted empty strings as NULL */
+#define PRM_NULL 2048  /* import/export unquoted text NULL as NULL */
+#define PRM_POSTGRES 4096  /* import/export using postgres text files */
+#define PRM_EURO 8192  /* import/export with ";" as delimiter rather than "," */
+
 #define PRM_DEFAULT PRM_BLANK  /* default parametters */
 
 #define TRE_BLACK 1

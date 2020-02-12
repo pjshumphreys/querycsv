@@ -7,9 +7,10 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   struct inputTable *currentInputTable;
   struct resultColumn *currentResultColumn;
   struct sortingList *currentSortingList;
-  int initialEncoding = ENC_DEFAULT;
+  int initialEncoding = ENC_UNKNOWN;
   int inputTableIndex = 1;
   int parserReturn = 0;
+  long offset = 0;
   char* errSyntax = TDB_PARSER_SYNTAX;
   char* errRam = TDB_PARSER_USED_ALL_RAM;
   char* errUnknown = TDB_PARSER_UNKNOWN;
@@ -25,7 +26,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
     MAC_YIELD
 
     /* if the input file can't be rewound then load it into a string then read from that instead */
-    if(queryType == 1 && (queryFile = fopen(origFileName, "rb"))) {
+    if(queryType == 1 && (queryFile = fopen(origFileName, fopen_read))) {
       if(fseek(queryFile, 0, SEEK_SET)) {
         queryType = 0;
 
@@ -56,11 +57,11 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
     #endif
 
     /* attempt to open the input file */
-    queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+    queryFile = skipBom(queryFileName, &offset, &initialEncoding);
 
     if(queryFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-      free(queryFileName);
+      freeAndZero(queryFileName);
       return EXIT_FAILURE;
     }
   }
@@ -118,13 +119,15 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
 
     if(parserReturn == 0 && query->inputEncoding != ENC_UNKNOWN) {
       /* the input file specified its own encoding. rewind and parse again */
-      queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+      queryFile = fopen(queryFileName, fopen_read);
 
       if(queryFile == NULL) {
         fputs(TDB_COULDNT_OPEN_INPUT, stderr);
         free(queryFileName);
         return EXIT_FAILURE;
       }
+
+      myfseek(queryFile, offset, SEEK_SET);
 
       /*specify the getter to use*/
       query->getCodepoints = chooseGetter(query->inputEncoding);
@@ -238,13 +241,15 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   query->parseMode = 1;
 
   if(queryType == 1) {
-    queryFile = skipBom(queryFileName, NULL, &initialEncoding);
+    queryFile = fopen(queryFileName, fopen_read);
     free(queryFileName); /* not needed any more */
 
     if(queryFile == NULL) {
       fputs(TDB_COULDNT_OPEN_INPUT, stderr);
       return EXIT_FAILURE;
     }
+
+    myfseek(queryFile, offset, SEEK_SET);
   }
 
   /* setup reentrant flex scanner data structure */

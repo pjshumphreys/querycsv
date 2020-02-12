@@ -8,7 +8,7 @@ void parse_tableFactor(
 ) {
   FILE *csvFile;
   struct inputTable *newTable = NULL;
-  long headerByteLength = 0;
+  long headerByteLength = (fromOptions & PRM_HEADER) ? 128 : 0;
 
   MAC_YIELD
 

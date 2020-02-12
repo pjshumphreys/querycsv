@@ -1,14 +1,12 @@
-void parse_params(struct qryData *queryData, char *string) {
-  int params;
+int parse_params(struct qryData *queryData, char *string, int params) {
   char* i;
 
   MAC_YIELD
 
   if(queryData->parseMode == 1 || string == NULL) {
-    return;
+    return params;
   }
 
-  params = PRM_DEFAULT;
   i = string;
 
   while(*i) {
@@ -75,19 +73,29 @@ void parse_params(struct qryData *queryData, char *string) {
         params |= PRM_TASWORD;
       break;
 
+      case 'r':
+      case 'R': {
+        params |= PRM_REMOVE;
+      } break;
+
       case 'q':
       case 'Q':
         params |= PRM_QUOTE;
       break;
 
-      case 'r':
-      case 'R': {
-        params |= PRM_REMOVE;
-      } break;
+      case 'h':
+      case 'H':
+        params |= PRM_HEADER;
+      break;
+
+      case 'k':
+      case 'K':
+        params |= PRM_TRIM;
+      break;
     }
 
     i++;
   }
 
-  queryData->params = params;
+  return params;
 }
