@@ -5,12 +5,18 @@ int getNextCodepoint(struct inputTable* table) {
 
   if(table->cpIndex >= table->arrLength) {
     /* we've exhausted the current buffer. Get some more codepoints */
-    (chooseGetter(table->fileEncoding))(
-        table->fileStream,
-        &(table->codepoints[0]),
-        &(table->arrLength),
-        &(table->byteLength)
-      );
+    if(table->codepoints[0] != MYEOF) {
+      (chooseGetter(table->fileEncoding))(
+          table->fileStream,
+          &(table->codepoints[0]),
+          &(table->arrLength),
+          &(table->byteLength)
+        );
+
+      if(table->codepoints[0] == 0x1a) {
+        table->codepoints[0] = MYEOF;
+      }
+    }
 
     (table->cpIndex) = 0;
   }

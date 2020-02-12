@@ -22,6 +22,14 @@ void myyyinput(FILE * stream, void* extra, char * buf, int *result, size_t max_s
         break;
       }
       if(c < 0x80) {
+        if(c == 0x1a) {
+          c = MYEOF;
+          /*soft EOF. Eat up the rest of the file */
+          while(fgetc(stream) != EOF) {}
+
+          break;
+        }
+
         buf[n++] = (char)c;
       }
       else if(c < 0x800) {
