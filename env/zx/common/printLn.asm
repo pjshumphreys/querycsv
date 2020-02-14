@@ -159,7 +159,8 @@ basicBank:    ; stores an identifier for the basic rom at 0x0000-0x4000
   defb 0
 
 defaultBank:  ; stores an identifier for the scratchpad working memory at 0x0000-0x4000.
-  defb 0
+bankmBackup2: ; only used by plus 3 variant to save bankm internally. plus3 dos can't use low banks either
+   defb 0
 
 ;0xc000-0xffff zx 128k banks
 bankmBackup:

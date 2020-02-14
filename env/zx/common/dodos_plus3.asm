@@ -13,23 +13,22 @@ dodos_plus3:
 ;
   push af
   ld a, (bankm)  ; RAM/ROM switching system variable
-  ld (bankmBackup), a
+  ld (bankmBackup2), a
   or 7  ; want RAM page 7
   res 4, a  ; and DOS ROM
   di
   call switchPage
   pop af
 
-  call jumptoit2  ; go sub routine address in IY
+  ld (jumptoit+1), iy
+
+  call jumptoit  ; go sub routine address in IY
 
   push af  ; return from JP (IY) will be to here
-  ld a, (bankmBackup)
+  ld a, (bankmBackup2)
   di
   call switchPage
   pop af
 
   ld iy, ERR_NR
   ret
-
-jumptoit2:
-  jp (iy)

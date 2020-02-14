@@ -77,21 +77,16 @@ bcdloop:
   jp switchPage
 
 esxexit:
-  ;switch back high page
-  di
-  ld a, (bankmBackup)
-  call switchPage
-
   pop af
   ;ld a, handle           ; a  = file handler
   rst RST_HOOK
   defb F_CLOSE
   pop ix
 
+esxend:
   ;switch back high page
   di
   ld a, (bankmBackup)
   call switchPage
 
-esxend:
   ;jp printNoFile
