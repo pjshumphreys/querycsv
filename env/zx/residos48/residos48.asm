@@ -1,42 +1,40 @@
-include "page2page.map"
-include "pager.map"
-
-RESI_GETPAGER equ 0x031c
-RESI_FINDBASIC equ 0x0322
-RESI_ALLOC equ 0x0325
-
-DOS_SET_1346 equ 0x013f
+include "residos48.inc"
 
 VARS equ 0x5c4b
 
+RESI_GETPAGER equ 0x031c
+RESI_FINDBASIC equ 0x0322
+RESI_DEALLOC equ 0x0328
+
 org 0xc000
+jr copydata
 
-CRT_ENABLE_STDIO = 1
-__CRT_KEY_CAPS_LOCK = 6
-__CRT_KEY_DEL = 12
+;put atexit3 at a known location (0xc002)
+atexit3:
+  jp atexit4
 
-GLOBAL _heap
-GLOBAL fputc_cons
-GLOBAL dodos
-GLOBAL __CRT_KEY_CAPS_LOCK
-GLOBAL __CRT_KEY_DEL
+; copy data from this page to elsewhere in the memory map
+copydata:
+  ld hl, page2page ; hl = source address for ldir
+  ld de, farCall ; de = destination address for ldir
+  ld (farcall+1), de ; update the farcall address
+  ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
 
-include "globals.inc"
-
-; copy all the data from this page to elsewhere in the memory map
-;copydata:
   di
+  ldir
   exx
   ld (exhlBackup), hl      ; save BASIC's HL'
   exx
   ei
 
   ; setup the residos pager
-  ld de, mypager  ; location for paging routine
+  ld de, mypager2 ; location for paging routine
+  ld (mypager+1), de  ; update the jump table record
   ld iy, RESI_GETPAGER  ; +3DOS call ID
-  call doresi
+  call doresi3
   jr c, suceeded  ; call failed if Fc=0
 
+failed:
   di
   exx
   ld hl, (exhlBackup)      ; restore BASIC's HL'
@@ -48,50 +46,75 @@ include "globals.inc"
   defb 0x03 ; out of memory
 
 suceeded:
-  ; get the number of the basic rom
+  ; get the low bank number of the basic rom
   ld iy, RESI_FINDBASIC
-  call doresi
+  call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (basicBank), a  ; save for later
-
-  ld iy, RESI_ALLOC  ; get free bank
-  call doresi
-  jr nc, failed  ; call failed if Fc=0
+  ld (basicBank2), a ; copy used to terminate the unload loop run at exit
   ld (defaultBank), a  ; save for later
 
-  ld a, 1
-  ld (usingBanks), a
+  ld iy, RESI_ALLOC  ; get free low bank
+  call doresi3
+  jr nc, failed2  ; call failed if Fc=0
+  ld (pageLocations), a ; ensure the default bank memory is freed at exit
 
-  ;copy the pages into shadow ram until either we've done all banks or we can't allocate any more memory
+failed2:
+  ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
   ld hl, pageLocations+6
   ld de, 0x0006  ; start at page 6
-loopAlloc:
-  ld a, (hl)
-  push de
-  push hl
-  cp 0
-  jr z, startup3
-  ld iy, RESI_ALLOC   ; get free bank
-  call doresi
-  jr nc, startup2   ; call failed if Fc=0
-  pop hl
-  pop de
-  ld (hl), a  ; save for later
+  di
+  call loadFromDisk2 ; load all the pages we can into low ram banks
 
-  ;load the data into the page
-  call loadFromDisk2
+  ;set up the code to go back to the default bank
+  ld a, (pageLocations) 
+  ld (defaultBank), a
+  call mypager
 
+  ; restore the interrupt mode 2 bytes
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbf
   inc hl
-  inc de
-  jr loopAlloc
+  djnz intSetup
 
-startup3:
-  ld a, (defaultBank)  ; bank obtained by RESI_ALLOC
-  call mypager  ; switch it in to $0000-$3fff
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
 
-startup2:
-  pop de
-  pop hl
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
+
+  ; update atexit jump
+  ld hl, 0x0021 ; ld hl, $00...
+  ld (atexit), hl
+  ld hl, 0xcd00 ; ...00; call
+  ld a, h
+  ld (atexit+2), hl
+  ld hl, atexit2
+  ld (atexit+4), hl
+
+  ;update fputc_cons jump
+  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
+
+  ;setup standard streams
+  ld hl, __sgoioblk + 2
+  ld (hl), 19 ;stdin
+  ld hl, __sgoioblk + 12
+  ld (hl), 21 ;stdout
+  ld hl, __sgoioblk + 22
+  ld (hl), 21 ;stderr
 
   ; get the filename to load from basic variable a$
   ; zx_getstraddr:
@@ -115,6 +138,7 @@ loop:
   pop de
   jr loop
 
+; convert the Pascal string into a C string
 found2:
   inc hl
   ld c, (hl)
@@ -129,17 +153,16 @@ found2:
   push hl
   pop de
   inc hl
+  di
   ldir
+  ei
   xor a
   ld (de), a  ; null terminate the string
-  ld a, 3
-  ld (currentVirtualPage), a
   ld bc, 2
   jr startup
 
 notFound2:
   ld bc, 1
-  ; ret
 
 startup:
   ld hl, argv
@@ -147,35 +170,123 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
-  pop bc
-  pop hl
-  push hl
+  ; clear the screen
+  ld bc, 0x0c0c
   push bc
+  call fputc_cons
+  pop bc
 
-  call _main2
+  ld bc, 0x0707
+  push bc
+  call fputc_cons
+  pop bc
+
+  ld bc, 0x4141
+  push bc
+  call fputc_cons
+  pop bc
+
+  ld bc, 0x4242
+  push bc
+  call fputc_cons
+  pop bc
+
+  ;start running main function
+  ;push atexit ; return to the atexit function
+  ;ld a, 6
+  ;ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ;jp _main2
 
   jp atexit
 
-bcBackup:
-  defw 0x0000
+atexit4:
+  ; restore stack pointer
+  ld sp, (spBackup)
 
-first:
-  binary "fputc_cons_first.bin"
-  defb 0
+  di
 
-second:
-  binary "fputc_cons_second.bin"
+  ; switch back to the basic bank and disable the extra memory
+  ld a, (basicBank)
+  ld (defaultBank), a   ; disable the extra memory
+  ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
+  call mypager
 
-third:
-  binary "fputc_cons_third.bin"
+  ;switch back to interrupt mode 0
+  im 0
+  ei
 
-fourth:
-  binary "atexit.bin"
+; free all allocated ram
+  ld hl, pageLocationsEnd-1
+freeLoop:
+  ld a, (hl)
+  cp 255 ; special code that indicates to always load from disk
+  jr z, freeSkip
+  cp b ; if the current bank is the basic bank then exit the loop
+  jr z, freeExit
+  push bc
+  push hl
+  ld iy, RESI_DEALLOC
+  call doresi
+  pop hl
+  pop bc
+freeSkip:
+  dec hl
+  jr freeLoop
+freeExit:
+  ; restore 'hl values
+  exx
+  ld hl, (exhlBackup)      ; restore BASIC's HL'
+  exx
+
+  pop bc  ; get argc
+  ld a, c
+  pop bc  ; remove argv
+  cp 2
+  jr nz, skipMoveBack
+
+; restore the a$ basic variable size
+  ld bc, 0
+  ld hl, (argName)
+
+loopMoveBack:
+  ld a, (hl)
+  cp 0
+  jr z, exitMoveBack
+  inc bc
+  inc hl
+  jr loopMoveBack
+
+exitMoveBack:
+  push bc
+  push hl
+  pop de
+  dec hl
+  lddr
+  pop bc
+  ld (hl), c
+  inc hl
+  ld (hl), b
+
+skipMoveBack:
+  ;pop hl
+  ;ld (deBackup), hl
+
+  ; if hlBackup is non zero, push it onto the stack
+  ld hl, (hlBackup)
+  ld a, h
+  or l
+  jp z, nopush
+  push hl
+
+nopush:
+  ;restore return location
+  ;ld hl, (deBackup)
+  ;push hl
+
+  ld bc, 0  ; return 0 to basic
+  ret
 
 page2page:
-  binary "pager_part1.bin"
-  binary "pager_part2.bin"
+  binary "pager.bin"
+  binary "page2page.bin"
 page2pageend:
-
-start:
-  INCLUDE "crt/classic/crt_section.asm"

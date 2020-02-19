@@ -101,31 +101,45 @@ inf:
   ld a, 1
   ld (destinationHighBank), a  ; which high bank to go to (bank 1)
 
-  ; shrink the workspaces to only use page 6
-  ld de, 0x601c ; just first half of page 6
-  ld hl, 0x7c04 ; just second half of page 6
-  ld iy, DOS_SET_1346
-  call dodos
-
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
   ld iy, RESI_GETPAGER  ; +3DOS call ID
   call doresi3
-  jr nc, failed  ; call failed if Fc=0
+  jr c, suceeded  ; call failed if Fc=0
 
+failed:
+  di
+  exx
+  ld hl, (exhlBackup)      ; restore BASIC's HL'
+  exx
+  ei
+
+  ; trigger an 'out of memory' error
+  rst RST_HOOK
+  defb 0x03 ; out of memory
+
+suceeded:
   ; get the low bank number of the basic rom
   ld iy, RESI_FINDBASIC
   call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (basicBank), a  ; save for later
   ld (basicBank2), a ; copy used to terminate the unload loop run at exit
+  ld (defaultBank), a  ; save for later
 
   ld iy, RESI_ALLOC  ; get free low bank
   call doresi3
-  jr nc, failed  ; call failed if Fc=0
+  jr nc, failed2  ; call failed if Fc=0
   ld (defaultBank), a  ; save for later
   ld (pageLocations), a ; ensure the default bank memory is freed at exit
+
+failed2:
+  ; shrink the workspaces to only use page 6
+  ld de, 0x601c ; just first half of page 6
+  ld hl, 0x7c04 ; just second half of page 6
+  ld iy, DOS_SET_1346
+  call dodos
 
   ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
   ld hl, pageLocations+6
@@ -158,7 +172,6 @@ startup2:
   pop hl
   pop de
 
-failed:
   ; restore the interrupt mode 2 bytes
   ld b, 255
   ld hl, 0xbd00

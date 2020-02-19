@@ -1,4 +1,4 @@
-all: querycsv.tap qrycsv01.ovl qrycsv03.ovl qrycsv05.ovl
+all: querycsv.tap qrycsv01.ovl qrycsv02.ovl qrycsv03.ovl qrycsv05.ovl
 
 #querycsv.tap: qrycsv06.ovl
 querycsv.tap:
@@ -12,9 +12,9 @@ qrycsv01.ovl:
 	cd plus3dos && make
 	cp plus3dos/qrycsv01.ovl .
 
-#qrycsv02.ovl:
-#	cd residos48 && make
-#	cp residos48/qrycsv02.ovl .
+qrycsv02.ovl:
+	cd residos48 && make
+	cp residos48/qrycsv02.ovl .
 
 qrycsv03.ovl: querycsv.tap
 	cd residos128 && make
@@ -34,7 +34,7 @@ qrycsv05.ovl:
 clean:
 	cd common && make clean
 	cd plus3dos && make clean
-#	cd residos48 && make clean
+	cd residos48 && make clean
 	cd residos128 && make clean
 #	cd esxdos48 && make clean
 	cd esxdos128 && make clean

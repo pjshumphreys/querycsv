@@ -9,21 +9,14 @@ fputc_cons_rom_rst:
   ld a, (hl)
   and a
   ld a, b
-  jr z, continue
-  dec (hl)
-  jr not_lf
-continue:
-  cp 22    ;move to
-  jr nz, not_posn
-  push af
-  ld a, 2
-  ld (hl), a
-  jr direct
-not_posn:
+  jr nz, not_cont
   cp 10
-  jr nz, not_lf
-  ld a, 13
-not_lf:
+  jr z, lf
+  cp 22    ;move to
+  jr z, posn
+  cp 07
+  jr z, beep
+not_beep:
   push af
 direct:
   ld a, 255
@@ -35,4 +28,25 @@ direct:
   call call_rom3
   defw 16
   pop iy
+  ret
+not_cont:
+  dec (hl)
+  jr not_beep
+posn:
+  push af
+  ld a, 2
+  ld (hl), a
+  jr direct
+lf:
+  ld a, 13
+  jr not_beep
+beep:
+  push hl
+  push de
+  ld hl, $0300 ; parameters for the beep
+  ld de, $0030
+  call call_rom3
+  defw 0x03b5 ; call BEEPER
+  pop de
+  pop hl
   ret
