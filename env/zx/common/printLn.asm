@@ -89,10 +89,10 @@ jp_rom3:
   ld d, (hl)
   ld (jumptoit+1), de
   pop de
-  ld hl, (hlBackup)
   jr call_rom3b
 
 call_rom3:
+  ld (hlBackup), hl
   pop hl
   push de
   ld e, (hl)
@@ -104,6 +104,7 @@ call_rom3:
   push hl
 
 call_rom3b:
+  ld hl, (hlBackup)
   push af
   di
   ld a, (basicBank)

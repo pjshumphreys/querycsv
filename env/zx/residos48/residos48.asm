@@ -116,6 +116,10 @@ intSetup:
   ld hl, __sgoioblk + 22
   ld (hl), 21 ;stderr
 
+  ld a, 2  ; upper screen
+  call call_rom3
+  defw 0x1601  ; open channel
+
   ; get the filename to load from basic variable a$
   ; zx_getstraddr:
   ld d, 'A'
@@ -200,6 +204,16 @@ startup:
   jp atexit
 
 atexit4:
+  ;print a newline character to match the 128k print routine's output
+  push hl
+  ld bc, 0x0a0a
+  push bc
+  call fputc_cons
+  pop bc
+  pop hl
+
+  ld (hlBackup), hl
+
   ; restore stack pointer
   ld sp, (spBackup)
 

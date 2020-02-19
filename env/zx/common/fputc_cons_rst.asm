@@ -12,6 +12,8 @@ fputc_cons_rom_rst:
   jr nz, not_cont
   cp 10
   jr z, lf
+  cp 0x0c    ;cls
+  jr z, cls
   cp 22    ;move to
   jr z, posn
   cp 07
@@ -42,11 +44,20 @@ lf:
   jr not_beep
 beep:
   push hl
+  push bc
   push de
-  ld hl, $0300 ; parameters for the beep
-  ld de, $0030
+  ld hl, $02f6 ; parameters for the beep. 128k uses $0300 instead to account for the cpu speed differences
+  ld de, $002f ; 128k uses $30 instead
   call call_rom3
   defw 0x03b5 ; call BEEPER
   pop de
+  jr endprn
+cls:
+  push hl
+  push bc
+  call call_rom3
+  defw 0x0daf ; call CL-ALL
+endprn:
+  pop bc
   pop hl
   ret
