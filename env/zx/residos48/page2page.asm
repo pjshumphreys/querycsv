@@ -67,4 +67,4 @@ defs 0x101 - ASMPC, 0xbf
 
 mypager2:
   ret ; just return until the proper paging code is installed into this location
-  defs 20, 0  ; according to residos documentation, 32 bytes needs to be reserved for the pager, but in practice only about 10ish are used. We might need to move the pager code if it becomes a problem
+  defs 31, 0

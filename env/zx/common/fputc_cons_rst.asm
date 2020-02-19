@@ -12,8 +12,6 @@ fputc_cons_rom_rst:
   jr nz, not_cont
   cp 10
   jr z, lf
-  cp 0x0c    ;cls
-  jr z, cls
   cp 22    ;move to
   jr z, posn
   cp 07
@@ -51,13 +49,6 @@ beep:
   call call_rom3
   defw 0x03b5 ; call BEEPER
   pop de
-  jr endprn
-cls:
-  push hl
-  push bc
-  call call_rom3
-  defw 0x0daf ; call CL-ALL
-endprn:
   pop bc
   pop hl
   ret

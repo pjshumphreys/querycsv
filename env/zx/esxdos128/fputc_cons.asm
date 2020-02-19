@@ -85,7 +85,6 @@ handle_control:
   push de
   ret
 
-
 ; 32 column print routine..quick 'n' dirty..we take
 ; x posn and divide by two to get our real position
 
@@ -218,6 +217,31 @@ endif
 SECTION second
 org 0xf511
 
+; Clear screen and move to home
+cls:
+  ld hl, 0
+  ld (chrloc), hl
+  ld hl, 49152;16384
+  ld de, 49153;16385
+  ld bc, 6144
+  ld (hl), l
+  ldir
+  ld a, (__zx_console_attr)
+  ld (hl), a
+  ld bc, 767
+  ldir
+  ld a, (bankmBackup)  ; system variable that holds current switch state
+  or 8
+  ld (bankmBackup), a  ; must keep system variable up to date (very important)
+  di
+  ld a, (bankm)  ; system variable that holds current switch state
+  or 8
+  ld (bankm), a  ; must keep system variable up to date (very important)
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+  out (c), a
+  ei
+  ret
+
 ; This nastily inefficient table is the code table for the routines
 ; Done this way for future! Expansion
 
@@ -234,7 +258,7 @@ code_table:
   defw right ; 9 - HT
   defw cr ;13 - CR (+NL)
   defw up ;11 - UP
-  defw cls ;12 = FF (and HOME)
+  defw noop ;12
   defw down ;10 - LF
   defw noop ;14
   defw noop ;15
@@ -305,32 +329,6 @@ down:
   ret z
   inc h
   ld (chrloc), hl
-  ret
-
-; Clear screen and move to home
-
-cls:
-  ld hl, 0
-  ld (chrloc), hl
-  ld hl, 49152;16384
-  ld de, 49153;16385
-  ld bc, 6144
-  ld (hl), l
-  ldir
-  ld a, (__zx_console_attr)
-  ld (hl), a
-  ld bc, 767
-  ldir
-  ld a, (bankmBackup)  ; system variable that holds current switch state
-  or 8
-  ld (bankmBackup), a  ; must keep system variable up to date (very important)
-  di
-  ld a, (bankm)  ; system variable that holds current switch state
-  or 8
-  ld (bankm), a  ; must keep system variable up to date (very important)
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-  out (c), a
-  ei
   ret
 
 beep:

@@ -175,9 +175,13 @@ startup:
   ld (spBackup), sp
 
   ; clear the screen
-  ld bc, 0x0c0c
   push bc
-  call fputc_cons
+  push de
+  push hl
+  call call_rom3
+  defw 0x0daf
+  pop hl
+  pop de
   pop bc
 
   ld bc, 0x0707

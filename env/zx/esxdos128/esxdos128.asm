@@ -256,9 +256,13 @@ startup:
   ld (spBackup), sp
 
   ; clear the second screen (and switch to it at the same time)
-  ld bc, 0x0c0c
   push bc
-  call fputc_cons
+  push de
+  push hl
+  call call_rom3
+  defw 0xf511
+  pop hl
+  pop de
   pop bc
 
   ld bc, 0x0707
