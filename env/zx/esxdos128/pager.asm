@@ -197,7 +197,7 @@ copyLoToHi:
   ; copy memory from the range of 0x0000-0x1fff to the least recently used page
   ld hl, 0x2000  ; Pointer to the source
   ld de, 0xc000  ; Pointer to the destination
-  ld bc, 0x1fff  ; Number of bytes to move
+  ld bc, 0x2000  ; Number of bytes to move
   ldir
   
   pop hl
@@ -207,7 +207,7 @@ copyLoToHi:
 
   ld hl, 0x2000  ; Pointer to the source
   ld de, 0xe000  ; Pointer to the destination
-  ld bc, 0x1fff  ; Number of bytes to move
+  ld bc, 0x2000  ; Number of bytes to move
   ldir
 
   pop de

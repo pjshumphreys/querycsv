@@ -27,8 +27,8 @@ loadFromDisk2:
 
   ; copy the code to the right place
   ld hl, 0xc000  ; hl = source address for ldir
-  ld de, 0x2000  ; de = destination address for ldir
-  ld bc, 8192 ; bc = number of bytes to copy for ldir
+  ld de, 0x0  ; de = destination address for ldir
+  ld bc, 16384 ; bc = number of bytes to copy for ldir
   ldir
 
   ; do the next iteration of the loop

@@ -43,7 +43,7 @@ loadFromDisk2:
   di
   ld a, (bankm)
   and 0xf8
-  or 1  ; high ram page 1
+  or 1  ; high ram bank 1
   call switchPage
   di
 
