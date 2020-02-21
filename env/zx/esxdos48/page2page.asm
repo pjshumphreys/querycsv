@@ -8,18 +8,19 @@ RESI_ALLOC equ 0x0325
 
 org 0xbd00
 loadFromDisk2: ;; 5 pages can be preloaded into low banks. unrolled for simplicity
+  di
   call loadFromDisk3
   call loadFromDisk3
   call loadFromDisk3
   call loadFromDisk3
   call loadFromDisk3
-  ret
+
+  ld a, 4 ; esxdos48 startup code
+  jp dosload  ; dosload re-enables interupts before it returns
 
 loadFromDisk3:
   push de
   push hl
-  cp 0  ; Exit the loop if all pages could be stored in low banks
-  jr z, exitLFD
 
   ;load the data into the low bank
   ld a, e
@@ -54,14 +55,7 @@ loadFromDisk3:
   pop de
   inc hl
   inc de
-  jr loadFromDisk2
-
-exitLFD:
-  pop hl
-  pop de
-  
-  ld a, 4 ; esxdos48 startup code
-  jp dosload  ; dosload re-enables interupts before it returns
+  ret
 
 ;---------------------------------------
 ; pad the output binary out to the proper size.
@@ -78,5 +72,16 @@ mypager2:
   ld c, DIVMMC  ; port used for switching low rom banks
   out (c), a  ; do the switch
   pop bc
+  or a ; cp 0
+  jr nz, divmmcExit
+divmmcDisable:
+  push af
+  ld a, (0x1ffa)
+  cp 0xc9
+  jr nz, divmmcSkip
+  call 0x1ffa
+divmmcSkip:
+  pop af
+divmmcExit:
   ret
-  defs 25, 0  ; 32 - 7
+  defs 10, 0  ; 32 bytes total

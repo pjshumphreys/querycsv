@@ -95,16 +95,16 @@ inf:
   ;test to see if 128k of divmmc is available. Copy commonly used pages to it if it is
   di
   ld c, DIVMMC
-  ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
   ld a, (0x2000)
   ld b, a
-  ld a, 10000100b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
+  ld a, 10000101b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
   out (c), a
   ld a, (0x2000)
   inc a
   ld (0x2000), a
-  ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
   ld a, (0x2000)
   xor b   ; iff is different then only 32k available
@@ -124,7 +124,7 @@ has128k:
   xor a ; ld a, 0 ; put back regular speccy layout
   out (c), a
   ;ld (basicBank), a  ; not needed as the values here will already be 0
-  ld a, 10000100b
+  ld a, 10000101b
   ld (defaultBank), a
   ei
 

@@ -27,16 +27,16 @@ copydata:
   ;test to see if 128k of divmmc is available. Copy commonly used pages to it if it is
   di
   ld c, DIVMMC
-  ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
   ld a, (0x2000)
   ld b, a
-  ld a, 10000100b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
+  ld a, 10000101b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
   out (c), a
   ld a, (0x2000)
   inc a
   ld (0x2000), a
-  ld a, 10000000b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
   out (c), a
   ld a, (0x2000)
   xor b   ; iff is different then only 32k available
@@ -56,12 +56,13 @@ has128k:
   xor a ; ld a, 0 ; put back regular speccy layout
   out (c), a
   ;ld (basicBank), a  ; not needed as the values here will already be 0
-  ld a, 10000100b
+  ld a, 10000101b
   ld (defaultBank), a
   ei
 
   ; pre load the low bank numbers into the virtual pages table
   ld hl, pageLocations+6
+  push hl
   ld a, 10000110b
   ld (hl), a
   add a, 2
@@ -76,22 +77,17 @@ has128k:
   add a, 2
   inc hl
   ld (hl), a
-  di
+  pop hl
   ld de, 0x0006  ; start at page 6
 
   ; Copy the first 5 virtual pages into low banks
   call loadFromDisk2 ; load all the pages we can into low ram banks
 
   ;set up the code to go back to the default bank
-  ld a, (pageLocations) 
-  ld (defaultBank), a
-  call mypager
-
-startup3:
   ld a, (defaultBank)
   call mypager  ; switch it in to $0000-$3fff
 
-failed:
+startup3:
   ; restore the interrupt mode 2 bytes
   ld b, 255
   ld hl, 0xbd00
@@ -247,7 +243,6 @@ atexit4:
   ; switch back to the basic bank and disable the extra memory
   ld a, (basicBank)
   ld (defaultBank), a   ; disable the extra memory
-  ld b, a  ; keep the value of the basic bank so we can determine when to quit the deallocation loop
   call mypager
 
   ;switch back to interrupt mode 0

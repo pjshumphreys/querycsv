@@ -114,5 +114,16 @@ mypager2:
   ld c, DIVMMC  ; port used for switching low rom banks
   out (c), a  ; do the switch
   pop bc
+  or a ;cp 0
+  jr nz, divmmcExit
+divmmcDisable:
+  push af
+  ld a, (0x1ffa)
+  cp 0xc9
+  jr nz, divmmcSkip
+  call 0x1ffa
+divmmcSkip:
+  pop af
+divmmcExit:
   ret
-  defs 25, 0  ; 32 - 7
+  defs 10, 0  ; 32 bytes total

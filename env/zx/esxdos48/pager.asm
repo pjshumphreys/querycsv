@@ -162,7 +162,7 @@ farRet:
 ;-----------------------------------------
 
 atexit2:
-  ld a, 2
+  ld a, 4
   call dosload
   ld hl, 0
   jp 0xc002 ; atexit3
