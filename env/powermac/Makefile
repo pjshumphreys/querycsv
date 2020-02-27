@@ -90,12 +90,9 @@ LibFiles-68K    =  ¶
 
 LibFiles-PPC    =  ¶
 					"{PPCLibraries}CarbonStdCLib.o" ¶
-					"{PPCLibraries}StdCRuntime.o" ¶
 					"{PPCLibraries}PPCCRuntime.o" ¶
-					"{PPCLibraries}PPCToolLibs.o" ¶
 					"{SharedLibraries}CarbonLib" ¶
-					"{SharedLibraries}StdCLib" ¶
-					"{SharedLibraries}MathLib"
+					"{SharedLibraries}StdCLib"
 
 
 ### Default Rules ###
@@ -134,7 +131,7 @@ QueryCSV.68k  ÄÄ  {¥MondoBuild¥}
 
 QueryCSV.PPC  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
 	PPCLink ¶
-		-o {Targ} ¶
+		-o {Targ} -m main ¶
 		{ObjFiles-PPC} ¶
 		{LibFiles-PPC} ¶
 		{Sym-PPC} ¶

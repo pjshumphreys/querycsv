@@ -128,7 +128,7 @@ extern char * devNull;
 #include "powermac.h"
 
 /* how to treat filenames that are fopened */
-CFURLRef baseFolder;
+CFURLRef baseFolder = NULL;
 CFStringEncoding enc;
 
 NavDialogRef gOpenFileDialog = NULL;
@@ -428,12 +428,9 @@ pascal OSErr openItems(AEDescList * docList) {
   Str255      str;
 
   FSRef       theFSRef;
-  char* fileName = NULL;
   CFURLRef cfUrl;
   CFStringRef cfFilename;
-  CFIndex neededLen;
-  CFIndex usedLen;
-  CFRange range;
+  CFIndex length;
 
   if(
       (result = AECountItems(docList, &itemsInList)) != noErr ||
@@ -455,46 +452,23 @@ pascal OSErr openItems(AEDescList * docList) {
     if((cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef)) != NULL) {
       baseFolder = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, cfUrl);
       cfFilename = CFURLCopyLastPathComponent(cfUrl);
+      length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfFilename), kCFStringEncodingUTF8);
 
-      if(fileName = (char *)CFStringGetCStringPtr(cfFilename, kCFStringEncodingUTF8)) {
-        progArg = mystrdup(fileName);
+      reallocMsg((void**)&progArg, length + 1);
+
+      if(CFStringGetCString(cfFilename, progArg, length, kCFStringEncodingUTF8)) {
+        progArg[length] = 0;
+        reallocMsg((void**)&progArg, strlen(progArg) + 1);
+
+        windowNotOpen = FALSE;
       }
       else {
-        neededLen = 0;
-        usedLen = 0;
-        range = CFRangeMake(0, CFStringGetLength(cfFilename));
-
-        CFStringGetBytes(
-          cfFilename,
-          range,
-          kCFStringEncodingUTF8,
-          '?',
-          FALSE,
-          NULL,
-          0,
-          &neededLen
-        );
-
-        reallocMsg((void**)&progArg, neededLen + 1);
-
-        CFStringGetBytes(
-          cfFilename,
-          range,
-          kCFStringEncodingUTF8,
-          '?',
-          FALSE,
-          (UInt8 *)progArg,
-          neededLen,
-          &usedLen
-        );
-
-        progArg[usedLen] = 0;
+        free(progArg);
+        progArg = NULL;
       }
 
       CFRelease(cfFilename);
       CFRelease(cfUrl);
-
-      windowNotOpen = FALSE;
     }
   }
 
@@ -812,6 +786,7 @@ void adjustMenus(int setStyles) {
 }
 
 void saveWindow(WindowPtr window) {
+  /*
   Rect *rptr;
   Rect windRect;
   Handle wind;
@@ -836,6 +811,7 @@ void saveWindow(WindowPtr window) {
   HUnlock(wind);
 
   WriteResource(wind);
+  */
 }
 void setupMLTE(void) {
   OSStatus status;
@@ -1729,14 +1705,15 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
 }
 
 char* makeAbsolute(const char *filename) {
-  char* absolutePath = NULL;
   char* retval = NULL;
-  CFIndex neededLen;
-  CFIndex usedLen;
-  CFRange range;
   CFStringRef text1;
   CFURLRef cfabsolute;
+  CFIndex length;
   CFStringRef text2;
+
+  if(baseFolder == NULL) {
+    return mystrdup(filename);
+  }
 
   text1 = CFStringCreateWithCStringNoCopy(
     NULL,
@@ -1758,51 +1735,25 @@ char* makeAbsolute(const char *filename) {
   }
 
   cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
-    kCFAllocatorDefault,
+    NULL,
     text1,
     macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
     FALSE,
     baseFolder
   );
 
-  text2 = CFURLCopyFileSystemPath(
-    cfabsolute,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle
-  );
+  text2 = CFURLGetString(cfabsolute);
+  length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(text2), kCFStringEncodingUTF8);
 
-  if(absolutePath = (char *)CFStringGetCStringPtr(text2, enc)) {
-    retval = mystrdup(absolutePath);
+  reallocMsg((void**)&retval, length + 1);
+
+  if(CFURLGetFileSystemRepresentation(cfabsolute, TRUE, (UInt8 *)retval, length)) {
+    retval[length] = 0;
+    reallocMsg((void**)&retval, strlen(retval) + 1);
   }
   else {
-    neededLen = 0;
-    usedLen = 0;
-    range = CFRangeMake(0, CFStringGetLength(text2));
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      NULL,
-      0,
-      &neededLen
-    );
-
-    reallocMsg((void**)&retval, neededLen + 1);
-
-    CFStringGetBytes(
-      text2,
-      range,
-      enc,
-      '?',
-      FALSE,
-      (UInt8 *)retval,
-      neededLen,
-      &usedLen
-    );
-
-    retval[usedLen] = 0;
+    free(retval);
+    retval = NULL;
   }
 
   CFRelease(text2);
@@ -1830,6 +1781,10 @@ void fsetfileinfo_absolute(
   char* temp = makeAbsolute(filename);
   fsetfileinfo(temp, newcreator, newtype);
   free(temp);
+}
+
+void exit_mac(int dummy) {
+  quit = TRUE;
 }
 
 int main(void) {

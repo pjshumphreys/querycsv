@@ -2,7 +2,7 @@
 
 tokenise a string similarly to the c standard lib strtok, but the
 original string pointer is now the third parameter, the string data is
-not modifed but instead that pointer is incremented, and the results are
+not modified but instead that pointer is incremented, and the results are
 allocated/ freed internally by realloc. A pointer to the original string
 must be kept outside this function separate to the one passed as the third
 parameter */

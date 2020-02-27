@@ -230,7 +230,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
      * PRM_INSERT OR PRM_REMOVE is enabled. in these cases don't bother
      * calling the getBytes function, just call strAppendUTF8 instead */
     if(encoding == ENC_UTF8) {
-      strAppendUTF8(codepoint, &buffer, bytesStored);
+      strAppendUTF8(codepoint, (unsigned char **)(&buffer), bytesStored);
     }
     else {
       /* get the bytes for the codepoint in the specified encoding (may be more than 1 byte) */
