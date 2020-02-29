@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <ctype.h>
+#include <setjmp.h>
 
 #if TARGET_API_MAC_CARBON
 
@@ -30,6 +31,9 @@
 #else
 #include <Carbon.h>
 #endif
+
+#include <CarbonStdCLib.h>
+#include <Navigation.h>
 
 #else
 
@@ -58,6 +62,7 @@
 
 #include <Traps.h>
 
+void exit_mac(int dummy);
 void restoreSettings(void);
 void saveSettings(void);
 void PsPStrCopy(StringPtr p1, StringPtr p2);
@@ -128,7 +133,6 @@ extern char * devNull;
 #include "powermac.h"
 
 /* how to treat filenames that are fopened */
-CFURLRef baseFolder = NULL;
 CFStringEncoding enc;
 
 NavDialogRef gOpenFileDialog = NULL;
@@ -175,6 +179,8 @@ int const fileM  = 1;
 int const editM  = 2;
 int const fontM  = 3;
 int const sizeM  = 4;
+
+jmp_buf env_buffer;
 
 /*  kMaxDocWidth is an arbitrary number used to specify the width of the TERec's
   destination rectangle so that word wrap and horizontal scrolling can be
@@ -269,6 +275,7 @@ short getWindowKind(WindowPtr window) {
 }
   #define DisableMenuItem DisableItem
   #define EnableMenuItem EnableItem
+  #define CountMenuItems CountMItems
 #else
   #define getWindowKind GetWindowKind
 #endif
@@ -329,14 +336,21 @@ TEHandle getTEHandle(WindowPtr window) {
 }
 #endif
 
+Rect windOffsets;
+
 Rect getWindowBounds(WindowPtr window) {
   Rect r;
 
 #if TARGET_API_MAC_CARBON
-  GetWindowPortBounds(window, &r);
+  GetWindowBounds(window, kWindowGlobalPortRgn, &r);
 #else
   #pragma unused (window)
   r = qd.thePort->portRect;
+  r.bottom -= r.top;
+  r.right -= r.left;
+  LocalToGlobal(&((Point *) &(r))[0]);
+  r.bottom += r.top;
+  r.right += r.left;
 #endif
 
   return r;
@@ -429,6 +443,7 @@ pascal OSErr openItems(AEDescList * docList) {
 
   FSRef       theFSRef;
   CFURLRef cfUrl;
+  CFURLRef baseFolder;
   CFStringRef cfFilename;
   CFIndex length;
 
@@ -451,6 +466,21 @@ pascal OSErr openItems(AEDescList * docList) {
   )) == noErr) {
     if((cfUrl = CFURLCreateFromFSRef(kCFAllocatorDefault, &theFSRef)) != NULL) {
       baseFolder = CFURLCreateCopyDeletingLastPathComponent(kCFAllocatorDefault, cfUrl);
+      cfFilename = CFURLGetString(baseFolder);
+      length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfFilename), kCFStringEncodingUTF8);
+
+      reallocMsg((void**)&progArg, length + 1);
+
+      if(CFURLGetFileSystemRepresentation(baseFolder, TRUE, (UInt8 *)progArg, length)) {
+        progArg[length] = 0;
+        reallocMsg((void**)&progArg, strlen(progArg) + 1);
+      }
+
+      bsd_chdir(progArg);
+      free(progArg);
+      progArg = 0;
+      CFRelease(baseFolder);
+
       cfFilename = CFURLCopyLastPathComponent(cfUrl);
       length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfFilename), kCFStringEncodingUTF8);
 
@@ -786,32 +816,30 @@ void adjustMenus(int setStyles) {
 }
 
 void saveWindow(WindowPtr window) {
-  /*
   Rect *rptr;
   Rect windRect;
   Handle wind;
 
-  ZoomWindow(window, inZoomIn, window == FrontWindow());
+  if(windowZoomed) {
+    ZoomWindow(window, inZoomIn, window == FrontWindow());
+  }
 
   windRect = getWindowBounds(window);
 
   wind = (Handle)GetResource('WIND', rDocWindow);
 
-  LocalToGlobal(&(*(Point *)&(windRect).top));
-
   HLock(wind);
   rptr = (Rect *) *wind;
 
-  rptr->top = windRect.top;
-  rptr->left = windRect.left;
-  rptr->bottom = windRect.top + windRect.bottom;
-  rptr->right = windRect.left + windRect.right;
+  rptr->top = windRect.top + windOffsets.top;
+  rptr->left = windRect.left - windOffsets.left;
+  rptr->bottom = windRect.bottom + windOffsets.bottom;
+  rptr->right = windRect.right + windOffsets.right;
 
   ChangedResource(wind);
   HUnlock(wind);
 
   WriteResource(wind);
-  */
 }
 void setupMLTE(void) {
   OSStatus status;
@@ -894,6 +922,8 @@ void zoomWindow(WindowPtr window, short part) {
 
 int openWindow(void) {
   WindowPtr window;
+  Handle wind;
+  Rect *rptr;
   Rect frame;
   TXNObject object = NULL;
   TXNFrameID frameID = 0;
@@ -906,6 +936,20 @@ int openWindow(void) {
 
     return FALSE;
   }
+
+  windOffsets = getWindowBounds(window);
+
+  wind = (Handle)GetResource('WIND', rDocWindow);
+
+  HLock(wind);
+  rptr = (Rect *) *wind;
+
+  windOffsets.top = windOffsets.top - rptr->top;
+  windOffsets.left = windOffsets.left - rptr->left;
+  windOffsets.bottom = rptr->bottom - windOffsets.bottom;
+  windOffsets.right = rptr->right - windOffsets.right;
+
+  HUnlock(wind);
 
   /* TEXTEDIT STUFF begins here
   ******************************/
@@ -1295,6 +1339,8 @@ void handleEvent(EventRecord *event) {
   }
 
   if(quit) {
+    saveSettings();
+
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
       closeWindow(mainWindowPtr);
@@ -1303,8 +1349,6 @@ void handleEvent(EventRecord *event) {
         TXNTerminateTextension();
       #endif
     }
-
-    saveSettings();
   }
 }
 
@@ -1349,14 +1393,12 @@ void macYield(void) {
     loopTick(); // get one event
 
     if(quit) {
-      ExitToShell();
+      exit_mac(EXIT_SUCCESS);
     }
   }
 }
 
 #if TARGET_API_MAC_CARBON
-#include <Navigation.h>
-
 pascal void eventProc(
     NavEventCallbackMessage callBackSelector,
     NavCBRecPtr callBackParms,
@@ -1488,11 +1530,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
   //first run initialization
   if(firstLine == NULL) {
-    firstLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
-
-    if(firstLine == NULL) {
-      ExitToShell();
-    }
+    reallocMsg((void**)&firstLine, sizeof(struct lineOffsets));
 
     lastLine = firstLine;
     lastLine->lineLength = 0;
@@ -1609,11 +1647,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
     //allocate another line if one is needed
     if(startPoint[lineChars-1] == nl && lastLine->lineLength != 0) {
-      lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
-
-      if(lastLine->nextLine == NULL) {
-        ExitToShell();
-      }
+      reallocMsg((void**)&(lastLine->nextLine), sizeof(struct lineOffsets));
 
       lastLine = lastLine->nextLine;
       lastLine->lineLength = 0;
@@ -1677,9 +1711,7 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
-    if((newStr = (char*)malloc(newSize+1)) == NULL) {
-      return FALSE;
-    }
+    reallocMsg((void**)&newStr, newSize+1);
 
     //do the string formatting for real
     va_start(args, format);
@@ -1704,92 +1736,14 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   return retval;
 }
 
-char* makeAbsolute(const char *filename) {
-  char* retval = NULL;
-  CFStringRef text1;
-  CFURLRef cfabsolute;
-  CFIndex length;
-  CFStringRef text2;
-
-  if(baseFolder == NULL) {
-    return mystrdup(filename);
-  }
-
-  text1 = CFStringCreateWithCStringNoCopy(
-    NULL,
-    filename,
-    kCFStringEncodingUTF8,
-    kCFAllocatorNull
-  );
-
-  if(text1 == NULL) {
-    text1 = CFStringCreateWithCString(
-      NULL,
-      filename,
-      kCFStringEncodingUTF8
-    );
-
-    if(text1 == NULL) {
-      return NULL;
-    }
-  }
-
-  cfabsolute = CFURLCreateWithFileSystemPathRelativeToBase(
-    NULL,
-    text1,
-    macOSVersion < 0x01000 ? kCFURLHFSPathStyle : kCFURLPOSIXPathStyle,
-    FALSE,
-    baseFolder
-  );
-
-  text2 = CFURLGetString(cfabsolute);
-  length = CFStringGetMaximumSizeForEncoding(CFStringGetLength(text2), kCFStringEncodingUTF8);
-
-  reallocMsg((void**)&retval, length + 1);
-
-  if(CFURLGetFileSystemRepresentation(cfabsolute, TRUE, (UInt8 *)retval, length)) {
-    retval[length] = 0;
-    reallocMsg((void**)&retval, strlen(retval) + 1);
-  }
-  else {
-    free(retval);
-    retval = NULL;
-  }
-
-  CFRelease(text2);
-  CFRelease(cfabsolute);
-  CFRelease(text1);
-
-  return retval;
-}
-
-
-FILE *fopen_mac(const char *filename, const char *mode) {
-  char* temp = makeAbsolute(filename);
-  FILE * retval = fopen(temp, mode);
-
-  free(temp);
-
-  return retval;
-}
-
-void fsetfileinfo_absolute(
-  const char *filename,
-  unsigned long newcreator,
-  unsigned long newtype
-) {
-  char* temp = makeAbsolute(filename);
-  fsetfileinfo(temp, newcreator, newtype);
-  free(temp);
-}
-
 void exit_mac(int dummy) {
-  quit = TRUE;
+  longjmp(env_buffer, 1);
 }
 
 int main(void) {
   char progName[] = "querycsv";
   char* argv[3];
+  int val;
 
   argv[0] = progName;
   argv[1] = NULL;
@@ -1814,20 +1768,20 @@ int main(void) {
   gHasWaitNextEvent = trapAvailable(_WaitNextEvent);
 #else
   InitCursor();
+  InitCarbonStdCLib();
 
   /* get the system default encoding. used by the fopen wrapper */
   enc = CFStringGetSystemEncoding();
 
   setupMLTE();
 #endif
-
-  setupAppleEvents();
-
   setupMenus();
 
   restoreSettings();
 
   cursorRgn = NewRgn();
+
+  setupAppleEvents();
 
   while(!quit && windowNotOpen) {
     loopTick();
@@ -1836,7 +1790,11 @@ int main(void) {
   if(!quit && openWindow()) {
     argv[1] = progArg;
 
-    realmain(2, argv);
+    val = setjmp(env_buffer);
+
+    if(val == 0) {
+      realmain(2, argv);
+    }
 
     free(progArg);
 
@@ -1844,8 +1802,6 @@ int main(void) {
       loopTick();
     }
   }
-
-  ExitToShell();
 
   return EXIT_SUCCESS; //macs don't do anything with the return value
 }

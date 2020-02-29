@@ -240,7 +240,7 @@ it becomes needed and because it's useful for debugging */
   #undef ENC_INPUT
   #undef ENC_OUTPUT
 
-  #if TARGET_API_MAC_CARBON || defined(RETRO68)
+  #if defined(RETRO68)
     void fsetfileinfo_absolute(
       const char *filename,
       unsigned long newcreator,
@@ -255,16 +255,15 @@ it becomes needed and because it's useful for debugging */
   #define MAC_YIELD macYield();
 
   #if TARGET_API_MAC_CARBON
-    FILE *fopen_mac(const char *filename, const char *mode);
-    void exit_mac(int dummy);
-    #define exit exit_mac
-    #define fopen fopen_mac
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_UTF16BE
   #else
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_MAC
   #endif
+
+  void exit_mac(int dummy);
+  #define exit exit_mac
 #endif
 
 /* Old versions of Norcroft appear to generate incorrect codes with short integers.

@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <ctype.h>
+#include <setjmp.h>
 
 #if TARGET_API_MAC_CARBON
 
@@ -30,6 +31,9 @@
 #else
 #include <Carbon.h>
 #endif
+
+#include <CarbonStdCLib.h>
+#include <Navigation.h>
 
 #else
 
@@ -58,6 +62,7 @@
 
 #include <Traps.h>
 
+void exit_mac(int dummy);
 void restoreSettings(void);
 void saveSettings(void);
 void PsPStrCopy(StringPtr p1, StringPtr p2);
@@ -190,6 +195,8 @@ int const editM  = 2;
 int const fontM  = 3;
 int const sizeM  = 4;
 
+jmp_buf env_buffer;
+
 /*  kMaxDocWidth is an arbitrary number used to specify the width of the TERec's
   destination rectangle so that word wrap and horizontal scrolling can be
   demonstrated. */
@@ -283,6 +290,7 @@ short getWindowKind(WindowPtr window) {
 }
   #define DisableMenuItem DisableItem
   #define EnableMenuItem EnableItem
+  #define CountMenuItems CountMItems
 #else
   #define getWindowKind GetWindowKind
 #endif
@@ -343,14 +351,21 @@ TEHandle getTEHandle(WindowPtr window) {
 }
 #endif
 
+Rect windOffsets;
+
 Rect getWindowBounds(WindowPtr window) {
   Rect r;
 
 #if TARGET_API_MAC_CARBON
-  GetWindowPortBounds(window, &r);
+  GetWindowBounds(window, kWindowGlobalPortRgn, &r);
 #else
   #pragma unused (window)
   r = qd.thePort->portRect;
+  r.bottom -= r.top;
+  r.right -= r.left;
+  LocalToGlobal(&((Point *) &(r))[0]);
+  r.bottom += r.top;
+  r.right += r.left;
 #endif
 
   return r;
@@ -734,7 +749,7 @@ void adjustMenus(int setStyles) {
   }
 
   menu = GetMHandle(mFont);
-  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     GetItem(menu, i, currentFontName);
 
     if(!found && EqualString(fontName, currentFontName, TRUE, TRUE)) {
@@ -763,7 +778,7 @@ void adjustMenus(int setStyles) {
   found = FALSE;
   menu = GetMHandle(mSize);
 
-  for(i = 1, len = CountMItems(menu)+1; i < len; i++) {
+  for(i = 1, len = CountMenuItems(menu)+1; i < len; i++) {
     if(!found && fontSizeIndex == i) {
       SetItemMark(menu, i, checkMark);
 
@@ -789,21 +804,21 @@ void saveWindow(WindowPtr window) {
   Rect windRect;
   Handle wind;
 
-  ZoomWindow(window, inZoomIn, window == FrontWindow());
+  if(windowZoomed) {
+    ZoomWindow(window, inZoomIn, window == FrontWindow());
+  }
 
   windRect = getWindowBounds(window);
 
   wind = (Handle)GetResource('WIND', rDocWindow);
 
-  LocalToGlobal(&(*(Point *)&(windRect).top));
-
   HLock(wind);
   rptr = (Rect *) *wind;
 
-  rptr->top = windRect.top;
-  rptr->left = windRect.left;
-  rptr->bottom = windRect.top + windRect.bottom;
-  rptr->right = windRect.left + windRect.right;
+  rptr->top = windRect.top + windOffsets.top;
+  rptr->left = windRect.left - windOffsets.left;
+  rptr->bottom = windRect.bottom + windOffsets.bottom;
+  rptr->right = windRect.right + windOffsets.right;
 
   ChangedResource(wind);
   HUnlock(wind);
@@ -1282,6 +1297,8 @@ void zoomWindow(WindowPtr window, short part) {
 
 int openWindow(void) {
   WindowPtr window;
+  Handle wind;
+  Rect *rptr;
   Rect viewRect, destRect;
   Ptr storage;
   DocumentPeek doc;
@@ -1308,6 +1325,20 @@ int openWindow(void) {
 
   //set the port (Mac OS boilerplate?)
   SetPort((GrafPtr)GetWindowPort(window));
+
+  windOffsets = getWindowBounds(window);
+
+  wind = (Handle)GetResource('WIND', rDocWindow);
+
+  HLock(wind);
+  rptr = (Rect *) *wind;
+
+  windOffsets.top = windOffsets.top - rptr->top;
+  windOffsets.left = windOffsets.left - rptr->left;
+  windOffsets.bottom = rptr->bottom - windOffsets.bottom;
+  windOffsets.right = rptr->right - windOffsets.right;
+
+  HUnlock(wind);
 
   //  cast the window instance into a DocumentPeek structure,
   //  so we can set up the TextEdit related fields
@@ -1723,6 +1754,8 @@ void handleEvent(EventRecord *event) {
   }
 
   if(quit) {
+    saveSettings();
+
     if(mainWindowPtr) {
       saveWindow(mainWindowPtr);
       closeWindow(mainWindowPtr);
@@ -1731,8 +1764,6 @@ void handleEvent(EventRecord *event) {
         TXNTerminateTextension();
       #endif
     }
-
-    saveSettings();
   }
 }
 
@@ -1777,7 +1808,7 @@ void macYield(void) {
     loopTick(); // get one event
 
     if(quit) {
-      ExitToShell();
+      exit_mac(EXIT_SUCCESS);
     }
   }
 }
@@ -1838,11 +1869,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
   //first run initialization
   if(firstLine == NULL) {
-    firstLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
-
-    if(firstLine == NULL) {
-      ExitToShell();
-    }
+    reallocMsg((void**)&firstLine, sizeof(struct lineOffsets));
 
     lastLine = firstLine;
     lastLine->lineLength = 0;
@@ -1942,11 +1969,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
     //allocate another line if one is needed
     if(startPoint[lineChars-1] == nl && lastLine->lineLength != 0) {
-      lastLine->nextLine = (struct lineOffsets *)malloc(sizeof(struct lineOffsets));
-
-      if(lastLine->nextLine == NULL) {
-        ExitToShell();
-      }
+      reallocMsg((void**)&(lastLine->nextLine), sizeof(struct lineOffsets));
 
       lastLine = lastLine->nextLine;
       lastLine->lineLength = 0;
@@ -2014,9 +2037,7 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
-    if((newStr = (char*)malloc(newSize+1)) == NULL) {
-      return FALSE;
-    }
+    reallocMsg((void**)&newStr, newSize+1);
 
     //do the string formatting for real
     va_start(args, format);
@@ -2041,9 +2062,14 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
   return retval;
 }
 
+void exit_mac(int dummy) {
+  longjmp(env_buffer, 1);
+}
+
 int main(void) {
   char progName[] = "querycsv";
   char* argv[3];
+  int val;
 
   argv[0] = progName;
   argv[1] = NULL;
@@ -2068,20 +2094,20 @@ int main(void) {
   gHasWaitNextEvent = trapAvailable(_WaitNextEvent);
 #else
   InitCursor();
+  InitCarbonStdCLib();
 
   /* get the system default encoding. used by the fopen wrapper */
   enc = CFStringGetSystemEncoding();
 
   setupMLTE();
 #endif
-
-  setupAppleEvents();
-
   setupMenus();
 
   restoreSettings();
 
   cursorRgn = NewRgn();
+
+  setupAppleEvents();
 
   while(!quit && windowNotOpen) {
     loopTick();
@@ -2090,7 +2116,11 @@ int main(void) {
   if(!quit && openWindow()) {
     argv[1] = progArg;
 
-    realmain(2, argv);
+    val = setjmp(env_buffer);
+
+    if(val == 0) {
+      realmain(2, argv);
+    }
 
     free(progArg);
 
@@ -2098,8 +2128,6 @@ int main(void) {
       loopTick();
     }
   }
-
-  ExitToShell();
 
   return EXIT_SUCCESS; //macs don't do anything with the return value
 }

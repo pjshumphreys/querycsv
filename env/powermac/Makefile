@@ -13,7 +13,7 @@ Sym-68K         = -sym on
 Sym-PPC         = -sym on
 
 COptions        = {Includes} {Sym-68K} -model far -opt space
-PPCCOptions     = {Includes} {Sym-PPC} -w 18 -d TARGET_API_MAC_CARBON
+PPCCOptions     = {Includes} {Sym-PPC} -d TARGET_API_MAC_CARBON
 
 
 ### Source Files ###
@@ -90,9 +90,11 @@ LibFiles-68K    =  ¶
 
 LibFiles-PPC    =  ¶
 					"{PPCLibraries}CarbonStdCLib.o" ¶
+					"{PPCLibraries}StdCRuntime.o" ¶
 					"{PPCLibraries}PPCCRuntime.o" ¶
 					"{SharedLibraries}CarbonLib" ¶
 					"{SharedLibraries}StdCLib"
+
 
 
 ### Default Rules ###
@@ -131,7 +133,7 @@ QueryCSV.68k  ÄÄ  {¥MondoBuild¥}
 
 QueryCSV.PPC  ÄÄ  {ObjFiles-PPC} {LibFiles-PPC} {¥MondoBuild¥}
 	PPCLink ¶
-		-o {Targ} -m main ¶
+		-o {Targ} -m __appstart ¶
 		{ObjFiles-PPC} ¶
 		{LibFiles-PPC} ¶
 		{Sym-PPC} ¶
