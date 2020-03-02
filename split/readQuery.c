@@ -303,7 +303,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   /* fix the column count value just in case it's wrong (e.g. if there were hidden columns) */
   query->columnCount = currentResultColumn->resultColumnIndex+1;
 
-  /*  cut the circularly linked list of result columns */
+  /* cut the circularly linked list of result columns */
   query->firstResultColumn = query->firstResultColumn->nextColumnInResults;
   currentResultColumn->nextColumnInResults = NULL;
 

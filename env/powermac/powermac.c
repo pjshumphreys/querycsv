@@ -472,13 +472,13 @@ pascal OSErr openItems(AEDescList * docList) {
       reallocMsg((void**)&progArg, length + 1);
 
       if(CFURLGetFileSystemRepresentation(baseFolder, TRUE, (UInt8 *)progArg, length)) {
-        progArg[length] = 0;
+        progArg[length] = '\0';
         reallocMsg((void**)&progArg, strlen(progArg) + 1);
       }
 
       bsd_chdir(progArg);
       free(progArg);
-      progArg = 0;
+      progArg = NULL;
       CFRelease(baseFolder);
 
       cfFilename = CFURLCopyLastPathComponent(cfUrl);
