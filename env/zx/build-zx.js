@@ -235,7 +235,7 @@ function compileHash4a() {
           '{' +
             'hash4export.script = wordlist[key].script;' +
             'hash4export.index = wordlist[key].index;' +
-            'hash4export.islower = wordlist[key].islower;'+
+            'hash4export.isNotLower = wordlist[key].isNotLower;'+
             'return \\&hash4export;' +
           '}/gi;' +
       '" hash4a.c > build/hash4a.c'
@@ -265,7 +265,7 @@ function compileHash4b() {
         '{'+
           'hash4export.script = wordlist[key].script;'+
           'hash4export.index = wordlist[key].index;'+
-          'hash4export.islower = wordlist[key].islower;'+
+          'hash4export.isNotLower = wordlist[key].isNotLower;'+
           'return \\&hash4export;'+
         '}/gi;' +
       '" hash4b.c > build/hash4b.c'
@@ -295,7 +295,7 @@ function compileHash4c() {
           '{'+
             'hash4export.script = wordlist[key].script;'+
             'hash4export.index = wordlist[key].index;'+
-            'hash4export.islower = wordlist[key].islower;'+
+            'hash4export.isNotLower = wordlist[key].isNotLower;'+
             'return \\&hash4export;'+
           '}/gi;' +
       '" hash4c.c > build/hash4c.c'

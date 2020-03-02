@@ -562,7 +562,7 @@ function compileHash3And4() {
     'sed -e"'+
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
-      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
+      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.isNotLower = wordlist[key].isNotLower;return \\&hash4export;}/gi;' +
       '" hash4a.h > hash4a2.h');
 
   execSync(
@@ -582,7 +582,7 @@ function compileHash3And4() {
     'sed -e"'+
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
-      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
+      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.isNotLower = wordlist[key].isNotLower;return \\&hash4export;}/gi;' +
       '" hash4b.h > hash4b2.h');
 
   execSync(
@@ -603,7 +603,7 @@ function compileHash3And4() {
     'sed -e"'+
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
-      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.islower = wordlist[key].islower;return \\&hash4export;}/gi;' +
+      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.isNotLower = wordlist[key].isNotLower;return \\&hash4export;}/gi;' +
       '" hash4c.h > hash4c2.h');
 
 

@@ -624,7 +624,7 @@ struct hash4Entry {
   const char *name;
   int script;
   int index;
-  int islower;
+  int isNotLower;
 };
 
 struct codepointToByte {

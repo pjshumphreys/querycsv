@@ -68,7 +68,7 @@ struct hash4Entry *getLookupTableEntry(
 
     entry->script = temp2->script;
     entry->index = temp2->index;
-    entry->islower = temp2->islower;
+    entry->isNotLower = temp2->isNotLower;
 
     return entry;
   }
