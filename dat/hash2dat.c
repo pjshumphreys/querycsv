@@ -26,12 +26,13 @@ void isInHash2_0(void) {
 FILE* datafile = NULL;
 
 void openDat(void) {
+  char * datName = "qcsv00zx.ovl";
   char * path = NULL;
   char * result = NULL;
   char * filename = NULL;
 
   if(origWd == NULL) {
-    datafile = fopen("qrycsv00.ovl", "rb");
+    datafile = fopen(datName, "rb");
 
     if(datafile != NULL) {
       return;
@@ -46,35 +47,30 @@ void openDat(void) {
   /* search the path for the data file if its not found in the current working directory */
   if(datafile == NULL) {
     do {
-      d_sprintf(&filename, "%s\\qrycsv00.ovl", result);
+      d_sprintf(&filename, "%s\\%s", result, datName);
       datafile = fopen(filename, "rb");
       freeAndZero(filename);
 
-      /* z88dk can't handle "||" and "&&" in the same expression. */
-      /* Just repeat the code for the sake of simplicity */
+      /* z88dk doesn't have getenv. just quit without iterating over the PATH */
       #ifdef __Z88DK
-      if(datafile != NULL) {
         freeAndZero(result);
         break;
-      }
-      #endif
-
-      if(
-        #ifndef __Z88DK
+      #else
+        if(
           datafile != NULL ||
-        #endif
-        (path == NULL && (path = getenv("PATH")) == NULL)
-      ) {
-        freeAndZero(result);
-        break;
-      }
+          (path == NULL && (path = getenv("PATH")) == NULL)
+        ) {
+          freeAndZero(result);
+          break;
+        }
 
-      d_strtok(&result, ";", &path);
+        d_strtok(&result, ";", &path);
+      #endif
     } while (result != NULL);
   }
 
   if(datafile == NULL) {
-    fputs("Couldn't open qrycsv00.ovl\n", stderr);
+    fprintf(stderr, "Couldn't open %s\n", datName);
     exit(EXIT_FAILURE);
   }
 }

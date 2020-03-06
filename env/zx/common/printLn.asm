@@ -60,9 +60,6 @@ argName:
   defw 0x0000
   defw 0x0000
 
-_heap:
-  defb 0, 0, 0, 0
-
 defaultDrive: ; the default drive letter used by esxdos
   defb 0
 
