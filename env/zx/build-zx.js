@@ -26,44 +26,44 @@ const hashMap = {
 };
 
 const functionsList = [
-  ['myfputc_cons', 3, 0xbcf5, 'farCall'],
-  ['abs', 3, 0x0001, 'farCall'],
-  ['atol', 3, 0x0001, 'farCall'],
-  ['exit', 3, 0x0001, 'farCall'],
-  ['_strtod', 3, 0x0001, 'farCall'],
-  ['mallinit', 3, 0x0001, 'farCall'],
-  ['malloc', 3, 0x0001, 'farCall'],
-  ['free', 3, 0x0001, 'farCall'],
-  ['realloc_callee', 3, 0x0001, 'farCall'],
-  ['calloc_callee', 3, 0x0001, 'farCall'],
-  ['strcmp_callee', 3, 0x0001, 'farCall'],
-  ['stricmp_callee', 3, 0x0001, 'farCall'],
-  ['strncmp_callee', 3, 0x0001, 'farCall'],
-  ['strlen', 3, 0x0001, 'farCall'],
-  ['strstr_callee', 3, 0x0001, 'farCall'],
-  ['strcat_callee', 3, 0x0001, 'farCall'],
-  ['strncat_callee', 3, 0x0001, 'farCall'],
-  ['memcpy_callee', 3, 0x0001, 'farCall'],
-  ['memmove_callee', 3, 0x0001, 'farCall'],
-  ['memset_callee', 3, 0x0001, 'farCall'],
-  ['fopen', 3, 0x0001, 'farCall'],
-  ['fclose', 3, 0x0001, 'farCall'],
-  ['fread', 3, 0x0001, 'farCall'],
-  ['fwrite', 3, 0x0001, 'farCall'],
-  ['fflush', 3, 0x0001, 'farCall'],
-  ['fgetc', 3, 0x0001, 'farCall'],
-  ['ungetc', 3, 0x0001, 'farCall'],
-  ['fgets', 3, 0x0001, 'farCall'],
-  ['fputc_callee', 3, 0x0001, 'farCall'],
-  ['fputs_callee', 3, 0x0001, 'farCall'],
-  ['feof', 3, 0x0001, 'farCall'],
-  ['fprintf', 3, 0x0001, 'farCall'],
-  ['sprintf', 3, 0x0001, 'farCall'],
-  ['vsnprintf', 3, 0x0001, 'farCall']
+  ['myfputc_cons', 3, 0xbcf5, 0x0001, 'farCall'],
+  ['abs', 3, 0x0001, 0x0001, 'farCall'],
+  ['atol', 3, 0x0001, 0x0001, 'farCall'],
+  ['exit', 3, 0x0001, 0x0001, 'farCall'],
+  ['_strtod', 3, 0x0001, 0x0001, 'farCall'],
+  ['mallinit', 3, 0x0001, 0x0001, 'farCall'],
+  ['malloc', 3, 0x0001, 0x0001, 'farCall'],
+  ['free', 3, 0x0001, 0x0001, 'farCall'],
+  ['realloc_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['calloc_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strcmp_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['stricmp_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strncmp_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strlen', 3, 0x0001, 0x0001, 'farCall'],
+  ['strstr_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strcat_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strncat_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['memcpy_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['memmove_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['memset_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['fopen', 3, 0x0001, 0x0001, 'farCall'],
+  ['fclose', 3, 0x0001, 0x0001, 'farCall'],
+  ['fread', 3, 0x0001, 0x0001, 'farCall'],
+  ['fwrite', 3, 0x0001, 0x0001, 'farCall'],
+  ['fflush', 3, 0x0001, 0x0001, 'farCall'],
+  ['fgetc', 3, 0x0001, 0x0001, 'farCall'],
+  ['ungetc', 3, 0x0001, 0x0001, 'farCall'],
+  ['fgets', 3, 0x0001, 0x0001, 'farCall'],
+  ['fputc_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['fputs_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['feof', 3, 0x0001, 0x0001, 'farCall'],
+  ['fprintf', 3, 0x0001, 0x0001, 'farCall'],
+  ['sprintf', 3, 0x0001, 0x0001, 'farCall'],
+  ['vsnprintf', 3, 0x0001, 0x0001, 'farCall']
 ];
 
 
-let currentAddr = 0xbd00 - (functionsList.length*4);
+let currentAddr = 0xbd00 - 4;
 
 /* variables */
 var defines = {};
@@ -95,6 +95,12 @@ function start() {
 
   /* generate the large static arrays in the format z88dk needs */
   execSync('node ../../generateMappings.js true');
+
+  // update the jump table locations, starting at call_rom3 -4 and working downward in memory
+  functionsList.forEach(item => {
+    item[2] = currentAddr;
+    currentAddr -= 4;
+  });
 
   compileLexer();
 }
@@ -373,54 +379,55 @@ function getFunctionSizes() {
 
   /* patch compareCodepoints into the functions that need it (so the table is
   always in the same page) */
-  name = '_compareCP1252';
+  name = 'compareCP1252';
   execSync(
       'cat build/s/compareCodepoints.asm >> build/s/getBytesCP1252.asm;' +
-      "sed -i 's/_compareCodepoints/"+name+"/g;s/querycsv/querycsv1/g;' build/s/getBytesCP1252.asm"
+      "sed -i 's/_compareCodepoints/_"+name+"/g;s/querycsv/querycsv1/g;' build/s/getBytesCP1252.asm"
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 'farcall']);
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr -=4;
 
-  name = '_compareCommon';
+  name = 'compareCommon';
   execSync(
       'cat build/s/compareCodepoints.asm >> build/s/getBytesCommon.asm;' +
-      "sed -i 's/_compareCodepoints/"+name+"/g;s/querycsv/querycsv2/g;' build/s/getBytesCommon.asm"
+      "sed -i 's/_compareCodepoints/_"+name+"/g;s/querycsv/querycsv2/g;' build/s/getBytesCommon.asm"
     );
 
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 'farcall']);
-  currentAddr -=4;
+  //replace compareCodepoints with compareCommon
+  hashMap[name] = hashMap['compareCodepoints'];
+  delete hashMap['compareCodepoints']
+  functionsList[hashMap[name]][0] = name;
 
-  name = '_comparePetscii';
+  name = 'comparePetscii';
   execSync(
       'cat build/s/compareCodepoints.asm >> build/s/getBytesPetscii.asm;' +
-      "sed -i 's/_compareCodepoints/"+name+"/g;s/querycsv/querycsv3/g;' build/s/getBytesPetscii.asm"
+      "sed -i 's/_compareCodepoints/_"+name+"/g;s/querycsv/querycsv3/g;' build/s/getBytesPetscii.asm"
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 'farcall']);
+  functionsList.push([name, 0, currentAddr,  0x0001,'farcall']);
   currentAddr -=4;
 
-  name = '_compareAtariST';
+  name = 'compareAtariST';
   execSync(
       'cat build/s/compareCodepoints.asm >> build/s/getBytesAtariST.asm;' +
-      "sed -i 's/_compareCodepoints/"+name+"/g;s/querycsv/querycsv4/g;' build/s/getBytesAtariST.asm"
+      "sed -i 's/_compareCodepoints/_"+name+"/g;s/querycsv/querycsv4/g;' build/s/getBytesAtariST.asm"
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 'farcall']);
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr -=4;
 
-  name = '_compareZX';
+  name = 'compareZX';
   execSync(
       'cat build/s/compareCodepoints.asm >> build/s/getBytesZXCommon.asm;' +
-      "sed -i 's/_compareCodepoints/"+name+"/g;s/querycsv/querycsv5/g;' build/s/getBytesZXCommon.asm"
+      "sed -i 's/_compareCodepoints/_"+name+"/g;s/querycsv/querycsv5/g;' build/s/getBytesZXCommon.asm"
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 'farcall']);
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr -=4;
 
   execSync('rm build/s/compareCodepoints.asm');
@@ -578,35 +585,77 @@ function packPages(tree) {
 
   // console.log(JSON.stringify(pages, null, 2));
 
-  // update the jump table locations, starting at call_rom3 -4 and working downward in memory
-  let location = 0xbcd4; // call_rom3 -4
-
-  pages.forEach(elem =>
-    elem.forEach(elem2 => {
-      var a = functionsList[hashMap[elem2.name]];
-      a[1] = elem2.pageNumber;
-
-      if(a[2] === 1) {
-        a[2] = location;
-        location -= 4;
-      }
-    })
-  );
-
-  console.log(JSON.stringify(functionsList, null, 2));
+  //console.log(JSON.stringify(functionsList, null, 2));
 
   compilePages(pages);
 }
 
-function compilePages(pages) {
+function compilePages(pages) {  
+  
+  
   pages.forEach((elem, index) => {
     addDefines('page' + (index + 6), elem.map(elem2 => elem2.name), 'h', true);
-  });
 
+    fs.
+      readFileSync('build/obj2/page' + (index + 6) + '.map', 'utf8').
+      replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
+        console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
+        two = two.replace(/^_/, '');
+        const item = parseInt(three, 16);
+        if(hashMap.hasOwnProperty(two) && item !== functionsList[hashMap[two]][2]) {
+          functionsList[hashMap[two]][3] = item;
+          functionsList[hashMap[two]][1] = index + 6;
+        }
+      });
+  });
+  
+  functionsList.sort((a,b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
+  
   //end of the runtime of this build-zx.js file. Log what we did for now
-  console.log(hashMap);
+  console.log(JSON.stringify(hashMap, null, 2));
+  console.log(JSON.stringify(functionsList, null, 2));
 
   //compileLibc();
+}
+
+function test() {
+  /*const functionsList = [[
+    "_comparePetscii",
+    0,
+    47468,
+    1,
+    "farcall"
+  ],
+  [
+    "_compareAtariST",
+    0,
+    47464,
+    1,
+    "farcall"
+  ]];
+  
+  const hashMap = {
+    "_comparePetscii": 0,
+    "_compareAtariST": 1
+  };*/
+
+  [0,1,2,3,4,5,6,7,8,9,10,11,12].forEach((index) =>
+    fs.
+    readFileSync('build/obj2/page' + (index + 6) + '.map', 'utf8').
+    replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
+      two = two.replace(/^_/, '');
+
+//      if(/_compareAtariST/.test(two)) {
+        console.log(two)
+        
+        if(hashMap.hasOwnProperty(two)) {
+          functionsList[hashMap[two]][3] = parseInt(three, 16);
+          functionsList[hashMap[two]][1] = index + 6;
+        }
+ //     }
+    }));
+    
+  console.log(JSON.stringify(functionsList, null, 2));
 }
 
 function compileLibC() {
@@ -739,7 +788,7 @@ function splitUpFunctions(filename, callback, append) {
         needs to be in the same page as the function that called bsearch. it doesn't need
         to be in the jump table */
         hashMap[name] = functionsList.length;
-        functionsList.push([name, 0, currentAddr, 'farcall']);
+        functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
         currentAddr -=4;
       }
     }
