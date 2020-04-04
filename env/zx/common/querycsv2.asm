@@ -104,7 +104,7 @@ esxcont:
 
   ld hl, fputc_cons_rst
   ld de, 0xC000-printLn2End+printLn2-dosload_esxdosEnd+dosload_esxdos-fputc_cons_rstEnd+fputc_cons_rst
-  ld (fputc_cons+1), de
+  ld (myfputc_cons+1), de
   ld bc, fputc_cons_rstEnd-fputc_cons_rst
   di
   ldir
@@ -188,7 +188,7 @@ resicont:
 
   ld hl, fputc_cons_rst
   ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_residosEnd+dodos_residos-fputc_cons_rstEnd+fputc_cons_rst
-  ld (fputc_cons+1), de
+  ld (myfputc_cons+1), de
   ld bc, fputc_cons_rstEnd-fputc_cons_rst
   di
   ldir
@@ -247,7 +247,7 @@ plus3check:
 
   ld hl, fputc_cons_rst
   ld de, 0xC000-printLn2End+printLn2-dosload_residosEnd+dosload_residos-dodos_plus3End+dodos_plus3-fputc_cons_rstEnd+fputc_cons_rst
-  ld (fputc_cons+1), de
+  ld (myfputc_cons+1), de
   ld bc, fputc_cons_rstEnd-fputc_cons_rst
   di
   ldir

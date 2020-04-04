@@ -188,7 +188,7 @@ loop:
   ld b, a
   ;ld c, a
   push bc
-  call fputc_cons
+  call myfputc_cons
   pop bc
   inc de
   jr loop
@@ -217,7 +217,7 @@ atexit:
 farcall:
   jp exit ; just return for now. This jump table entry will get changed later.
 
-fputc_cons:
+myfputc_cons:
   jp exit ; just return for now. This jump table entry will get changed later.
   defw 0xec20  ; fputc_cons location in page 7. making space to use call call_rom3 later
 

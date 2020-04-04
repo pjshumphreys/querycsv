@@ -11,7 +11,7 @@ PUBLIC jumptoit
 PUBLIC destinationHighBank
 PUBLIC dodos
 PUBLIC argv
-PUBLIC fputc_cons
+PUBLIC myfputc_cons
 PUBLIC atexit
 PUBLIC isr
 PUBLIC call_rom3

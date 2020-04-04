@@ -122,8 +122,8 @@ intSetup:
   ld (atexit+4), hl
 
   ;update fputc_cons jump
-  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
-  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
+  ;ld (myfputc_cons), a ; put instruction into the fputc_cons location
+  ;ld (myfputc_cons+1), hl ; put jp_rom3 address here
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -203,17 +203,17 @@ startup:
 
   ld bc, 0x0707
   push bc
-  call fputc_cons
+  call myfputc_cons
   pop bc
 
   ld bc, 0x4141
   push bc
-  call fputc_cons
+  call myfputc_cons
   pop bc
 
   ld bc, 0x4242
   push bc
-  call fputc_cons
+  call myfputc_cons
   pop bc
 
   ;start running main function
@@ -229,7 +229,7 @@ atexit4:
   push hl
   ld bc, 0x0a0a
   push bc
-  call fputc_cons
+  call myfputc_cons
   pop bc
   pop hl
 

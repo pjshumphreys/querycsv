@@ -62,10 +62,33 @@ const functionsList = [
   ['vsnprintf', 3, 0x0001, 0x0001, 'farCall']
 ];
 
+const ignoreFunctions = [
+    'yyunput',
+    'input',
+    'yypush_buffer_state',
+    'yyget_extra',
+    'yyget_lineno',
+    'yyget_column',
+    'yyget_in',
+    'yyget_out',
+    'yyget_leng',
+    'yyget_text',
+    'yyset_lineno',
+    'yyset_column',
+    'yyset_out',
+    'yyget_debug',
+    'yyset_debug',
+    'yyget_lval',
+    'yyset_lval',
+    'yylex_init'
+  ].reduce((acc, item) => {
+    acc[item] = !0;
+    return acc;
+  }, {});
 
 let currentAddr = 0xbd00 - 4;
 
-/* variables */
+/* contains a map of the addresses of all global variables */
 var defines = {};
 
 const rodataLabels = [];
@@ -123,8 +146,10 @@ function compileLexer() {
           'flex_int8_t yy_accept/g;' +
         's/yy_ec\\[YY_SC_TO_UI(\\*yy_cp)\\]/' +
           'yy_ec2(YY_SC_TO_UI(*yy_cp))/g;' +
+        's/yy_nxt\\[yy_base\\[yy_current_state\\] + yy_c\\]/' +
+          'yy_nxt2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;' +
         's/yy_nxt\\[yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c\\]/' +
-          'yy_nxt2\\(yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c)/g;' +
+          'yy_nxt2\\(yy_base\\[yy_current_state\\] + (flex_int16_t) yy_c\\)/g;' +
         's/yy_chk\\[yy_base\\[yy_current_state\\] + yy_c\\]/' +
           'yy_chk2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;' +
         's/yy_accept\\[yy_current_state\\]/' +
@@ -253,20 +278,20 @@ function compileHash4b() {
 
   execSync(
       'sed "' +
-      '1s/^/extern struct hash4Entry hash4export;\\n/;' +
-      's/static struct hash4Entry/'+
-        'static const struct hash4Entry/gi;' +
-      's/static unsigned short/'+
-        'static const unsigned short/gi;' +
-      's/if (\\*str == \\*s \&\& \!strncmp (str + 1, s + 1, len - 1) \&\& s\\[len\\]/'+
-        'while(len \\&\\& *str \\&\\& (*str == *s)) { ++str; ++s; --len; } if(len == 0 \\&\\& *s/gi;' +
-      's/return \\&wordlist\\[key\\];/'+
-        '{'+
-          'hash4export.script = wordlist[key].script;'+
-          'hash4export.index = wordlist[key].index;'+
-          'hash4export.isNotLower = wordlist[key].isNotLower;'+
-          'return \\&hash4export;'+
-        '}/gi;' +
+        '1s/^/extern struct hash4Entry hash4export;\\n/;' +
+        's/static struct hash4Entry/'+
+          'static const struct hash4Entry/gi;' +
+        's/static unsigned short/'+
+          'static const unsigned short/gi;' +
+        's/if (\\*str == \\*s \&\& \!strncmp (str + 1, s + 1, len - 1) \&\& s\\[len\\]/'+
+          'while(len \\&\\& *str \\&\\& (*str == *s)) { ++str; ++s; --len; } if(len == 0 \\&\\& *s/gi;' +
+        's/return \\&wordlist\\[key\\];/'+
+          '{' +
+            'hash4export.script = wordlist[key].script;' +
+            'hash4export.index = wordlist[key].index;' +
+            'hash4export.isNotLower = wordlist[key].isNotLower;' +
+            'return \\&hash4export;' +
+          '}/gi;' +
       '" hash4b.c > build/hash4b.c'
     );
 
@@ -291,11 +316,11 @@ function compileHash4c() {
         's/if (\\*str == \\*s \&\& \!strncmp (str + 1, s + 1, len - 1) \&\& s\\[len\\]/'+
           'while(len \\&\\& *str \\&\\& (*str == *s)) { ++str; ++s; --len; } if(len == 0 \\&\\& *s/gi;' +
         's/return \\&wordlist\\[key\\];/'+
-          '{'+
-            'hash4export.script = wordlist[key].script;'+
-            'hash4export.index = wordlist[key].index;'+
-            'hash4export.isNotLower = wordlist[key].isNotLower;'+
-            'return \\&hash4export;'+
+          '{' +
+            'hash4export.script = wordlist[key].script;' +
+            'hash4export.index = wordlist[key].index;' +
+            'hash4export.isNotLower = wordlist[key].isNotLower;' +
+            'return \\&hash4export;' +
           '}/gi;' +
       '" hash4c.c > build/hash4c.c'
     );
@@ -326,7 +351,7 @@ function addROData() {
   execSync('z80asm -b build/rodata.asm');
 
   const rodataSize = fs.statSync('build/rodata.bin').size;
-  pageSize = 16384  - rodataSize;
+  pageSize = 16744  - rodataSize; //should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions reducing the resultant output binary size
 
   /* build the rodata located at the very top of ram */
   execSync(`z80asm -b -m -r=${65535 - rodataSize} build/rodata.asm`);
@@ -397,7 +422,7 @@ function getFunctionSizes() {
 
   //replace compareCodepoints with compareCommon
   hashMap[name] = hashMap['compareCodepoints'];
-  delete hashMap['compareCodepoints']
+  delete hashMap['compareCodepoints'];
   functionsList[hashMap[name]][0] = name;
 
   name = 'comparePetscii';
@@ -452,9 +477,9 @@ function getFunctionSizes() {
       defines[two] = three;
   });
 
-  const walker = walk.walk('./build/s', {});
-
   const list = [];
+
+  const walker = walk.walk('./build/s', {});
 
   walker.on('file', (root, fileStats, next) => {
     if(/\.asm$/.test(fileStats.name)) {
@@ -590,16 +615,14 @@ function packPages(tree) {
   compilePages(pages);
 }
 
-function compilePages(pages) {  
-  
-  
+function compilePages(pages) {
   pages.forEach((elem, index) => {
     addDefines('page' + (index + 6), elem.map(elem2 => elem2.name), 'h', true);
 
     fs.
       readFileSync('build/obj2/page' + (index + 6) + '.map', 'utf8').
       replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
-        console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
+        //console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
         two = two.replace(/^_/, '');
         const item = parseInt(three, 16);
         if(hashMap.hasOwnProperty(two) && item !== functionsList[hashMap[two]][2]) {
@@ -773,23 +796,30 @@ function splitUpFunctions(filename, callback, append) {
     }
     else if(/^;[ \t]+Function[ \t]+/.test(line)) {
       name = (line.replace(/^;[ \t]+Function[ \t]+/, '')).match(/[^ \t]+/)[0];
-      functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
+      if(ignoreFunctions.hasOwnProperty(name)) {
+        functionOutputStreams.push(fs.createWriteStream('/dev/null', { flags: 'a' }));
 
-      activeStream = functionOutputStreams[functionOutputStreams.length - 1];
+        activeStream = functionOutputStreams[functionOutputStreams.length - 1];
+      }
+      else {
+        functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
 
-      writePause(
-        activeStream,
-        '\tSECTION\t code_compiler\n' +
-          line + '\n'
-      );
+        activeStream = functionOutputStreams[functionOutputStreams.length - 1];
 
-      /* add an entry for each into the mapping table */
-      if(name !== '_compareCodepoints') { /* compareCodepoints is a bsearch callback that
-        needs to be in the same page as the function that called bsearch. it doesn't need
-        to be in the jump table */
-        hashMap[name] = functionsList.length;
-        functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-        currentAddr -=4;
+        writePause(
+          activeStream,
+          '\tSECTION\t code_compiler\n' +
+            line + '\n'
+        );
+
+        /* add an entry for each into the mapping table */
+        if(name !== '_compareCodepoints') { /* compareCodepoints is a bsearch callback that
+          needs to be in the same page as the function that called bsearch. it doesn't need
+          to be in the jump table */
+          hashMap[name] = functionsList.length;
+          functionsList.push([name, 0, currentAddr, 0, 'farcall']);
+          currentAddr -=4;
+        }
       }
     }
     else if(rodataType && /^\./.test(line)) {
@@ -967,12 +997,21 @@ function addDefines(filename, filenames, folderName, pageMode) {
       }
     );
 
+  if(pageMode) {
+    execSync(
+      'sed -i "s/call\\tminusfa/call minusfa/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      {
+        cwd: __dirname + '/build/s'
+      }
+    );
+  }
+
   while(notQuit) {
     notQuit = false;
 
     try {
       execSync(
-          'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + (!pageMode ? '--no-crt' : '') +
+          'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
           ' -pragma-redirect:fputc_cons=_myfputc_cons -lmath48 -lndos -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
           {
@@ -997,8 +1036,8 @@ function addDefines(filename, filenames, folderName, pageMode) {
         );
 
       arr.forEach(elem => {
-        if(!pageMode || ({ '_': 1, 'i': 1 }).hasOwnProperty(elem.charAt(0))) {
-          const elem2 = elem.replace(/^_/, '');
+        if(!pageMode || ({ 'a': 1, '_': 1, 'i': 1 }).hasOwnProperty(elem.charAt(0))) {
+          const elem2 = elem.replace(/^(_|(a(_)?))/, '');
 
           execSync(
               'printf "  GLOBAL ' + elem + '\n" >> ../' + folderName + '/' + filename + '2.inc;' +
