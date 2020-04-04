@@ -39,7 +39,7 @@ querycsv.x64: $(SOURCES)
 querycsv.386: $(SOURCES)
 	rm -f $(OBJECTS) querycsv querycsv.i386
 	sed -i -e 's/MAC_YIELD//g' querycsv.c
-	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 -zm @direct.cfg -os $(SOURCES)
+	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 -zm -3 @direct.cfg -os $(SOURCES)
 	xxd -l128 -s 84 querycsv | xxd -r -s -32 - querycsv
 	echo "000002c: 02" | xxd -r - querycsv
 	strip querycsv
