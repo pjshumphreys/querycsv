@@ -263,7 +263,8 @@ keyInt:
 
 ;-----------------------------------
 
-INCBIN "../build/data.bin"
+__sgoioblk:
+  BINARY "../build/data.bin"
 
 ;------------------------------------
 ; array of function trampolines and virtual page numbers
