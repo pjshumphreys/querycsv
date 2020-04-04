@@ -2,5 +2,5 @@
 # add /d3 for debugging symbols
 OBJECTS = *.c
 qrycsv16.exe: $(OBJECTS)
-	wcl /ml /zt1900 /dMICROSOFT=1 /fpc /0 /os /k3000 /fe=qrycsv16 $(OBJECTS)
+	wcl /zm @direct.cfg /ml /zt1900 /dMICROSOFT=1 /fpc /0 /os /k3000 /fe=qrycsv16 $(OBJECTS)
 	c:\upx\upx --8086 .\qrycsv16.exe
