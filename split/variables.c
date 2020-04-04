@@ -10,6 +10,7 @@ struct hash1Entry lookupresult = {0, (long *)(&hash1Codepoints)};
 long codepoints[18];
 #ifdef __Z88DK
 struct hash2Entry entry = {0x0000, 1, &codepoints};
+int myerrno;
 #else
 struct hash2Entry entry = {0x0000, 1, (long *)(&codepoints)};
 #endif

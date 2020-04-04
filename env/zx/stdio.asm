@@ -20,3 +20,4 @@ __sgoioblk_end:        ;end of stdio control block
 
 _heap:
   defb 0, 0, 0, 0
+SECTION BSS

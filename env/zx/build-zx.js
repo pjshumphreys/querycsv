@@ -21,9 +21,7 @@ const matchAll = require('match-all');
 
 const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
 
-const hashMap = {
-  'myfputc_cons': 0
-};
+const hashMap = {};
 
 const functionsList = [
   ['myfputc_cons', 3, 0xbcf5, 0x0001, 'farCall'],
@@ -43,6 +41,8 @@ const functionsList = [
   ['strstr_callee', 3, 0x0001, 0x0001, 'farCall'],
   ['strcat_callee', 3, 0x0001, 0x0001, 'farCall'],
   ['strncat_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strnicmp_callee', 3, 0x0001, 0x0001, 'farCall'],
+  ['strncpy_callee', 3, 0x0001, 0x0001, 'farCall'],
   ['memcpy_callee', 3, 0x0001, 0x0001, 'farCall'],
   ['memmove_callee', 3, 0x0001, 0x0001, 'farCall'],
   ['memset_callee', 3, 0x0001, 0x0001, 'farCall'],
@@ -51,6 +51,7 @@ const functionsList = [
   ['fread', 3, 0x0001, 0x0001, 'farCall'],
   ['fwrite', 3, 0x0001, 0x0001, 'farCall'],
   ['fflush', 3, 0x0001, 0x0001, 'farCall'],
+  ['fseek', 3, 0x0001, 0x0001, 'farCall'],
   ['fgetc', 3, 0x0001, 0x0001, 'farCall'],
   ['ungetc', 3, 0x0001, 0x0001, 'farCall'],
   ['fgets', 3, 0x0001, 0x0001, 'farCall'],
@@ -61,6 +62,10 @@ const functionsList = [
   ['sprintf', 3, 0x0001, 0x0001, 'farCall'],
   ['vsnprintf', 3, 0x0001, 0x0001, 'farCall']
 ];
+
+functionsList.forEach((curr, index) => {
+  hashMap[curr[0].replace(/^_/, '')] = index;
+});
 
 const ignoreFunctions = [
     'yyunput',
@@ -455,6 +460,16 @@ function getFunctionSizes() {
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr -=4;
 
+  name = 'compareCP1047';
+  execSync(
+      'cat build/s/compareCodepoints.asm >> build/s/getBytesCP1047.asm;' +
+      "sed -i 's/_compareCodepoints/_"+name+"/g;s/querycsv/querycsv6/g;' build/s/getBytesCP1047.asm"
+    );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr,  0x0001,'farcall']);
+  currentAddr -=4;
+
   execSync('rm build/s/compareCodepoints.asm');
 
   /*compile the data immediately above the function jump table */
@@ -752,13 +767,6 @@ function splitUpFunctions(filename, callback, append) {
     flags: append ? 'a' : 'w'
   });
 
-  if(!append) {
-    writePause(
-      data,
-      '\tSECTION\tBSS\n'
-    );
-  }
-
   const rodataOutputStreams = [];
 
   const code = fs.createWriteStream('build/' + filename + '_code.asm');
@@ -983,7 +991,7 @@ function addDefines(filename, filenames, folderName, pageMode) {
       'printf "\\\n" > ../' + folderName + '/' + filename + '.inc;' +
       'printf "\\\n" > ../' + folderName + '/' + filename + '2.inc;' +
       'printf "\\\n" > ../' + folderName + '/' + filename + '.asm;' +
-      (pageMode ? 'printf "  SECTION code_compiler\n  org 0xc000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
+      (pageMode ? 'printf "  SECTION bss_error\n  org 0x' + defines['_myerrno'] + '\n  SECTION code_compiler\n  org 0xc000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
       'printf "  INCLUDE \\"z80_crt0.hdr\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
       filenames.reduce((obj, elem) => {
         obj += 'cat ' + elem + '.asm >> ../' + folderName + '/' + filename + '.asm;';
@@ -1012,6 +1020,7 @@ function addDefines(filename, filenames, folderName, pageMode) {
     try {
       execSync(
           'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
+          ' -pragma-define:CRT_ORG_DATA=0' +
           ' -pragma-redirect:fputc_cons=_myfputc_cons -lmath48 -lndos -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
           {
@@ -1042,7 +1051,7 @@ function addDefines(filename, filenames, folderName, pageMode) {
           execSync(
               'printf "  GLOBAL ' + elem + '\n" >> ../' + folderName + '/' + filename + '2.inc;' +
               (
-                hashMap.hasOwnProperty(elem2) && functionsList[hashMap[elem2]][2] !== 1
+                hashMap.hasOwnProperty(elem2)
                   ? 'printf "' + elem + ' equ 0x' + ((functionsList[hashMap[elem2]][2])
                     .toString(16).substr(-4).toUpperCase())
                   : (defines.hasOwnProperty(elem) ? 'printf "' + elem + ' equ 0x' + defines[elem] : 'printf ".' + elem)) +
