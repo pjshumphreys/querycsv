@@ -356,7 +356,7 @@ function addROData() {
   execSync('z80asm -b build/rodata.asm');
 
   const rodataSize = fs.statSync('build/rodata.bin').size;
-  pageSize = 16744  - rodataSize; //should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions reducing the resultant output binary size
+  pageSize = 16644  - rodataSize; //should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions reducing the resultant output binary size
 
   /* build the rodata located at the very top of ram */
   execSync(`z80asm -b -m -r=${65535 - rodataSize} build/rodata.asm`);

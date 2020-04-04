@@ -167,7 +167,9 @@ void getCodepointsUTF8(
         byteIndex--;
       }
     }
-  } while(0); /* don't really loop. */
+
+    break;  /* don't really loop. */
+  } while(1);
 
   /* dump out the bytes matched, converting each to a separate codepoint */
   if(c == EOF) {
