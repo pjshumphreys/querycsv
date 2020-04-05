@@ -278,20 +278,20 @@ Just use long ones for that compiler */
 
   int stricmp(const char *str1, const char *str2);
 
-  /* manually define the errno values that lexer uses as errno.h doesn't
-     exist in version 2 but lexer.c uses these defines */
-  #define EINTR  4    /* Interrupted system call */
-  #define ENOMEM 12   /* Cannot allocate memory */
-  #define EINVAL 22   /* Invalid value */
-
-  /* These aren't in norcroft version 2's stdlib.h */
-  #define EXIT_FAILURE 1
-  #define EXIT_SUCCESS 0
-
   #define SOFTFLOAT /* Use John Hauser's softfloat package rather
   than the compiler's built in floating point implementation */
 
   #if __LIB_VERSION < 300
+    /* These aren't in norcroft version 2's stdlib.h */
+    #define EXIT_FAILURE 1
+    #define EXIT_SUCCESS 0
+
+    /* manually define the errno values that lexer uses as errno.h doesn't
+       exist in version 2 but lexer.c uses these defines */
+    #define EINTR  4    /* Interrupted system call */
+    #define ENOMEM 12   /* Cannot allocate memory */
+    #define EINVAL 22   /* Invalid value */
+
     /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
     #define YYTYPE_UINT16 unsigned int
     #define YYTYPE_INT16 int

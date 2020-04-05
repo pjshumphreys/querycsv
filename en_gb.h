@@ -24,6 +24,7 @@ on the c64 build, the format specifiers need to be in uppercase */
 #define TDB_PARSER_SYNTAX "A syntax error occurred when parsing the input file\n"
 #define TDB_PARSER_USED_ALL_RAM "Parsing the input file used up all memory storage space\n"
 #define TDB_PARSER_UNKNOWN "An unknown error occurred when parsing the input file\n"
+#define TDB_LEX_FAILED "input in flex scanner failed"
 #define TDB_LEX_UNTERMINATED "Unterminated string on line " LD_STRING " (" S_STRING ")\n", lineno, text
 #define TDB_MALLOC_FAILED mallocFail
 #define TDB_MALLOC_FAILED3 TDB_MALLOC_FAILED, 1, 33
@@ -33,6 +34,7 @@ on the c64 build, the format specifiers need to be in uppercase */
 #define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"
 #define TDB_INVALID_UTF8 "Invalid utf-8 bytes stored in memory\n"
 #define TDB_INVALID_COUNT_STAR "only count(*) is valid\n"
+#define TDB_INVALID_SEARCH "Invalid search condition\n"
 #define TDB_OUTPUT_FAILED "opening output file failed\n"
 #define TDB_AGGREG_AGGREG "can't aggregate an aggregate\n"
 #define TDB_INVALID_ENCODING "unsupported encoding " S_STRING "\n"
@@ -40,6 +42,3 @@ on the c64 build, the format specifiers need to be in uppercase */
 #define TDB_NAME "unknown or ambiguous column name (" S_STRING ")\n"
 #define TDB_NAME_NAME "unknown or ambiguous column name (" S_STRING "." S_STRING ")\n"
 #define TDB_FILE_SIZE_EXCEEDED "Output file size limit exceeded\n"
-#define TDB_FILENAME "filename:"
-#define TDB_NOT_FOUND "not found"
-#define TDB_ENCODING "encoding:"

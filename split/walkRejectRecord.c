@@ -115,7 +115,7 @@ int walkRejectRecord(
     } return expressionPtr->unionPtrs.leaves.leftPtr->isNull;
 
     default: {
-      fputs("Invalid search condition\n", stderr);
+      fputs(TDB_INVALID_SEARCH, stderr);
       exit(EXIT_FAILURE);
     } return FALSE;
   }
