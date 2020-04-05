@@ -23,6 +23,8 @@ const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
 
 const hashMap = {};
 
+let rodataSize = 0;
+
 const functionsList = [
   ['myfputc_cons', 3, 0xbcf5, 0x0001, 'farCall'],
   ['abs', 3, 0x0001, 0x0001, 'farCall'],
@@ -355,7 +357,7 @@ function addROData() {
 
   execSync('z80asm -b build/rodata.asm');
 
-  const rodataSize = fs.statSync('build/rodata.bin').size;
+  rodataSize = fs.statSync('build/rodata.bin').size;
   pageSize = 16644  - rodataSize; //should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions reducing the resultant output binary size
 
   /* build the rodata located at the very top of ram */
@@ -623,10 +625,6 @@ function packPages(tree) {
     currentPageNumber++;
   } while(1);
 
-  // console.log(JSON.stringify(pages, null, 2));
-
-  //console.log(JSON.stringify(functionsList, null, 2));
-
   compilePages(pages);
 }
 
@@ -645,10 +643,23 @@ function compilePages(pages) {
           functionsList[hashMap[two]][1] = index + 6;
         }
       });
+
+    if(fs.statSync('build/obj2/page'+(index+6)+'_code_compiler.bin').size > (16384 - rodataSize)) {
+      console.log('page '+ (index+6) + ' is too big');
+      process.exit(-1);
+    }
+
+    execSync('dd if=/dev/zero bs=1 count=16384 of=build/obj2/qcsv' + (('00' + (index+6)).substr(-2)) + 'zx.ovl');
+
+    execSync('dd if=build/obj2/page'+(index+6)+'_code_compiler.bin of=build/obj2/qcsv' + (('00' + (index+6)).substr(-2)) + 'zx.ovl conv=notrunc');
+
+    execSync('dd if=build/rodata.bin of=build/obj2/qcsv' + (('00' + (index+6)).substr(-2)) + 'zx.ovl bs=1 seek='+(16384  - rodataSize)+' conv=notrunc');
   });
-  
+
+  execSync('rm build/obj2/*.bin');
+
   functionsList.sort((a,b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
-  
+
   //end of the runtime of this build-zx.js file. Log what we did for now
   console.log(JSON.stringify(hashMap, null, 2));
   console.log(JSON.stringify(functionsList, null, 2));
@@ -671,7 +682,7 @@ function test() {
     1,
     "farcall"
   ]];
-  
+
   const hashMap = {
     "_comparePetscii": 0,
     "_compareAtariST": 1
@@ -685,14 +696,14 @@ function test() {
 
 //      if(/_compareAtariST/.test(two)) {
         console.log(two)
-        
+
         if(hashMap.hasOwnProperty(two)) {
           functionsList[hashMap[two]][3] = parseInt(three, 16);
           functionsList[hashMap[two]][1] = index + 6;
         }
  //     }
     }));
-    
+
   console.log(JSON.stringify(functionsList, null, 2));
 }
 
@@ -1054,7 +1065,7 @@ function addDefines(filename, filenames, folderName, pageMode) {
                 hashMap.hasOwnProperty(elem2)
                   ? 'printf "' + elem + ' equ 0x' + ((functionsList[hashMap[elem2]][2])
                     .toString(16).substr(-4).toUpperCase())
-                  : (defines.hasOwnProperty(elem) ? 'printf "' + elem + ' equ 0x' + defines[elem] : 'printf ".' + elem)) +
+                  : (defines.hasOwnProperty(elem) ? 'printf "' + elem + ' equ 0x' + defines[elem] : (pageMode?abort(elem):'printf ".' + elem))) +
 
                 '\n" >> ../' + folderName + '/' + filename + '.inc',
               {
@@ -1078,4 +1089,9 @@ function addDefines(filename, filenames, folderName, pageMode) {
     name: filename,
     children: arr
   };
+}
+
+function abort(elem) {
+  console.log("symbol not found: "+ elem);
+  process.exit(-1);
 }
