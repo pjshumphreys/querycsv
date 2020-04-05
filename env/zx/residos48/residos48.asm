@@ -1,3 +1,5 @@
+SECTION code_compiler
+org 0xc000
 include "residos48.inc"
 
 VARS equ 0x5c4b
@@ -6,7 +8,6 @@ RESI_GETPAGER equ 0x031c
 RESI_FINDBASIC equ 0x0322
 RESI_DEALLOC equ 0x0328
 
-org 0xc000
 jr copydata
 
 ;put atexit3 at a known location (0xc002)

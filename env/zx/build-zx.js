@@ -26,12 +26,12 @@ const hashMap = {};
 let rodataSize = 0;
 
 const functionsList = [
-  ['myfputc_cons', 3, 0xbcf5, 0x0001, 'farCall'],
   ['abs', 3, 0x0001, 0x0001, 'farCall'],
   ['atol', 3, 0x0001, 0x0001, 'farCall'],
   ['exit', 3, 0x0001, 0x0001, 'farCall'],
   ['_strtod', 3, 0x0001, 0x0001, 'farCall'],
   ['mallinit', 3, 0x0001, 0x0001, 'farCall'],
+  ['sbrk', 3, 0x0001, 0x0001, 'farCall'],
   ['malloc', 3, 0x0001, 0x0001, 'farCall'],
   ['free', 3, 0x0001, 0x0001, 'farCall'],
   ['realloc_callee', 3, 0x0001, 0x0001, 'farCall'],
@@ -711,44 +711,44 @@ function compileLibC() {
   console.log('compileLibC');
 
   //plus3dos
-  execSync('zcc +zx -Cc-base=6 -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
+  execSync('zcc +zx --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
   '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
   '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ data.asm libc.c '+
-  'myfputc_cons.asm -m -o qrycsv01.ovl');
+  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ plus3dos/plus3dos.asm libc.c '+
+  '-m -o qcsv01zx.ovl');
 
   //residos 48k
-  execSync('zcc +zx -Cc-base=6 -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
+  execSync('zcc +zx --no-crt -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
   '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
   '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ data.asm libc.c '+
-  'myfputc_cons.asm -m -o qrycsv02.ovl');
+  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ residos48/residos48.asm libc.c '+
+  '-m -o qcsv02zx.ovl');
 
   //residos 128k
-  execSync('zcc +zx -Cc-base=6 -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
+  execSync('zcc +zx --no-crt -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
   '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
   '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ data.asm libc.c '+
-  'myfputc_cons.asm -m -o qrycsv03.ovl');
+  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ residos128/residos128.asm libc.c '+
+  '-m -o qcsv03zx.ovl');
 
   //esxdos 48k
-  execSync('zcc +zx -Cc-base=6 -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
+  execSync('zcc +zx --no-crt -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
   '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
   '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ data.asm libc.c '+
-  'myfputc_cons.asm -m -o qrycsv04.ovl');
+  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ esxdos48/esxdos48.asm libc.c '+
+  '-m -o qcsv04zx.ovl');
 
   //esxdos 128k
-  execSync('zcc +zx -Cc-base=6 -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
+  execSync('zcc +zx --no-crt -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
   '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=8 '+
+  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
   '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ data.asm libc.c '+
-  'myfputc_cons.asm -m -o qrycsv05.ovl');
+  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ esxdos128/esxdos128.asm libc.c '+
+  '-m -o qcsv05zx.ovl');
 }
 
 
@@ -1031,8 +1031,7 @@ function addDefines(filename, filenames, folderName, pageMode) {
     try {
       execSync(
           'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' -pragma-define:CRT_ORG_DATA=0' +
-          ' -pragma-redirect:fputc_cons=_myfputc_cons -lmath48 -lndos -U__STDC_VERSION__' +
+          ' -pragma-define:CRT_ORG_DATA=0 -lm -lndos -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
           {
             cwd: __dirname + '/build/s'

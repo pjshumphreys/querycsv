@@ -1,7 +1,8 @@
-qrycsv01.ovl: plus3dos.asm atexit.bin fputc_cons_first.bin pager.bin
+qcsv01zx.ovl: plus3dos.asm atexit.bin fputc_cons_first.bin pager.bin
 	(cat pager.inc page2page.inc | sort | uniq | grep -v -E '__head|__tail|__size') > plus3dos.inc
-	z80asm -b -o=qrycsv01.ovl plus3dos.asm
-	dd if=/dev/zero bs=1 count=`ls -nl qrycsv01.ovl | awk '{print 16384 - $$5}'` >> qrycsv01.ovl
+	z80asm -b -o=qcsv01zx.ovl plus3dos.asm
+	mv qcsv01zx_code_compiler.bin qcsv01zx.ovl
+	dd if=/dev/zero bs=1 count=`ls -nl qcsv01zx.ovl | awk '{print 16384 - $$5}'` >> qcsv01zx.ovl
 
 fputc_cons_first.bin: fputc_cons.asm
 	z80asm -b --split-bin fputc_cons.asm
@@ -19,4 +20,4 @@ page2page.bin: page2page.asm
 	-awk '{print $$1, "equ", $$3}' page2page.map > page2page.inc
 
 clean:
-	rm -f *.inc *.o *.map *.bin qrycsv01.ovl
+	rm -f *.inc *.o *.map *.bin qcsv01zx.ovl

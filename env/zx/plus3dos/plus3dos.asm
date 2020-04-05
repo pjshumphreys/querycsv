@@ -1,3 +1,5 @@
+SECTION code_compiler
+org 0xc000
 include "plus3dos.inc"
 
 VARS equ 0x5c4b
@@ -5,7 +7,6 @@ VARS equ 0x5c4b
 DOS_SET_1346 equ 0x013f
 ERR_NR equ 0x5c3a   ; BASIC system variables
 
-org 0xc000
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
   ld hl, page2page ; hl = source address for ldir

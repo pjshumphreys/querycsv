@@ -1,8 +1,10 @@
+SECTION code_compiler
+org 0xc000
+
 include "esxdos128.inc"
 
 VARS equ 0x5c4b
 
-org 0xc000
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
   ld hl, page2page ; hl = source address for ldir

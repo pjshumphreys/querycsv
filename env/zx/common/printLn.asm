@@ -11,6 +11,7 @@ PUBLIC defaultDrive
 PUBLIC destinationHighBank
 PUBLIC skip_count
 PUBLIC isr
+PUBLIC myfputc_cons
 
 PUBLIC pagename
 
@@ -46,7 +47,7 @@ invalidFile:
 noopen:
   defb "Couldn't open "
 pagename:
-  defb "qrycsv00.ovl", 0, 0
+  defb "qcsv00zx.ovl", 0, 0
 
 ;---------------------------------
 ; more variables

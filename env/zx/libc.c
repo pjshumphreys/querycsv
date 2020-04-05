@@ -1,19 +1,15 @@
 /* fake program to get the necessary libc functions into 1 memory page */
 #include "querycsv.h"
 
-/*
- * strtod implementation.
- * original author: Yasuhiro Matsumoto
- * tidied up and modified to use soft float macros: Paul Humphreys
- * license: public domain
- */
-
 const double fltMinusOne = -1.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
-double fltSmall;
-int fltInited;
-long heap;
+extern double fltSmall;
+extern int fltInited;
+extern long heap;
+extern char * origWd; /* The dummy functions used to pull the clib functions
+  into the binary need to refer to a char *, but we don't want to declare one
+  that'll never be used. Reuse one that already exists */
 
 double pow10a(int exp) {
   int sign = 0;
@@ -33,11 +29,18 @@ double pow10a(int exp) {
   }
 
   if(sign) {
-    result = fdiv(fltOne,result);
+    result = fdiv(fltOne, result);
   }
 
   return result;
 }
+
+/*
+ * strtod implementation.
+ * original author: Yasuhiro Matsumoto
+ * tidied up and modified to use soft float macros: Paul Humphreys
+ * license: public domain
+ */
 
 double strtod(const char *str, char **end) {
   double d = ctof(0);
@@ -146,8 +149,8 @@ double strtod(const char *str, char **end) {
         break;
       }
 
+      /*
       if(e <= -308) {
-        /*
         if(e == -308 && feq(d, 2.2250738585072011)) {
           d = ctof(0);
           a = p;
@@ -159,8 +162,8 @@ double strtod(const char *str, char **end) {
           a = p;
           break;
         }
-        */
       }
+      */
 
       d = fmul(d, pow10a(e));
       a = p;
@@ -262,15 +265,6 @@ int main(int argc, char* argv[]) {
 }
 */
 
-void * memcpy_zx(void * destination, const void * source, size_t num) {
-  return memcpy(destination, source, num);
-}
-
-void * memset_zx(void * ptr, int value, size_t num) {
-  return memset(ptr, value, num);
-}
-
-char * a = "%d";
 
 void b(char * string, unsigned char * format, ...) {
   va_list args;
@@ -281,32 +275,29 @@ void b(char * string, unsigned char * format, ...) {
 
   num = atol(string);
 
-  mallinit();
-  sbrk(24000, 4000);
-
   string = malloc(1);
   fgets(string, 1, stdin);
   free(string);
   string = calloc(1, 3);
   string = realloc(string, 5);
-  strcpy(string, a);
+  strcpy(string, origWd);
   fgets(string, 1, stdin);
-  num = strcmp(a, string);
-  num = stricmp(a, string);
-  num = strncmp(a, string, 3);
+  num = strcmp(origWd, string);
+  num = stricmp(origWd, string);
+  num = strncmp(origWd, string, 3);
   num = strlen(string);
-  string = strstr(string, a);
+  string = strstr(string, origWd);
 
-  memset_zx(string, 0, 4);
+  memset(string, 0, 4);
   strcat(string, a);
   strncat(string, a, 3);
-  memcpy_zx(string+1, string, 2);
+  memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
-  fprintf(test, a, 1);
-  fputs(a, test);
+  fprintf(test, origWd, 1);
+  fputs(origWd, test);
 
-  test = fopen(a, "rb");
+  test = fopen(origWd, "rb");
   clearerr(test);
   num = fclose(test);
   fread(string, 2, 2, stdin);
@@ -317,7 +308,7 @@ void b(char * string, unsigned char * format, ...) {
   num = fgetc(stdin);
   fputc(num, stderr);
   fflush(stdout);
-  sprintf(string, a, num);
+  sprintf(string, origWd, num);
 
   va_start(args, format);
   vsprintf(string, format, args);
@@ -331,7 +322,11 @@ void b(char * string, unsigned char * format, ...) {
 }
 
 int main(int argc, char * argv[]) {
-  b(a, (unsigned char *)a);
+  mallinit();
+  sbrk(24000, 4000);
+
+  origWd = "%d";
+  b(origWd, (unsigned char *)origWd);
   exit(0);
 
   return 0;

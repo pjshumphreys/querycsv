@@ -1,3 +1,5 @@
+SECTION code_compiler
+org 0xc000
 include "residos128.inc"
 
 VARS equ 0x5c4b
@@ -12,7 +14,6 @@ PKG_RESIDOS equ 0
 ERR_NR equ 0x5c3a   ; BASIC system variables
 RST_HOOK equ 8
 
-org 0xc000
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
   ld hl, page2page ; hl = source address for ldir

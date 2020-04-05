@@ -1,8 +1,10 @@
+SECTION code_compiler
+org 0xc000
+
 include "esxdos48.inc"
 
 VARS equ 0x5c4b
 
-org 0xc000
 jr copydata
 
 ;put atexit3 at a known location (0xc002)

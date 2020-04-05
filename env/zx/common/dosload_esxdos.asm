@@ -31,7 +31,7 @@ bcdloop:
   and 0b00001111
   or 0x30
   ld b, a
-  ld (pagename+6), bc
+  ld (pagename+4), bc
 
   ;switch high page
   push hl

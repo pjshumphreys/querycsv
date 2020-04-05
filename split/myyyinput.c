@@ -51,7 +51,7 @@ void myyyinput(FILE * stream, void* extra, char * buf, int *result, size_t max_s
   }
 
   if(c == MYEOF && ferror(stream)) {
-    fputs(TDB_FLEX_FAILED, stderr);
+    fputs(TDB_LEX_FAILED, stderr);
     exit(EXIT_FAILURE);
   }
 

@@ -35,7 +35,7 @@ bcdloop:
   and 0b00001111
   or 0x30
   ld b, a
-  ld (pagename+6), bc
+  ld (pagename+4), bc
 
   ; filenames to load must be terminated by 0xff and not 0
   ld a, 255
