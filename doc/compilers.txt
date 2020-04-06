@@ -1,11 +1,14 @@
 vbcc (amiga/atarist)
 cc65 (c64)
-z88dk (zx spectrum)
-basilisk+retro68 (m68kmac)
+z88dk (zx spectrum/cpm)
+basilisk+mpw/retro68 (m68kmac)
 sheepshaver+mpw (powermac)
 rpcemu+norcroft (risc os)
+beebem+norcroft (bbc arm)
 emscripten (html5)
-gcc (linux/mac os x)
+gcc-musl (linux arm)
+osxcross (mac os x)
+open watcom (linux i386)
 wine+open watcom (dos/windows)
 
 

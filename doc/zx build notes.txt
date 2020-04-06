@@ -7,11 +7,10 @@ locate it at the end of memory DONE
 reduce the bin packing size of all pages, which by default is 16384, by the size of the rodata.bin file DONE
 
 
-figure how functions in a memory page won't directly reference other functions in the same page. maybe I
-did this already in the c64 build?
+figure how functions in a memory page won't directly reference other functions in the same page. DONE
 
 
-get the addresses of each function and update the function address array
+get the addresses of each function and update the function address array DONE
 
 
 I think the c library will not need any rodata, so it can take up the full 16k. But what of when it's paged out?
