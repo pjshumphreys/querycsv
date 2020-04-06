@@ -193,6 +193,10 @@ it becomes needed and because it's useful for debugging */
     int fputs_dos(const char *str, FILE *stream);
     int fprintf_dos(FILE *stream, const char *format, ...);
 
+    #ifdef DOS_DAT
+      void openDat(void);
+    #endif
+
     #define chdir _chdir
     #define fputs fputs_dos
     #define fprintf fprintf_dos

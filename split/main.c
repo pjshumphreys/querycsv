@@ -38,6 +38,11 @@ int main(int argc, char **argv) {
       /* store the original working directory so we can load qrycsv00.ovl properly */
       origWd = getcwd(NULL, PATH_MAX+1);
 
+      #ifdef DOS_DAT
+        /* open the hash2 data file on startup */
+        openDat();
+      #endif
+
       /* set the working directory back to its original value at exit */
       atexit(atexit_dos);
     #endif

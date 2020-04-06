@@ -26,7 +26,7 @@ void isInHash2_0(void) {
 FILE* datafile = NULL;
 
 void openDat(void) {
-  char * datName = "qcsv00zx.ovl";
+  char * datName = "qrycsv00.ovl";
   char * path = NULL;
   char * result = NULL;
   char * filename = NULL;
