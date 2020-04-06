@@ -677,7 +677,8 @@ function compileLibC() {
   //build the asm includes
   ['plus3dos', 'residos48', 'residos128', 'esxdos48', 'esxdos128'].forEach((name, index) => {
     fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
-      item[1] === 3 ? '  EXTERN ' + item[0] + '\n  defw ' + item[0] : '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
+      //item[1] === 3 ? '  EXTERN ' + item[0] + '\n  defw ' + item[0] :
+      '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
     fs.writeFileSync(name + '/functions.inc', functionsList.map(item =>
@@ -689,8 +690,9 @@ function compileLibC() {
     execSync('cp build/data.bin '+name+'/');
   });
 
-  process.exit(0);
+  //the rest of the build process will now be carried out by the makefile
 
+  /*
   //plus3dos
   execSync('zcc +zx --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
   '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
@@ -730,8 +732,8 @@ function compileLibC() {
   '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
   '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ esxdos128/esxdos128.asm libc.c '+
   '-m -o qcsv05zx.ovl');
+  */
 }
-
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
 
