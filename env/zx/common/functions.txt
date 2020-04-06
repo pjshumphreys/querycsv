@@ -1,0 +1,4 @@
+; dummy file to permit building the clib pages independantly for testing purposes
+_main2:
+  jp farcall
+  defb 0x06

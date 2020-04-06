@@ -69,8 +69,8 @@ hash2: hash2.c
 dat/create: hash2.c dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/externs.c
 	cd dat && $(CC) create.c externs.c -o create
 
-dat/qrycsv00.ovl: dat/create dat/hash2dat.c
-	cd dat && ./create && (echo ../env/zx ../env/cpm ../env/dos | xargs -n 1 cp hash2dat.h hash2dat.c qrycsv00.ovl)
+dat/qrycsv00.bin: dat/create dat/hash2dat.c
+	cd dat && ./create && (echo ../env/zx ../env/cpm | xargs -n 1 cp hash2dat.h hash2dat.c qrycsv00.bin)
 
 env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
@@ -86,7 +86,7 @@ env/bbcarm/c: hash2
 querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o env/bbcarm/c dat/qrycsv00.ovl
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/posix/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/html5/ \;
-	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*' -exec cp {} env/dos/ \;
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*' -exec cp {} env/zx/ \;
 	cd env/dos; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/win32/ \;

@@ -171,7 +171,7 @@ keyInt:
 ;-----------------------------------
 
 __sgoioblk:
-  BINARY "../build/data.bin"
+  BINARY "data.bin"
 
 ;------------------------------------
 ; array of function trampolines and virtual page numbers

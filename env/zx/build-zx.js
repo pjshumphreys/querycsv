@@ -685,6 +685,8 @@ function compileLibC() {
     ).join('\n'));
 
     fs.writeFileSync(name + '/pages.inc', foo);
+
+    execSync('cp build/data.bin '+name+'/');
   });
 
   process.exit(0);
@@ -754,6 +756,13 @@ function splitUpFunctions(filename, callback, append) {
   const globals = fs.createWriteStream('build/globals.asm', {
     flags: append ? 'a' : 'w'
   });
+
+  if(!append) {
+    writePause(
+      data,
+      '\tSECTION\tBSS\n'
+    );
+  }
 
   const rodataOutputStreams = [];
 
