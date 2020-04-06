@@ -26,49 +26,46 @@ const hashMap = {};
 let rodataSize = 0;
 
 const functionsList = [
-  ['abs', 3, 0x0001, 0x0001, 'farCall'],
-  ['atol', 3, 0x0001, 0x0001, 'farCall'],
-  ['exit', 3, 0x0001, 0x0001, 'farCall'],
-  ['_strtod', 3, 0x0001, 0x0001, 'farCall'],
-  ['mallinit', 3, 0x0001, 0x0001, 'farCall'],
-  ['sbrk', 3, 0x0001, 0x0001, 'farCall'],
-  ['malloc', 3, 0x0001, 0x0001, 'farCall'],
-  ['free', 3, 0x0001, 0x0001, 'farCall'],
-  ['realloc_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['calloc_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strcmp_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['stricmp_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strncmp_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strlen', 3, 0x0001, 0x0001, 'farCall'],
-  ['strstr_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strcat_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strncat_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strnicmp_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['strncpy_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['memcpy_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['memmove_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['memset_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['fopen', 3, 0x0001, 0x0001, 'farCall'],
-  ['fclose', 3, 0x0001, 0x0001, 'farCall'],
-  ['fread', 3, 0x0001, 0x0001, 'farCall'],
-  ['fwrite', 3, 0x0001, 0x0001, 'farCall'],
-  ['fflush', 3, 0x0001, 0x0001, 'farCall'],
-  ['fseek', 3, 0x0001, 0x0001, 'farCall'],
-  ['fgetc', 3, 0x0001, 0x0001, 'farCall'],
-  ['ungetc', 3, 0x0001, 0x0001, 'farCall'],
-  ['fgets', 3, 0x0001, 0x0001, 'farCall'],
-  ['fputc_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['fputs_callee', 3, 0x0001, 0x0001, 'farCall'],
-  ['feof', 3, 0x0001, 0x0001, 'farCall'],
-  ['fprintf', 3, 0x0001, 0x0001, 'farCall'],
-  ['sprintf', 3, 0x0001, 0x0001, 'farCall'],
-  ['vsnprintf', 3, 0x0001, 0x0001, 'farCall']
+  ['abs', 3, 0x0001, 0x0001, 'farcall'],
+  ['atol', 3, 0x0001, 0x0001, 'farcall'],
+  ['_strtod', 3, 0x0001, 0x0001, 'farcall'],
+  ['exit', 3, 0x0001, 0x0001, 'farcall'],
+  ['mallinit', 3, 0x0001, 0x0001, 'farcall'],
+  ['sbrk', 3, 0x0001, 0x0001, 'farcall'],
+  ['malloc', 3, 0x0001, 0x0001, 'farcall'],
+  ['free', 3, 0x0001, 0x0001, 'farcall'],
+  ['realloc_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['calloc_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strcmp_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['stricmp_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strncmp_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strlen', 3, 0x0001, 0x0001, 'farcall'],
+  ['strstr_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strcat_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strncat_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strnicmp_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['strncpy_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['memcpy_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['memmove_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['memset_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['fopen', 3, 0x0001, 0x0001, 'farcall'],
+  ['fclose', 3, 0x0001, 0x0001, 'farcall'],
+  ['fread', 3, 0x0001, 0x0001, 'farcall'],
+  ['fwrite', 3, 0x0001, 0x0001, 'farcall'],
+  ['fflush', 3, 0x0001, 0x0001, 'farcall'],
+  ['fseek', 3, 0x0001, 0x0001, 'farcall'],
+  ['fgetc', 3, 0x0001, 0x0001, 'farcall'],
+  ['ungetc', 3, 0x0001, 0x0001, 'farcall'],
+  ['fgets', 3, 0x0001, 0x0001, 'farcall'],
+  ['fputc_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['fputs_callee', 3, 0x0001, 0x0001, 'farcall'],
+  ['feof', 3, 0x0001, 0x0001, 'farcall'],
+  ['fprintf', 3, 0x0001, 0x0001, 'farcall'],
+  ['sprintf', 3, 0x0001, 0x0001, 'farcall'],
+  ['vsnprintf', 3, 0x0001, 0x0001, 'farcall']
 ];
 
-functionsList.forEach((curr, index) => {
-  hashMap[curr[0].replace(/^_/, '')] = index;
-});
-
+/* don't include these functions in the output files as they are never invoked (dead code elimination) */
 const ignoreFunctions = [
     'yyunput',
     'input',
@@ -96,7 +93,7 @@ const ignoreFunctions = [
 let currentAddr = 0xbd00 - 4;
 
 /* contains a map of the addresses of all global variables */
-var defines = {};
+const defines = {};
 
 const rodataLabels = [];
 const byteMaps = {};
@@ -127,7 +124,8 @@ function start() {
   execSync('node ../../generateMappings.js true');
 
   // update the jump table locations, starting at call_rom3 -4 and working downward in memory
-  functionsList.forEach(item => {
+  functionsList.forEach((item, index) => {
+    hashMap[item[0].replace(/^_/, '')] = index;
     item[2] = currentAddr;
     currentAddr -= 4;
   });
@@ -418,7 +416,7 @@ function getFunctionSizes() {
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall2']);
   currentAddr -=4;
 
   name = 'compareCommon';
@@ -439,7 +437,7 @@ function getFunctionSizes() {
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr,  0x0001,'farcall']);
+  functionsList.push([name, 0, currentAddr,  0x0001,'farcall2']);
   currentAddr -=4;
 
   name = 'compareAtariST';
@@ -449,7 +447,7 @@ function getFunctionSizes() {
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall2']);
   currentAddr -=4;
 
   name = 'compareZX';
@@ -459,7 +457,7 @@ function getFunctionSizes() {
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall2']);
   currentAddr -=4;
 
   name = 'compareCP1047';
@@ -469,7 +467,7 @@ function getFunctionSizes() {
     );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr,  0x0001,'farcall']);
+  functionsList.push([name, 0, currentAddr,  0x0001,'farcall2']);
   currentAddr -=4;
 
   execSync('rm build/s/compareCodepoints.asm');
@@ -661,54 +659,35 @@ function compilePages(pages) {
   functionsList.sort((a,b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
 
   //end of the runtime of this build-zx.js file. Log what we did for now
-  console.log(JSON.stringify(hashMap, null, 2));
-  console.log(JSON.stringify(functionsList, null, 2));
+  //console.log(JSON.stringify(hashMap, null, 2));
+  //console.log(JSON.stringify(functionsList, null, 2));
 
-  //compileLibc();
-}
-
-function test() {
-  /*const functionsList = [[
-    "_comparePetscii",
-    0,
-    47468,
-    1,
-    "farcall"
-  ],
-  [
-    "_compareAtariST",
-    0,
-    47464,
-    1,
-    "farcall"
-  ]];
-
-  const hashMap = {
-    "_comparePetscii": 0,
-    "_compareAtariST": 1
-  };*/
-
-  [0,1,2,3,4,5,6,7,8,9,10,11,12].forEach((index) =>
-    fs.
-    readFileSync('build/obj2/page' + (index + 6) + '.map', 'utf8').
-    replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
-      two = two.replace(/^_/, '');
-
-//      if(/_compareAtariST/.test(two)) {
-        console.log(two)
-
-        if(hashMap.hasOwnProperty(two)) {
-          functionsList[hashMap[two]][3] = parseInt(three, 16);
-          functionsList[hashMap[two]][1] = index + 6;
-        }
- //     }
-    }));
-
-  console.log(JSON.stringify(functionsList, null, 2));
+  compileLibC();
 }
 
 function compileLibC() {
   console.log('compileLibC');
+
+  let foo = '', i;
+
+  for(i = 0; i < parseInt(functionsList[0][1], 10); i++) {
+    foo += 'defb 0b11111111 ; ' + (i+1) + '\n';
+  }
+
+  //build the asm includes
+  ['plus3dos', 'residos48', 'residos128', 'esxdos48', 'esxdos128'].forEach((name, index) => {
+    fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
+      item[1] === 3 ? '  EXTERN ' + item[0] + '\n  defw ' + item[0] : '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
+    ).join('\n'));
+
+    fs.writeFileSync(name + '/functions.inc', functionsList.map(item =>
+      '  call ' + item[4] + '\n  defb ' + (item[1] == 3 ? index + 1 : item[1])
+    ).join('\n'));
+
+    fs.writeFileSync(name + '/pages.inc', foo);
+  });
+
+  process.exit(0);
 
   //plus3dos
   execSync('zcc +zx --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
@@ -750,8 +729,6 @@ function compileLibC() {
   '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ esxdos128/esxdos128.asm libc.c '+
   '-m -o qcsv05zx.ovl');
 }
-
-
 
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
@@ -836,7 +813,7 @@ function splitUpFunctions(filename, callback, append) {
           needs to be in the same page as the function that called bsearch. it doesn't need
           to be in the jump table */
           hashMap[name] = functionsList.length;
-          functionsList.push([name, 0, currentAddr, 0, 'farcall']);
+          functionsList.push([name, 0, currentAddr, 0, 'farcall2']);
           currentAddr -=4;
         }
       }

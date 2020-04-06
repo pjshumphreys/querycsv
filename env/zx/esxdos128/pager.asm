@@ -1,4 +1,4 @@
-include "../common/equs.inc"
+INCLUDE "../common/equs.inc"
 
 PUBLIC bankmBackup
 PUBLIC basicBank
@@ -16,7 +16,7 @@ PUBLIC call_rom3
 PUBLIC jp_rom3
 PUBLIC __sgoioblk
 
-farCall:
+farcall2:
   ; backup registers
   ld (hlBackup), hl
   ld (bcBackup), bc
@@ -83,18 +83,7 @@ basicBank2:
 pageLocations:
   ; 255 to load from disk or whatever value resi_alloc gave us
   defb 0b00000000 ; 00 - stores the page that contains the interrupt code and extra storage ram
-  defb 0b11111111 ; 01
-  defb 0b11111111 ; 02
-  defb 0b11111111 ; 03
-  defb 0b11111111 ; 04
-  defb 0b11111111 ; 05
-  defb 0b11111111 ; 06
-  defb 0b11111111 ; 07
-  defb 0b11111111 ; 08
-  defb 0b11111111 ; 09
-  defb 0b11111111 ; 10
-  defb 0b11111111 ; 11
-  ;include "pages.inc"
+  INCLUDE "pages.inc"
 pageLocationsEnd:
 
   defb 0x00 ; null terminator for the list of pages
@@ -102,8 +91,7 @@ pageLocationsEnd:
 ;----------------------------------------------
 
 lookupTable:
-  ;include "lookupTable.inc"
-  defw $c000
+  INCLUDE "lookupTable.inc"
 lookupTableEnd:
 
 ;------------------------------------------------------
@@ -270,7 +258,4 @@ __sgoioblk:
 ; array of function trampolines and virtual page numbers
 
 funcstart:  ; the array of jp xxxx instructions and page numbers
-  ;include "functions.inc"
-_main2:
-  jp farcall
-  defb 0x06
+  INCLUDE "functions.inc"
