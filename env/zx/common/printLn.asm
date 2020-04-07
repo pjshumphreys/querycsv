@@ -11,7 +11,7 @@ PUBLIC defaultDrive
 PUBLIC destinationHighBank
 PUBLIC skip_count
 PUBLIC isr
-PUBLIC myfputc_cons
+PUBLIC fputc_cons
 
 PUBLIC pagename
 
@@ -189,7 +189,7 @@ loop:
   ld b, a
   ;ld c, a
   push bc
-  call myfputc_cons
+  call fputc_cons
   pop bc
   inc de
   jr loop
@@ -218,7 +218,7 @@ atexit:
 farcall:
   jp exit ; just return for now. This jump table entry will get changed later.
 
-myfputc_cons:
+fputc_cons:
   jp exit ; just return for now. This jump table entry will get changed later.
   defw 0xec20  ; fputc_cons location in page 7. making space to use call call_rom3 later
 

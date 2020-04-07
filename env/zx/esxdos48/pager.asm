@@ -9,12 +9,11 @@ PUBLIC jumptoit
 PUBLIC destinationHighBank
 PUBLIC dodos
 PUBLIC argv
-PUBLIC myfputc_cons
+PUBLIC fputc_cons
 PUBLIC atexit
 PUBLIC isr
 PUBLIC call_rom3
 PUBLIC jp_rom3
-PUBLIC __sgoioblk
 
 farcall2:
   ; backup registers
@@ -178,7 +177,6 @@ keyInt:
 
 ;-----------------------------------
 
-__sgoioblk:
   BINARY "data.bin"
 
 ;------------------------------------

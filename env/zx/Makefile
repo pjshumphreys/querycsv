@@ -5,7 +5,7 @@ querycsv.tap:
 	cd common && make
 	cp common/querycsv.tap .
 
-qcsv00zx.ovl:
+qcsv00zx.ovl: qrycsv00.bin
 	cp qrycsv00.bin qcsv00zx.ovl
 
 qcsv01zx.ovl: qcsv06zx.ovl
@@ -30,6 +30,7 @@ qcsv05zx.ovl: qcsv06zx.ovl
 
 qcsv06zx.ovl: querycsv.tap libc.c lexer2.c sql2.c querycsv.c stdio.asm
 	node ./build-zx.js
+	cp build/obj2/*.ovl .
 
 clean:
 	cd common && make clean

@@ -1,7 +1,9 @@
 SECTION code_compiler
 org 0xc000
 
+include "defines.inc"
 include "esxdos48.inc"
+PUBLIC fputc_cons
 
 VARS equ 0x5c4b
 
@@ -13,8 +15,9 @@ atexit3:
 
 ; copy data from this page to elsewhere in the memory map
 copydata:
+
   ld hl, page2page ; hl = source address for ldir
-  ld de, farCall ; de = destination address for ldir
+  ld de, farcall2 ; de = destination address for ldir
   ld (farcall+1), de ; update the farcall address
   ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
 
@@ -124,8 +127,8 @@ intSetup:
   ld (atexit+4), hl
 
   ;update fputc_cons jump
-  ;ld (myfputc_cons), a ; put instruction into the fputc_cons location
-  ;ld (myfputc_cons+1), hl ; put jp_rom3 address here
+  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -205,17 +208,17 @@ startup:
 
   ld bc, 0x0707
   push bc
-  call myfputc_cons
+  call fputc_cons
   pop bc
 
   ld bc, 0x4141
   push bc
-  call myfputc_cons
+  call fputc_cons
   pop bc
 
   ld bc, 0x4242
   push bc
-  call myfputc_cons
+  call fputc_cons
   pop bc
 
   ;start running main function
@@ -231,7 +234,7 @@ atexit4:
   push hl
   ld bc, 0x0a0a
   push bc
-  call myfputc_cons
+  call fputc_cons
   pop bc
   pop hl
 

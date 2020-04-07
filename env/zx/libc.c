@@ -289,8 +289,8 @@ void b(char * string, unsigned char * format, ...) {
   string = strstr(string, origWd);
 
   memset(string, 0, 4);
-  strcat(string, a);
-  strncat(string, a, 3);
+  strcat(string, origWd);
+  strncat(string, origWd, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
@@ -327,7 +327,6 @@ int main(int argc, char * argv[]) {
 
   origWd = "%d";
   b(origWd, (unsigned char *)origWd);
-  exit(0);
 
   return 0;
 }

@@ -674,6 +674,8 @@ function compileLibC() {
     foo += 'defb 0b11111111 ; ' + (i+1) + '\n';
   }
 
+
+
   //build the asm includes
   ['plus3dos', 'residos48', 'residos128', 'esxdos48', 'esxdos128'].forEach((name, index) => {
     fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
@@ -686,6 +688,11 @@ function compileLibC() {
     ).join('\n'));
 
     fs.writeFileSync(name + '/pages.inc', foo);
+
+    fs.writeFileSync(name + '/defines.inc', Object.keys(defines).map(item =>
+
+      (/^_([^_]+)?(_head|_tail|_size)$/).test(item) ? '' : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
+    ).join('\n'));
 
     execSync('cp build/data.bin '+name+'/');
   });
