@@ -220,7 +220,7 @@ function compileQueryCSV() {
 
   execSync(
       'zcc +zx -Cc-base=6 -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
-      'sed -i -E "s/jr/jp/gi;s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
     );
 
   splitUpFunctions('querycsv', compileHash2, true);
@@ -356,7 +356,7 @@ function addROData() {
   execSync('z80asm -b build/rodata.asm');
 
   rodataSize = fs.statSync('build/rodata.bin').size;
-  pageSize = 16644  - rodataSize; //should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions reducing the resultant output binary size
+  pageSize = 16644  - rodataSize; //should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
 
   /* build the rodata located at the very top of ram */
   execSync(`z80asm -b -m -r=${65535 - rodataSize} build/rodata.asm`);
@@ -531,6 +531,7 @@ function getFunctionSizes() {
 }
 
 function packPages(tree) {
+  console.log('packPages');
   /* use a bin packing algorithm to group the functions close
   to their call-stack parents and produce a binary of each 16k page */
 
@@ -627,6 +628,8 @@ function packPages(tree) {
 }
 
 function compilePages(pages) {
+  console.log('compilePages');
+
   pages.forEach((elem, index) => {
     addDefines('page' + (index + 6), elem.map(elem2 => elem2.name), 'h', true);
 
@@ -636,6 +639,7 @@ function compilePages(pages) {
         //console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
         two = two.replace(/^_/, '');
         const item = parseInt(three, 16);
+
         if(hashMap.hasOwnProperty(two) && item !== functionsList[hashMap[two]][2]) {
           functionsList[hashMap[two]][3] = item;
           functionsList[hashMap[two]][1] = index + 6;
@@ -649,16 +653,17 @@ function compilePages(pages) {
 
     execSync('dd if=/dev/zero bs=1 count=16384 of=build/obj2/qcsv' + (('00' + (index+6)).substr(-2)) + 'zx.ovl');
 
-    execSync('dd if=build/obj2/page'+(index+6)+'_code_compiler.bin of=build/obj2/qcsv' + (('00' + (index+6)).substr(-2)) + 'zx.ovl conv=notrunc');
+    execSync('dd if=build/obj2/page' + (index + 6) + '_code_compiler.bin of=build/obj2/qcsv' +
+    (('00' + (index+6)).substr(-2)) + 'zx.ovl conv=notrunc');
 
-    execSync('dd if=build/rodata.bin of=build/obj2/qcsv' + (('00' + (index+6)).substr(-2)) + 'zx.ovl bs=1 seek='+(16384  - rodataSize)+' conv=notrunc');
+    execSync('dd if=build/rodata.bin of=build/obj2/qcsv' +
+    (('00' + (index+6)).substr(-2)) + 'zx.ovl bs=1 seek='+(16384  - rodataSize)+' conv=notrunc');
   });
 
   execSync('rm build/obj2/*.bin');
 
   functionsList.sort((a,b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
 
-  //end of the runtime of this build-zx.js file. Log what we did for now
   //console.log(JSON.stringify(hashMap, null, 2));
   //console.log(JSON.stringify(functionsList, null, 2));
 
@@ -674,8 +679,6 @@ function compileLibC() {
     foo += 'defb 0b11111111 ; ' + (i+1) + '\n';
   }
 
-
-
   //build the asm includes
   ['plus3dos', 'residos48', 'residos128', 'esxdos48', 'esxdos128'].forEach((name, index) => {
     fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
@@ -689,8 +692,7 @@ function compileLibC() {
 
     fs.writeFileSync(name + '/pages.inc', foo);
 
-    fs.writeFileSync(name + '/defines.inc',
-      `
+    fs.writeFileSync(name + '/defines.inc', `
   SECTION bss_error
   org 0x${defines['_bss_error']}
   SECTION bss_clib
@@ -704,55 +706,14 @@ function compileLibC() {
 `+
       Object.keys(defines).map(item =>
 
-      (/^_([^_]+)?(_head|_tail|_size)$/).test(item) ? '' : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
+      (/^_([^_]+)?(_head|_tail|_size)$/).test(item) ? '' :
+      '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
     execSync('cp build/data.bin '+name+'/');
   });
 
-  //the rest of the build process will now be carried out by the makefile
-
-  /*
-  //plus3dos
-  execSync('zcc +zx --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
-  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
-  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ plus3dos/plus3dos.asm libc.c '+
-  '-m -o qcsv01zx.ovl');
-
-  //residos 48k
-  execSync('zcc +zx --no-crt -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
-  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
-  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ residos48/residos48.asm libc.c '+
-  '-m -o qcsv02zx.ovl');
-
-  //residos 128k
-  execSync('zcc +zx --no-crt -lm -DRESIDOS -lp3 -pragma-define:CRT_ORG_CODE=0xc000 '+
-  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
-  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ residos128/residos128.asm libc.c '+
-  '-m -o qcsv03zx.ovl');
-
-  //esxdos 48k
-  execSync('zcc +zx --no-crt -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
-  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
-  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=fputc_cons_rom_rst -U__STDC_VERSION__ esxdos48/esxdos48.asm libc.c '+
-  '-m -o qcsv04zx.ovl');
-
-  //esxdos 128k
-  execSync('zcc +zx --no-crt -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 '+
-  '-pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 '+
-  '-pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CLIB_FOPEN_MAX=10 '+
-  '-pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 '+
-  '-pragma-redirect:fputc_cons=myfputc_cons -U__STDC_VERSION__ esxdos128/esxdos128.asm libc.c '+
-  '-m -o qcsv05zx.ovl');
-  */
+  //the rest of the build process will now be carried out by makefile
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
