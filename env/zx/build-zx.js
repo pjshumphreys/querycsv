@@ -689,7 +689,20 @@ function compileLibC() {
 
     fs.writeFileSync(name + '/pages.inc', foo);
 
-    fs.writeFileSync(name + '/defines.inc', Object.keys(defines).map(item =>
+    fs.writeFileSync(name + '/defines.inc',
+      `
+  SECTION bss_error
+  org 0x${defines['_bss_error']}
+  SECTION bss_clib
+  org 0x${defines['_bss_clib']}
+  SECTION bss_fp
+  org 0x${defines['_bss_fp']}
+  SECTION data_compiler
+  org 0x${defines['_myhand_status']}
+  SECTION code_compiler
+  org 0xc000
+`+
+      Object.keys(defines).map(item =>
 
       (/^_([^_]+)?(_head|_tail|_size)$/).test(item) ? '' : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
@@ -997,7 +1010,7 @@ function addDefines(filename, filenames, folderName, pageMode) {
       'printf "\\\n" > ../' + folderName + '/' + filename + '.inc;' +
       'printf "\\\n" > ../' + folderName + '/' + filename + '2.inc;' +
       'printf "\\\n" > ../' + folderName + '/' + filename + '.asm;' +
-      (pageMode ? 'printf "  SECTION bss_error\n  org 0x' + defines['_myerrno'] + '\n  SECTION code_compiler\n  org 0xc000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
+      (pageMode ? 'printf "  SECTION bss_error\n  org 0x' + defines['_bss_error'] + '\n  SECTION code_compiler\n  org 0xc000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
       'printf "  INCLUDE \\"z80_crt0.hdr\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
       filenames.reduce((obj, elem) => {
         obj += 'cat ' + elem + '.asm >> ../' + folderName + '/' + filename + '.asm;';

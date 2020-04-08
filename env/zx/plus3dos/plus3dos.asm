@@ -1,6 +1,3 @@
-SECTION code_compiler
-org 0xc000
-
 include "defines.inc"
 include "plus3dos.inc"
 PUBLIC fputc_cons

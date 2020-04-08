@@ -2,11 +2,19 @@
 
 #ifdef __Z88DK
   long heap;  /* used by z88dk's malloc and free functions */
-  int myerrno;  /* errno will be overlaid on top of this variable by the build script, so errno2 itself will not be used directly */
+
+  /* placeholders for various segments that need to be in non paged ram */
+  char bss_error[2];
+  char bss_clib[1];
+  char bss_fp[18];
+
+  /* variables needed by libc */
+  int myhand_status;
 
   /* variables needed by stdtod */
   double fltSmall;
   int fltInited;
+
 
   /* hash2 helper variables */
   long codepoints[18];

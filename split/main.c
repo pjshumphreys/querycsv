@@ -14,6 +14,11 @@ int main(int argc, char **argv) {
     free(temp);
   #endif
 
+  #ifdef __Z88DK
+    /* initialise variables needed by z88dk's libc */
+    myhand_status = 3;
+  #endif
+
   argc2 = argc;
   argv2 = argv;
 

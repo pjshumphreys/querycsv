@@ -1,6 +1,3 @@
-SECTION code_compiler
-org 0xc000
-
 include "defines.inc"
 include "esxdos128.inc"
 PUBLIC fputc_cons
