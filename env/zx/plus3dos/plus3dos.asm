@@ -10,8 +10,7 @@ ERR_NR equ 0x5c3a   ; BASIC system variables
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
   ld hl, page2page ; hl = source address for ldir
-  ld de, farcall2 ; de = destination address for ldir
-  ld (farcall+1), de ; update the farcall address
+  ld de, farcall ; de = destination address for ldir
   ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
 
   di

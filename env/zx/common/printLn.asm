@@ -12,6 +12,7 @@ PUBLIC destinationHighBank
 PUBLIC skip_count
 PUBLIC isr
 PUBLIC fputc_cons
+PUBLIC libcRet
 
 PUBLIC pagename
 
@@ -64,16 +65,13 @@ argName:
 defaultDrive: ; the default drive letter used by esxdos
   defb 0
 
-skip_count: ; variable used by fputc_cons_rst. Located here so the code itself can be relocatable
-  defb 0
-
-deBackup:
-  defw 0
-
 exhlBackup:
   defw 0
 
 spBackup:
+  defw 0
+
+libcRet:  ; backup of the return address when calling a libc function
   defw 0
 
 ;---------------------------------
@@ -147,11 +145,17 @@ isr: ; this must be at exactly 0xbfbf (ie 0xc000 - 0x41 or 65 bytes from the end
 ;-------------------------------------
 ; variables
 
+hlBackup:
+  defw 0
+
+deBackup:
+  defw 0
+
 bcBackup:
   defw 0
 
-hlBackup:
-  defw 0
+skip_count: ; variable used by fputc_cons_rst. Located here so the code itself can be relocatable
+  defb 0
 
 ;0x0000-0x4000 mb02 banks
 basicBank:    ; stores an identifier for the basic rom at 0x0000-0x4000
@@ -214,9 +218,6 @@ atexit:
   ;ld hl, 0
   ;call call_rom3
   defw 0xe60e  ; atexit location in page 7.
-
-farcall:
-  jp exit ; just return for now. This jump table entry will get changed later.
 
 fputc_cons:
   jp exit ; just return for now. This jump table entry will get changed later.

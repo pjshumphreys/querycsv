@@ -34,7 +34,7 @@ qcsv05zx.ovl: qcsv06zx.ovl
 	cp esxdos128/qcsv05zx.ovl .
 	dd if=build/rodata.bin of=qcsv05zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
 
-qcsv06zx.ovl: querycsv.tap libc.c lexer2.c sql2.c querycsv.c stdio.asm
+qcsv06zx.ovl: querycsv.tap libc.c lexer2.c sql2.c querycsv.c stdio.asm build-zx.js
 	node ./build-zx.js
 	cp build/obj2/*.ovl .
 

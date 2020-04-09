@@ -17,7 +17,7 @@ PUBLIC isr
 PUBLIC call_rom3
 PUBLIC jp_rom3
 
-farcall2:
+farcall:
   ; backup registers
   ld (hlBackup), hl
   ld (bcBackup), bc
@@ -46,6 +46,47 @@ farcall2:
 
   ld bc, lookupTable
   add hl, bc
+
+  push hl ; store the address of the function to call on the stack for later
+
+  ;change to the appropriate page
+  call changePage
+
+  ;restore all registers and jump to the function we want via ret
+  ld de, (deBackup)
+  ld bc, (bcBackup)
+  ld hl, (hlBackup)
+  ret
+
+farcall2:
+  ; backup registers
+  ld (hlBackup), hl
+  ld (bcBackup), bc
+  ld (deBackup), de
+
+  pop hl ; (hl) contains virtual page number to use
+  ld e, (hl)
+
+  ; backup the return address for later use
+  pop bc
+  ld (libcRet), bc
+
+  ;push the far return loader onto the stack so we'll return to it rather than the original caller
+  ld bc, farRet2
+  push bc
+
+  push af
+  ;calculate which value in the jump table to use
+  ld bc, funcstart+3
+  sbc hl, bc
+
+  ;shift right to divide by 2 (for groups of 2 rather than 4)
+  srl h
+  rr l
+
+  ld bc, lookupTable
+  add hl, bc
+  pop af
 
   push hl ; store the address of the function to call on the stack for later
 
@@ -131,12 +172,25 @@ farRet:
   ld a, b
   ld (currentVirtualPage), a
 
+farRet3:
   call changePage
 
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   ret
+
+farRet2:
+  ; backup registers
+  ld (hlBackup), hl
+  ld (bcBackup), bc
+  ld (deBackup), de
+
+  ld bc, (libcRet)
+  push bc  ; get the virtual page number to return to from the stack
+
+  ld de, (currentVirtualPage)
+  jr farRet3
 
 ;-----------------------------------------
 
