@@ -1,6 +1,6 @@
 qcsv04zx.ovl: esxdos48.asm pager.bin
 	(cat pager.inc page2page.inc | sort | uniq | grep -v -E '__head|__tail|__size') > esxdos48.inc
-	zcc +zx --no-crt -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -U__STDC_VERSION__ esxdos48.asm ../libc.c -m -o qcsv04zx.ovl
+	zcc +zx -m --no-crt -lm -lesxdos -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -U__STDC_VERSION__ esxdos48.asm ../libc.c -m -o qcsv04zx.ovl
 	mv qcsv04zx_code_compiler.bin qcsv04zx.ovl
 	dd if=/dev/zero bs=1 count=`ls -nl qcsv04zx.ovl | awk '{print 16384 - $$5}'` >> qcsv04zx.ovl
 

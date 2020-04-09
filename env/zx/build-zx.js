@@ -35,7 +35,7 @@ const functionsList = [
   ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
   ['exit', 3, 0x0001, 0x0001, 'farcall2'],
   ['mallinit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['sbrk', 3, 0x0001, 0x0001, 'farcall2'],
+  ['sbrk_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['malloc', 3, 0x0001, 0x0001, 'farcall2'],
   ['free', 3, 0x0001, 0x0001, 'farcall2'],
   ['realloc_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -665,11 +665,6 @@ function compilePages (pages) {
 
   execSync('rm build/obj2/*.bin');
 
-  functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
-
-  // console.log(JSON.stringify(hashMap, null, 2));
-  // console.log(JSON.stringify(functionsList, null, 2));
-
   compileLibC();
 }
 
@@ -684,8 +679,12 @@ function compileLibC () {
 
   // build the asm includes
   ['plus3dos', 'residos48', 'residos128', 'esxdos48', 'esxdos128'].forEach((name, index) => {
+    execSync('make clean', {
+      cwd: path.join(__dirname, name)
+    });
+
     fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
-      // item[1] === 3 ? '  EXTERN ' + item[0] + '\n  defw ' + item[0] :
+       (item[1] === 3 ? '  GLOBAL ' + item[0] + '\n' : '')+
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
@@ -714,6 +713,41 @@ function compileLibC () {
     );
 
     execSync('cp build/data.bin ' + name + '/');
+
+    execSync('make', {
+      cwd: path.join(__dirname, name)
+    });
+
+    fs
+      .readFileSync(path.join(__dirname, name, 'qcsv0'+(index+1)+'zx.map'), 'utf8')
+      .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
+        const four = two.replace(/^_/, '');
+
+        if(hasProp(hashMap, four)) {
+          console.log(four);
+          functionsList[hashMap[four]][3] = parseInt(three, 16);
+        }
+        else if (four === 'zx_memset') {
+          functionsList[hashMap['memset_callee']][3] = parseInt(three, 16);
+        }
+        else if (four === 'zx_memcpy') {
+          functionsList[hashMap['memcpy_callee']][3] = parseInt(three, 16);
+        }
+      });
+
+    //functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
+    //console.log(JSON.stringify(hashMap, null, 2));
+    //console.log(JSON.stringify(functionsList, null, 2));
+    //process.exit(0);
+
+    fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
+       (item[1] === 3 ? '  GLOBAL ' + item[0] + '\n' : '')+
+      '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
+    ).join('\n'));
+
+    execSync('rm qcsv0'+(index+1)+'zx.ovl', {
+      cwd: path.join(__dirname, name)
+    });
   });
 
   // the rest of the build process will now be carried out by makefile

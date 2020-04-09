@@ -1,6 +1,10 @@
 /* fake program to get the necessary libc functions into 1 memory page */
 #include "querycsv.h"
 
+/* duplicates of memcpy and memset that just call the originals as z88dk will inline them otherwise */
+void * zx_memcpy(void * destination, const void * source, size_t num) __z88dk_callee;
+void * zx_memset(void * ptr,int value, size_t num) __z88dk_callee;
+
 const double fltMinusOne = -1.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
@@ -265,6 +269,13 @@ int main(int argc, char* argv[]) {
 }
 */
 
+void * zx_memcpy(void * destination, const void * source, size_t num) __z88dk_callee {
+  return memcpy(destination, source, num);
+}
+
+void * zx_memset(void * ptr, int value, size_t num) __z88dk_callee {
+  return memset(ptr, value, num);
+}
 
 void b(char * string, unsigned char * format, ...) {
   va_list args;
@@ -281,23 +292,26 @@ void b(char * string, unsigned char * format, ...) {
   string = calloc(1, 3);
   string = realloc(string, 5);
   strcpy(string, origWd);
+  strncpy(string, origWd,3 );
   fgets(string, 1, stdin);
   num = strcmp(origWd, string);
   num = stricmp(origWd, string);
   num = strncmp(origWd, string, 3);
+  num = strnicmp(origWd, string, 3);
   num = strlen(string);
   string = strstr(string, origWd);
 
-  memset(string, 0, 4);
+  zx_memset(string, 0, 4);
   strcat(string, origWd);
   strncat(string, origWd, 3);
-  memcpy(string+1, string, 2);
+  zx_memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
   fprintf(test, origWd, 1);
   fputs(origWd, test);
 
   test = fopen(origWd, "rb");
+  fseek(test, 9, SEEK_SET);
   clearerr(test);
   num = fclose(test);
   fread(string, 2, 2, stdin);
