@@ -35,4 +35,4 @@ defines.inc:
 	cp ../common/defines.txt defines.inc
 
 clean:
-	rm -f *.inc *.o *.map *.bin qcsv01zx.ovl
+	rm -f *.inc *.o *.map *.bin zcc_opt.def qcsv01zx.ovl

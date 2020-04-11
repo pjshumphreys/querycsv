@@ -45,4 +45,4 @@ clean:
 	cd residos128 && make clean
 	cd esxdos48 && make clean
 	cd esxdos128 && make clean
-	rm -rf build querycsv.tap *.ovl
+	rm -rf build zcc_opt.def querycsv.tap *.ovl
