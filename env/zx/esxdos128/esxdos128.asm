@@ -282,9 +282,9 @@ startup:
 
   ;start running main function
   ;push atexit ; return to the atexit function
-  ;ld a, 6
-  ;ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ;jp _main2
+  ld a, 5
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  call _realmain
 
   jp atexit
 

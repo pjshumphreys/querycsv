@@ -689,6 +689,7 @@ function compileLibC () {
     ).join('\n'));
 
     fs.writeFileSync(name + '/functions.inc', functionsList.map(item =>
+      (item[0] === 'main' ? '  PUBLIC _realmain\n_realmain:\n' : '') +
       '  call ' + item[4] + '\n  defb ' + (item[1] === 3 ? index + 1 : item[1])
     ).join('\n'));
 
