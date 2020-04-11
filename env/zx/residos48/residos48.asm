@@ -203,6 +203,7 @@ startup:
   ;push atexit ; return to the atexit function
   ld a, 2
   ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
   call _realmain
 
   jp atexit

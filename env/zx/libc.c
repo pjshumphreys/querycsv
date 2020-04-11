@@ -292,7 +292,7 @@ void b(char * string, unsigned char * format, ...) {
   string = calloc(1, 3);
   string = realloc(string, 5);
   strcpy(string, origWd);
-  strncpy(string, origWd,3 );
+  strncpy(string, origWd, 3);
   fgets(string, 1, stdin);
   num = strcmp(origWd, string);
   num = stricmp(origWd, string);

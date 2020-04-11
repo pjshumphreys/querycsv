@@ -725,7 +725,7 @@ function compileLibC () {
         const four = two.replace(/^_/, '');
 
         if(hasProp(hashMap, four)) {
-          console.log(four);
+          //console.log(four);
           functionsList[hashMap[four]][3] = parseInt(three, 16);
         }
         else if (four === 'zx_memset') {

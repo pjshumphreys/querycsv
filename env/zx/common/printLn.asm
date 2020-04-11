@@ -71,8 +71,8 @@ exhlBackup:
 spBackup:
   defw 0
 
-libcRet:  ; backup of the return address when calling a libc function
-  defw 0
+skip_count: ; variable used by fputc_cons_rst. Located here so the code itself can be relocatable
+  defb 0
 
 ;---------------------------------
 ; call_rom3
@@ -154,9 +154,6 @@ deBackup:
 bcBackup:
   defw 0
 
-skip_count: ; variable used by fputc_cons_rst. Located here so the code itself can be relocatable
-  defb 0
-
 ;0x0000-0x4000 mb02 banks
 basicBank:    ; stores an identifier for the basic rom at 0x0000-0x4000
   defb 0
@@ -178,6 +175,9 @@ loadVirtualPage: ; which virtual page to load into 0xc000-0xffff
 
 currentVirtualPage: ; which virtual page currently is loaded into the memory at 0xc000-0xffff
   defb 0
+
+libcRet:  ; backup of the return address when calling a libc function
+  defw 0
 
 ;-------------------------------------
 ;printLn

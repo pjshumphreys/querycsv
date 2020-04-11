@@ -15,6 +15,8 @@
   double fltSmall;
   int fltInited;
 
+  /* indicates which variant of the libc functions are in use. Filled out by the startup assembly language code */
+  char libCPage;
 
   /* hash2 helper variables */
   long codepoints[18];
