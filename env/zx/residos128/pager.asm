@@ -49,7 +49,11 @@ farcall:
   add hl, bc
   pop af
 
-  push hl ; store the address of the function to call on the stack for later
+  ld c, (hl)
+  inc hl
+  ld b, (hl)
+
+  push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
   call changePage
@@ -90,7 +94,11 @@ farcall2:
   add hl, bc
   pop af
 
-  push hl ; store the address of the function to call on the stack for later
+  ld c, (hl)
+  inc hl
+  ld b, (hl)
+
+  push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
   call changePage

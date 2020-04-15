@@ -30,6 +30,7 @@ const hashMap = {};
 let rodataSize = 0;
 
 const functionsList = [
+  ['main', 6, 0x0001, 0x0001, 'farcall'],
   ['abs', 3, 0x0001, 0x0001, 'farcall2'],
   ['atol', 3, 0x0001, 0x0001, 'farcall2'],
   ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
@@ -671,9 +672,12 @@ function compilePages (pages) {
 function compileLibC () {
   console.log('compileLibC');
 
-  let foo = ''; let i;
+  let foo = ''; let i, j;
 
-  for (i = 0; i < parseInt(functionsList[0][1], 10); i++) {
+  for (i = 0, j = functionsList.reduce((acc,curr) => {
+    const a = parseInt(curr[1], 10);
+    return a > acc ? a : acc;
+  }, 0);  i < j; i++) {
     foo += 'defb 0b11111111 ; ' + (i + 1) + '\n';
   }
 
@@ -724,7 +728,7 @@ function compileLibC () {
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         const four = two.replace(/^_/, '');
 
-        if(hasProp(hashMap, four)) {
+        if(hasProp(hashMap, four) && functionsList[hashMap[four]][3] == 1) {
           //console.log(four);
           functionsList[hashMap[four]][3] = parseInt(three, 16);
         }
@@ -834,9 +838,10 @@ function splitUpFunctions (filename, callback, append) {
         );
 
         /* add an entry for each into the mapping table */
-        if (name !== '_compareCodepoints') { /* compareCodepoints is a bsearch callback that
+        if (name !== '_compareCodepoints' && name !== 'main') { /* compareCodepoints is a bsearch callback that
           needs to be in the same page as the function that called bsearch. it doesn't need
-          to be in the jump table */
+          to be in the jump table. We want the main function to be this first item in the jump table to
+          simplify debugging */
           hashMap[name] = functionsList.length;
           functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
           currentAddr -= 4;
