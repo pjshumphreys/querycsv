@@ -200,7 +200,9 @@ found:
   inc hl
   ld (hl), e
 found4:
-  ld e, 0
+  ld a, (bankm)
+  and 0b11111000
+  or d
   call switchPage
   di
   ret
