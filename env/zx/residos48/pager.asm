@@ -177,7 +177,7 @@ farRet:
 
   ld de, (currentVirtualPage)
 
-  ld a, b
+  ld a, c
   ld (currentVirtualPage), a
 
 farRet3:

@@ -228,7 +228,7 @@ farRet:
   pop bc  ; get the virtual page number to return to from the stack
 
   push af
-  ld a, b
+  ld a, c
   ld (currentVirtualPage), a
   pop af
 

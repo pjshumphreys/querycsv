@@ -650,7 +650,7 @@ function compilePages (pages) {
         }
       });
 
-    if (fs.statSync('build/obj2/page' + (index + 6) + '_code_compiler.bin').size > (16384 - rodataSize)) {
+    if (fs.statSync('build/obj2/page' + (index + 6) + '_code_compiler.bin').size > (16383 - rodataSize)) {
       console.log('page ' + (index + 6) + ' is too big');
       process.exit(-1);
     }
@@ -661,7 +661,7 @@ function compilePages (pages) {
     (('00' + (index + 6)).substr(-2)) + 'zx.ovl conv=notrunc');
 
     execSync('dd if=build/rodata.bin of=build/obj2/qcsv' +
-    (('00' + (index + 6)).substr(-2)) + 'zx.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+    (('00' + (index + 6)).substr(-2)) + 'zx.ovl bs=1 seek=' + (16383 - rodataSize) + ' conv=notrunc');
   });
 
   execSync('rm build/obj2/*.bin');

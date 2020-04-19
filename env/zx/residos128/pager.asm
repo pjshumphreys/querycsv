@@ -153,33 +153,6 @@ changePage:  ; is the virtual page currently in a ram page?
   ld a, (currentVirtualPage)
   ld e, a
 
-found7:
-  ld bc, 6
-  ld hl, pageQueue+7
-  ld a, (hl)
-  cp e
-  jr z, found
-  dec hl
-  dec hl
-  dec bc
-  dec bc
-  ld a, (hl)
-  cp e
-  jr z, found
-  dec hl
-  dec hl
-  dec bc
-  dec bc
-  ld a, (hl)
-  cp e
-  jr z, found
-  dec hl
-  dec hl
-  ld a, (hl)
-  cp e
-  jr z, found4
-  ; jr notFound
-
 notFound:
   ; if no, look up if the page is stored in rom overlay ram.
   ld hl, pageLocations
@@ -221,6 +194,33 @@ found4:
   call switchPage
   di
   ret
+
+found7:
+  ld bc, 6
+  ld hl, pageQueue+7
+  ld a, (hl)
+  cp e
+  jr z, found
+  dec hl
+  dec hl
+  dec bc
+  dec bc
+  ld a, (hl)
+  cp e
+  jr z, found
+  dec hl
+  dec hl
+  dec bc
+  dec bc
+  ld a, (hl)
+  cp e
+  jr z, found
+  dec hl
+  dec hl
+  ld a, (hl)
+  cp e
+  jr z, found4
+  jr notFound
 
 copyLoToHi:
   ;if it is in overlay ram, disable interupts, switch in the proper overlay ram and the least recently used page, copy the data, make it the most recently used, switch to it then jump to the proper location.
@@ -269,7 +269,7 @@ farRet:
   pop bc  ; get the virtual page number to return to from the stack
 
   push af
-  ld a, b
+  ld a, c
   ld (currentVirtualPage), a
   pop af
 

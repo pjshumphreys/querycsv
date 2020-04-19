@@ -1,4 +1,4 @@
-ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16384 - \$$5}'")
+ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16383 - \$$5}'")
 
 all: querycsv.tap qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl
 
