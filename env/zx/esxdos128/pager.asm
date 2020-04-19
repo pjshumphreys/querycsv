@@ -99,7 +99,7 @@ farcall2:
   push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
-  call changePage
+  call found7
 
   ;restore all registers and jump to the function we want via ret
   ld de, (deBackup)
@@ -196,6 +196,8 @@ found7:
   jr z, found
   dec hl
   dec hl
+  ld a, (pageQueue)
+  ld d, a
   ld a, (hl)
   cp e
   jr z, found4
@@ -209,9 +211,16 @@ notFound:
   ld a, (hl)
   cp 255  ; 255 = load from disk
   jr nz, copyLoToHi
+  ld a, (pageQueue+6)
+  ld (destinationHighBank), a
+  ld a, e
+  push de
   call dosload
-  jr found
-
+  pop de
+  ;update pageQueue to reference our newly loaded page
+  ld a, e
+  ld (pageQueue+7), a
+  jr found7
 
 copyLoToHi:
   ;if it is in overlay ram, disable interupts, switch in the proper overlay ram and the least recently used page, copy the data, make it the most recently used, switch to it then jump to the proper location.
@@ -292,7 +301,6 @@ farRet2:
   ld bc, (libcRet)
   push bc  ; get the virtual page number to return to from the stack
 
-  ld de, (currentVirtualPage)
   jr farRet3
 
 ;-----------------------------------------

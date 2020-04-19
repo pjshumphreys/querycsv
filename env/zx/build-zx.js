@@ -30,7 +30,7 @@ const hashMap = {};
 let rodataSize = 0;
 
 const functionsList = [
-  ['main', 6, 0x0001, 0x0001, 'farcall'],
+  ['main', 6, 0x0001, 0xC000, 'farcall'],
   ['abs', 3, 0x0001, 0x0001, 'farcall2'],
   ['atol', 3, 0x0001, 0x0001, 'farcall2'],
   ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
@@ -168,12 +168,12 @@ function compileLexer () {
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
       '../../makeheaders -h build/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/lexer3.h'
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm'
   );
 
@@ -208,12 +208,12 @@ function compileParser () {
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
       '../../makeheaders -h build/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/sql3.h'
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
   );
 
@@ -224,7 +224,7 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
   );
 
@@ -235,7 +235,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm'
   );
 
@@ -246,7 +246,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm'
   );
 
@@ -276,7 +276,7 @@ function compileHash4a () {
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm'
   );
 
@@ -306,7 +306,7 @@ function compileHash4b () {
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm'
   );
 
@@ -336,7 +336,7 @@ function compileHash4c () {
   );
 
   execSync(
-    'zcc +zx -Cc-base=6 -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
+    'zcc +zx --c-code-in-asm -Cc-base=6 -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
     'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm'
   );
 
@@ -687,12 +687,12 @@ function compileLibC () {
       cwd: path.join(__dirname, name)
     });
 
-    fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
+    fs.writeFileSync(name + '/lookupTable.inc', functionsList.slice().reverse().map(item =>
        (item[1] === 3 ? '  GLOBAL ' + item[0] + '\n' : '')+
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
-    fs.writeFileSync(name + '/functions.inc', functionsList.map(item =>
+    fs.writeFileSync(name + '/functions.inc', functionsList.slice().reverse().map(item =>
       (item[0] === 'main' ? '  PUBLIC _realmain\n_realmain:\n' : '') +
       '  call ' + item[4] + '\n  defb ' + (item[1] === 3 ? index + 1 : item[1])
     ).join('\n'));
@@ -728,7 +728,10 @@ function compileLibC () {
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         const four = two.replace(/^_/, '');
 
-        if(hasProp(hashMap, four) && functionsList[hashMap[four]][3] == 1) {
+        if(four === 'main') {
+          /* do nothing */
+        }
+        else if(hasProp(hashMap, four)) {
           //console.log(four);
           functionsList[hashMap[four]][3] = parseInt(three, 16);
         }
@@ -745,7 +748,7 @@ function compileLibC () {
     //console.log(JSON.stringify(functionsList, null, 2));
     //process.exit(0);
 
-    fs.writeFileSync(name + '/lookupTable.inc', functionsList.map(item =>
+    fs.writeFileSync(name + '/lookupTable.inc', functionsList.slice().reverse().map(item =>
        (item[1] === 3 ? '  GLOBAL ' + item[0] + '\n' : '')+
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
@@ -1033,7 +1036,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
     try {
       execSync(
         'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' -pragma-define:CRT_ORG_DATA=0 -lm -lndos -U__STDC_VERSION__' +
+          ' --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {
           cwd: path.join(__dirname, 'build', 's')

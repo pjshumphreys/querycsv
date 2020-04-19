@@ -22,6 +22,24 @@
   long codepoints[18];
 
   struct hash2Entry entry = {0x0000, 1, &codepoints};
+
+  const int main_origins[6] = {
+    0,
+    16384,  /* plus3dos */
+    0,      /* residos48 */
+    0,      /* residos128 */
+    8192,   /* esxdos48 */
+    8192    /* esxdos128 */
+  };
+
+  const int main_sizes[6] = {
+    0,
+    6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
+    16384,
+    23295,  /* 16384 + 6911 */
+    8192,
+    15103 /* 8192 + 6911 */
+  };
 #else
   /* hash2 helper variables */
   long codepoints[18];

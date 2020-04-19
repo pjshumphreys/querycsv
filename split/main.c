@@ -15,24 +15,6 @@ int main(int argc, char **argv) {
   #endif
 
   #ifdef __Z88DK
-    const int origins[6] = {
-      0,
-      16384,  /* plus3dos */
-      0,      /* residos48 */
-      0,      /* residos128 */
-      8192,   /* esxdos48 */
-      8192    /* esxdos128 */
-    };
-
-    const int sizes[6] = {
-      0,
-      6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
-      16384,
-      23295,  /* 16384 + 6911 */
-      8192,
-      15103 /* 8192 + 6911 */
-    };
-
     int start;
 
     /* initialise variables needed by z88dk's libc */
@@ -40,7 +22,7 @@ int main(int argc, char **argv) {
 
     /* initialise the heap so malloc and free will work */
     mallinit();
-    sbrk(origins[libCPage], sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
+    sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
 
     if(argv[1] != NULL) {
       start = (int)(argv[1]) + strlen(argv[1]) + 10;
