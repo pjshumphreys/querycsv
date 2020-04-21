@@ -33,6 +33,8 @@ farcall:
   ld bc, farRet
   push bc
 
+  push af
+  or a ; clear carry bit
   ld a, (hl)
   ld (currentVirtualPage), a
 
@@ -46,6 +48,7 @@ farcall:
 
   ld bc, lookupTable
   add hl, bc
+  pop af
 
   ld c, (hl)
   inc hl
@@ -80,6 +83,7 @@ farcall2:
   push bc
 
   push af
+  or a ; clear carry bit
   ;calculate which value in the jump table to use
   ld bc, funcstart+3
   sbc hl, bc

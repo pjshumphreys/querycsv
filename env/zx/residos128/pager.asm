@@ -34,6 +34,7 @@ farcall:
   push bc
 
   push af
+  or a ; clear carry bit
   ld a, (hl)
   ld (currentVirtualPage), a
 
@@ -82,6 +83,7 @@ farcall2:
   push bc
 
   push af
+  or a ; clear carry bit
   ;calculate which value in the jump table to use
   ld bc, funcstart+3
   sbc hl, bc

@@ -265,20 +265,20 @@ startup:
   pop de
   pop bc
 
-  ld bc, 0x0707
-  push bc
-  call fputc_cons
-  pop bc
+  ;ld bc, 0x0707
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
-  ld bc, 0x4141
-  push bc
-  call fputc_cons
-  pop bc
+  ;ld bc, 0x4141
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
-  ld bc, 0x4242
-  push bc
-  call fputc_cons
-  pop bc
+  ;ld bc, 0x4242
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
   ;start running main function
   ;push atexit ; return to the atexit function
