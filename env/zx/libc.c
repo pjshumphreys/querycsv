@@ -1,10 +1,6 @@
 /* fake program to get the necessary libc functions into 1 memory page */
 #include "querycsv.h"
 
-/* duplicates of memcpy and memset that just call the originals as z88dk will inline them otherwise */
-void * zx_memcpy(void * destination, const void * source, size_t num) __z88dk_callee;
-void * zx_memset(void * ptr,int value, size_t num) __z88dk_callee;
-
 const double fltMinusOne = -1.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
@@ -269,14 +265,6 @@ int main(int argc, char* argv[]) {
 }
 */
 
-void * zx_memcpy(void * destination, const void * source, size_t num) __z88dk_callee {
-  return memcpy(destination, source, num);
-}
-
-void * zx_memset(void * ptr, int value, size_t num) __z88dk_callee {
-  return memset(ptr, value, num);
-}
-
 void b(char * string, unsigned char * format, ...) {
   va_list args;
   va_list args2;
@@ -301,10 +289,10 @@ void b(char * string, unsigned char * format, ...) {
   num = strlen(string);
   string = strstr(string, origWd);
 
-  zx_memset(string, 0, 4);
+  memset(string, 0, 4);
   strcat(string, origWd);
   strncat(string, origWd, 3);
-  zx_memcpy(string+1, string, 2);
+  memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
   fprintf(test, origWd, 1);

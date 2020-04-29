@@ -32,9 +32,17 @@ farcall:
   push bc
 
   push af
+  ;ld a, (bankm)
+  ;push af
+  ;and 0b11111000
+  ;or 7
+  ;call switchPage
+  ;di
   or a ; clear carry bit
-  ld a, (hl)
-  ld (currentVirtualPage), a
+  ld c, (hl)
+  ld b, 0
+  ld (currentVirtualPage), bc
+  call serialLnBC
 
   ;calculate which value in the jump table to use
   ld bc, funcstart+3
@@ -46,22 +54,102 @@ farcall:
 
   ld bc, lookupTable
   add hl, bc
-  pop af
+  ;ld (0xd6ff), a
+  ;ld a,h
+  ;ld (0xd6fe), a
+  ;ld a,l
+  ;ld (0xd6fc), a
+  ;pop af
+  ;call switchPage
+  ;di
 
   ld c, (hl)
   inc hl
   ld b, (hl)
+  call serialLnBC
+  pop af
 
   push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
+  push af
   call changePage
+  pop af
 
   ;restore all registers and jump to the function we want via ret
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   ret
+
+serialLnBC:
+  push af
+  push hl
+  push bc
+  push de
+  ld hl, bc
+  ld de, numstr
+  ; Get the number in hl as text in de
+  ld bc, -10000
+  call one
+  ld bc, -1000
+  call one
+  ld bc, -100
+  call one
+  ld bc, -10
+  call one
+  ld c, -1
+  call one
+  ld de, numstr
+  jp loop5
+
+serialLn:
+  push af
+  push hl
+  push bc
+  push de
+loop5:
+  di
+  push ix
+  push de
+  pop ix
+  ld bc, 0
+loop6:
+  ld a, (de)
+  or a
+  jr z, exit5
+  inc bc
+  inc de
+  jr loop6
+exit5:
+  push bc
+  pop de
+  ld a, 255
+  scf
+  call call_rom3
+  defw 0x04c6
+  pop ix
+  ei
+  pop de
+  pop bc
+  pop hl
+  pop af
+  ret
+
+one:
+    ld a, $2f
+
+two:
+    inc a
+    add hl, bc
+    jr c, two
+    sbc hl, bc
+    ld (de), a
+    inc de
+    ret
+
+numstr:
+  defb $30, $30, $30, $30, $30, $0a, $00
 
 farcall2:
   ; backup registers
@@ -71,6 +159,9 @@ farcall2:
 
   pop hl ; (hl) contains virtual page number to use
   ld e, (hl)
+  ld c, (hl)
+  ld b, 0
+  call serialLnBC
 
   ; backup the return address for later use
   pop bc
@@ -92,16 +183,19 @@ farcall2:
 
   ld bc, lookupTable
   add hl, bc
-  pop af
 
   ld c, (hl)
   inc hl
   ld b, (hl)
+  call serialLnBC
+  pop af
 
   push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
+  push af
   call found7
+  pop af
 
   ;restore all registers and jump to the function we want via ret
   ld de, (deBackup)

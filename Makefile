@@ -44,11 +44,13 @@ hash2.c: UnicodeData.txt generate_hash2.js dcompose.json hash2iT.h hash2outT.h h
 lexer.c: sql.l querycsv.h
 	flex sql.l
 	$(CC) -fpreprocessed -dD -E lexer.c > lexer2.c
-	sed "/^[#] [0-9]*/d;s/^YY_DECL$$/int yylex (YYSTYPE * yylval_param , yyscan_t yyscanner)/g;" lexer2.c > lexer.c
+	sed "/^#line/d;/^[#] [0-9]*/d;s/^YY_DECL$$/int yylex (YYSTYPE * yylval_param , yyscan_t yyscanner)/g;" lexer2.c > lexer.c
 	rm -rf lexer2.c
 
 sql.c: sql.y lexer.c
-	bison sql.y
+	bison -t sql.y
+	sed -i.bak "/^#line/d" sql.c
+	rm sql.c.bak
 
 hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h

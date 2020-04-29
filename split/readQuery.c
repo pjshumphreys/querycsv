@@ -158,16 +158,24 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
       /* parsing finished sucessfully. */
     } break;
 
-    case 1:
+    case 1: {
       /* the input script contained a syntax error. show message and exit */
-    case 2:
+      fputs(errSyntax, stderr);
+      free(queryFileName);
+    } return EXIT_FAILURE;
+
+    case 2: {
       /* the input script parsing exhausted memory storage space. show message and exit */
-    default:
+      fputs(errRam, stderr);
+      free(queryFileName);
+    } return EXIT_FAILURE;
+
+    default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
-      fputs("\n", stderr);
+      fputs(errUnknown, stderr);
       free(queryFileName);
-    return EXIT_FAILURE;
+    } return EXIT_FAILURE;
   }
 
   if(query->outputFileName == NULL) {

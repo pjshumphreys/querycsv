@@ -11,7 +11,7 @@
   /* variables needed by libc */
   int myhand_status;
 
-  /* variables needed by stdtod */
+  /* variables needed by strtod */
   double fltSmall;
   int fltInited;
 
@@ -20,6 +20,8 @@
 
   /* hash2 helper variables */
   long codepoints[18];
+
+  extern int yydebug;
 
   struct hash2Entry entry = {0x0000, 1, &codepoints};
 

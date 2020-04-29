@@ -33,6 +33,8 @@ int main(int argc, char **argv) {
   argc2 = argc;
   argv2 = argv;
 
+  yydebug = 1;
+
   #ifdef MICROSOFT
     devNull = "NUL";  /* null filename on DOS/Windows */
 
