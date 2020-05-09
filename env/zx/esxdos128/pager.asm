@@ -10,6 +10,7 @@ PUBLIC destinationHighBank
 PUBLIC dodos
 PUBLIC argv
 PUBLIC fputc_cons
+PUBLIC _logNum
 PUBLIC atexit
 PUBLIC isr
 PUBLIC call_rom3
@@ -32,17 +33,11 @@ farcall:
   push bc
 
   push af
-  ;ld a, (bankm)
-  ;push af
-  ;and 0b11111000
-  ;or 7
-  ;call switchPage
-  ;di
   or a ; clear carry bit
   ld c, (hl)
   ld b, 0
   ld (currentVirtualPage), bc
-  call serialLnBC
+  ;call serialLnBC
 
   ;calculate which value in the jump table to use
   ld bc, funcstart+3
@@ -54,19 +49,10 @@ farcall:
 
   ld bc, lookupTable
   add hl, bc
-  ;ld (0xd6ff), a
-  ;ld a,h
-  ;ld (0xd6fe), a
-  ;ld a,l
-  ;ld (0xd6fc), a
-  ;pop af
-  ;call switchPage
-  ;di
-
   ld c, (hl)
   inc hl
   ld b, (hl)
-  call serialLnBC
+  ;call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later
@@ -88,6 +74,14 @@ serialLnBC:
   push bc
   push de
   ld hl, bc
+  jr serialLn2
+
+serialLnHL:
+  push af
+  push hl
+  push bc
+  push de
+serialLn2:
   ld de, numstr
   ; Get the number in hl as text in de
   ld bc, -10000
@@ -161,7 +155,7 @@ farcall2:
   ld e, (hl)
   ld c, (hl)
   ld b, 0
-  call serialLnBC
+  ;call serialLnBC
 
   ; backup the return address for later use
   pop bc
@@ -187,7 +181,7 @@ farcall2:
   ld c, (hl)
   inc hl
   ld b, (hl)
-  call serialLnBC
+  ;call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later

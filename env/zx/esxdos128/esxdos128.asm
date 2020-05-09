@@ -1,6 +1,7 @@
 include "defines.inc"
 include "esxdos128.inc"
 PUBLIC fputc_cons
+PUBLIC _logNum
 
 VARS equ 0x5c4b
 
@@ -192,6 +193,11 @@ intSetup:
   ;update fputc_cons jump
   ld (fputc_cons), a ; put instruction into the fputc_cons location
   ld (fputc_cons+1), hl ; put jp_rom3 address here
+
+  ld a, 0xc3
+  ld (_logNum), a ; put jp instruction into the _logNum location
+  ld hl, serialLnHL
+  ld (_logNum+1), hl
 
   ;setup standard streams
   ld hl, __sgoioblk + 2

@@ -3,6 +3,7 @@ PUBLIC dodos
 PUBLIC printNoFile
 PUBLIC call_rom3
 PUBLIC switchPage
+PUBLIC _logNum
 
 PUBLIC bankmBackup
 PUBLIC basicBank
@@ -135,6 +136,10 @@ switchPage:
   pop bc
   ei ; enable interupts here so the ret statement below can quit the entire program with interupts enabled. This makes the code a few bytes smaller as well
   ret
+
+_logNum:
+  ret
+  defw 0
 
 ;------------------------------------------------
 ; isr jump vector - added just in case we need it

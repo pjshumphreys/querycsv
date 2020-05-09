@@ -12,6 +12,7 @@ PUBLIC destinationHighBank
 PUBLIC dodos
 PUBLIC argv
 PUBLIC fputc_cons
+PUBLIC _logNum
 PUBLIC atexit
 PUBLIC isr
 PUBLIC call_rom3

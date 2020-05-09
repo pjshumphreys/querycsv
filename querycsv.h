@@ -33,6 +33,8 @@
 
   #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
 as long as the function using them uses the __stdc calling convention */
+
+  void logNum(int num) __z88dk_fastcall;
 #endif
 
 #include <stdarg.h>

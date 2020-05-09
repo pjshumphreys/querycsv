@@ -1,5 +1,5 @@
 [Anjuta]
-Geometry=1366x715+0+29
+Geometry=1366x715+0+26
 
 [File Loader]
 Files=../../querycsv.c#6071
@@ -8,10 +8,10 @@ Files=../../querycsv.c#6071
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=test.qry%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
+Program arguments=test2%%%test.qry%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
 Program uri=../../querycsv%%%querycsv%%%ttyraw%%%listdir
 Run in terminal=2
-Working directories=../../../../.%%%../../../../test%%%../../.%%%.%%%.%%%test%%%.
+Working directories=../../.%%%../../../../.%%%../../../../test%%%.%%%.%%%test%%%.
 
 [Project Manager]
 Expand=posix

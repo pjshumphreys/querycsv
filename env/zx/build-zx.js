@@ -8,6 +8,8 @@
   plus3dos 128k
 
 all other pages should be sharable
+
+-O0 --c-code-in-asm
 */
 
 const childProcess = require('child_process');
@@ -34,6 +36,7 @@ const functionsList = [
   ['abs', 3, 0x0001, 0x0001, 'farcall2'],
   ['atol', 3, 0x0001, 0x0001, 'farcall2'],
   ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_logNum', 3, 0x0001, 0x0001, 'farcall2'],
   ['exit', 3, 0x0001, 0x0001, 'farcall2'],
   ['mallinit', 3, 0x0001, 0x0001, 'farcall2'],
   ['sbrk_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -169,12 +172,12 @@ function compileLexer () {
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
       '../../makeheaders -h build/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/lexer3.h'
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm'
   );
 
@@ -190,6 +193,8 @@ function compileParser () {
         'static YYSTYPE yyval_default;/g;' +
       's/YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);/' +
         'YYSTYPE yylval;/g;' +
+      's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
+      's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_ESTABLISH/g;'+
       's/char const/' +
         'char/g;' +
       's/yyssp = yyss = yyssa;/yylval = yyval_default;yyssp = yyss = yyssa;/g;' +
@@ -206,12 +211,12 @@ function compileParser () {
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
       '../../makeheaders -h build/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/sql3.h'
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
   );
 
@@ -222,7 +227,7 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
   );
 
@@ -233,7 +238,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm'
   );
 
@@ -244,7 +249,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm'
   );
 
@@ -274,7 +279,7 @@ function compileHash4a () {
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm'
   );
 
@@ -304,7 +309,7 @@ function compileHash4b () {
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm'
   );
 
@@ -334,7 +339,7 @@ function compileHash4c () {
   );
 
   execSync(
-    'zcc +zx --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
+    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
     'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm'
   );
 
@@ -359,10 +364,11 @@ function addROData () {
   execSync('z80asm -b build/rodata.asm');
 
   rodataSize = fs.statSync('build/rodata.bin').size;
-  pageSize = 16644 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
+  pageSize = /*16644*/16383 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
+  console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
-  execSync(`z80asm -b -m -r=${65535 - rodataSize} build/rodata.asm`);
+  execSync(`z80asm -b -m -r=${65536 - rodataSize} build/rodata.asm`);
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
@@ -618,6 +624,9 @@ function packPages (tree) {
     if (currentFunctions.length === 0) {
       break;
     }
+    else {
+      console.log(currentFunctions);
+    }
 
     // otherwise open a new page
     pages.push([]);
@@ -648,7 +657,7 @@ function compilePages (pages) {
         }
       });
 
-    if (fs.statSync('build/obj2/page' + (index + 6) + '_code_compiler.bin').size > (16383 - rodataSize)) {
+    if (fs.statSync('build/obj2/page' + (index + 6) + '_code_compiler.bin').size > (16384 - rodataSize)) {
       console.log('page ' + (index + 6) + ' is too big');
       process.exit(-1);
     }
@@ -659,7 +668,7 @@ function compilePages (pages) {
     (('00' + (index + 6)).substr(-2)) + 'zx.ovl conv=notrunc');
 
     execSync('dd if=build/rodata.bin of=build/obj2/qcsv' +
-    (('00' + (index + 6)).substr(-2)) + 'zx.ovl bs=1 seek=' + (16383 - rodataSize) + ' conv=notrunc');
+    (('00' + (index + 6)).substr(-2)) + 'zx.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
   });
 
   execSync('rm build/obj2/*.bin');
@@ -1031,7 +1040,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
     try {
       execSync(
         'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
+          ' -O1 -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {
           cwd: path.join(__dirname, 'build', 's')

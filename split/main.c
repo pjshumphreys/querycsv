@@ -1,3 +1,14 @@
+#ifndef __Z88DK
+void logNum(int num) {
+  FILE * pFile = fopen ("log.txt", "a");
+
+  if(pFile != NULL) {
+    fprintf(pFile, "%05d\n", num);
+    fclose (pFile);
+  }
+}
+#endif
+
 int main(int argc, char **argv) {
   int argc2;
   char ** argv2;
@@ -33,7 +44,7 @@ int main(int argc, char **argv) {
   argc2 = argc;
   argv2 = argv;
 
-  yydebug = 1;
+  /* yydebug = 1; */
 
   #ifdef MICROSOFT
     devNull = "NUL";  /* null filename on DOS/Windows */

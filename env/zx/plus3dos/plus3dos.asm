@@ -1,6 +1,7 @@
 include "defines.inc"
 include "plus3dos.inc"
 PUBLIC fputc_cons
+PUBLIC _logNum
 
 VARS equ 0x5c4b
 

@@ -48,9 +48,9 @@ lexer.c: sql.l querycsv.h
 	rm -rf lexer2.c
 
 sql.c: sql.y lexer.c
-	bison -t sql.y
-	sed -i.bak "/^#line/d" sql.c
-	rm sql.c.bak
+	bison sql.y
+#	sed -i.bak "/^#line/d" sql.c
+#	rm sql.c.bak
 
 hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h
