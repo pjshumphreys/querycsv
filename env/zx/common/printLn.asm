@@ -27,24 +27,35 @@ PUBLIC port1
 PUBLIC bankm
 PUBLIC ERR_NR
 PUBLIC SCR_CT
+PUBLIC RST_HOOK
 
 ;-------------------------------------
 ;printNoFile
 
 printNoFile:
+  ld a, (currentVirtualPage)
+  or a  ;cp 0
+  jr nz, printNoFile2
+  ld a, 0xff
+  ld (currentVirtualPage), a
+  ret
+
+printNoFile2:
   ld a, 0x0a
   ld (pagename+12), a
   ld de, noopen
   call printLn
+  xor a
+  ld (pagename+12), a
 
-  ; quit with Invalid I/O device error
-  ld hl, invalidFile
-  jp atexit
+  ld a, (basicBank)
+  call mypager
 
-invalidFile:
-  ; trigger an 'invalid file name' error
-  rst RST_HOOK
-  defb 0x0e ; invalid file name
+  ; quit with Invalid filename error
+  ld hl, 0x0f ; invalid file name
+  call atexit
+  rst 8
+  defb 0x0e
 
 noopen:
   defb "Couldn't open "
@@ -65,6 +76,9 @@ argName:
 
 defaultDrive: ; the default drive letter used by esxdos
   defb 0
+
+bcBackup:
+  defw 0
 
 exhlBackup:
   defw 0
@@ -156,9 +170,6 @@ hlBackup:
 deBackup:
   defw 0
 
-bcBackup:
-  defw 0
-
 ;0x0000-0x4000 mb02 banks
 basicBank:    ; stores an identifier for the basic rom at 0x0000-0x4000
   defb 0
@@ -188,18 +199,22 @@ skip_count: ; variable used by fputc_cons_rst. Located here so the code itself c
 ;printLn
 
 printLn:
+  push de
   ld a, 2  ; upper screen
   call call_rom3
   defw 0x1601  ; open channel
+  pop de
 loop:
   ld a, (de)
   or a
   jr z, exit
   ld b, a
-  ;ld c, a
+  ld c, a
+  push de
   push bc
   call fputc_cons
   pop bc
+  pop de
   inc de
   jr loop
 exit:
@@ -218,10 +233,8 @@ dodos:
   jp exit ; just return for now. This jump table entry will get changed later.
 
 atexit:
-  jp exit ; just return for now. This jump table entry will get changed later.
-  ld hl, 0 ; making space for later
-  ;ld hl, 0
-  ;call call_rom3
+  ret ; just return for now. This jump table entry will get changed later.
+  defw jp_rom3
   defw 0xe60e  ; atexit location in page 7.
 
 fputc_cons:

@@ -374,9 +374,9 @@ farRet:
   push af
   ld a, c
   ld (currentVirtualPage), a
-  pop af
 
 farRet3:
+  pop af
   call changePage
 
   ld de, (deBackup)
@@ -393,6 +393,9 @@ farRet2:
   ld bc, (libcRet)
   push bc  ; get the virtual page number to return to from the stack
 
+  push af
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff
   jr farRet3
 
 ;-----------------------------------------

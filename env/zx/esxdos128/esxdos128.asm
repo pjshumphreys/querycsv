@@ -89,115 +89,27 @@ inf:
   ld a, 1
   ld (destinationHighBank), a  ; which high bank to go to (bank 1)
 
-  ; setup the residos pager (already copied into place)
-  ld de, mypager2 ; location for paging routine
-  ld (mypager+1), de  ; update the jump table record
-
-  ;test to see if 128k of divmmc is available. Copy commonly used pages to it if it is
-  di
-  ld c, DIVMMC
-  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
-  out (c), a
-  ld a, (0x2000)
-  ld b, a
-  ld a, 10000101b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
-  out (c), a
-  ld a, (0x2000)
-  inc a
-  ld (0x2000), a
-  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
-  out (c), a
-  ld a, (0x2000)
-  xor b   ; iff is different then only 32k available
-  jr z, has128k
-
-  ; only 32k available
-  ld a, b  ;put back the original value
-  ld (0x2000), a
-  xor a ; ld a, 0 ; put back regular speccy layout
-  ;ld (basicBank), a  ; not needed as the values here will already be 0
-  ;ld (defaultBank), a
-  out (c), a
-  ei  
-  jr startup3
-
-has128k:
-  xor a ; ld a, 0 ; put back regular speccy layout
-  out (c), a
-  ;ld (basicBank), a  ; not needed as the values here will already be 0
-  ld a, 10000101b
-  ld (defaultBank), a
-  ei
-
-  ; pre load the low bank numbers into the virtual pages table
-  ld hl, pageLocations+6
-  push hl
-  ld a, 10000110b
-  ld (hl), a
-  add a, 2
-  inc hl
-  ld (hl), a
-  add a, 2
-  inc hl
-  ld (hl), a
-  add a, 2
-  inc hl
-  ld (hl), a
-  add a, 2
-  inc hl
-  ld (hl), a
-  pop hl
-  ld de, 0x0006  ; start at page 6
-
-  ; Copy the first 5 virtual pages into low banks
-  call loadFromDisk2
-
-startup3:
-  ld a, (defaultBank)
-  call mypager  ; switch it in to $0000-$3fff
-
-failed:
-  ; restore the interrupt mode 2 bytes
-  ld b, 255
-  ld hl, 0xbd00
-intSetup:
-  ld (hl), 0xbf
-  inc hl
-  djnz intSetup
-
-  ld (hl), 0xbf ; unroll the last 2 loop iterations
-  inc hl
-  ld (hl), 0xbf
-
-  ;update the isr jump
-  ld hl, isr2
-  ld (isr+1), hl
-
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
-  di
-  ld a, 0xbd
-  ld i, a
-  im 2  ; Set Interrupt Mode 2
-  ei
+  ld a, 5
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
 
   ; update atexit jump
-  ld hl, 0x0021 ; ld hl, $00...
-  ld (atexit), hl
-  ld hl, 0xcd00 ; ...00; call
-  ld a, h
-  ld (atexit+2), hl
-  ld hl, jp_rom3
-  ld (atexit+4), hl
+  ld a, 0xcd  ; call instruction
+  ld (atexit), a ; put instruction into the fputc_cons location
 
   ;update fputc_cons jump
   ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ld hl, jp_rom3
   ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ld a, 0xc3
   ld (_logNum), a ; put jp instruction into the _logNum location
   ld hl, serialLnHL
   ld (_logNum+1), hl
+
+  ; setup the residos pager (already copied into place)
+  ld de, mypager2 ; location for paging routine
+  ld (mypager+1), de  ; update the jump table record
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -271,6 +183,93 @@ startup:
   pop de
   pop bc
 
+  ;test to see if 128k of divmmc is available. Copy commonly used pages to it if it is
+  di
+  ld c, DIVMMC
+  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  out (c), a
+  ld a, (0x2000)
+  ld b, a
+  ld a, 10000101b ; eprom 0 0-0x2000, divmmc ram 4? 0x2000-0x4000
+  out (c), a
+  ld a, (0x2000)
+  inc a
+  ld (0x2000), a
+  ld a, 10000001b ; eprom 0 0-0x2000, divmmc ram 0 0x2000-0x4000
+  out (c), a
+  ld a, (0x2000)
+  xor b   ; iff is different then only 32k available
+  jr z, has128k
+
+  ; only 32k available
+  ld a, b  ;put back the original value
+  ld (0x2000), a
+  xor a ; ld a, 0 ; put back regular speccy layout
+  ;ld (basicBank), a  ; not needed as the values here will already be 0
+  ;ld (defaultBank), a
+  out (c), a
+  ei
+  jr startup3
+
+has128k:
+  xor a ; ld a, 0 ; put back regular speccy layout
+  out (c), a
+  ;ld (basicBank), a  ; not needed as the values here will already be 0
+  ld a, 10000101b
+  ld (defaultBank), a
+  ei
+
+  ; pre load the low bank numbers into the virtual pages table
+  ld hl, pageLocations+6
+  push hl
+  ld a, 10000110b
+  ld (hl), a
+  add a, 2
+  inc hl
+  ld (hl), a
+  add a, 2
+  inc hl
+  ld (hl), a
+  add a, 2
+  inc hl
+  ld (hl), a
+  add a, 2
+  inc hl
+  ld (hl), a
+  pop hl
+  ld de, 0x0006  ; start at page 6
+
+  ; Copy the first 5 virtual pages into low banks
+  call loadFromDisk2
+
+startup3:
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff
+
+  ; restore the interrupt mode 2 bytes
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbf
+  inc hl
+  djnz intSetup
+
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
+
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
+
   ;ld bc, 0x0707
   ;push bc
   ;call fputc_cons
@@ -287,10 +286,6 @@ startup:
   ;pop bc
 
   ;start running main function
-  ;push atexit ; return to the atexit function
-  ld a, 5
-  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ld (_libCPage), a
   call _realmain
 
   jp atexit
