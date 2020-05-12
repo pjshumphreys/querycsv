@@ -35,8 +35,8 @@ const functionsList = [
   ['main', 6, 0x0001, 0xC000, 'farcall'],
   ['abs', 3, 0x0001, 0x0001, 'farcall2'],
   ['atol', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_setupZX', 3, 0x0001, 0x0001, 'farcall2'],
   ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_logNum', 3, 0x0001, 0x0001, 'farcall2'],
   ['exit', 3, 0x0001, 0x0001, 'farcall2'],
   ['mallinit', 3, 0x0001, 0x0001, 'farcall2'],
   ['sbrk_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -172,12 +172,12 @@ function compileLexer () {
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
       '../../makeheaders -h build/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/lexer3.h'
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm'
   );
 
@@ -211,12 +211,12 @@ function compileParser () {
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
       '../../makeheaders -h build/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/sql3.h'
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
   );
 
@@ -227,7 +227,7 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
   );
 
@@ -238,7 +238,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm'
   );
 
@@ -249,7 +249,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm'
   );
 
@@ -279,7 +279,7 @@ function compileHash4a () {
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm'
   );
 
@@ -309,7 +309,7 @@ function compileHash4b () {
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm'
   );
 
@@ -339,7 +339,7 @@ function compileHash4c () {
   );
 
   execSync(
-    'zcc +zx -O1 -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
     'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm'
   );
 
@@ -1012,7 +1012,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
       (pageMode ? 'printf "  SECTION bss_error\n  org 0x' + defines._bss_error +
       '\n  SECTION bss_fp\n  org 0x' + defines._bss_fp +
       '\nEXTERN extra\nEXTERN fa\nEXTERN fasign\n  SECTION code_compiler\n  org 0xc000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
-      'printf "  INCLUDE \\"z80_crt0.hdr\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
+      'printf "  INCLUDE \\"z80_crt0.hdr\\"\n  INCLUDE \\"../../common/equs.inc\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
       filenames.reduce((obj, elem) => {
         obj += 'cat ' + elem + '.asm >> ../' + folderName + '/' + filename + '.asm;';
         return obj;
@@ -1027,7 +1027,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   if (pageMode) {
     execSync(
-      'sed -i "s/call\\tminusfa/call minusfa/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      'sed -i "s/call\\t\\(minusfa\\|_logNum\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
         cwd: path.join(__dirname, 'build', 's')
       }
@@ -1040,7 +1040,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
     try {
       execSync(
         'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' -O1 -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
+          ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {
           cwd: path.join(__dirname, 'build', 's')

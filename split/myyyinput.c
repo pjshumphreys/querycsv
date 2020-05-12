@@ -38,7 +38,6 @@ void myyyinput(FILE * stream, void* extra, char * buf, int *result, size_t max_s
           break;
         }
 
-        logNum(c);
         buf[n++] = (char)c;
       }
       else if(c < 0x800) {

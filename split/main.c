@@ -26,19 +26,7 @@ int main(int argc, char **argv) {
   #endif
 
   #ifdef __Z88DK
-    int start;
-
-    /* initialise variables needed by z88dk's libc */
-    myhand_status = 3;
-
-    /* initialise the heap so malloc and free will work */
-    mallinit();
-    sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
-
-    if(argv[1] != NULL) {
-      start = (int)(argv[1]) + strlen(argv[1]) + 10;
-      sbrk(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
-    }
+    setupZX(argv[1]);
   #endif
 
   argc2 = argc;
@@ -64,8 +52,9 @@ int main(int argc, char **argv) {
       /* timezone data to the date functions) */
       setlocale(LC_ALL, TDB_LOCALE);
 
-      /* store the original working directory so we can load qrycsv00.ovl properly */
-      origWd = getcwd(NULL, PATH_MAX+1);
+      /* get the original working directory to be able to */
+      /* revert it if needs to be changed during runtime */
+      origWd = getcwd(NULL, PATH_MAX + 1);
 
       #ifdef DOS_DAT
         /* open the hash2 data file on startup */

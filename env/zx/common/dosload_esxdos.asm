@@ -81,9 +81,9 @@ esxexit:
   ;ld a, handle           ; a  = file handler
   rst RST_HOOK
   defb F_CLOSE
-  pop ix
 
 esxend:
+  pop ix
   ;switch back high page
   di
   ld a, (bankmBackup)

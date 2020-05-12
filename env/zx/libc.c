@@ -265,6 +265,42 @@ int main(int argc, char* argv[]) {
 }
 */
 
+const int main_origins[6] = {
+  0,
+  16384,  /* plus3dos */
+  0,      /* residos48 */
+  0,      /* residos128 */
+  8192,   /* esxdos48 */
+  8192    /* esxdos128 */
+};
+
+const int main_sizes[6] = {
+  0,
+  6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
+  16384,
+  23295,  /* 16384 + 6911 */
+  8192,
+  15103 /* 8192 + 6911 */
+};
+
+void setupZX(char * filename) __z88dk_fastcall {
+  int start;
+
+  /* initialise variables needed by z88dk's libc */
+  myhand_status = 3;
+
+  /* initialise the heap so malloc and free will work */
+  mallinit();
+  memset(main_origins[libCPage], 0, main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
+  sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
+
+  if(filename != NULL) {
+    start = (int)(filename) + strlen(filename) + 10;
+    memset(start, 0, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
+    sbrk(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
+  }
+}
+
 void b(char * string, unsigned char * format, ...) {
   va_list args;
   va_list args2;

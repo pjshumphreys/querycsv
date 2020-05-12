@@ -35,6 +35,7 @@
 as long as the function using them uses the __stdc calling convention */
 
   void logNum(int num) __z88dk_fastcall;
+  void setupZX(char * filename) __z88dk_fastcall;
 #endif
 
 #include <stdarg.h>

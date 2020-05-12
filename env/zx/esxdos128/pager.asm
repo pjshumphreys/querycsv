@@ -306,6 +306,8 @@ notFound:
   ld a, e
   push de
   call dosload
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff
   pop de
   ;update pageQueue to reference our newly loaded page
   ld a, e
@@ -357,7 +359,7 @@ copyLoToHi:
   call mypager  ; switch it in to $0000-$3fff
   ei
 
-  jr found7
+  jp found7
 
 ;---------------------------------------------------
 
