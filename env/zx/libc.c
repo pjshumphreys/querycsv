@@ -10,6 +10,7 @@ extern long heap;
 extern char * origWd; /* The dummy functions used to pull the clib functions
   into the binary need to refer to a char *, but we don't want to declare one
   that'll never be used. Reuse one that already exists */
+int const * const stkend = 0x5c63;
 
 double pow10a(int exp) {
   int sign = 0;
@@ -295,7 +296,7 @@ void setupZX(char * filename) __z88dk_fastcall {
   sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
 
   if(filename != NULL) {
-    start = (int)(filename) + strlen(filename) + 40;
+    start = *stkend;
     memset(start, 0, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
     sbrk(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
   }

@@ -1,5 +1,5 @@
 /* write a formatted string into a string buffer. allocate/free memory as needed */
-int d_sprintf(char **str, char *format, ...) {
+int d_sprintf(char **str, char *format, ...) __stdc {
   size_t newSize;
   char *newStr = NULL;
   va_list args;
@@ -59,7 +59,7 @@ int d_sprintf(char **str, char *format, ...) {
 
   /* Create a new block of memory with the correct size rather than using realloc */
   /* as any old values could overlap with the format string. quit on failure */
-  reallocMsg((void**)&newStr, newSize+1);
+  reallocMsg((void**)&newStr, newSize + 1);
 
   /* do the string formatting for real. vsnprintf doesn't seem to be available on Lattice C */
   va_start(args, format);

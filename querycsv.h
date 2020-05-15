@@ -22,8 +22,9 @@
   #define ferror(...) 0
   #define mystrnicmp strnicmp
 
-  double strtod(const char* str, char** endptr);  /* z88dk doesn't
-  have strtod, but does have floating point support. We supply our own implementation */
+  /* make EXIT_FAILURE report a "STOP statement" error instead of "NEXT without FOR" */
+  #undef EXIT_FAILURE
+  #define EXIT_FAILURE 9
 
   /*
   z88dk doesn't have bsearch, but it does have l_bsearch.
@@ -31,11 +32,18 @@
   */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
 
-  #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
-as long as the function using them uses the __stdc calling convention */
-
   void logNum(int num) __z88dk_fastcall;
   void setupZX(char * filename) __z88dk_fastcall;
+  double strtod(const char* str, char** endptr);  /* z88dk doesn't
+  have strtod, but does have floating point support. We supply our own implementation */
+
+  #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
+  as long as the function using them uses the __stdc calling convention */
+
+  int d_sprintf(char **str, char *format, ...) __stdc; /* on z88dk, the __stdc
+  calling convention modifier is necessary to make functions that use varargs work correctly */
+#else
+  #define __stdc /* nothing */
 #endif
 
 #include <stdarg.h>

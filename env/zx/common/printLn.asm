@@ -158,7 +158,7 @@ _logNum:
 ;------------------------------------------------
 ; isr jump vector - added just in case we need it
 
-isr: ; this must be at exactly 0xbfbf (ie 0xc000 - 0x41 or 65 bytes from the end of printLn.asm)
+isr: ; must at address 0xbfbf (ie 0xc000 - 0x41 or 65 bytes from the end of printLn.asm)
   jp exit ; just return for now. This jump table entry will get changed later.
 
 ;-------------------------------------
