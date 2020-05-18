@@ -61,9 +61,17 @@ int d_sprintf(char **str, char *format, ...) __stdc {
   /* as any old values could overlap with the format string. quit on failure */
   reallocMsg((void**)&newStr, newSize + 1);
 
-  /* do the string formatting for real. vsnprintf doesn't seem to be available on Lattice C */
+  /* do the string formatting for real. */
   va_start(args, format);
-  vsprintf(newStr, format, args);
+
+  #ifdef HAS_VSNPRINTF
+    /* use vsnprintf again for preference so the z80 builds can be simplified a bit */
+    vsnprintf(newStr, newSize + 1, format, args);
+  #else
+    /* use vsprintf if we must as vsnprintf doesn't seem to be available on Lattice C */
+    vsprintf(newStr, format, args);
+  #endif
+
   va_end(args);
 
   /* ensure null termination of the string */

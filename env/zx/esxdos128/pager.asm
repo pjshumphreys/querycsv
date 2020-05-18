@@ -5,6 +5,8 @@ PUBLIC basicBank
 PUBLIC spBackup
 PUBLIC argName
 PUBLIC jumptoit
+PUBLIC mypager
+PUBLIC defaultBank
 
 PUBLIC destinationHighBank
 PUBLIC dodos
@@ -166,6 +168,9 @@ farcall2:
   push bc
 
   push af
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff
+
   or a ; clear carry bit
   ;calculate which value in the jump table to use
   ld bc, funcstart+3

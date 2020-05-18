@@ -38,12 +38,12 @@ const functionsList = [
   ['_setupZX', 3, 0x0001, 0x0001, 'farcall2'],
   ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
   ['exit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['mallinit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['sbrk_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['malloc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['free', 3, 0x0001, 0x0001, 'farcall2'],
-  ['realloc_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['calloc_callee', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_mallinit', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_sbrk', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_malloc', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_free', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_realloc', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_calloc', 3, 0x0001, 0x0001, 'farcall2'],
   ['strcmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['stricmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strncmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -57,19 +57,23 @@ const functionsList = [
   ['memcpy_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['memmove_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['memset_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fopen', 3, 0x0001, 0x0001, 'farcall2'],
+
+  /* file functions that shouldn't need a wrapper */
   ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fread', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fwrite', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fflush', 3, 0x0001, 0x0001, 'farcall2'],
   ['fseek', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fgetc', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fflush', 3, 0x0001, 0x0001, 'farcall2'],
   ['ungetc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fgets', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fputc_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fputs_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['feof', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fprintf', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fputc_callee', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fgetc', 3, 0x0001, 0x0001, 'farcall2'],
+
+  /* file functions that need wrappers */
+  ['_zx_fopen', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_fprintf', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_fputs', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_fwrite', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_zx_fread', 3, 0x0001, 0x0001, 'farcall2'],
+
   ['sprintf', 3, 0x0001, 0x0001, 'farcall2'],
   ['vsnprintf', 3, 0x0001, 0x0001, 'farcall2']
 ];
@@ -726,9 +730,13 @@ function compileLibC () {
 
     execSync('cp build/data.bin ' + name + '/');
 
-    execSync('make', {
-      cwd: path.join(__dirname, name)
-    });
+    spawnSync(
+      'make',
+      [],
+      {
+        stdio: 'inherit',
+        cwd: path.join(__dirname, name)
+      });
 
     fs
       .readFileSync(path.join(__dirname, name, 'qcsv0'+(index+1)+'zx.map'), 'utf8')

@@ -15,6 +15,52 @@
 #endif
 
 #ifdef __Z88DK
+  /* z88dk's default implementations of malloc & free waste quite a lot of
+    memory, which limits the size of scripts that can be run. Replace
+    them with our own implementations */
+  void zx_mallinit(void);
+  void zx_sbrk(void *addr, unsigned int size);
+  void *zx_malloc(unsigned int size);
+  void zx_free(void *addr);
+  void *zx_realloc(void *p, unsigned int size);
+  void *zx_calloc(unsigned int num, unsigned int size);
+
+  /* esxdos has its buffer at 0x2000 - 0x3fff, but we also want to use
+    that space for our heap. Use a buffer above 0xbfff to marshal the
+    data between the two */
+  FILE * zx_fopen(const char * filename, const char * mode);
+  int zx_fprintf(FILE *stream, char *format, ...) __stdc;
+  int zx_fputs(const char * str, FILE * stream);
+  size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream);
+  size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream);
+
+  #ifndef QCSV_NOZXMALLOC
+    #undef realloc
+    #undef calloc
+    #undef fputs
+    #define malloc zx_malloc
+    #define free zx_free
+    #define realloc zx_realloc
+    #define calloc zx_calloc
+
+    #define fopen zx_fopen
+    #define fprintf zx_fprintf
+    #define fputs zx_fputs
+    #define fwrite zx_fwrite
+    #define fread zx_fread
+  #endif
+
+  struct heapItem {
+    struct heapItem * next; /* where the next block is, 0 for no next block */
+    unsigned int size; /* how many bytes are contained in this block, not including these 5 header bytes */
+    unsigned char type; /* 0 = free, 1 = allocated */
+  };
+
+  struct heapInternal {
+    struct heapItem * first;
+    struct heapItem * nextFree;
+  };
+
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF
 

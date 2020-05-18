@@ -166,7 +166,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
-    if((newStr = (char*)malloc(newSize+1)) == NULL) {
+    if((newStr = (char*)malloc(newSize + 1)) == NULL) {
       return FALSE;
     }
 
@@ -182,7 +182,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
 
     free(newStr);
 
-    return newSize-1;
+    return newSize;
   }
 
   va_start(args, format);

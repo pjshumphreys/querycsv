@@ -8,6 +8,10 @@
   char bss_clib[1];
   char bss_fp[18];
 
+  struct heapInternal myHeap;
+  struct heapItem * current;
+  struct heapItem * next;
+
   /* variables needed by libc */
   int myhand_status;
 

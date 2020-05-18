@@ -1,5 +1,7 @@
 include "defines.inc"
 include "residos48.inc"
+PUBLIC mypager
+PUBLIC defaultBank
 PUBLIC fputc_cons
 PUBLIC _logNum
 

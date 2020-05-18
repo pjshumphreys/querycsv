@@ -1,16 +1,42 @@
 /* fake program to get the necessary libc functions into 1 memory page */
+
+#define QCSV_NOZXMALLOC
 #include "querycsv.h"
+#include <malloc.h>
 
 const double fltMinusOne = -1.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
-extern double fltSmall;
-extern int fltInited;
-extern long heap;
-extern char * origWd; /* The dummy functions used to pull the clib functions
-  into the binary need to refer to a char *, but we don't want to declare one
-  that'll never be used. Reuse one that already exists */
-int const * const stkend = 0x5c63;
+
+#define HEAP_FREE 0
+#define HEAP_ALLOCED 1
+
+const int main_origins[6] = {
+  0,
+  16384,  /* plus3dos */
+  0,      /* residos48 */
+  0,      /* residos128 */
+  8192,   /* esxdos48 */
+  8192    /* esxdos128 */
+};
+
+const int main_sizes[6] = {
+  0,
+  6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
+  16384,
+  23295,  /* 16384 + 6911 */
+  8192,
+  15103 /* 8192 + 6911 */
+};
+
+const char pageBuf[256];  /* not really a constant but a buffer that exists in high memory that's only used internally to the libc functions */
+
+extern int stkend;
+
+__asm
+  EXTERN mypager
+  EXTERN defaultBank
+__endasm;
 
 double pow10a(int exp) {
   int sign = 0;
@@ -266,23 +292,382 @@ int main(int argc, char* argv[]) {
 }
 */
 
-const int main_origins[6] = {
-  0,
-  16384,  /* plus3dos */
-  0,      /* residos48 */
-  0,      /* residos128 */
-  8192,   /* esxdos48 */
-  8192    /* esxdos128 */
-};
+void zx_mallinit(void) {
+  myHeap.nextFree = myHeap.first = NULL;
+}
 
-const int main_sizes[6] = {
-  0,
-  6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
-  16384,
-  23295,  /* 16384 + 6911 */
-  8192,
-  15103 /* 8192 + 6911 */
-};
+void zx_sbrk(void *addr, unsigned int size) {
+  if(addr == NULL || size < sizeof(struct heapItem)) {
+    return;
+  }
+
+  next = (struct heapItem *)addr;
+  next->next = NULL;
+  next->size = size - sizeof(struct heapItem);
+  next->type = HEAP_FREE;
+
+  if(myHeap.first == NULL) {
+    myHeap.nextFree = myHeap.first = next;
+    return;
+  }
+
+  current = myHeap.first;
+
+  /* Tack the new block onto the end of the linked list */
+  while(current->next != NULL) {
+    current = current->next;
+  }
+
+  current->next = next;
+}
+
+void *zx_malloc(unsigned int size) {
+  unsigned int cleanedUp;
+  unsigned int temp;
+
+  cleanedUp = FALSE;
+  temp = size + sizeof(struct heapItem);
+
+  do {
+    /* no free memory available. just quit */
+    if(myHeap.nextFree == NULL) {
+      return NULL;
+    }
+
+    /* find a suitable location the put the new data, starting at myHeap.nextFree */
+    current = myHeap.nextFree;
+
+    do {
+      if(current->type == HEAP_FREE && current->size >= temp) {
+        /* suitable location found, set up the headers then return the pointer */
+        next = (struct heapItem *)((void*)current + temp);
+        next->next = current->next;
+        next->size = current->size - temp;
+        next->type = HEAP_FREE;
+
+        current->size = size;
+        current->type = HEAP_ALLOCED;
+        current->next = next;
+
+        myHeap.nextFree = next;
+
+        return (void *)current + sizeof(struct heapItem);
+      }
+
+      current = current->next;
+    } while(current);
+
+    /* if no suitable free position was found and the heap has already been cleaned up then fail */
+    if(cleanedUp) {
+      return NULL;
+    }
+
+    myHeap.nextFree = NULL;
+    current = myHeap.first;
+
+    /* Attempt to coalesce the free blocks together then try again, but only once */
+    while(current != NULL) {
+      next = current->next;
+
+      if(current->type == HEAP_FREE) {
+        if(myHeap.nextFree == NULL) {
+          myHeap.nextFree = current;
+        }
+
+        if(
+          next && next->type == HEAP_FREE &&
+          (struct heapItem *)(((void *)current) + sizeof(struct heapItem) + current->size) == next
+        ) {
+          current->next = next->next;
+          current->size += next->size + sizeof(struct heapItem);
+          continue;
+        }
+      }
+
+      current = next;
+    }
+
+    cleanedUp = TRUE;
+  } while (1);
+}
+
+void zx_free(void *addr) {
+  if(addr != NULL) {
+    current = ((struct heapItem *)(addr - sizeof(struct heapItem)));
+    current->type = HEAP_FREE;
+
+    /* try to keep the next available free block as unfragmented as possible */
+    if(myHeap.nextFree == NULL) {
+      myHeap.nextFree = current;
+    }
+    else if(myHeap.nextFree == current->next) {
+      next = (struct heapItem *)(addr + current->size);
+
+      if(next == myHeap.nextFree) {
+        current->next = next->next;
+        current->size += next->size + sizeof(struct heapItem);
+        myHeap.nextFree = current;
+      }
+    }
+  }
+}
+
+void *zx_realloc(void *p, unsigned int size) {
+  void * newOne;
+  unsigned int tempSize;
+  unsigned int updateNextFree;
+
+  /* if realloc'ing a null pointer then just do a malloc */
+  if(p == NULL) {
+    return zx_malloc(size);
+  }
+
+  current = (struct heapItem *)(p - sizeof(struct heapItem));
+
+  next = current->next;
+
+  /* Is the existing block adjacent to a free one with enough
+    total space? if so then just resize it and return the existing block */
+  if(
+    next != NULL &&
+    next->type == HEAP_FREE &&
+    (struct heapItem *)(((void *)current) + sizeof(struct heapItem) + current->size) == next
+  ) {
+     /* get the total amount of memory available in this interval */
+    tempSize = current->size + next->size;
+
+    if(tempSize >= size) {
+      tempSize -= size;
+
+      /* if the nextFree block is the same one as the free one we're updating, update the pointer as well */
+      updateNextFree = (next == myHeap.nextFree);
+
+      /* remove the old free block from the linked list as we'll be making a new one */
+      current->next = next->next;
+
+      /* update the current block's size to its new value */
+      current->size = size;
+
+      next = (struct heapItem *)(((void *)current) + sizeof(struct heapItem) + size);
+      next->next = current->next;
+      next->size = tempSize;
+      next->type = HEAP_FREE;
+
+      current->next = next;
+
+      if(updateNextFree) {
+        myHeap.nextFree = next;
+      }
+
+      return p;
+    }
+  }
+
+  /* attempt to allocate a new block of the necessary size, memcpy the data into it then free the old one */
+  newOne = zx_malloc(size);
+
+  /* if the malloc failed, just fail here as well */
+  if(!newOne) {
+    return NULL;
+  }
+
+  /* memcpy the data if necessary */
+  tempSize = size;
+
+  if(tempSize > current->size) {
+    tempSize = current->size;
+  }
+
+  if(tempSize) {
+    memcpy(newOne, p, tempSize);
+  }
+
+  /* free the old data */
+  current->type = HEAP_FREE;
+
+  /* return a pointer to the new data */
+  return newOne;
+}
+
+void *zx_calloc(unsigned int num, unsigned int size) {
+  size_t tot;
+  void *temp;
+
+  tot = fmul(num, size);
+  temp = zx_malloc(tot);
+
+  if(temp) {
+    memset(temp, 0, tot);
+  }
+
+  return temp;
+}
+
+/* don't bother to copy the mode parameter as for our purposes it will always be a static string */
+FILE * zx_fopen(const char * filename, const char * mode) {
+  int len;
+
+  len = strlen(filename);
+
+  if(len > 255) {
+    return NULL;  /* very long filenames are not supported. 256 bytes strings should be big enough though */
+  }
+
+  memcpy(&pageBuf, filename, len + 1);
+  return fopen(&pageBuf, mode);
+}
+
+int zx_fprintf(FILE *stream, char *format, ...) __stdc {
+  size_t newSize;
+  char *newStr;
+  va_list args;
+
+  /* Check sanity of inputs */
+  if(format == NULL) {
+    return FALSE;
+  }
+
+  /* if the stream is stdout or stderr just do a normal printf as the esxdos
+    paging won't come into play therefore we don't need to do the formatting twice */
+  if(stream == stdout || stream == stderr) {
+    va_start(args, format);
+    newSize = (size_t)(vfprintf(stream, format, args)); /* plus '\0' */
+    va_end(args);
+
+    return newSize;
+  }
+
+  newStr = NULL;
+
+  /* get the space needed for the new string */
+  va_start(args, format);
+  newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+  va_end(args);
+
+  /* Create a new block of memory with the correct size rather than using realloc */
+  /* as any old values could overlap with the format string. quit on failure */
+  if((newStr = (char*)zx_malloc(newSize + 1)) == NULL) {
+    return FALSE;
+  }
+
+  /* do the string formatting for real. */
+  va_start(args, format);
+  vsnprintf(newStr, newSize + 1, format, args);
+  va_end(args);
+
+  zx_fwrite(newStr, 1, newSize, stream);
+
+  zx_free(newStr);
+
+  return newSize;
+}
+
+int zx_fputs(const char * str, FILE * stream) {
+  int len;
+
+  if(stream == stdout || stream == stderr) {
+    return fputs(str, stream);
+  }
+
+  len = strlen(str);
+  return zx_fwrite(str, 1, len, stream);
+}
+
+size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
+  union {
+    int tot;
+    struct {
+      unsigned char loop;
+      unsigned char remainder;
+    } bytes;
+  } temp;
+  int tot2;
+
+  if(stream == stdout || stream == stderr) {
+    return fwrite(ptr, size, count, stream);
+  }
+
+  temp.tot = fmul(size, count);
+  tot2 = 0;
+
+  while(temp.bytes.loop) {
+    memcpy(&pageBuf, ptr, 256);
+    tot2 += fwrite(&pageBuf, 1, 256, stream);
+
+    /* page out esxdos */
+    __asm
+      push af
+      ld a, (defaultBank)
+      call mypager
+      pop af
+    __endasm;
+
+    ptr += 256;
+    --(temp.bytes.loop);
+  }
+
+  memcpy(&pageBuf, ptr, (int)(temp.bytes.remainder));
+  tot2 += fwrite(&pageBuf, 1, (int)(temp.bytes.remainder), stream);
+
+  /* page out esxdos */
+  __asm
+    push af
+    ld a, (defaultBank)
+    call mypager
+    pop af
+  __endasm;
+
+  return tot2;
+}
+
+size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream) {
+  union {
+    int tot;
+    struct {
+      unsigned char loop;
+      unsigned char remainder;
+    } bytes;
+  } temp;
+  int tot2;
+
+  if(stream == stdout || stream == stderr) {
+    return fwrite(ptr, size, count, stream);
+  }
+
+  temp.tot = fmul(size, count);
+  tot2 = 0;
+
+  while(temp.bytes.loop) {
+    tot2 += fread(&pageBuf, 1, 256, stream);
+
+    /* page out esxdos */
+    __asm
+      push af
+      ld a, (defaultBank)
+      call mypager
+      pop af
+    __endasm;
+
+    memcpy(ptr, &pageBuf, 256);
+
+    ptr += 256;
+    --(temp.bytes.loop);
+  }
+
+  tot2 += fread(&pageBuf, 1, (int)(temp.bytes.remainder), stream);
+
+  /* page out esxdos */
+  __asm
+    push af
+    ld a, (defaultBank)
+    call mypager
+    pop af
+  __endasm;
+
+  memcpy(ptr, &pageBuf, (int)(temp.bytes.remainder));
+
+  return tot2;
+}
 
 void setupZX(char * filename) __z88dk_fastcall {
   int start;
@@ -291,14 +676,14 @@ void setupZX(char * filename) __z88dk_fastcall {
   myhand_status = 3;
 
   /* initialise the heap so malloc and free will work */
-  mallinit();
-  memset(main_origins[libCPage], 0, main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
-  sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
+  zx_mallinit();
+  memset(main_origins[libCPage], 0, main_sizes[libCPage]);
+  zx_sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
 
   if(filename != NULL) {
-    start = *stkend;
-    memset(start, 0, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
-    sbrk(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
+    start = stkend;
+    memset(start, 0, 44032 /* 0xc000 - 5kb */ - start);
+    zx_sbrk(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
   }
 }
 
@@ -307,18 +692,16 @@ void b(char * string, unsigned char * format, ...) {
   va_list args2;
 
   FILE* test;
-  long num;
+  int num;
 
   num = atol(string);
 
-  string = malloc(1);
-  fgets(string, 1, stdin);
-  free(string);
-  string = calloc(1, 3);
-  string = realloc(string, 5);
+  /* string = malloc(1); */
+  /* free(string); */
+  /* string = calloc(1, 3); */
+  /* string = realloc(string, 5); */
   strcpy(string, origWd);
   strncpy(string, origWd, 3);
-  fgets(string, 1, stdin);
   num = strcmp(origWd, string);
   num = stricmp(origWd, string);
   num = strncmp(origWd, string, 3);
@@ -357,12 +740,14 @@ void b(char * string, unsigned char * format, ...) {
   vsnprintf(string, 2, format, args2);
   va_end(args2);
 
-  free(string);
+  /* free(string); */
 }
 
 int main(int argc, char * argv[]) {
-  mallinit();
-  sbrk(24000, 4000);
+  /*
+    mallinit();
+    sbrk(24000, 4000);
+  */
 
   origWd = "%d";
   b(origWd, (unsigned char *)origWd);

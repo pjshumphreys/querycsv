@@ -7,6 +7,8 @@ PUBLIC exhlBackup
 PUBLIC spBackup
 PUBLIC argName
 PUBLIC jumptoit
+PUBLIC mypager
+PUBLIC defaultBank
 
 PUBLIC destinationHighBank
 PUBLIC dodos
