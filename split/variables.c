@@ -8,17 +8,6 @@
   char bss_clib[1];
   char bss_fp[18];
 
-  struct heapInternal myHeap;
-  struct heapItem * current;
-  struct heapItem * next;
-
-  /* variables needed by libc */
-  int myhand_status;
-
-  /* variables needed by strtod */
-  double fltSmall;
-  int fltInited;
-
   /* indicates which variant of the libc functions are in use. Filled out by the startup assembly language code */
   char libCPage;
 

@@ -35,15 +35,7 @@ const functionsList = [
   ['main', 6, 0x0001, 0xC000, 'farcall'],
   ['abs', 3, 0x0001, 0x0001, 'farcall2'],
   ['atol', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_setupZX', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_strtod', 3, 0x0001, 0x0001, 'farcall2'],
   ['exit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_mallinit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_sbrk', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_malloc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_free', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_realloc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_calloc', 3, 0x0001, 0x0001, 'farcall2'],
   ['strcmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['stricmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strncmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -57,24 +49,19 @@ const functionsList = [
   ['memcpy_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['memmove_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['memset_callee', 3, 0x0001, 0x0001, 'farcall2'],
-
-  /* file functions that shouldn't need a wrapper */
-  ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fseek', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fflush', 3, 0x0001, 0x0001, 'farcall2'],
-  ['ungetc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['feof', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fputc_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fgetc', 3, 0x0001, 0x0001, 'farcall2'],
-
-  /* file functions that need wrappers */
+  ['isspace', 3, 0x0001, 0x0001, 'farcall2'],
+  ['isdigit', 3, 0x0001, 0x0001, 'farcall2'],
   ['_zx_fopen', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_fprintf', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_fputs', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_zx_fwrite', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
   ['_zx_fread', 3, 0x0001, 0x0001, 'farcall2'],
-
+  ['_zx_fwrite', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fseek', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fgetc', 3, 0x0001, 0x0001, 'farcall2'],
+  ['ungetc', 3, 0x0001, 0x0001, 'farcall2'],
+  ['fputc_callee', 3, 0x0001, 0x0001, 'farcall2'],
+  ['feof', 3, 0x0001, 0x0001, 'farcall2'],
   ['sprintf', 3, 0x0001, 0x0001, 'farcall2'],
+  ['vfprintf', 3, 0x0001, 0x0001, 'farcall2'],
   ['vsnprintf', 3, 0x0001, 0x0001, 'farcall2']
 ];
 
@@ -224,7 +211,18 @@ function compileParser () {
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
   );
 
-  splitUpFunctions('sql', compileQueryCSV, true);
+  splitUpFunctions('sql', compileLibC2, true);
+}
+
+function compileLibC2 () {
+  console.log('compileLibC2');
+
+  execSync(
+    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build/libc2.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0libc2/g" build/libc2.asm'
+  );
+
+  splitUpFunctions('libc2', compileQueryCSV, true);
 }
 
 function compileQueryCSV () {
