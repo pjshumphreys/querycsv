@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
   #include <stdint.h>
@@ -48,7 +49,6 @@
   int zx_fprintf(FILE *stream, char *format, ...) __stdc;
   int zx_fputs(const char * str, FILE * stream);
 
-  char* zx_dtoa(char *s, double n);
   double zx_strtod(const char* str, char** endptr);  /* z88dk doesn't
   have strtod, but does have floating point support. We supply our own implementation */
 
@@ -499,12 +499,8 @@ Just use long ones for that compiler */
     #define ctof(_s) ((double)(_s))
     #define fneg(_f) (-(_f))
     #ifdef __Z88DK
-      #define ftoc(_s) ((int)(_s))
-      #define feq(_d,_s) ((_d) == (_s))
-      #define fgt(_d,_s) ((_d) > (_s))
-
       #define ftostr(_d,_a) { \
-        reallocMsg((void**)_d, 32); \
+        reallocMsg((void**)_d, 33); \
         zx_dtoa(*(_d), (_a)); \
         reallocMsg((void**)_d, strlen(*(_d)) + 1); \
         } /* mydtoa function should output at

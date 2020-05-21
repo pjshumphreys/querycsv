@@ -142,9 +142,7 @@ void b(char * string, unsigned char * format, ...) {
   int num;
 
   num = atol(string);
-
-  d = log10(d);
-  d = floor(d);
+  ftoa(origWd, num, d);
 
   num = ((int)(d));
   /* string = malloc(1); */

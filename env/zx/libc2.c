@@ -310,176 +310,21 @@ int main(int argc, char* argv[]) {
 */
 
 char* zx_dtoa(char *s, double n) {
-  char *c;
-  char *c2;
-  int sign, m, m1, carry = 0;
-  int useExp, output = 0, decimalPoint = 0;
-  double weight, digit;
-  int i, j;
+  char *p;
+  ftoa(n, 32, s);
 
-  /*if(fltInited == 0) {
-    fltSmall = pow10a(-309);
-    fltInited = 1;
-  }*/
-
-  /* handle special cases */
-  if(isnan(n)) {
-    strcpy(s, "NaN");
-    return s;
+  /* rtrim the trailing zeros and decimal point */
+  p = s + strlen(s) - 1;
+  
+  while(*p == '0') {
+    *p = '\0';
+    p--;
   }
-
-  if(isinf(n)) {
-    strcpy(s, "Infinity");
-    return s;
+  
+  if(*p == '.') {
+    *p = '\0';
   }
-
-  if(feq(n, fltZero)) {
-    strcpy(s, "0");
-    return s;
-  }
-
-  c = s;
-  sign = 0;
-
-  if(!fgt(n, fltZero)) {
-    n = fmul(n, fltMinusOne);
-    sign = 1;
-    *(c++) = '-';
-    s++;
-  }
-
-  /* calculate magnitude */
-  m = ftoc(floor(log10(n)));
-  m1 = abs(m);
-  useExp = m1 >= 9 && (sign || m1 >= 14);
-
-  /* set up for scientific notation */
-  if(useExp) {
-    n = fdiv(n, pow10a(m));
-    m1 = m;
-    m = 0;
-  }
-
-  if(m < 0) {
-    m = 0;
-  }
-
-  /* convert the number */
-  while(fgt(n, fltZero) || m >= 0) {
-    weight = pow10a(m);
-
-    if(fgt(weight, fltZero)) {
-      digit = floor(fdiv(n, weight));
-      if(output > 13 && m < 0) {
-        *c = '\0';
-        carry = ftoc(digit) > 4;
-        break;
-      }
-
-      n = fsub(n, fmul(digit, weight));
-      if(output || fgt(digit, fltZero) || m == 0) {
-        *(c++) = digitLookup[ftoc(digit)];
-        output++;
-      }
-    }
-
-    if(m == 0) {
-      *(c++) = '.';
-      decimalPoint = 1;
-    }
-
-    m--;
-  }
-
-  /* do any rounding needed on the characters directly */
-  if(carry) {
-    c2 = c;
-    c--;
-
-    while(carry && c != s) {
-      if(*c != '.') {
-        if(*c == '9') {
-          *c = '0';
-        }
-        else {
-          *c = digitLookup[strchr(digitLookup, *c)-digitLookup+1];
-          carry = 0;
-        }
-      }
-
-      c--;
-    }
-
-    if(carry) {
-      if(*c == '9') {
-        *c = '0';
-        memmove(c+1, c, strlen(c)+1);
-        *c = '1';
-      }
-      else {
-        *c = digitLookup[strchr(digitLookup, *c)-digitLookup+1];
-      }
-    }
-
-    c = c2;
-  }
-
-  /* remove trailing zeros, with the decimal point as well if need be */
-  if(decimalPoint) {
-    c--;
-    for(;;) {
-      if(*c == '0') {
-        *(c--) = 0;
-        continue;
-      }
-
-      if(*c == '.') {
-        *(c--) = 0;
-      }
-
-      break;
-    }
-    c++;
-  }
-
-  if(useExp) {
-    /* convert the exponent */
-    *(c++) = 'e';
-
-    if(m1 >= 0) {
-      *(c++) = '+';
-    }
-    else {
-      *(c++) = '-';
-      m1 = -m1;
-    }
-
-    m = 0;
-
-    while(m1 > 0) {
-      *(c++) = digitLookup[m1 % 10];
-      m1 /= 10;
-      m++;
-    }
-
-    c -= m;
-
-    for(i = 0, j = m-1; i<j; i++, j--) {
-      /* swap without temporary */
-      c[i] ^= c[j];
-      c[j] ^= c[i];
-      c[i] ^= c[j];
-    }
-
-    c += m;
-  }
-
-  *c = '\0';
-
-  if(sign) {
-    s--;
-  }
-
+  
   return s;
 }
 
