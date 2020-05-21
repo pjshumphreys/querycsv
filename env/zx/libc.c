@@ -14,7 +14,7 @@ __asm
 __endasm;
 
 /* don't bother to copy the mode parameter as for our purposes it will always be a static string */
-FILE * zx_fopen(const char * filename, const char * mode) {
+FILE * fopen_zx(const char * filename, const char * mode) {
   int len;
 
   len = strlen(filename);
@@ -27,7 +27,7 @@ FILE * zx_fopen(const char * filename, const char * mode) {
   return fopen(&pageBuf, mode);
 }
 
-size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream) {
+size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream) {
   int tot2;
   union {
     int tot;
@@ -49,10 +49,8 @@ size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream) {
 
     /* page out esxdos */
     __asm
-      push af
       ld a, (defaultBank)
       call mypager
-      pop af
     __endasm;
 
     memcpy(ptr, &pageBuf, 256);
@@ -65,10 +63,8 @@ size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream) {
 
   /* page out esxdos */
   __asm
-    push af
     ld a, (defaultBank)
     call mypager
-    pop af
   __endasm;
 
   memcpy(ptr, &pageBuf, (int)(temp.bytes.remainder));
@@ -76,7 +72,8 @@ size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream) {
   return tot2;
 }
 
-size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
+size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
+  int tot2;
   union {
     int tot;
     struct {
@@ -84,7 +81,7 @@ size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
       unsigned char loop;
     } bytes;
   } temp;
-  int tot2;
+
   temp.tot = size * count;
 
   /* if stream is stdout or stderr then just call fputc_cons ourselves.
@@ -108,10 +105,8 @@ size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
 
     /* page out esxdos */
     __asm
-      push af
       ld a, (defaultBank)
       call mypager
-      pop af
     __endasm;
 
     ptr += 256;
@@ -123,10 +118,8 @@ size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
 
   /* page out esxdos */
   __asm
-    push af
     ld a, (defaultBank)
     call mypager
-    pop af
   __endasm;
 
   return tot2;

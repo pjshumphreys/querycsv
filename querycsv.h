@@ -24,49 +24,55 @@
     * realloc always allocs a new block of the requested size, memcpys the
       data across then frees the original block.
 
-    * if a block is malloced (so will be at the top of the heap) then freed with
-      no other calls to realloc or malloc in between then no free block coalition
-      will be performed.
+    * If a block is malloced (so will be at the top of the heap) and then freed
+      with no other calls to realloc or malloc in between then no free block
+      coalition is performed.
 
     * The heap grows downward in memory, which forces a poorer implementation of
       realloc. growing upward would instead permit the same pointer value to be
       returned from realloc with a new size if the item being realloced were at
       the top of the heap.
+
+    * Requests for large blocks aren't fit into an existing free block of the
+      correct size, but fresh memory from the end of the heap instead
   */
-  void zx_mallinit(void);
-  void zx_sbrk(void *addr, unsigned int size);
-  void *zx_malloc(unsigned int size);
-  void zx_free(void *addr);
-  void *zx_realloc(void *p, unsigned int size);
-  void *zx_calloc(unsigned int num, unsigned int size);
+  void mallinit_zx(void);
+  void sbrk_zx(void *addr, unsigned int size);
+  void *malloc_zx(unsigned int size);
+  void free_zx(void *addr);
+  void *realloc_zx(void *p, unsigned int size);
+  void *calloc_zx(unsigned int num, unsigned int size);
 
   /* esxdos has its disk buffer at 0x2000 - 0x3fff, but we also want to use
     that space for our heap. Use another buffer above 0xbfff to marshal the
     data between the two */
-  FILE * zx_fopen(const char * filename, const char * mode);
-  size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream);
-  size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream);
-  int zx_fprintf(FILE *stream, char *format, ...) __stdc;
-  int zx_fputs(const char * str, FILE * stream);
+  FILE * fopen_zx(const char * filename, const char * mode);
+  size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream);
+  size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream);
+  int fprintf_zx(FILE *stream, char *format, ...) __stdc;
+  int fputs_zx(const char * str, FILE * stream);
 
-  double zx_strtod(const char* str, char** endptr);  /* z88dk doesn't
+  double strtod_zx(const char* str, char** endptr);  /* z88dk doesn't
   have strtod, but does have floating point support. We supply our own implementation */
+  char* dtoa_zx(char *s, double n); /* wrapper around ftoa that rtrims trailing zeroes
+  and the decimal point if necessary */
 
   #ifndef QCSV_NOZXMALLOC
     #undef realloc
     #undef calloc
     #undef fputs
-    #define malloc zx_malloc
-    #define free zx_free
-    #define realloc zx_realloc
-    #define calloc zx_calloc
+    #define malloc malloc_zx
+    #define free free_zx
+    #define realloc realloc_zx
+    #define calloc calloc_zx
 
-    #define fopen zx_fopen
-    #define fprintf zx_fprintf
-    #define fputs zx_fputs
-    #define fwrite zx_fwrite
-    #define fread zx_fread
-    #define strtod zx_strtod
+    #define fopen fopen_zx
+    #define fprintf fprintf_zx
+    #define YYFPRINTF fprintf_zx   /* for the bison parser */
+    #define fputs fputs_zx
+    #define fwrite fwrite_zx
+    #define fread fread_zx
+    #define strtod strtod_zx
   #endif
 
   #define YY_NO_UNISTD_H 1
@@ -286,6 +292,13 @@ it becomes needed and because it's useful for debugging */
 
   #ifdef RETRO68
     #define HAS_VSNPRINTF
+    void fsetfileinfo_absolute(
+      const char *filename,
+      unsigned long newcreator,
+      unsigned long newtype
+    );
+  #else
+    #define fsetfileinfo_absolute fsetfileinfo
   #endif
 
   /* Mac style newlines by default */
@@ -309,16 +322,6 @@ it becomes needed and because it's useful for debugging */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
-
-  #if defined(RETRO68)
-    void fsetfileinfo_absolute(
-      const char *filename,
-      unsigned long newcreator,
-      unsigned long newtype
-    );
-  #else
-    #define fsetfileinfo_absolute fsetfileinfo
-  #endif
 
   void macYield(void);
   #undef MAC_YIELD
@@ -501,9 +504,9 @@ Just use long ones for that compiler */
     #ifdef __Z88DK
       #define ftostr(_d,_a) { \
         reallocMsg((void**)_d, 33); \
-        zx_dtoa(*(_d), (_a)); \
+        dtoa_zx(*(_d), (_a)); \
         reallocMsg((void**)_d, strlen(*(_d)) + 1); \
-        } /* mydtoa function should output at
+        } /* dtoa_zx function should output at
         most 32 characters */
     #else
       #define ftostr(_f,_a) (_a) != (_a) ? \

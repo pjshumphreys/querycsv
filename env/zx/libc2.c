@@ -1,9 +1,9 @@
-/* fake program to get the necessary libc functions into 1 memory page */
-#include <math.h>
+/* libc like functions that are integrated into the main body of the program */
 
 #define QCSV_NOZXMALLOC
 #include "querycsv.h"
 
+/* malloc/free related structures */
 struct heapItem {
   struct heapItem * next; /* where the next block is, 0 for no next block */
   unsigned int size; /* how many bytes are contained in this block, not including these 5 header bytes */
@@ -20,7 +20,6 @@ int myhand_status;
 
 /* variables needed by strtod */
 const double fltMinusOne = -1.0;
-const double fltZero = 0.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
 /* double fltSmall;
@@ -50,8 +49,6 @@ const int main_sizes[6] = {
   8192,
   15103 /* 8192 + 6911 */
 };
-
-const char digitLookup[11] = "0123456789";
 
 extern int stkend;
 
@@ -86,7 +83,7 @@ double pow10a(int exp) {
  * license: public domain
  */
 
-double zx_strtod(const char *str, char **end) {
+double strtod_zx(const char *str, char **end) {
   double d = ctof(0);
   int isNegative = 0, sign = 1;
   int n = 0;
@@ -309,7 +306,7 @@ int main(int argc, char* argv[]) {
 }
 */
 
-char* zx_dtoa(char *s, double n) {
+char* dtoa_zx(char *s, double n) {
   char *p;
   ftoa(n, 32, s);
 
@@ -328,11 +325,11 @@ char* zx_dtoa(char *s, double n) {
   return s;
 }
 
-void zx_mallinit(void) {
+void mallinit_zx(void) {
   myHeap.nextFree = myHeap.first = NULL;
 }
 
-void zx_sbrk(void *addr, unsigned int size) {
+void sbrk_zx(void *addr, unsigned int size) {
   if(addr == NULL || size < sizeof(struct heapItem)) {
     return;
   }
@@ -357,7 +354,7 @@ void zx_sbrk(void *addr, unsigned int size) {
   current->next = next;
 }
 
-void *zx_malloc(unsigned int size) {
+void *malloc_zx(unsigned int size) {
   unsigned int cleanedUp;
   unsigned int temp;
 
@@ -451,7 +448,7 @@ void *zx_malloc(unsigned int size) {
   } while (1);
 }
 
-void zx_free(void *addr) {
+void free_zx(void *addr) {
   if(addr == NULL) {
     return;
   }
@@ -479,14 +476,14 @@ void zx_free(void *addr) {
   myHeap.nextFree = current;
 }
 
-void *zx_realloc(void *p, unsigned int size) {
+void *realloc_zx(void *p, unsigned int size) {
   void * newOne;
   unsigned int tempSize;
   unsigned int updateNextFree;
 
   /* if realloc'ing a null pointer then just do a malloc */
   if(p == NULL) {
-    return zx_malloc(size);
+    return malloc_zx(size);
   }
 
   current = (struct heapItem *)(p - sizeof(struct heapItem));
@@ -531,7 +528,7 @@ void *zx_realloc(void *p, unsigned int size) {
   }
 
   /* attempt to allocate a new block of the necessary size, memcpy the data into it then free the old one */
-  newOne = zx_malloc(size);
+  newOne = malloc_zx(size);
 
   /* if the malloc failed, just fail here as well */
   if(!newOne) {
@@ -556,12 +553,11 @@ void *zx_realloc(void *p, unsigned int size) {
   return newOne;
 }
 
-void *zx_calloc(unsigned int num, unsigned int size) {
-  size_t tot;
+void *calloc_zx(unsigned int num, unsigned int size) {
+  unsigned int tot = num * size;
   void *temp;
 
-  tot = fmul(num, size);
-  temp = zx_malloc(tot);
+  temp = malloc_zx(tot);
 
   if(temp) {
     memset(temp, 0, tot);
@@ -570,7 +566,7 @@ void *zx_calloc(unsigned int num, unsigned int size) {
   return temp;
 }
 
-int zx_fprintf(FILE *stream, char *format, ...) __stdc {
+int fprintf_zx(FILE *stream, char *format, ...) __stdc {
   size_t newSize;
   char *newStr;
   va_list args;
@@ -599,7 +595,7 @@ int zx_fprintf(FILE *stream, char *format, ...) __stdc {
 
   /* Create a new block of memory with the correct size rather than using realloc */
   /* as any old values could overlap with the format string. quit on failure */
-  if((newStr = (char*)zx_malloc(newSize + 1)) == NULL) {
+  if((newStr = (char*)malloc_zx(newSize + 1)) == NULL) {
     return FALSE;
   }
 
@@ -608,15 +604,15 @@ int zx_fprintf(FILE *stream, char *format, ...) __stdc {
   vsnprintf(newStr, newSize + 1, format, args);
   va_end(args);
 
-  zx_fwrite(newStr, 1, newSize, stream);
+  fwrite_zx(newStr, 1, newSize, stream);
 
-  zx_free(newStr);
+  free_zx(newStr);
 
   return newSize;
 }
 
-int zx_fputs(const char * str, FILE * stream) {
-  return zx_fwrite(str, 1, strlen(str), stream);
+int fputs_zx(const char * str, FILE * stream) {
+  return fwrite_zx(str, 1, strlen(str), stream);
 }
 
 void setupZX(char * filename) __z88dk_fastcall {
@@ -626,83 +622,11 @@ void setupZX(char * filename) __z88dk_fastcall {
   myhand_status = 3;
 
   /* initialise the heap so malloc and free will work */
-  zx_mallinit();
-  memset(main_origins[libCPage], 0, main_sizes[libCPage]);
-  zx_sbrk(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
+  mallinit_zx();
+  sbrk_zx(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
 
   if(filename != NULL) {
     start = stkend + 1;
-    memset(start, 0, 44032 /* 0xc000 - 5kb */ - start);
-    zx_sbrk(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
+    sbrk_zx(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
   }
 }
-
-/*
-void b(char * string, unsigned char * format, ...) {
-  va_list args;
-  va_list args2;
-
-  FILE* test;
-  int num;
-
-  num = atol(string);
-
-  /* string = malloc(1); * /
-  /* free(string); * /
-  /* string = calloc(1, 3); * /
-  /* string = realloc(string, 5); * /
-  strcpy(string, origWd);
-  strncpy(string, origWd, 3);
-  num = strcmp(origWd, string);
-  num = stricmp(origWd, string);
-  num = strncmp(origWd, string, 3);
-  num = strnicmp(origWd, string, 3);
-  num = strlen(string);
-  string = strstr(string, origWd);
-
-  memset(string, 0, 4);
-  strcat(string, origWd);
-  strncat(string, origWd, 3);
-  memcpy(string+1, string, 2);
-  memmove(string+1, string, 2);
-
-  fprintf(test, origWd, 1);
-  fputs(origWd, test);
-
-  test = fopen(origWd, "rb");
-  fseek(test, 9, SEEK_SET);
-  clearerr(test);
-  num = fclose(test);
-  fread(string, 2, 2, stdin);
-  num = fgetc(stdin);
-  ungetc(num, stdin);
-  num = feof(stdin);
-  fwrite(string, 1, 1, stdout);
-  num = fgetc(stdin);
-  fputc(num, stderr);
-  fflush(stdout);
-  sprintf(string, origWd, num);
-
-  va_start(args, format);
-  vsprintf(string, format, args);
-  va_end(args);
-
-  va_start(args2, format);
-  vsnprintf(string, 2, format, args2);
-  va_end(args2);
-
-  /* free(string); * /
-}
-
-int main(int argc, char * argv[]) {
-  /*
-    mallinit();
-    sbrk(24000, 4000);
-  * /
-
-  origWd = "%d";
-  b(origWd, (unsigned char *)origWd);
-
-  return 0;
-}
-*/
