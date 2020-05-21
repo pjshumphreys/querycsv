@@ -41,6 +41,7 @@ const functionsList = [
   ['strncmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strlen', 3, 0x0001, 0x0001, 'farcall2'],
   ['strstr_callee', 3, 0x0001, 0x0001, 'farcall2'],
+  ['strchr_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strcat_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strncat_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strnicmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -51,6 +52,9 @@ const functionsList = [
   ['memset_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['isspace', 3, 0x0001, 0x0001, 'farcall2'],
   ['isdigit', 3, 0x0001, 0x0001, 'farcall2'],
+  ['log10', 3, 0x0001, 0x0001, 'farcall2'],
+  ['floor', 3, 0x0001, 0x0001, 'farcall2'],
+  ['ifix', 3, 0x0001, 0x0001, 'farcall2'],
   ['_zx_fopen', 3, 0x0001, 0x0001, 'farcall2'],
   ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
   ['_zx_fread', 3, 0x0001, 0x0001, 'farcall2'],
@@ -117,6 +121,7 @@ function start () {
     'mkdir -p build/ro;' +
     'mkdir -p build/obj;' +
     'mkdir -p build/obj2;' +
+    'rm -f build/rodata2.asm;' +
     'cp stdio.asm build/data.asm'
   );
 
@@ -376,13 +381,16 @@ function addROData () {
   fs
     .readFileSync('build/rodata.map', 'utf8')
     .replace(/(i_1[a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, two, three, ...arr) => {
+      const text = 'IFNDEF ' + two + '\n' +
+            two + ' = $' + three + '\n' +
+          'ENDIF\n';
       fs.writeFileSync(
           `build/ro/${two}.asm`,
-          'IFNDEF ' + two + '\n' +
-            two + ' = $' + three + '\n' +
-          'ENDIF\n',
+          text,
           'utf8'
       );
+
+      fs.appendFileSync('build/rodata2.asm', text);
     });
 
   /* de-duplicate the global variables */
@@ -779,7 +787,7 @@ function compileLibC () {
   Pause if node.js can't keep up
 */
 function splitUpFunctions (filename, callback, append) {
-  console.log('splitUpFunctions');
+  console.log('splitUpFunctions', filename);
 
   let j;
 
@@ -906,6 +914,10 @@ function splitUpFunctions (filename, callback, append) {
 
           activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
           writePause(activeStream, 'IFNDEF ' + name + '\n');
+
+          if(!/^i_1[a-zA-Z]+$/.test(name)) {
+            writePause(activeStream, ';INCLUDE "../rodata2.asm"\n');
+          }
         }
 
         writePause(activeStream, line + (name === 'i_1' ? '' : '') + '\n');
@@ -1033,7 +1045,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   if (pageMode) {
     execSync(
-      'sed -i "s/call\\t\\(minusfa\\|_logNum\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|_logNum\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
         cwd: path.join(__dirname, 'build', 's')
       }

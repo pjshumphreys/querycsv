@@ -48,6 +48,7 @@
   int zx_fprintf(FILE *stream, char *format, ...) __stdc;
   int zx_fputs(const char * str, FILE * stream);
 
+  char* zx_dtoa(char *s, double n);
   double zx_strtod(const char* str, char** endptr);  /* z88dk doesn't
   have strtod, but does have floating point support. We supply our own implementation */
 
@@ -497,10 +498,24 @@ Just use long ones for that compiler */
     #define fcmp(_d,_s) ((_d)!=(_s))
     #define ctof(_s) ((double)(_s))
     #define fneg(_f) (-(_f))
-    #define ftostr(_f,_a) (_a) != (_a) ? \
-      d_sprintf((_f), "NaN") : \
-      d_sprintf((_f), "%g", (_a)) /* d_sprintf knows how to
-      convert doubles to strings */
+    #ifdef __Z88DK
+      #define ftoc(_s) ((int)(_s))
+      #define feq(_d,_s) ((_d) == (_s))
+      #define fgt(_d,_s) ((_d) > (_s))
+
+      #define ftostr(_d,_a) { \
+        reallocMsg((void**)_d, 32); \
+        zx_dtoa(*(_d), (_a)); \
+        reallocMsg((void**)_d, strlen(*(_d)) + 1); \
+        } /* mydtoa function should output at
+        most 32 characters */
+    #else
+      #define ftostr(_f,_a) (_a) != (_a) ? \
+        d_sprintf((_f), "NaN") : \
+        d_sprintf((_f), "%g", (_a)) /* z88dk doesn't have the g
+        format specifier, but it also doesn't distingish between floats
+        and doubles so the f specifier will work correctly */
+    #endif
   #endif
 #endif
 

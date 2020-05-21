@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <math.h>
 
 const char pageBuf[256];  /* not really a constant but a buffer that exists in high memory that's only used internally to the libc functions */
 
@@ -31,8 +32,8 @@ size_t zx_fread(void * ptr, size_t size, size_t count, FILE * stream) {
   union {
     int tot;
     struct {
-      unsigned char loop;
-      unsigned char remainder;
+      unsigned char remainder;  /* l */
+      unsigned char loop;  /* h */
     } bytes;
   } temp;
 
@@ -79,8 +80,8 @@ size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
   union {
     int tot;
     struct {
-      unsigned char loop;
       unsigned char remainder;
+      unsigned char loop;
     } bytes;
   } temp;
   int tot2;
@@ -135,12 +136,17 @@ size_t zx_fwrite(const void * ptr, size_t size, size_t count, FILE * stream) {
 void b(char * string, unsigned char * format, ...) {
   va_list args;
   va_list args2;
+  double d;
 
   FILE* test;
   int num;
 
   num = atol(string);
 
+  d = log10(d);
+  d = floor(d);
+
+  num = ((int)(d));
   /* string = malloc(1); */
   /* free(string); */
   /* string = calloc(1, 3); */
