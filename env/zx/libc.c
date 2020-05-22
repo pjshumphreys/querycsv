@@ -133,11 +133,12 @@ void b(char * string, unsigned char * format, ...) {
 
   FILE* test;
   int num;
+  unsigned long num2;
 
   num = atol(string);
   ftoa(origWd, num, d);
+  ltoa(num2, origWd, num);
 
-  num = ((int)(d));
   /* string = malloc(1); */
   /* free(string); */
   /* string = calloc(1, 3); */

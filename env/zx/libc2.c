@@ -553,6 +553,8 @@ void *realloc_zx(void *p, unsigned int size) {
   return newOne;
 }
 
+/* unused (for now) */
+/*
 void *calloc_zx(unsigned int num, unsigned int size) {
   unsigned int tot = num * size;
   void *temp;
@@ -565,6 +567,7 @@ void *calloc_zx(unsigned int num, unsigned int size) {
 
   return temp;
 }
+*/
 
 int fprintf_zx(FILE *stream, char *format, ...) __stdc {
   size_t newSize;

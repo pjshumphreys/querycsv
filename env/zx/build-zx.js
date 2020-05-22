@@ -33,15 +33,12 @@ let rodataSize = 0;
 
 const functionsList = [
   ['main', 6, 0x0001, 0xC000, 'farcall'],
-  ['abs', 3, 0x0001, 0x0001, 'farcall2'],
-  ['atol', 3, 0x0001, 0x0001, 'farcall2'],
   ['exit', 3, 0x0001, 0x0001, 'farcall2'],
   ['strcmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['stricmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strncmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strlen', 3, 0x0001, 0x0001, 'farcall2'],
   ['strstr_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strchr_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strcat_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strncat_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['strnicmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
@@ -50,9 +47,6 @@ const functionsList = [
   ['memcpy_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['memmove_callee', 3, 0x0001, 0x0001, 'farcall2'],
   ['memset_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['isspace', 3, 0x0001, 0x0001, 'farcall2'],
-  ['isdigit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['ifix', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fopen_zx', 3, 0x0001, 0x0001, 'farcall2'],
   ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fread_zx', 3, 0x0001, 0x0001, 'farcall2'],
@@ -61,11 +55,16 @@ const functionsList = [
   ['fgetc', 3, 0x0001, 0x0001, 'farcall2'],
   ['ungetc', 3, 0x0001, 0x0001, 'farcall2'],
   ['fputc_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['ftoa', 3, 0x0001, 0x0001, 'farcall2'],
   ['feof', 3, 0x0001, 0x0001, 'farcall2'],
   ['sprintf', 3, 0x0001, 0x0001, 'farcall2'],
   ['vfprintf', 3, 0x0001, 0x0001, 'farcall2'],
-  ['vsnprintf', 3, 0x0001, 0x0001, 'farcall2']
+  ['vsnprintf', 3, 0x0001, 0x0001, 'farcall2'],
+  ['isspace', 3, 0x0001, 0x0001, 'farcall2'],
+  ['isdigit', 3, 0x0001, 0x0001, 'farcall2'],
+  ['abs', 3, 0x0001, 0x0001, 'farcall2'],
+  ['atol', 3, 0x0001, 0x0001, 'farcall2'],
+  ['ltoa_callee', 3, 0x0001, 0x0001, 'farcall2'],
+  ['ftoa', 3, 0x0001, 0x0001, 'farcall2']
 ];
 
 /* don't include these functions in the output files as they are never invoked (dead code elimination) */
@@ -704,7 +703,7 @@ function compileLibC () {
     });
 
     fs.writeFileSync(name + '/lookupTable.inc', functionsList.slice().reverse().map(item =>
-       (item[1] === 3 ? '  GLOBAL ' + item[0] + '\n' : '')+
+       (item[1] === 3 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
@@ -766,7 +765,7 @@ function compileLibC () {
     //process.exit(0);
 
     fs.writeFileSync(name + '/lookupTable.inc', functionsList.slice().reverse().map(item =>
-       (item[1] === 3 ? '  GLOBAL ' + item[0] + '\n' : '')+
+       (item[1] === 3 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
@@ -1044,7 +1043,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   if (pageMode) {
     execSync(
-      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|_logNum\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|_logNum\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
         cwd: path.join(__dirname, 'build', 's')
       }

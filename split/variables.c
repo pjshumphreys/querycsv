@@ -14,8 +14,6 @@
   /* hash2 helper variables */
   long codepoints[18];
 
-  extern int yydebug;
-
   struct hash2Entry entry = {0x0000, 1, &codepoints};
 #else
   /* hash2 helper variables */
