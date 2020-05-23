@@ -49,8 +49,10 @@ size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream) {
 
     /* page out esxdos */
     __asm
+      push af
       ld a, (defaultBank)
       call mypager
+      pop af
     __endasm;
 
     memcpy(ptr, &pageBuf, 256);
@@ -63,8 +65,10 @@ size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream) {
 
   /* page out esxdos */
   __asm
+    push af
     ld a, (defaultBank)
     call mypager
+    pop af
   __endasm;
 
   memcpy(ptr, &pageBuf, (int)(temp.bytes.remainder));
@@ -105,8 +109,10 @@ size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
 
     /* page out esxdos */
     __asm
+      push af
       ld a, (defaultBank)
       call mypager
+      pop af
     __endasm;
 
     ptr += 256;
@@ -118,8 +124,10 @@ size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
 
   /* page out esxdos */
   __asm
+    push af
     ld a, (defaultBank)
     call mypager
+    pop af
   __endasm;
 
   return tot2;
@@ -177,6 +185,8 @@ void b(char * string, unsigned char * format, ...) {
   isspace(num);
   isdigit(num);
 
+  fprintf(stdout, string, format, args);
+
   va_start(args, format);
   vfprintf(string, format, args);
   va_end(args);
@@ -194,7 +204,7 @@ int main(int argc, char * argv[]) {
     sbrk(24000, 4000);
   */
 
-  origWd = "%d";
+  origWd = "%d %lu";
   b(origWd, (unsigned char *)origWd);
 
   return 0;
