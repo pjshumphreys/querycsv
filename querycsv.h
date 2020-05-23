@@ -15,6 +15,9 @@
   #include <stdint.h>
 #endif
 
+/* translatable strings */
+#include "en_gb.h"
+
 #ifdef __Z88DK
   /* z88dk's default implementations of classic malloc & free waste quite a
     lot of memory due to heap fragmentation, which limits the size of scripts
@@ -89,10 +92,8 @@
   #undef EXIT_FAILURE
   #define EXIT_FAILURE 9
 
-  /*
-  z88dk doesn't have bsearch, but it does have l_bsearch.
-  employ some macro magic to smooth things over.
-  */
+  /* z88dk doesn't have bsearch, but it does have l_bsearch.
+    employ some macro magic to smooth things over. */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
 
   void logNum(int num) __z88dk_fastcall;
@@ -103,8 +104,14 @@
 
   int d_sprintf(char **str, char *format, ...) __stdc; /* on z88dk, the __stdc
   calling convention modifier is necessary to make functions that use varargs work correctly */
+
+  /* z88dk's varargs never works properly for longs in user written functions,
+    but it does have a non standardized ltoa function which works. Use a macro
+    to sprintf elsewhere to do the same thing */
+  #define myltoa(x, y) ltoa((y), (x), 10)
 #else
   #define __stdc /* nothing */
+  #define myltoa(x, y) sprintf((char *)(x), LD_STRING, (y))
 #endif
 
 #include <stdarg.h>
@@ -517,9 +524,6 @@ Just use long ones for that compiler */
     #endif
   #endif
 #endif
-
-/* translatable strings */
-#include "en_gb.h"
 
 /* structures */
 struct resultColumn {

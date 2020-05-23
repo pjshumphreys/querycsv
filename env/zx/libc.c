@@ -204,7 +204,7 @@ int main(int argc, char * argv[]) {
     sbrk(24000, 4000);
   */
 
-  origWd = "%d %lu";
+  origWd = "%d";
   b(origWd, (unsigned char *)origWd);
 
   return 0;

@@ -35,6 +35,15 @@ farcall:
   push bc
 
   push af
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff
+
+  ld a, (borderColour)
+  xor 2
+  ld (borderColour), a
+  ld c, 0xfe
+  out (c), a
+
   or a ; clear carry bit
   ld c, (hl)
   ld b, 0
@@ -170,6 +179,10 @@ farcall2:
   push af
   ld a, (defaultBank)
   call mypager  ; switch it in to $0000-$3fff
+
+  ld a, 6
+  ld c, 0xfe
+  out (c), a
 
   or a ; clear carry bit
   ;calculate which value in the jump table to use
@@ -381,6 +394,13 @@ farRet:
   ld (currentVirtualPage), a
 
 farRet3:
+  ld a, 7
+  ld c, 0xfe
+  out (c), a
+
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff
+
   pop af
   call changePage
 
@@ -399,8 +419,6 @@ farRet2:
   push bc  ; get the virtual page number to return to from the stack
 
   push af
-  ld a, (defaultBank)
-  call mypager  ; switch it in to $0000-$3fff
   jr farRet3
 
 ;-----------------------------------------

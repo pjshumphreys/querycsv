@@ -6,12 +6,7 @@
   char longBuf[12]; /* cater for z88dk's broken varargs */
 
   #define printfd(...) fprintf(stdout, __VA_ARGS__)
-
-  #ifndef __Z88DK
-    #define printLong(n) fprintf(stdout, "%ld", n);
-  #else
-    #define printLong(n) { ltoa(n, &longBuf, 10); fputs(&longBuf, stdout); }
-  #endif
+  #define printLong(n) { myltoa(&longBuf, n); fputs(&longBuf, stdout); }
 #else
   #define printfd(...)
   #define printLong(n)
