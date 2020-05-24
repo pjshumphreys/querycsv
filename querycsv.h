@@ -37,7 +37,7 @@
       the top of the heap.
 
     * Requests for large blocks aren't fit into an existing free block of the
-      correct size, but fresh memory from the end of the heap instead
+      correct size, but fresh memory from the end of the heap is used instead.
   */
   void mallinit_zx(void);
   void sbrk_zx(void *addr, unsigned int size);
@@ -46,13 +46,30 @@
   void *realloc_zx(void *p, unsigned int size);
   void *calloc_zx(unsigned int num, unsigned int size);
 
+  void reallocMsg(void **mem, size_t size);
+
+  #define HEAP_FREE 0
+  #define HEAP_ALLOCED 1
+
+  /* malloc/free related structures */
+  struct heapItem {
+    struct heapItem * next; /* where the next block is, 0 for no next block */
+    unsigned int size; /* how many bytes are contained in this block, not including these 5 header bytes */
+    unsigned char type; /* 0 = free, 1 = allocated */
+  };
+
+  struct heapInternal {
+    struct heapItem * nextFree;
+    struct heapItem * first;
+  };
+
   /* esxdos has its disk buffer at 0x2000 - 0x3fff, but we also want to use
     that space for our heap. Use another buffer above 0xbfff to marshal the
     data between the two */
   FILE * fopen_zx(const char * filename, const char * mode);
   size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream);
   size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream);
-  int fprintf_zx(FILE *stream, char *format, ...) __stdc;
+  int fprintf_zx(int type, void * output, char * format, ...) __stdc;
   int fputs_zx(const char * str, FILE * stream);
 
   double strtod_zx(const char* str, char** endptr);  /* z88dk doesn't
@@ -70,8 +87,8 @@
     #define calloc calloc_zx
 
     #define fopen fopen_zx
-    #define fprintf fprintf_zx
-    #define YYFPRINTF fprintf_zx   /* for the bison parser */
+    #define fprintf(...) fprintf_zx(1, __VA_ARGS__)
+    #define YYFPRINTF(...) fprintf_zx(1, __VA_ARGS__)   /* for the bison parser */
     #define fputs fputs_zx
     #define fwrite fwrite_zx
     #define fread fread_zx
@@ -102,8 +119,10 @@
   #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
   as long as the function using them uses the __stdc calling convention */
 
-  int d_sprintf(char **str, char *format, ...) __stdc; /* on z88dk, the __stdc
-  calling convention modifier is necessary to make functions that use varargs work correctly */
+  /* on z88dk, the __stdc calling convention modifier is necessary to make
+  functions that use varargs work correctly */
+  /* we redirect d_sprintf to a macro so it can reside in the libc page and share code with fprintf */
+  #define d_sprintf(...) fprintf_zx(0, __VA_ARGS__)
 
   /* z88dk's varargs never works properly for longs in user written functions,
     but it does have a non standardized ltoa function which works. Use a macro

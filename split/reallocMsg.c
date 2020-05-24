@@ -1,3 +1,5 @@
+#ifndef __Z88DK
+/* the zx build has this function in its libc page to minimise page flipping */
 void reallocMsg(void **mem, size_t size) {
   void *temp;
 
@@ -24,5 +26,6 @@ void reallocMsg(void **mem, size_t size) {
     exit(EXIT_FAILURE);
   }
 }
+#endif
 
 /* static void* binaryTree;  // if malloc, calloc or realloc fail then try cleaning up some memory by flushing our binary tree to disk */

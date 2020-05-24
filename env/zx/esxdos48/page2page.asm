@@ -2,25 +2,26 @@ include "../common/equs.inc"
 
 DIVMMC equ 0xe3
 
-HOOK_PACKAGE equ 0xfb
-PKG_RESIDOS equ 0
-RESI_ALLOC equ 0x0325
-
 org 0xbd00
+;---------------------------------------------------------------------------------------------------------
+;loadFromDisk2 - loads virtual pages into low banks during program startup so that they can be quickly retrieved later
+
 loadFromDisk2: ;; 5 pages can be preloaded into low banks. unrolled for simplicity
   di
-  call loadFromDisk3
-  call loadFromDisk3
-  call loadFromDisk3
-  call loadFromDisk3
-  call loadFromDisk3
+  call loadFromDisk3 ;4
+  inc de  ;skip 5
+  inc hl
+  call loadFromDisk3 ;6
+  call loadFromDisk3 ;7
+  call loadFromDisk3 ;8
+  call loadFromDisk3 ;9
 
   ld a, 4 ; esxdos48 startup code
   jp dosload  ; dosload re-enables interupts before it returns
 
 loadFromDisk3:
-  push de
-  push hl
+  push de ; de contains the virtual page number we want to load into the low bank
+  push hl ; (hl) contains the low bank number we obtained from calling RESI_ALLOC
 
   ;load the data into the low bank
   ld a, e
@@ -29,7 +30,7 @@ loadFromDisk3:
 
   pop hl
   push hl
-  ld (hl), a  ; save the page number that was returned to us for later
+  ld a, (hl) ; put the low bank number into the accumulator
   call mypager  ; switch it in to $2000-$3fff
 
   ; copy the code to the right place
@@ -37,7 +38,7 @@ loadFromDisk3:
   ld de, 0x2000  ; de = destination address for ldir
   ld bc, 8192 ; bc = number of bytes to copy for ldir
   ldir
-  
+
   pop hl
   push hl
   ld a, (hl) ; put the low bank number into the accumulator
@@ -50,18 +51,20 @@ loadFromDisk3:
   ld bc, 8192 ; bc = number of bytes to copy for ldir
   ldir
 
-  ; do the next iteration of the loop
+  ld a, (basicBank) ; put the low bank number into the accumulator
+  call mypager  ; switch it in to $2000-$3fff
+
   pop hl
   pop de
-  inc hl
   inc de
+  inc hl
   ret
 
 ;---------------------------------------
 ; pad the output binary out to the proper size.
 ; This is needed as the code above will be replaced by the interrupt mode 2 jump table after the program has started up.
 
-defs 0x101 - ASMPC, 0xbf 
+defs 0x101 - ASMPC, 0xbf
 
 ;---------------------------------------
 ; mypager2 - switch to the low bank specified in the accumulator.
@@ -72,7 +75,7 @@ mypager2:
   ld c, DIVMMC  ; port used for switching low rom banks
   out (c), a  ; do the switch
   pop bc
-  or a ; cp 0
+  or a ;cp 0
   jr nz, divmmcExit
 divmmcDisable:
   push af

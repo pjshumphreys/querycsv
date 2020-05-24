@@ -4,6 +4,7 @@ PUBLIC printNoFile
 PUBLIC call_rom3
 PUBLIC switchPage
 PUBLIC _logNum
+PUBLIC _myexit
 
 PUBLIC bankmBackup
 PUBLIC basicBank
@@ -222,7 +223,7 @@ loop:
   inc de
   jr loop
 exit:
-  ret   ; printLn = 21 bytes
+  ret
 
 ;-----------------------------
 ; generic jump table
@@ -237,6 +238,7 @@ dodos:
   jp exit ; just return for now. This jump table entry will get changed later.
 
 atexit:
+_myexit:
   ret ; just return for now. This jump table entry will get changed later.
   defw jp_rom3
   defw 0xe60e  ; atexit location in page 7.

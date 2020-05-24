@@ -15,6 +15,10 @@
   long codepoints[18];
 
   struct hash2Entry entry = {0x0000, 1, &codepoints};
+
+  struct heapInternal myHeap;
+  struct heapItem * current;
+  struct heapItem * next;
 #else
   /* hash2 helper variables */
   long codepoints[18];

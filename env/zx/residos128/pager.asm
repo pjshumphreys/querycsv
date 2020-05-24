@@ -15,6 +15,7 @@ PUBLIC dodos
 PUBLIC argv
 PUBLIC fputc_cons
 PUBLIC _logNum
+PUBLIC _myexit
 PUBLIC atexit
 PUBLIC isr
 PUBLIC call_rom3

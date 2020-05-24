@@ -4,6 +4,7 @@ PUBLIC mypager
 PUBLIC defaultBank
 PUBLIC fputc_cons
 PUBLIC _logNum
+PUBLIC _myexit
 
 VARS equ 0x5c4b
 
@@ -222,7 +223,7 @@ has128k:
   ei
 
   ; pre load the low bank numbers into the virtual pages table
-  ld hl, pageLocations+6
+  ld hl, pageLocations+5
   push hl
   ld a, 10000110b
   ld (hl), a
@@ -239,7 +240,7 @@ has128k:
   inc hl
   ld (hl), a
   pop hl
-  ld de, 0x0006  ; start at page 6
+  ld de, 0x0005  ; start at page 5
 
   ; Copy the first 5 virtual pages into low banks
   call loadFromDisk2

@@ -1,4 +1,6 @@
+#ifndef __Z88DK
 /* write a formatted string into a string buffer. allocate/free memory as needed */
+/* the zx build has this function in its libc page to minimise page flipping */
 int d_sprintf(char **str, char *format, ...) __stdc {
   size_t newSize;
   char *newStr = NULL;
@@ -86,3 +88,4 @@ int d_sprintf(char **str, char *format, ...) __stdc {
   /* everything occurred successfully */
   return newSize;
 }
+#endif
