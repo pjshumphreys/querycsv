@@ -16,13 +16,13 @@ void getCodepointsAscii(
 
   *arrLength = *byteLength = 1;
 
-  if((c = fgetc(stream)) == EOF) {
-    codepoints[0] = MYEOF;
+  if(c < 0x80) {
+    codepoints[0] = (long)c;
     return;
   }
 
-  if(c < 0x80) {
-    codepoints[0] = (long)c;
+  if((c = fgetc(stream)) == EOF) {
+    codepoints[0] = MYEOF;
     return;
   }
 
