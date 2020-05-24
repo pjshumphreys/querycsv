@@ -3,6 +3,7 @@ void getBytesAscii(
     char **bytes,
     int *byteLength
 ) {
+  unsigned char * temp;
   MAC_YIELD
 
   if(byteLength != NULL && bytes != NULL) {
@@ -14,7 +15,16 @@ void getBytesAscii(
       return;
     }
 
-    returnByte = 0x3f;  /* ascii question mark */
+    if(codepoint < 0xe000 || codepoint > 0xe07f) {
+      returnByte = 0x3f;  /* ascii question mark */
+    }
+    else {
+      temp = (unsigned char *)(&returnByte);
+
+      /* cast private use area into high bit set bytes */
+      *temp = (unsigned char)(codepoint-0xdf80);
+    }
+
     *bytes = &returnByte;
   }
 }

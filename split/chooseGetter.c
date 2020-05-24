@@ -49,6 +49,9 @@ void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
 
     case ENC_TSW:
       return &getCodepointsTSW;
+
+    case ENC_ASCII:
+      return &getCodepointsAscii;
   }
 
   /* if all else fails, just try using

@@ -74,6 +74,10 @@ int parse_encoding2(char *encoding) {
     return ENC_CP1252;
   }
 
+  else if(mystrnicmp("ascii", encoding, 6) == 0) {
+    return ENC_ASCII;
+  }
+
   else if(mystrnicmp("unicode", encoding, 8) == 0) {
     return ENC_UTF8;
   }
