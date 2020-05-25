@@ -145,11 +145,12 @@ int main(int argc, char *argv[]) {
 
   int c = 'A';
   
-  fputs("Archive file to read from?", stdout);
+  fputs("Archive file to read from?\n", stdout);
   d_fgets(&temp, stdin);
   
   if((input = fopen(temp, "rb")) == NULL) {
     fprintf(stderr, "Couldn't open %s\n", temp);
+    return 1;
   }
 
   while(c != EOF) {
