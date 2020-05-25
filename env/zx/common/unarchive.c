@@ -8,6 +8,9 @@
 
 #define freeAndZero(p) { free(p); p = 0; }
 
+#if __Z88DK
+  #include <conio.h>
+#endif
 
 int d_fgets(char** ws, FILE* stream) {
   char buf[80];
@@ -144,10 +147,14 @@ int main(int argc, char *argv[]) {
   uint32_t fileSize = 0;
 
   int c = 'A';
-  
+
+  #if __Z88DK
+    clrscr();
+  #endif
+
   fputs("Archive file to read from?\n", stdout);
   d_fgets(&temp, stdin);
-  
+
   if((input = fopen(temp, "rb")) == NULL) {
     fprintf(stderr, "Couldn't open %s\n", temp);
     return 1;
@@ -161,24 +168,24 @@ int main(int argc, char *argv[]) {
     while((c = fgetc(input)) != '\0' && c != EOF) {
       strAppend(c, &temp, &nameSize);
     }
-    
+
     if(c == EOF) {
       break;
     }
 
     /* null terminate the filename*/
     strAppend(0, &temp, &nameSize);
-    
+
     /* get the number of bytes to read from the archive */
     fread(&fileSize, sizeof(uint32_t), 1, input);
-    
+
     if((output = fopen(temp, "wb")) == NULL) {
       fprintf(stderr, "Couldn't write to file %s\n", temp);
       return 1;
     }
-    
+
     fprintf(stdout, "Writing file %s: %lu bytes\n", temp, fileSize);
-    
+
     while(fileSize--) {
       fputc(fgetc(input), output);
     }
@@ -188,6 +195,10 @@ int main(int argc, char *argv[]) {
 
   freeAndZero(temp);
   fclose(input);
-  
+
+  #if __Z88DK
+    while(1) {}
+  #endif
+
   return 0;
 }

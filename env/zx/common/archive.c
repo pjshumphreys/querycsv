@@ -121,10 +121,10 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "Couldn't open %s for writing\n", temp);
     return 1;
   }
-  
+
   do {
     fputs("Append input filename? (press enter to exit)\n", stdout);
-    
+
     d_fgets(&temp, stdin);
 
     if(strcmp(temp, "") == 0) {
@@ -135,9 +135,9 @@ int main(int argc, char *argv[]) {
       fprintf(stdout, "File %s doesn't exist, continuing\n", temp);
       continue;
     }
-    
+
     fileSize = 0;
-    
+
     fseek(input, 0, SEEK_END);
     fileSize = ftell(input);
     fseek(input, 0, SEEK_SET);
@@ -145,11 +145,11 @@ int main(int argc, char *argv[]) {
     fprintf(stdout, "Appending file %s: %lu bytes\n", temp, fileSize);
     fwrite(temp, 1, strlen(temp)+1, output);
     fwrite(&fileSize, sizeof(uint32_t), 1, output);
-    
+
     while(fileSize--) {
       fputc(fgetc(input), output);
     }
-    
+
     fclose(input);
   } while (1);
 

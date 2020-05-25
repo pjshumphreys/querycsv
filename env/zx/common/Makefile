@@ -31,5 +31,12 @@ querycsv.bas: querycsv.bin
 	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "{BE}23635+256*{BE}23636+51"\n30 REM' > querycsv.bas
 	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\{\1\}/g" >> querycsv.bas
 
+archive:
+	gcc -o archive archive.c
+
+unarchive.tap:
+	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
+	mv a.tap unarchive.tap
+
 clean:
-	rm -f querycsv.bas querycsv.tap *.bin *.o *.inc *.map
+	rm -f querycsv.bas querycsv.tap unarchive.tap archive *.bin *.o *.inc *.map
