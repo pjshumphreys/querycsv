@@ -1,3 +1,5 @@
+/* This program will write a named .tap file containing a bunch of named files cut up and converted into data blocks */
+/* It enables me to quickly copy a bunch of files into an emulated residos filesystem */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -108,11 +110,17 @@ int d_fgets(char** ws, FILE* stream) {
 
 int main(int argc, char *argv[]) {
   char * temp = NULL;
+  char * temp2 = NULL;
 
   FILE * input = NULL;
   FILE * output = NULL;
   uint32_t fileSize;
+  unsigned char checksum;
   int c;
+  uint16_t pageSize;
+  int writeSize;
+  uint16_t nameLength;
+  unsigned char firstPage;
 
   fputs("Output filename?\n", stdout);
   d_fgets(&temp, stdin);
@@ -128,33 +136,106 @@ int main(int argc, char *argv[]) {
     d_fgets(&temp, stdin);
 
     if(strcmp(temp, "") == 0) {
-      break;
+      if((input = fopen("/dev/null", "rb")) == NULL) {
+        fprintf(stdout, "File %s doesn't exist, continuing\n", temp);
+        continue;
+      }
+
+      firstPage = 2;  /* special code that tells the reader to abort */
+      fileSize = 0;
+
+      fprintf(stdout, "Appending termination block\n");
+
+      nameLength = strlen(temp)+1;
+    }
+    else {
+      if((input = fopen(temp, "rb")) == NULL) {
+        fprintf(stdout, "File %s doesn't exist, continuing\n", temp);
+        continue;
+      }
+
+      firstPage = TRUE;
+
+      fseek(input, 0, SEEK_END);
+      fileSize = ftell(input);
+      fseek(input, 0, SEEK_SET);
+
+      fprintf(stdout, "Appending file %s: %lu bytes\n", temp, fileSize);
+
+      nameLength = strlen(temp)+1;
     }
 
-    if((input = fopen(temp, "rb")) == NULL) {
-      fprintf(stdout, "File %s doesn't exist, continuing\n", temp);
-      continue;
-    }
+    do {
+      if((nameLength + fileSize) > 16397) {
+        pageSize = 16397 - nameLength;
+        fileSize -= pageSize;
+      }
+      else {
+        pageSize = fileSize;
+        fileSize = 0;
+      }
 
-    fileSize = 0;
+      checksum = 0;
 
-    fseek(input, 0, SEEK_END);
-    fileSize = ftell(input);
-    fseek(input, 0, SEEK_SET);
+      /* write the block length (always 16400 for simplicity) */
+      fputc(18, output);
+      fputc(64, output);
 
-    fprintf(stdout, "Appending file %s: %lu bytes\n", temp, fileSize);
-    fwrite(temp, 1, strlen(temp)+1, output);
-    fwrite(&fileSize, sizeof(uint32_t), 1, output);
+      /* write 0xff (data block) */
+      fputc(255, output);
+      checksum ^= 255;
 
-    while(fileSize--) {
-      fputc(fgetc(input), output);
-    }
+      /* write the filename */
+      temp2 = temp;
+      while(*temp2 != 0) {
+        fputc(*temp2, output);
+        checksum ^= *temp2;
+        temp2++;
+      }
+
+      /* write the null terminator for the file name */
+      fputc(0, output);
+      checksum ^= *temp2;
+
+      /* write 1 for replace or 0 for append */
+      fputc(firstPage, output);
+      checksum ^= firstPage;
+
+      /* write how many bytes to add to the named file */
+      c = pageSize & 0x00FF;
+      fputc(c, output);
+      checksum ^= c;
+      c = (pageSize & 0xFF00) >> 8;
+      fputc(c, output);
+      checksum ^= c;
+
+      /* always write the same number of bytes, but zero pad */
+      writeSize = (16397 - nameLength) - pageSize;
+
+      /* write the file contents */
+      while(pageSize--) {
+        c = fgetc(input);
+        fputc(c, output);
+        checksum ^= c;
+      }
+
+      /* write the zero padding */
+      while(writeSize--) {
+        fputc(0, output);
+        checksum ^= 0;
+      }
+
+      /* write the checksum byte */
+      fwrite(&checksum, 1, 1, output);
+      firstPage = FALSE;
+    } while (fileSize != 0);
 
     fclose(input);
-  } while (1);
+  } while (strcmp(temp, "") != 0);
 
   fclose(output);
   freeAndZero(temp);
 
   return 0;
 }
+

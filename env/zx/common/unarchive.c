@@ -1,16 +1,18 @@
+/* This program will be compiled to a .tap file and run on a residos enabled emulator.
+  It will read .tap blocks and convert them into files on the +3dos filesystem.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <conio.h>
+#include <spectrum.h>
 
 #define FALSE 0
 #define TRUE 1
 
 #define freeAndZero(p) { free(p); p = 0; }
-
-#if __Z88DK
-  #include <conio.h>
-#endif
 
 int d_fgets(char** ws, FILE* stream) {
   char buf[80];
@@ -110,95 +112,65 @@ int d_fgets(char** ws, FILE* stream) {
   return FALSE;
 }
 
-
-int strAppend(char c, char **value, size_t *strSize) {
-  char *temp;
-
-  /* validate inputs */
-  /* increase value length by 1 character */
-
-  /* update the string pointer */
-  /* increment strSize */
-  if(strSize != NULL) {
-    if(value != NULL) {
-      /* continue to use realloc directly here as reallocMsg can call strAppend itself indirectly */
-      if((temp = realloc(*value, (*strSize)+1)) != NULL) {
-        *value = temp;
-
-        /* store the additional character */
-        (*value)[*strSize] = c;
-      }
-      else {
-        return FALSE;
-      }
-    }
-
-    (*strSize)++;
-  }
-
-  return TRUE;
-}
+uint16_t readBytes2;
+char * temp;
 
 int main(int argc, char *argv[]) {
-  char * temp = NULL;
-  size_t nameSize = 0;
-  FILE * input = NULL;
+  char * temp2;
+  char * firstBlock;
+  uint16_t * readBytes;
+
   FILE * output = NULL;
-  uint32_t fileSize = 0;
 
-  int c = 'A';
+  temp = 0xBFEF;
 
-  #if __Z88DK
-    clrscr();
-  #endif
+  clrscr();
 
-  fputs("Archive file to read from?\n", stdout);
-  d_fgets(&temp, stdin);
+  fputs("Press any key to start\n", stdout);
+  getchar();
+  fputs("\n", stdout);
 
-  if((input = fopen(temp, "rb")) == NULL) {
-    fprintf(stderr, "Couldn't open %s\n", temp);
-    return 1;
-  }
+  do {
+    tape_load_block(temp, 16400, 0xff);
+    fputs("Pause!\n", stdout);
 
-  while(c != EOF) {
-    freeAndZero(temp);
+    firstBlock = temp + strlen(temp) + 1;
+    readBytes = firstBlock + 1;
+    readBytes2 = *readBytes;
+    temp2 = firstBlock + 3;
 
-    nameSize = 0;
-
-    while((c = fgetc(input)) != '\0' && c != EOF) {
-      strAppend(c, &temp, &nameSize);
-    }
-
-    if(c == EOF) {
+    switch(*firstBlock) {
+      case 0:
+        fprintf(stdout, "Appending %u bytes to %s\n", readBytes2, temp);
       break;
+
+      case 1:
+        if(output) {
+          fclose(output);
+          output = NULL;
+        }
+
+        fprintf(stdout, "Writing %u bytes to %s\n", readBytes2, temp);
+
+        if((output = fopen(temp, "wb")) == NULL) {
+          fprintf(stderr, "Couldn't write to file %s\n", temp);
+          return 1;
+        }
+      break;
+
+      default:
+        fputs("Termination block found. exiting\n \n \n", stdout);
+
+        if(output) {
+          fclose(output);
+        }
+      return 0;
     }
 
-    /* null terminate the filename*/
-    strAppend(0, &temp, &nameSize);
+    fwrite(temp2, 1, readBytes2, output);
 
-    /* get the number of bytes to read from the archive */
-    fread(&fileSize, sizeof(uint32_t), 1, input);
-
-    if((output = fopen(temp, "wb")) == NULL) {
-      fprintf(stderr, "Couldn't write to file %s\n", temp);
-      return 1;
-    }
-
-    fprintf(stdout, "Writing file %s: %lu bytes\n", temp, fileSize);
-
-    while(fileSize--) {
-      fputc(fgetc(input), output);
-    }
-
-    fclose(output);
-  }
-
-  freeAndZero(temp);
-  fclose(input);
-
-  #if __Z88DK
-    while(1) {}
-  #endif
+    fputs("Unpause!\n", stdout);
+  } while(1);
 
   return 0;
 }
