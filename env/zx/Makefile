@@ -1,10 +1,15 @@
 ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16384 - \$$5}'")
 
-all: querycsv.tap qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl
+all: querycsv.tap qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl output.tap
 
 querycsv.tap:
 	cd common && make
 	cp common/querycsv.tap .
+
+output.tap: qcsv06zx.ovl
+	cp common/archive .
+	cp common/unarchive.tap .
+	sh -c "(echo output.tap > files.txt) && (ls *.ovl >> files.txt) && (echo "" >> files.txt) && (cat files.txt | ./archive)"
 
 qcsv00zx.ovl: qrycsv00.bin
 	cp qrycsv00.bin qcsv00zx.ovl

@@ -1,3 +1,5 @@
+all: querycsv.tap archive unarchive.tap
+
 querycsv.tap: querycsv.bas
 	./bas2tap -a10 -squerycsv querycsv.bas querycsv.tap
 
