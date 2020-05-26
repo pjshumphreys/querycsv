@@ -10,6 +10,7 @@ output.tap: qcsv06zx.ovl
 	cp common/archive .
 	cp common/unarchive.tap .
 	sh -c "(echo output.tap > files.txt) && (ls *.ovl >> files.txt) && (echo "" >> files.txt) && (cat files.txt | ./archive)"
+	rm files.txt
 
 qcsv00zx.ovl: qrycsv00.bin
 	cp qrycsv00.bin qcsv00zx.ovl
@@ -50,4 +51,4 @@ clean:
 	cd residos128 && make clean
 	cd esxdos48 && make clean
 	cd esxdos128 && make clean
-	rm -rf build zcc_opt.def querycsv.tap *.ovl
+	rm -rf build zcc_opt.def archive *.tap *.ovl
