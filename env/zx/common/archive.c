@@ -205,6 +205,7 @@ int main(int argc, char *argv[]) {
       c = pageSize & 0x00FF;
       fputc(c, output);
       checksum ^= c;
+
       c = (pageSize & 0xFF00) >> 8;
       fputc(c, output);
       checksum ^= c;

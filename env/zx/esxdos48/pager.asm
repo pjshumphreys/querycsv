@@ -142,6 +142,8 @@ farcall2:
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
+
+serialLnHL:
   ret
 
 ;------------------------------------------------
@@ -235,7 +237,7 @@ farRet:
   push af
   ld a, e
   ld (currentVirtualPage), a
-  pop af  
+  pop af
 
 farRet3:
   call changePage
@@ -257,12 +259,12 @@ farRet2:
   ld (deBackup), de
 
   ld bc, (libcRet)
-  push bc
+  push bc  ; get the virtual page number to return to from the stack
 
   push af
   ld a, (currentVirtualPage)
   ld e, a
-  ld a, 4 
+  ld a, 4
   jr farRet3
 
 ;-----------------------------------------

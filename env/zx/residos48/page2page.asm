@@ -4,11 +4,21 @@ HOOK_PACKAGE equ 0xfb
 PKG_RESIDOS equ 0
 RESI_ALLOC equ 0x0325
 
-org 0xbd00
+org 0xbce0
+;---------------------------------------
+; mypager2 - switch to the low bank specified in the accumulator.
+; Interupts must be disabled before this function is called
+
+mypager2:
+  ret ; just return until the proper paging code is installed into this location
+  defs 31, 0
+
 loadFromDisk2:
   ld a, (hl)
   push de
   push hl
+  cp 0xfe  ;skip to page 6
+  jr z, skipTo6
   cp 0  ; Exit the loop if all pages could be stored in low banks
   jr z, exitLFD
 
@@ -38,6 +48,19 @@ loadFromDisk2:
   inc de
   jr loadFromDisk2
 
+skipTo6:
+  ld a, 0xff
+  ld (hl), a
+  pop hl
+  pop de
+  inc hl
+  inc hl
+  inc hl
+  inc de
+  inc de
+  inc de
+  jr loadFromDisk2
+
 exitLFD:
   pop hl
   pop de
@@ -61,10 +84,3 @@ doresi3:  ; special startup version that doesn't swap out memory until the relev
 
 defs 0x101 - ASMPC, 0xbf 
 
-;---------------------------------------
-; mypager2 - switch to the low bank specified in the accumulator.
-; Interupts must be disabled before this function is called
-
-mypager2:
-  ret ; just return until the proper paging code is installed into this location
-  defs 31, 0

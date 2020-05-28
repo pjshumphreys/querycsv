@@ -1,5 +1,6 @@
 include "defines.inc"
 include "residos128.inc"
+PUBLIC dodos
 PUBLIC mypager
 PUBLIC defaultBank
 PUBLIC fputc_cons

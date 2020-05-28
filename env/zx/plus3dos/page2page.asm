@@ -1,6 +1,14 @@
 include "../common/equs.inc"
 
 org 0xbd00
+;---------------------------------------
+; mypager2 - switch to the low bank specified in the accumulator.
+; Interupts must be disabled before this function is called
+
+mypager2:
+  ret ; fake paging code to ensure data alignment stays the same
+  defs 31, 0
+
 ;--------------------------------------------------------
 ; page2page - copy data pointed to by the stack pointer into a location that ends at the value pointed to by hl.
 ; The amount of bytes to copy is specified indirectly via the value in the bc register
@@ -41,11 +49,3 @@ Loop2:
 ; This is needed as the code above will be replaced by the interrupt mode 2 jump table after the program has started up.
 
 defs 0x101 - ASMPC, 0xbf
-
-;---------------------------------------
-; mypager2 - switch to the low bank specified in the accumulator.
-; Interupts must be disabled before this function is called
-
-mypager2:
-  ret ; fake paging code to ensure data alignment stays the same
-  defs 31, 0

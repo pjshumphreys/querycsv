@@ -7,7 +7,7 @@ qcsv04zx.ovl: esxdos48.asm pager.bin
 
 pager.bin: pager.asm page2page.bin pages.inc lookupTable.inc data.bin functions.inc defines.inc
 	z80asm -b -r=49152 pager.asm
-	z80asm -m -b -r=`ls -nl pager.bin | awk '{print 48384 - $$5}'` pager.asm
+	z80asm -m -b -r=`ls -nl pager.bin | awk '{print 48352 - $$5}'` pager.asm
 	-awk '{print $$1, "equ", $$3}' pager.map > pager.inc
 
 page2page.bin: page2page.asm

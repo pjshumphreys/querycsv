@@ -1,5 +1,6 @@
 include "defines.inc"
 include "residos48.inc"
+PUBLIC dodos
 PUBLIC mypager
 PUBLIC defaultBank
 PUBLIC fputc_cons
@@ -18,7 +19,7 @@ jr copydata
 atexit3:
   jp atexit4
 
-; copy data from this page to elsewhere in the memory map
+; copy all the data from this page to elsewhere in the memory map
 copydata:
   ld hl, page2page ; hl = source address for ldir
   ld de, farcall ; de = destination address for ldir
@@ -30,6 +31,20 @@ copydata:
   ld (exhlBackup), hl      ; save BASIC's HL'
   exx
   ei
+
+  ld a, 2
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
+
+  ; update atexit jump
+  ld a, 0xcd  ; call instruction
+  ld (atexit), a ; put instruction into the fputc_cons location
+  ld hl, atexit2
+  ld (atexit+1), hl
+
+  ;update fputc_cons jump
+  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
@@ -65,52 +80,17 @@ suceeded:
 
 failed2:
   ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
-  ld hl, pageLocations+6
-  ld de, 0x0006  ; start at page 6
+  ld a, 0xfe
+  ld (pageLocations+3), a ; mark page 3 specially so we know to skip to page 6
+  ld hl, pageLocations+2
+  ld de, 2  ; start at page 2
   di
   call loadFromDisk2 ; load all the pages we can into low ram banks
 
   ;set up the code to go back to the default bank
   ld a, (pageLocations) 
   ld (defaultBank), a
-  call mypager
-
-  ; restore the interrupt mode 2 bytes
-  ld b, 255
-  ld hl, 0xbd00
-intSetup:
-  ld (hl), 0xbf
-  inc hl
-  djnz intSetup
-
-  ld (hl), 0xbf ; unroll the last 2 loop iterations
-  inc hl
-  ld (hl), 0xbf
-
-  ;update the isr jump
-  ld hl, isr2
-  ld (isr+1), hl
-
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
-  di
-  ld a, 0xbd
-  ld i, a
-  im 2  ; Set Interrupt Mode 2
-  ei
-
-  ; update atexit jump
-  ld hl, 0x0021 ; ld hl, $00...
-  ld (atexit), hl
-  ld hl, 0xcd00 ; ...00; call
-  ld a, h
-  ld (atexit+2), hl
-  ld hl, atexit2
-  ld (atexit+4), hl
-
-  ;update fputc_cons jump
-  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
-  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
+  call mypager  ; switch it in to $0000-$3fff
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -188,26 +168,46 @@ startup:
   pop de
   pop bc
 
-  ld bc, 0x0707
-  push bc
-  call fputc_cons
-  pop bc
+  ; restore the interrupt mode 2 bytes
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbf
+  inc hl
+  djnz intSetup
 
-  ld bc, 0x4141
-  push bc
-  call fputc_cons
-  pop bc
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
 
-  ld bc, 0x4242
-  push bc
-  call fputc_cons
-  pop bc
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
+
+  ;ld bc, 0x0707
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
+
+  ;ld bc, 0x4141
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
+
+  ;ld bc, 0x4242
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
   ;start running main function
-  ;push atexit ; return to the atexit function
-  ld a, 2
-  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ld (_libCPage), a
   call _realmain
 
   jp atexit
@@ -221,6 +221,7 @@ atexit4:
   pop bc
   pop hl
 
+  dec l
   ld (hlBackup), hl
 
   ; restore stack pointer
@@ -291,22 +292,11 @@ exitMoveBack:
   ld (hl), b
 
 skipMoveBack:
-  ;pop hl
-  ;ld (deBackup), hl
-
-  ; if hlBackup is non zero, push it onto the stack
-  ld hl, (hlBackup)
-  ld a, h
-  or l
-  jp z, nopush
-  push hl
-
-nopush:
-  ;restore return location
-  ;ld hl, (deBackup)
-  ;push hl
-
-  ld bc, 0  ; return 0 to basic
+  ; set the error code to return
+  ld a, (hlBackup)
+  ld (ERR_NR), a
+  ld bc, 0x0058 ; ERROR-3 + 3
+  push bc ; reset the stack after we exit
   ret
 
 page2page:

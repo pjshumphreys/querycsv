@@ -169,6 +169,12 @@ int main(int argc, char *argv[]) {
 
     fwrite(temp2, 1, readBytes2, output);
 
+    /* residos files may need a soft eof */
+    if(readBytes2 % 128 != 0) {
+      fputs("Adding soft-EOF\n", stdout);
+      fputc(0x1a, output);
+    }
+
     fputs("Unpause!\n", stdout);
   } while(1);
 

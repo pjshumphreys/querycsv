@@ -98,7 +98,7 @@ const ignoreFunctions = [
   return acc;
 }, {});
 
-let currentAddr = 0xbd00 - 4;
+let currentAddr = 0xbce0 - 4;
 
 /* contains a map of the addresses of all global variables */
 const defines = {};
