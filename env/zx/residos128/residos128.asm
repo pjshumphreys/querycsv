@@ -32,6 +32,10 @@ RST_HOOK equ 8
   exx
   ei
 
+  ld a, 3
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
+
   ld a, 7
   ld (destinationHighBank), a  ; which high bank to go to (bank 7)
 
@@ -106,6 +110,15 @@ inf:
   ld a, 1
   ld (destinationHighBank), a  ; which high bank to go to (bank 1)
 
+  ; update atexit jump
+  ld a, 0xcd  ; call instruction
+  ld (atexit), a ; put instruction into the fputc_cons location
+
+  ;update fputc_cons jump
+  ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ld hl, jp_rom3
+  ld (fputc_cons+1), hl ; put jp_rom3 address here
+
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
@@ -136,7 +149,6 @@ suceeded:
   ld iy, RESI_ALLOC  ; get free low bank
   call doresi3
   jr nc, failed2  ; call failed if Fc=0
-  ld (defaultBank), a  ; save for later
   ld (pageLocations), a ; ensure the default bank memory is freed at exit
 
 failed2:
@@ -147,12 +159,16 @@ failed2:
   call dodos
 
   ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
-  ld hl, pageLocations+6
-  ld de, 0x0006  ; start at page 6
+  ld a, 0xfe
+  ld (pageLocations+4), a ; mark page 3 specially so we know to skip to page 6
+  ld hl, pageLocations+3
+  ld de, 3  ; start at page 3
 loopAlloc:
   ld a, (hl)
   push de
   push hl
+  cp 0xfe  ;skip to page 6
+  jr z, skipTo6
   cp 0  ; Exit the loop if all pages could be stored in low banks
   jr z, startup3
   ld iy, RESI_ALLOC   ; get free bank
@@ -169,50 +185,26 @@ loopAlloc:
   inc de
   jr loopAlloc
 
-startup3:
-  ld a, (defaultBank)  ; bank obtained by RESI_ALLOC
-  call mypager  ; switch it in to $0000-$3fff
+skipTo6:
+  ld a, 0xff
+  ld (hl), a
+  pop hl
+  pop de
+  inc hl
+  inc hl
+  inc de
+  inc de
+  jr loopAlloc
 
 startup2:
   pop hl
   pop de
 
-  ; restore the interrupt mode 2 bytes
-  ld b, 255
-  ld hl, 0xbd00
-intSetup:
-  ld (hl), 0xbf
-  inc hl
-  djnz intSetup
-
-  ld (hl), 0xbf ; unroll the last 2 loop iterations
-  inc hl
-  ld (hl), 0xbf
-
-  ;update the isr jump
-  ld hl, isr2
-  ld (isr+1), hl
-
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
-  di
-  ld a, 0xbd
-  ld i, a
-  im 2  ; Set Interrupt Mode 2
-  ei
-
-  ; update atexit jump
-  ld hl, 0x0021 ; ld hl, $00...
-  ld (atexit), hl
-  ld hl, 0xcd00 ; ...00; call
-  ld a, h
-  ld (atexit+2), hl
-  ld hl, jp_rom3
-  ld (atexit+4), hl
-
-  ;update fputc_cons jump
-  ld (fputc_cons), a ; put instruction into the fputc_cons location
-  ld (fputc_cons+1), hl ; put jp_rom3 address here
+  ;set up the code to go back to the default bank
+startup3:
+  ld a, (pageLocations)
+  ld (defaultBank), a ; bank obtained by RESI_ALLOC
+  call mypager  ; switch it in to $0000-$3fff
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -286,26 +278,46 @@ startup:
   pop de
   pop bc
 
-  ld bc, 0x0707
-  push bc
-  call fputc_cons
-  pop bc
+  ; restore the interrupt mode 2 bytes
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbf
+  inc hl
+  djnz intSetup
 
-  ld bc, 0x4141
-  push bc
-  call fputc_cons
-  pop bc
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
 
-  ld bc, 0x4242
-  push bc
-  call fputc_cons
-  pop bc
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
+
+  ;ld bc, 0x0707
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
+
+  ;ld bc, 0x4141
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
+
+  ;ld bc, 0x4242
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
   ;start running main function
-  ;push atexit ; return to the atexit function
-  ld a, 3
-  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ld (_libCPage), a
   call _realmain
 
   jp atexit

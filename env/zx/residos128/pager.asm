@@ -28,6 +28,10 @@ farcall:
   ld (deBackup), de
 
   pop hl ; (hl) contains virtual page number to use
+  ld e, (hl)
+  ;ld c, (hl)
+  ;ld b, 0
+  ;call serialLnBC
 
   ;push the virtual page to return to onto the stack
   ld bc, (currentVirtualPage)
@@ -38,11 +42,15 @@ farcall:
   push bc
 
   push af
-  or a ; clear carry bit
-  ld a, (hl)
-  ld (currentVirtualPage), a
+  ; flash the border colour
+  ld a, (borderColour)
+  xor 2
+  ld (borderColour), a
+  ld c, 0xfe
+  out (c), a
 
   ;calculate which value in the jump table to use
+  or a ; clear carry bit
   ld bc, funcstart+3
   sbc hl, bc
 
@@ -52,16 +60,26 @@ farcall:
 
   ld bc, lookupTable
   add hl, bc
-  pop af
-
   ld c, (hl)
   inc hl
   ld b, (hl)
+  ;call serialLnBC
+  pop af
 
   push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
+  push af
+
+  ld a, (currentVirtualPage)
+  push af
+  ld a, e
+  ld (currentVirtualPage), a
+  pop af
+
+  ; a = current, e = desired
   call changePage
+  pop af
 
   ;restore all registers and jump to the function we want via ret
   ld de, (deBackup)
@@ -76,7 +94,10 @@ farcall2:
   ld (deBackup), de
 
   pop hl ; (hl) contains virtual page number to use
-  ld e, (hl)
+  ld e, 3
+  ;ld c, (hl)
+  ;ld b, 0
+  ;call serialLnBC
 
   ; backup the return address for later use
   pop bc
@@ -87,8 +108,13 @@ farcall2:
   push bc
 
   push af
-  or a ; clear carry bit
+  ; flash the border colour
+  ld a, 6
+  ld c, 0xfe
+  out (c), a
+
   ;calculate which value in the jump table to use
+  or a ; clear carry bit
   ld bc, funcstart+3
   sbc hl, bc
 
@@ -98,21 +124,28 @@ farcall2:
 
   ld bc, lookupTable
   add hl, bc
-  pop af
 
   ld c, (hl)
   inc hl
   ld b, (hl)
+  ;call serialLnBC
+  pop af
 
   push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
-  call found7
+  push af
+  ld a, (currentVirtualPage)
+  ;a = current, e = desired
+  call changePage
+  pop af
 
   ;restore all registers and jump to the function we want via ret
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
+
+serialLnHL:
   ret
 
 ;---------------------------------------------------
@@ -152,32 +185,6 @@ lookupTableEnd:
 
 ;------------------------------------------------------
 
-changePage:  ; is the virtual page currently in a ram page?
-
-  ; save bc as we'll be using lddr that corrupts it
-  ;push bc
-  ld a, (currentVirtualPage)
-  ld e, a
-
-notFound:
-  ; if no, look up if the page is stored in rom overlay ram.
-  ld hl, pageLocations
-  ld d, 0
-  add hl, de
-  ld a, (hl)
-  cp 255  ; 255 = load from disk
-  jr nz, copyLoToHi
-  ld a, (pageQueue+6)
-  ld (destinationHighBank), a
-  ld a, e
-  push de
-  call dosload
-  pop de
-  ;update pageQueue to reference our newly loaded page
-  ld a, e
-  ld (pageQueue+7), a
-  jr found7
-
 found:
   ; if yes, make it the most recently used, switch to it then jump to the proper location
   dec hl
@@ -199,9 +206,11 @@ found4:
   or d
   call switchPage
   di
+  ld a, (defaultBank)
+  call mypager  ; switch it in to $0000-$3fff. always do it here as some c lib functions can page in the esxdos buffer
   ret
 
-found7:
+changePage:  ; is the virtual page currently in a ram page?
   ld bc, 6
   ld hl, pageQueue+7
   ld a, (hl)
@@ -223,18 +232,39 @@ found7:
   jr z, found
   dec hl
   dec hl
+  ld a, (pageQueue)
+  ld d, a
   ld a, (hl)
   cp e
   jr z, found4
-  jr notFound
+  ; jr notFound
+
+notFound:
+  ; if no, look up if the page is stored in rom overlay ram.
+  ld hl, pageLocations
+  ld d, 0
+  add hl, de
+  ld a, (hl)
+  cp 255  ; 255 = load from disk
+  jr nz, copyLoToHi
+  ld a, (pageQueue+6)
+  ld (destinationHighBank), a
+  ld a, e
+  push de
+  call dosload
+  pop de
+  ;update pageQueue to reference our newly loaded page
+  ld a, e
+  ld (pageQueue+7), a
+  jr changePage
 
 copyLoToHi:
   ;if it is in overlay ram, disable interupts, switch in the proper overlay ram and the least recently used page, copy the data, make it the most recently used, switch to it then jump to the proper location.
   di  ; disable interrupts
   ld a, (hl)  ; bank obtained by RESI_ALLOC
-  call mypager  ; switch it in to $0000-$3fff
 
   push de
+  call mypager  ; switch it in to $0000-$3fff
 
   ;switch to the ram page we'll be loading into
   ld a, (pageQueue+6) ; which page to switch to
@@ -244,8 +274,8 @@ copyLoToHi:
   and 0b11111000
   or d
   call switchPage
-  di
 
+  di
   ; copy memory from the range of 0x0000-0x1fff to the least recently used page
   ld hl, 0x0  ; Pointer to the source
   ld de, 0xc000  ; Pointer to the destination
@@ -257,12 +287,9 @@ copyLoToHi:
   ;update pageQueue to reference our newly loaded page
   ld a, e
   ld (pageQueue+7), a
-
-  ld a, (defaultBank)  ; bank with our interupt code
-  call mypager  ; switch it in to $0000-$3fff
   ei
 
-  jr found7
+  jp changePage
 
 ;---------------------------------------------------
 
@@ -272,15 +299,23 @@ farRet:
   ld (bcBackup), bc
   ld (deBackup), de
 
-  pop bc  ; get the virtual page number to return to from the stack
+  pop de  ; get the virtual page number to return to from the stack
 
   push af
-  ld a, c
+
+  ld a, (currentVirtualPage)
+  push af
+  ld a, e
   ld (currentVirtualPage), a
   pop af
 
 farRet3:
   call changePage
+
+  ld a, 7
+  ld c, 0xfe
+  out (c), a
+  pop af
 
   ld de, (deBackup)
   ld bc, (bcBackup)
@@ -296,8 +331,11 @@ farRet2:
   ld bc, (libcRet)
   push bc  ; get the virtual page number to return to from the stack
 
+  push af
+  ld a, (currentVirtualPage)
+  ld e, a
+  ld a, 3
   jr farRet3
-
 
 ;-----------------------------------------
 
@@ -327,5 +365,5 @@ keyInt:
 ;------------------------------------
 ; array of function trampolines and virtual page numbers
 
-funcstart:  ; the array of jp xxxx instructions and page numbers
+funcstart:  ; the array of call xxxx instructions and page numbers
   INCLUDE "functions.inc"

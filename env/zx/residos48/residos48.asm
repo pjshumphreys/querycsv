@@ -88,7 +88,7 @@ failed2:
   call loadFromDisk2 ; load all the pages we can into low ram banks
 
   ;set up the code to go back to the default bank
-  ld a, (pageLocations) 
+  ld a, (pageLocations)
   ld (defaultBank), a
   call mypager  ; switch it in to $0000-$3fff
 

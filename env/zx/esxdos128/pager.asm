@@ -391,7 +391,7 @@ farRet:
   push af
   ld a, e
   ld (currentVirtualPage), a
-  pop af  
+  pop af
 
 farRet3:
   call changePage
