@@ -32,20 +32,6 @@ copydata:
   exx
   ei
 
-  ld a, 2
-  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ld (_libCPage), a
-
-  ; update atexit jump
-  ld a, 0xcd  ; call instruction
-  ld (atexit), a ; put instruction into the fputc_cons location
-  ld hl, atexit2
-  ld (atexit+1), hl
-
-  ;update fputc_cons jump
-  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
-  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
-
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
@@ -87,10 +73,22 @@ failed2:
   di
   call loadFromDisk2 ; load all the pages we can into low ram banks
 
-  ;set up the code to go back to the default bank
-  ld a, (pageLocations)
-  ld (defaultBank), a
-  call mypager  ; switch it in to $0000-$3fff
+  ld a, 2
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
+
+  ; update atexit jump
+  ld a, 0xcd  ; call instruction
+  ld (atexit), a ; put instruction into the fputc_cons location
+  ld hl, atexit2
+  ld (atexit+1), hl
+
+  ;update fputc_cons jump
+  ld a, 2  ; upper screen
+  call call_rom3
+  defw 0x1601  ; open channel
+  ;ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ;ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -99,10 +97,6 @@ failed2:
   ld (hl), 21 ;stdout
   ld hl, __sgoioblk + 22
   ld (hl), 21 ;stderr
-
-  ld a, 2  ; upper screen
-  call call_rom3
-  defw 0x1601  ; open channel
 
   ; get the filename to load from basic variable a$
   ; zx_getstraddr:
@@ -158,16 +152,6 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
-  ; clear the screen
-  push bc
-  push de
-  push hl
-  call call_rom3
-  defw 0x0daf
-  pop hl
-  pop de
-  pop bc
-
   ; restore the interrupt mode 2 bytes
   ld b, 255
   ld hl, 0xbd00
@@ -191,6 +175,21 @@ intSetup:
   ld i, a
   im 2  ; Set Interrupt Mode 2
   ei
+
+  ;set up the code to go back to the default bank
+  ld a, (pageLocations)
+  ld (defaultBank), a
+  call mypager  ; switch it in to $0000-$3fff
+
+  ; clear the screen
+  push bc
+  push de
+  push hl
+  call call_rom3
+  defw 0x0daf
+  pop hl
+  pop de
+  pop bc
 
   ;ld bc, 0x0707
   ;push bc

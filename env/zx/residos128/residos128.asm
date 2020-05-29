@@ -32,10 +32,6 @@ RST_HOOK equ 8
   exx
   ei
 
-  ld a, 3
-  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ld (_libCPage), a
-
   ld a, 7
   ld (destinationHighBank), a  ; which high bank to go to (bank 7)
 
@@ -109,15 +105,6 @@ fourthcopy:
 inf:
   ld a, 1
   ld (destinationHighBank), a  ; which high bank to go to (bank 1)
-
-  ; update atexit jump
-  ld a, 0xcd  ; call instruction
-  ld (atexit), a ; put instruction into the fputc_cons location
-
-  ;update fputc_cons jump
-  ld (fputc_cons), a ; put instruction into the fputc_cons location
-  ld hl, jp_rom3
-  ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
@@ -200,11 +187,19 @@ startup2:
   pop hl
   pop de
 
-  ;set up the code to go back to the default bank
 startup3:
-  ld a, (pageLocations)
-  ld (defaultBank), a ; bank obtained by RESI_ALLOC
-  call mypager  ; switch it in to $0000-$3fff
+  ld a, 3
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
+
+  ; update atexit jump
+  ld a, 0xcd  ; call instruction
+  ld (atexit), a ; put instruction into the fputc_cons location
+
+  ;update fputc_cons jump
+  ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ld hl, jp_rom3
+  ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
@@ -268,16 +263,6 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
-  ; clear the second screen (and switch to it at the same time)
-  push bc
-  push de
-  push hl
-  call call_rom3
-  defw 0xf511
-  pop hl
-  pop de
-  pop bc
-
   ; restore the interrupt mode 2 bytes
   ld b, 255
   ld hl, 0xbd00
@@ -301,6 +286,21 @@ intSetup:
   ld i, a
   im 2  ; Set Interrupt Mode 2
   ei
+
+  ;set up the code to go back to the default bank
+  ld a, (pageLocations)
+  ld (defaultBank), a ; bank obtained by RESI_ALLOC
+  call mypager  ; switch it in to $0000-$3fff
+
+  ; clear the second screen (and switch to it at the same time)
+  push bc
+  push de
+  push hl
+  call call_rom3
+  defw 0xf511
+  pop hl
+  pop de
+  pop bc
 
   ;ld bc, 0x0707
   ;push bc
