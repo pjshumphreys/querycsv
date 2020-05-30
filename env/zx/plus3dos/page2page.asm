@@ -1,6 +1,6 @@
 include "../common/equs.inc"
 
-org 0xbd00
+org 0xbce0
 ;---------------------------------------
 ; mypager2 - switch to the low bank specified in the accumulator.
 ; Interupts must be disabled before this function is called

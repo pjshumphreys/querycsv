@@ -105,41 +105,17 @@ inf:
   ld iy, DOS_SET_1346
   call dodos
 
-  ; restore the interrupt mode 2 bytes
-  ld b, 255
-  ld hl, 0xbd00
-intSetup:
-  ld (hl), 0xbf
-  inc hl
-  djnz intSetup
-
-  ld (hl), 0xbf ; unroll the last 2 loop iterations
-  inc hl
-  ld (hl), 0xbf
-
-  ;update the isr jump
-  ld hl, isr2
-  ld (isr+1), hl
-
-  ; switch to interrupt mode 2 so we can use the iy register and
-  ; ram at 0x0000-0x2000 with interrupts enabled
-  di
-  ld a, 0xbd
-  ld i, a
-  im 2  ; Set Interrupt Mode 2
-  ei
+  ld a, 1
+  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
+  ld (_libCPage), a
 
   ; update atexit jump
-  ld hl, 0x0021 ; ld hl, $00...
-  ld (atexit), hl
-  ld hl, 0xcd00 ; ...00; call
-  ld a, h
-  ld (atexit+2), hl
-  ld hl, jp_rom3
-  ld (atexit+4), hl
+  ld a, 0xcd  ; call instruction
+  ld (atexit), a ; put instruction into the fputc_cons location
 
   ;update fputc_cons jump
   ld (fputc_cons), a ; put instruction into the fputc_cons location
+  ld hl, jp_rom3
   ld (fputc_cons+1), hl ; put jp_rom3 address here
 
   ;setup standard streams
@@ -204,6 +180,30 @@ startup:
   push bc  ; argc
   ld (spBackup), sp
 
+  ; restore the interrupt mode 2 bytes
+  ld b, 255
+  ld hl, 0xbd00
+intSetup:
+  ld (hl), 0xbf
+  inc hl
+  djnz intSetup
+
+  ld (hl), 0xbf ; unroll the last 2 loop iterations
+  inc hl
+  ld (hl), 0xbf
+
+  ;update the isr jump
+  ld hl, isr2
+  ld (isr+1), hl
+
+  ; switch to interrupt mode 2 so we can use the iy register and
+  ; ram at 0x0000-0x2000 with interrupts enabled
+  di
+  ld a, 0xbd
+  ld i, a
+  im 2  ; Set Interrupt Mode 2
+  ei
+
   ; clear the second screen (and switch to it at the same time)
   push bc
   push de
@@ -214,26 +214,22 @@ startup:
   pop de
   pop bc
 
-  ld bc, 0x0707
-  push bc
-  call fputc_cons
-  pop bc
+  ;ld bc, 0x0707
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
-  ld bc, 0x4141
-  push bc
-  call fputc_cons
-  pop bc
+  ;ld bc, 0x4141
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
-  ld bc, 0x4242
-  push bc
-  call fputc_cons
-  pop bc
+  ;ld bc, 0x4242
+  ;push bc
+  ;call fputc_cons
+  ;pop bc
 
   ;start running main function
-  ;push atexit ; return to the atexit function
-  ld a, 1
-  ld (currentVirtualPage), a  ; update the current virtual page number to be that of the main function
-  ld (_libCPage), a
   call _realmain
 
   jp atexit

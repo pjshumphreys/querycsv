@@ -85,4 +85,4 @@ loadFromDisk2:
 ; pad the output binary out to the proper size.
 ; This is needed as the code above will be replaced by the interrupt mode 2 jump table after the program has started up.
 
-defs 0x101 - ASMPC, 0xbf 
+defs 0x101 - ASMPC, 0xbf

@@ -85,7 +85,6 @@ handle_control:
   push de
   ret
 
-
 ; 32 column print routine..quick 'n' dirty..we take
 ; x posn and divide by two to get our real position
 

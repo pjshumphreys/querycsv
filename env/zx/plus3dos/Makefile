@@ -1,6 +1,7 @@
 qcsv01zx.ovl: plus3dos.asm atexit.bin fputc_cons_first.bin pager.bin
 	(cat pager.inc page2page.inc | sort | uniq | grep -v -E '__head|__tail|__size') > plus3dos.inc
-	zcc +zx -m --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -D__DISABLE_BUILTIN -U__STDC_VERSION__ plus3dos.asm ../libc.c -m -o qcsv01zx.ovl
+	zcc +zx -S --c-code-in-asm --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -D__DISABLE_BUILTIN -U__STDC_VERSION__ ../libc.c -m -o qcsv01zx.asm
+	zcc +zx -m --no-crt -lm -lp3 -pragma-define:CRT_ORG_CODE=0xc000 -pragma-define:CRT_ORG_DATA=0 -pragma-define:CRT_ORG_BSS=0x8000 -pragma-define:CLIB_MALLOC_HEAP_SIZE=0 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-define:CRT_ENABLE_COMMANDLINE=2 -D__DISABLE_BUILTIN -U__STDC_VERSION__ plus3dos.asm qcsv01zx.asm -o qcsv01zx.ovl
 	mv qcsv01zx_code_compiler.bin qcsv01zx.ovl
 	dd if=/dev/zero bs=1 count=`ls -nl qcsv01zx.ovl | awk '{print 16384 - $$5}'` >> qcsv01zx.ovl
 

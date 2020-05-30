@@ -1,8 +1,11 @@
 include "pager.map"
 
+ERR_NR equ 0x5c3a
+
 RESI_DEALLOC equ 0x0328
 
 org 0xe60e
+  dec l
   ld (hlBackup), hl
 
   ; restore stack pointer
@@ -14,6 +17,12 @@ org 0xe60e
   ld bc, 0x1b00  ; Number of bytes to move
   di
   ldir
+
+  ; reload virtual page 3 back into high bank 0 so we can easily run the program again
+  xor a ; load into page 0
+  ld (destinationHighBank), a
+  ld a, 3 ; load virtual page 3
+  call dosload
 
   ;switch back to interrupt mode 0
   im 0
@@ -54,30 +63,18 @@ exitMoveBack:
   ld (hl), b
 
 skipMoveBack:
-  ;pop hl
-  ;ld (deBackup), hl
-
-  ; if hlBackup is non zero, push it onto the stack
-  ld hl, (hlBackup)
-  ld a, h
-  or l
-  jp z, nopush
-  push hl
-
-nopush:
-  ;restore return location
-  ;ld hl, (deBackup)
-  ;push hl
-
-  ; reload virtual page 3 back into high bank 0 so we can easily run the program again
-  xor a ; load into page 0
-  ld (destinationHighBank), a
-  ld a, 1 ; load virtual page 1
-  call dosload
+  ; set the error code to return
+  ld a, (hlBackup)
+  ld (ERR_NR), a
+  ld bc, 0x0058 ; ERROR-3 + 3
+  push bc ; reset the stack after we exit
 
   ; disable second screen, switch to high bank 0 then exit
   di
-  ld bc, 0  ; return 0 to basic
   ld a, (bankm)
   and 0xf0  ;disable second screen and go to page 0
   jp switchPage
+
+if ASMPC % 2 != 0
+  defb 0
+endif
