@@ -1,7 +1,7 @@
 #ifndef __Z88DK
 /* write a formatted string into a string buffer. allocate/free memory as needed */
 /* the zx build has this function in its libc page to minimise page flipping */
-int d_sprintf(char **str, char *format, ...) __stdc {
+int d_sprintf(char **str, char *format, ...) {
   size_t newSize;
   char *newStr = NULL;
   va_list args;
@@ -66,13 +66,8 @@ int d_sprintf(char **str, char *format, ...) __stdc {
   /* do the string formatting for real. */
   va_start(args, format);
 
-  #ifdef HAS_VSNPRINTF
-    /* use vsnprintf again for preference so the z80 builds can be simplified a bit */
-    vsnprintf(newStr, newSize + 1, format, args);
-  #else
-    /* use vsprintf if we must as vsnprintf doesn't seem to be available on Lattice C */
-    vsprintf(newStr, format, args);
-  #endif
+  /* use vsprintf if we must as vsnprintf doesn't seem to be available on Lattice C */
+  vsprintf(newStr, format, args);
 
   va_end(args);
 
