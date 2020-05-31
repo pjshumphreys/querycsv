@@ -158,22 +158,9 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
       /* parsing finished sucessfully. */
     } break;
 
-    case 1: {
-      /* the input script contained a syntax error. show message and exit */
-      fputs(errSyntax, stderr);
-      free(queryFileName);
-    } return EXIT_FAILURE;
-
-    case 2: {
-      /* the input script parsing exhausted memory storage space. show message and exit */
-      fputs(errRam, stderr);
-      free(queryFileName);
-    } return EXIT_FAILURE;
-
     default: {
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
-      fputs(errUnknown, stderr);
       free(queryFileName);
     } return EXIT_FAILURE;
   }
@@ -289,20 +276,9 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
       /* parsing finished sucessfully. continue processing */
     } break;
 
-    case 1:
-      /* the input script contained a syntax error. show message and exit */
-      fputs(errSyntax, stderr);
-    return EXIT_FAILURE;
-
-    case 2:
-      /* the input script parsing exhausted memory storage space. show message and exit */
-      fputs(errRam, stderr);
-    return EXIT_FAILURE;
-
     default:
       /* an unknown error occured when parsing the input script. show message and exit */
       /* (this shouldn't ever happen but you never know) */
-      fputs(errUnknown, stderr);
     return EXIT_FAILURE;
   }
 
