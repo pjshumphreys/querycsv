@@ -5,6 +5,7 @@ all: querycsv.tap qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.o
 querycsv.tap:
 	cd common && make
 	cp common/querycsv.tap .
+	cp common/querycsv .
 
 output.tap: qcsv06zx.ovl
 	cp common/archive .
@@ -51,4 +52,4 @@ clean:
 	cd residos128 && make clean
 	cd esxdos48 && make clean
 	cd esxdos128 && make clean
-	rm -rf build zcc_opt.def archive *.tap *.ovl
+	rm -rf build zcc_opt.def archive querycsv *.tap *.ovl

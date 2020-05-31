@@ -1,7 +1,10 @@
-all: querycsv.tap archive unarchive.tap
+all: querycsv querycsv.tap archive unarchive.tap
+
+querycsv: querycsv.bas
+	./zmakebas -a 10 -n querycsv -p -o querycsv querycsv.bas
 
 querycsv.tap: querycsv.bas
-	./bas2tap -a10 -squerycsv querycsv.bas querycsv.tap
+	./zmakebas -a 10 -n querycsv -o querycsv.tap querycsv.bas
 
 printLn.bin: printLn.asm
 	z80asm -b -r=49152 printLn.asm
@@ -30,15 +33,19 @@ querycsv.bin: querycsv2.bin querycsv.asm
 	z80asm -b querycsv.asm
 
 querycsv.bas: querycsv.bin
-	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "{BE}23635+256*{BE}23636+51"\n30 REM' > querycsv.bas
-	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\{\1\}/g" >> querycsv.bas
+	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "\\{0xBE}23635+256*\\{0xBE}23636+51"\n30 REM' > querycsv.bas
+	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\\\{0x\1\}/g" >> querycsv.bas
 
-archive:
+archive: archive.c
 	gcc -o archive archive.c
 
-unarchive.tap:
+unarchive.tap: unarchive.c
 	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
 	mv a.tap unarchive.tap
 
+unarchive2.tap: unarchive.c
+	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
+	mv a.tap unarchive2.tap
+
 clean:
-	rm -f querycsv.bas querycsv.tap unarchive.tap archive *.bin *.o *.inc *.map
+	rm -f querycsv.bas querycsv querycsv.tap unarchive.tap archive *.bin *.o *.inc *.map
