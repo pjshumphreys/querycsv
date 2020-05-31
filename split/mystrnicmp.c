@@ -1,4 +1,4 @@
-#if !defined(__Z88DK)
+#ifndef __Z88DK
 int mystrnicmp(const char *str1, const char *str2, size_t n) {
   int i, retval = 0;
 

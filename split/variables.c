@@ -46,11 +46,9 @@ const char * TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
 const char * TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 
 #ifdef __CC65__
-char * fopen_read = "RB";
-char * fopen_write = "WB";
+  char * fopen_read = "RB";
+  char * fopen_write = "WB";
 #else
-#define fopen_read "rb"
-#define fopen_write "wb"
+  #define fopen_read "rb"
+  #define fopen_write "wb"
 #endif
-
-
