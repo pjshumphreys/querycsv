@@ -7,10 +7,10 @@ querycsv.tap:
 	cp common/querycsv.tap .
 	cp common/querycsv .
 
-output.tap: qcsv06zx.ovl
+files.tap: qcsv06zx.ovl
 	cp common/archive .
 	cp common/unarchive.tap .
-	sh -c "(echo output.tap > files.txt) && (ls *.ovl >> files.txt) && (echo "" >> files.txt) && (cat files.txt | ./archive)"
+	sh -c "(echo files.tap > files.txt) && (ls *.ovl >> files.txt) && (echo "" >> files.txt) && (cat files.txt | ./archive)"
 	rm files.txt
 
 qcsv00zx.ovl: qrycsv00.bin
