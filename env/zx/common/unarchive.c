@@ -9,116 +9,17 @@
 #include <conio.h>
 #include <spectrum.h>
 
-#define FALSE 0
-#define TRUE 1
-
 #define freeAndZero(p) { free(p); p = 0; }
-
-int d_fgets(char** ws, FILE* stream) {
-  char buf[80];
-  char* newWs = NULL;
-  char* potentialNewWs = NULL;
-  size_t totalLength = (size_t)0;
-  size_t potentialTotalLength = (size_t)0;
-  size_t bufferLength;
-
-  /* check sanity of inputs */
-  if(ws == NULL) {
-    return FALSE;
-  }
-
-  /* try reading some text from the file into the buffer */
-  while(fgets((char *)&(buf[0]), 80, stream) != NULL) {
-
-    /* get the length of the string in the buffer */
-    bufferLength = strlen((char *)&(buf[0]));
-
-    /*
-      add it to the potential new length.
-      this might not become the actual new length if the realloc fails
-    */
-    potentialTotalLength+=bufferLength;
-
-    /*
-      try reallocating the output string to be a bit longer
-      if it fails then set any existing buffer to the return value and return true
-    */
-    if((potentialNewWs = (char*)realloc(newWs, ((potentialTotalLength+1)*sizeof(char)))) == NULL) {
-
-      /* if we've already retrieved some text */
-      if(newWs != NULL) {
-
-        /* ensure null termination of the string */
-        newWs[totalLength] = '\0';
-
-        /* set the output string pointer and return true */
-        if(*ws) {
-          free(*ws);
-        }
-        *ws = newWs;
-
-        return TRUE;
-      }
-
-      /*
-        otherwise no successful allocation was made.
-        return false without modifying the output string location
-      */
-      return FALSE;
-    }
-
-    /* copy the buffer data into potentialNewWs */
-    memcpy(potentialNewWs+totalLength, &buf, bufferLength*sizeof(char));
-
-    /* the potential new string becomes the actual one */
-    totalLength = potentialTotalLength;
-    newWs = potentialNewWs;
-
-    /* if the last character is '\n' (ie we've reached the end of a line) then return the result */
-    if(newWs[totalLength-1] == '\n') {
-
-      /* ensure null termination of the string */
-      newWs[totalLength-1] = '\0';
-
-      /* set the output string pointer and return true */
-      if(*ws) {
-        free(*ws);
-      }
-
-      *ws = newWs;
-
-      return TRUE;
-    }
-  }
-
-  /* if we've already retrieved some text */
-  if(newWs != NULL) {
-    /* ensure null termination of the string */
-    newWs[totalLength] = '\0';
-
-    /* set the output string point and return true */
-    if(*ws) {
-      free(*ws);
-    }
-    *ws = newWs;
-
-    return TRUE;
-  }
-
-  /*
-    otherwise no successful allocation was made.
-    return false without modifying the output string location
-  */
-  return FALSE;
-}
 
 uint16_t readBytes2;
 char * temp;
 
 int main(int argc, char *argv[]) {
   char * temp2;
+  char * temp3 = NULL;
   char * firstBlock;
   uint16_t * readBytes;
+  int c;
 
   FILE * output = NULL;
 
@@ -126,8 +27,15 @@ int main(int argc, char *argv[]) {
 
   clrscr();
 
-  fputs("Press any key to start\n", stdout);
-  getchar();
+  fputs("Choose desination drive (A-P)\n"
+        "or press any other key to use current drive\n", stdout);
+
+  c = getchar() & 0x5f;
+
+  if(c < 'A' || c > 'P') {
+    c = 'T';
+  }
+
   fputs("\n", stdout);
 
   do {
@@ -150,11 +58,23 @@ int main(int argc, char *argv[]) {
           output = NULL;
         }
 
-        fprintf(stdout, "Writing %u bytes to %s\n", readBytes2, temp);
+        if(c != 'T') {
+          temp3 = malloc(strlen(temp)+3);
+          sprintf(temp3, "%c:%s", c, 0xBFEF);
+        }
+        else {
+          temp3 = temp;
+        }
 
-        if((output = fopen(temp, "wb")) == NULL) {
-          fprintf(stderr, "Couldn't write to file %s\n", temp);
+        fprintf(stdout, "Writing %u bytes to %s\n", readBytes2, temp3);
+
+        if((output = fopen(temp3, "wb")) == NULL) {
+          fprintf(stderr, "Couldn't write to file %s\n", temp3);
           return 1;
+        }
+
+        if(c != 'T') {
+          freeAndZero(temp3);
         }
       break;
 
