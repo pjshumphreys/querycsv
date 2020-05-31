@@ -646,7 +646,7 @@ progName:
   .byte $71,$75,$65,$72,$79,$63,$73,$76,$00
 
 strbuf: ;stores the argument string for main
-  .res 200
+  .res 128
 
 .segment "BSS"
 

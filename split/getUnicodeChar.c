@@ -5,8 +5,7 @@ long getUnicodeChar(
     unsigned char **offset,
     unsigned char **str,
     int plusBytes,
-    int *bytesMatched,
-    void (*get)(void)
+    int *bytesMatched
 ) {
   struct hash2Entry* entry = NULL;
   int bytesread = 0;

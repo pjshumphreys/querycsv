@@ -9,7 +9,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <time.h>
-#include <math.h>
 
 #if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
   #include <stdint.h>
@@ -528,6 +527,8 @@ Just use long ones for that compiler */
     #define ctof(_s) ((double)(_s))
     #define fneg(_f) (-(_f))
     #ifdef __Z88DK
+      #include <math.h>   /* for ftoa */
+
       #define ftostr(_d,_a) { \
         reallocMsg((void**)_d, 33); \
         dtoa_zx(*(_d), (_a)); \

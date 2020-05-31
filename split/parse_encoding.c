@@ -107,10 +107,7 @@ int parse_encoding2(char *encoding) {
   return ENC_UNSUPPORTED;
 }
 
-int parse_encoding(
-    struct qryData *queryData,
-    char *encoding
-  ) {
+int parse_encoding(char *encoding) {
   int retval = parse_encoding2(encoding);
 
   free(encoding);

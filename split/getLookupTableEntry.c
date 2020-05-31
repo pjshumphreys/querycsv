@@ -55,8 +55,8 @@ struct hash4Entry *getLookupTableEntry(
     totalBytes += *lastMatchedBytes;
 
     /* get a code point */
-    (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get))
-    (offset, str, totalBytes, lastMatchedBytes, get);
+    (*((int (*)(unsigned char **, unsigned char **, int,  int *))get))
+    (offset, str, totalBytes, lastMatchedBytes);
 
     totalBytes2 = totalBytes+(*lastMatchedBytes);
   }

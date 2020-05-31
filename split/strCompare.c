@@ -118,11 +118,11 @@ int strCompare(
     /* character 1 has not yet been found */
     else if(char1found == 0) {
       /* read a character from string 1 */
-      char1 = (*((long (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get1))(&offset1, str1, 0, &bytesMatched1, get1);
+      char1 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get1))(&offset1, str1, 0, &bytesMatched1);
 
       if(char1 != 0x34F) {
         /* read a character from string 2 */
-        char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset2, str2, 0, &bytesMatched2, get2);
+        char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset2, str2, 0, &bytesMatched2);
 
         if((entry1 = getLookupTableEntry(&entry1Internal, &offset1, str1, &bytesMatched1, get1, firstChar, compareNumbers))) {
           /* the first character is in the lookup table */
@@ -243,7 +243,7 @@ int strCompare(
     /* character 1 has been found and is in the lookup table */
     else if(char1found == 1) {
       /* read a character from string 2 */
-      char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset1, str1, 0, &bytesMatched2, get2);
+      char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset1, str1, 0, &bytesMatched2);
 
       if(char2 != 0x34F) {
         if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
@@ -323,7 +323,7 @@ int strCompare(
 
     /* character 1 has been found but was not in the lookup table */
     else {
-      char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))(&offset2, str2, 0, &bytesMatched2, get2);
+      char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset2, str2, 0, &bytesMatched2);
 
       if(char2 != 0x34F) {
         /* the first or both characters were not in the lookup table. */

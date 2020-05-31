@@ -19,15 +19,15 @@ int consumeCombiningChars(
   do {
     if(skip1 == FALSE) {
      combiner1 = isCombiningChar(
-          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get1))
-          (offset1, str1, 0, bytesMatched1, get1)
+          (*((int (*)(unsigned char **, unsigned char **, int,  int *))get1))
+          (offset1, str1, 0, bytesMatched1)
       );
     }
 
     if(skip2 == FALSE) {
       combiner2 = isCombiningChar(
-          (*((int (*)(unsigned char **, unsigned char **, int,  int *, void (*)(void)))get2))
-          (offset2, str2, 0, bytesMatched2, get2)
+          (*((int (*)(unsigned char **, unsigned char **, int,  int *))get2))
+          (offset2, str2, 0, bytesMatched2)
       );
     }
 

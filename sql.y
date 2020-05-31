@@ -25,7 +25,7 @@ typedef void* yyscan_t;
 
 %union {
   /* double floatval; */
-  long intval;
+  int intval;
   char *strval;
   struct columnReference *referencePtr;
   struct expression *expressionPtr;
@@ -75,7 +75,7 @@ typedef void* yyscan_t;
 main_file:
     ENCODING STRING ';' {
       if(queryData->inputEncoding == ENC_UNKNOWN) {
-        if((queryData->inputEncoding = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
+        if((queryData->inputEncoding = parse_encoding($2)) == ENC_UNSUPPORTED) {
           YYABORT;
         }
 
@@ -349,7 +349,7 @@ optional_encoding:
       $$ = ENC_DEFAULT;
     }
   | ENCODING STRING {
-      if(($$ = parse_encoding(queryData, $2)) == ENC_UNSUPPORTED) {
+      if(($$ = parse_encoding($2)) == ENC_UNSUPPORTED) {
         YYABORT;
       }
     }

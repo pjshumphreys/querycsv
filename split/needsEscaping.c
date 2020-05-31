@@ -1,4 +1,4 @@
-int needsEscaping(char *str, int params) {
+int needsEscaping(char *str) {
   MAC_YIELD
 
   if(

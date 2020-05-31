@@ -45,7 +45,7 @@ void updateRunningCounts(
           field = &(match[currentResultColumn->resultColumnIndex]);
 
           if(field->isNull == FALSE) {
-            stringGet((unsigned char **)(&tempString), field, query->params);
+            stringGet((unsigned char **)(&tempString), field);
 
             /* distinct groupings. only add to the count if the column value hasn't already been seen */
             if(currentResultColumn->groupType > GRP_STAR) { /* distinct variants */
@@ -53,7 +53,7 @@ void updateRunningCounts(
                 tempItem = item->link[0];
 
                 for(j = 1; j < query->groupCount; j++) {
-                  stringGet((unsigned char **)(&tempString2), &(tempItem->columns[currentResultColumn->resultColumnIndex]), query->params);
+                  stringGet((unsigned char **)(&tempString2), &(tempItem->columns[currentResultColumn->resultColumnIndex]));
 
                   if(strCompare(
                     (unsigned char **)(&tempString),

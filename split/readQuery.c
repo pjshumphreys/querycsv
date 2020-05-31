@@ -11,9 +11,6 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   int inputTableIndex = 1;
   int parserReturn = 0;
   long offset = 0;
-  char* errSyntax = TDB_PARSER_SYNTAX;
-  char* errRam = TDB_PARSER_USED_ALL_RAM;
-  char* errUnknown = TDB_PARSER_UNKNOWN;
   char* queryFileName = NULL;
 
   /* read the query file and create the data structures we'll need */

@@ -1,7 +1,6 @@
 void stringGet(
     unsigned char **str,
-    struct resultColumnValue *field,
-    int params
+    struct resultColumnValue *field
 ) {
   MAC_YIELD
 

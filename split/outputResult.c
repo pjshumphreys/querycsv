@@ -49,14 +49,14 @@ void outputResult(
         }
       }
       else {
-        stringGet((unsigned char **)(&string), field, query->params);
+        stringGet((unsigned char **)(&string), field);
 
         if(query->params & PRM_POSTGRES) {
           outputPostgresEscapes(string, query);
         }
         else if(
             (query->params & PRM_QUOTE) ||
-            needsEscaping(string, query->params)
+            needsEscaping(string)
         ) {
           /* need to properly re-escape fields that need it */
           fputsEncoded("\"", query);
