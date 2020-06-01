@@ -382,7 +382,7 @@ function compileLexer() {
 
   /* compile functions into assembly language. use our own
   patched cc65 executable that does "jmp farret" instead of "rts" */
-  execSync('./cc65_2 -T -t c64 lexer2.c -O -Os --static-locals --writable-strings -o build/lexer2.s');
+  execSync('cc65 -e farret -T -t c64 lexer2.c -O -Os --static-locals --writable-strings -o build/lexer2.s');
 
   splitUpFunctions("lexer2", compileParser);
 }
@@ -408,7 +408,7 @@ function compileParser() {
       's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;'+
       '" build/sql2.h');
 
-  execSync('./cc65_2 -T -t c64 -O -Os sql2.c --static-locals --writable-strings -o build/sql2.s');
+  execSync('cc65 -e farret -T -t c64 -O -Os sql2.c --static-locals --writable-strings -o build/sql2.s');
 
   //split parser up into 1 function per .s file
   //(including all rodata. add all data vars to a single .s file)
@@ -418,7 +418,7 @@ function compileParser() {
 function compileC64() {
   console.log('compileC64');
 
-  execSync("./cc65_2 -T -t c64 c64.c --writable-strings -o build/c64.s");
+  execSync("cc65 -e farret -T -t c64 c64.c --writable-strings -o build/c64.s");
 
   splitUpFunctions("c64", compileQueryCSV, true);
 }
@@ -426,7 +426,7 @@ function compileC64() {
 function compileQueryCSV() {
   console.log('compileQueryCSV');
 
-  execSync("./cc65_2 -T -t c64 querycsv.c --writable-strings -o build/querycsv.s");
+  execSync("cc65 -e farret -T -t c64 querycsv.c --writable-strings -o build/querycsv.s");
 
   splitUpFunctions("querycsv", compileData, true);
 }
@@ -533,7 +533,7 @@ function compileHash2() {
 
   if(passPostfix === "") {
     /* allow the hash2 function to be packed also */
-    execSync('./cc65_2 -T -t c64 hash2out.c -o build/hash2out.s');
+    execSync('cc65 -e farret -T -t c64 hash2out.c -o build/hash2out.s');
     splitUpFunctions("hash2out", compileHash3And4, true);
   }
   else {
