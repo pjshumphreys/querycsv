@@ -122,6 +122,12 @@ lp1:
   ldy #$0d
   bne lp1
 last:
+  ldx #255
+lp3:
+  dex
+  lda __STARTUP_LOAD__+$0f00,x
+  sta $cf00,x
+  bne lp3
   jmp entry
 
 kill:
@@ -346,16 +352,16 @@ skip:
   ;switch on the easy flash cartridge memory
   ;read and write from lo-rom. this will copy the data as writes always go to ram
   lda $01       ; 6510 On-chip 8-bit Input/Output Register
-  ora #$07
+  ora #7
   sta $01       ; 6510 On-chip 8-bit Input/Output Register
 
-  lda #2        ;second easyflash bank lorom contains clib functionality
+  lda #2        ; easyflash bank that contains clib functionality in lorom
   sta EASYFLASH_BANK
   lda #EASYFLASH_16K
   sta EASYFLASH_CONTROL
   jsr zerobss2
 
-  lda #3        ;third easyflash bank lorom contains the data and rodata values
+  lda #3        ; easyflash bank that contains the data and rodata values in lorom
   sta EASYFLASH_BANK
 
   ; copydata won't work for us as it needs to do DATA *and* RODATA, so we roll our own memory copying code instead

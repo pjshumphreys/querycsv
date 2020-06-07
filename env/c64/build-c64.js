@@ -553,11 +553,16 @@ function compileHash3And4 () {
       '" hash4a.h > hash4a2.h');
 
   execSync(
+    'sed -e"' +
+      '1s/^/#include \\"cc65iso.h\\"/;' +
+      '" hash4a.c > hash4a2.c');
+
+  execSync(
     'cl65 -T -t c64 ' +
       '-o build/obj2/hash4a.bin ' +
       '-Ln build/obj2/hash4a.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4a.c build/labels.s;' +
+      'hash4a2.c build/labels.s;' +
       'rm *.o');
 
   functionsList[hashMap._in_word_set_a][2] = parseInt(execSync(
@@ -573,11 +578,16 @@ function compileHash3And4 () {
       '" hash4b.h > hash4b2.h');
 
   execSync(
+    'sed -e"' +
+      '1s/^/#include \\"cc65iso.h\\"/;' +
+      '" hash4b.c > hash4b2.c');
+
+  execSync(
     'cl65 -T -t c64 ' +
       '-o build/obj2/hash4b.bin ' +
       '-Ln build/obj2/hash4b.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4b.c build/labels.s;' +
+      'hash4b2.c build/labels.s;' +
       'rm *.o'
   );
 
@@ -594,11 +604,16 @@ function compileHash3And4 () {
       '" hash4c.h > hash4c2.h');
 
   execSync(
+    'sed -e"' +
+      '1s/^/#include \\"cc65iso.h\\"/;' +
+      '" hash4c.c > hash4c2.c');
+
+  execSync(
     'cl65 -T -t c64 ' +
       '-o build/obj2/hash4c.bin ' +
       '-Ln build/obj2/hash4c.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4c.c build/labels.s;' +
+      'hash4c2.c build/labels.s;' +
       'rm *.o'
   );
 
@@ -1007,7 +1022,7 @@ function packPages () {
     input: list.stdout
   });
 
-  var maxSize = 8341;// 8277;
+  var maxSize = 8192;// 8277;
 
   files = [];
   var totalSizes = [];
@@ -1110,17 +1125,13 @@ function glueTogetherBinary () {
   console.log('glueTogetherBinary');
 
   execSync('dd if=/dev/zero bs=1 count=' + remainder + ' | tr "\\000" "\\377" > build/padding.bin');
-
-  console.log('glueTogetherBinary 2');
-  execSync('cat build/padding.bin build/maindata.bin build/floatlibdata.bin build/libcdata.bin build/data.bin build/obj2/yyparse.bin > build/output.bin');
-
-  console.log('glueTogetherBinary 3');
   execSync('dd if=/dev/zero bs=1 count=8192 | tr "\\000" "\\377" > build/8k.bin');
 
-  execSync('cat build/8k.bin build/querycsv.bin >build/full.bin');
-  execSync('cat build/8k.bin build/floatlib.bin >>build/full.bin');
+  execSync('cat build/8k.bin build/querycsv.bin > build/full.bin');
+  execSync('cat build/8k.bin build/floatlib.bin >> build/full.bin');
   execSync('cat build/8k.bin build/libc.bin >> build/full.bin');
-  execSync('cat build/output.bin >> build/full.bin');
+  execSync('cat build/padding.bin build/maindata.bin build/floatlibdata.bin '+
+  'build/libcdata.bin build/data.bin build/obj2/yyparse.bin >> build/full.bin');
 
   for (i = 0; i < files.length; i++) {
     execSync('cat build/8k.bin ./build/obj2/page' + (i + 1) + '.bin >> build/full.bin');
@@ -1135,7 +1146,13 @@ function glueTogetherBinary () {
     execSync('cat build/8k.bin ./build/obj2/hash2in' + i + '.bin >> build/full.bin');
   }
 
-  execSync('./bin2efcrt build/full.bin querycsv.crt');
+  i = 64 - files.length - hash2ChunkCount - 8;
+
+  while (i--) {
+    execSync('cat build/8k.bin build/8k.bin >> build/full.bin');
+  }
+
+  execSync('cartconv -t easy -i build/full.bin -o querycsv.crt -n "querycsv"');
 
   // all done (hooray!)
 }
