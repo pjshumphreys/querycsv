@@ -308,7 +308,7 @@ it becomes needed and because it's useful for debugging */
     #undef ENC_OUTPUT
     #define ENC_INPUT ENC_CP437
     #define ENC_OUTPUT ENC_CP437
-    /* ENC_PRINT is now utf-8 as we'll do the charset conversion in fputs/fprintf wrapper functions now */
+    /* ENC_PRINT is kept as utf-8 as we do the charset conversion in the fputs/fprintf wrapper functions now */
   #endif
 #endif
 
@@ -499,10 +499,9 @@ Just use long ones for that compiler */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
-  #undef ENC_PRINT
   #define ENC_INPUT ENC_PETSCII
   #define ENC_OUTPUT ENC_PETSCII
-  #define ENC_PRINT ENC_PETSCII
+  /* ENC_PRINT is kept as utf-8 as we do the charset conversion in the fputs/fprintf wrapper functions now */
 #else
   #define __fastcall__ /* do nothing */
 

@@ -119,15 +119,9 @@ lp1:
   cmp #$cf
   bcc lp1
   bne last
-  ldy #$0d
+  ldy #$ff
   bne lp1
 last:
-  ldx #255
-lp3:
-  dex
-  lda __STARTUP_LOAD__+$0f00,x
-  sta $cf00,x
-  bne lp3
   jmp entry
 
 kill:
