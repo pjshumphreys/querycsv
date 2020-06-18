@@ -23,16 +23,17 @@ int isMSX2(void) {
 }
 
 void loadCLib(void) {
-  FILE * tempFile;
+  int tempFile;
   char * temp = 0x0100;
+  char * filename = isMSX2() ? "qrycsv02.ovl" : "qrycsv01.ovl";
 
-  if((tempFile = fopen(isMSX2() ? "qrycsv01.ovl" : "qrycsv02.ovl", "rb")) == NULL) {
-    fputs("Couldn't open binary\n", stderr);
+  if((tempFile = open(filename, O_RDONLY, 0)) == -1) {
+    fprintf(stderr, "Couldn't open %s\n", filename);
     return;
   }
 
-  fread(temp, 1, 16128, tempFile);
-  fclose(tempFile);
+  read(tempFile, temp, 16128);
+  close(tempFile);
 }
 
 void main(void) {

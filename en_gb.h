@@ -1,10 +1,10 @@
-/*as we will be using ascii/utf-8 internally for text and don't want to recompile the standard library
-on the c64 build, the format specifiers need to be in uppercase */
+/* On the c64 build we use ascii/utf-8 for text internally and I don't want to
+recompile the cc65 standard library, so the format specifiers need to be in uppercase */
 #ifdef __CC65__
   #define S_STRING "%S"
   #define LD_STRING "%LD"
   #define D_STRING "%D"
-  #define TDB_MALLOC_FAILED2 "cOULD NOT ALLOCATE NEEDED MEMORY\n" /*avoid doing another malloc to print the out of memory message */
+  #define TDB_MALLOC_FAILED2 "cOULD NOT ALLOCATE NEEDED MEMORY\n" /* avoid doing another malloc to print the out of memory message */
 #else
   #define S_STRING "%s"
   #define LD_STRING "%ld"
@@ -30,7 +30,7 @@ on the c64 build, the format specifiers need to be in uppercase */
 #define TDB_MALLOC_FAILED3 TDB_MALLOC_FAILED, 1, 33
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
 #define TDB_UNTITLED_COLUMN "_Column " D_STRING
-#define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename]\n"
+#define TDB_INVALID_COMMAND_LINE "No file name specifed\nUsage: querycsv [filename | -c query]\nFor more info see https://github.com/pjshumphreys/querycsv/wiki\n"
 #define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"
 #define TDB_INVALID_UTF8 "Invalid utf-8 bytes stored in memory\n"
 #define TDB_INVALID_COUNT_STAR "only count(*) is valid\n"

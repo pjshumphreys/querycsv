@@ -1,139 +1,32 @@
 /* fake program to get the necessary libc functions into 1 memory page */
-#define QCSV_NOZXMALLOC
+#define QCSV_NOZ80MALLOC
 #include "querycsv.h"
+#include <fcntl.h>
 
-void myexit(int status);
+void dosload(int pageNumber) __z88dk_fastcall {
+  static char * filename = "qrycsv00.ovl";
 
-const char pageBuf[256];  /* not really a constant but a buffer that exists in high memory that's only used internally to the libc functions */
+  int temp;
 
-__asm
-  EXTERN mypager
-  EXTERN defaultBank
-  EXTERN current
-  EXTERN myHeap
-__endasm;
+  sprintf(filename+6, "%02d", pageNumber);
+  filename[8] = '.';
+
+  if((temp = open(filename, O_RDONLY, 0)) == -1) {
+    fprintf(stderr, "Couldn't open %s\n", filename);
+    exit(EXIT_FAILURE);
+  }
+
+  read(temp, (void *)16384, 16384);
+
+  close(temp);
+}
 
 /* don't bother to copy the mode parameter as for our purposes it will always be a static string */
-FILE * fopen_zx(const char * filename, const char * mode) {
-  int len;
-
-  len = strlen(filename);
-
-  if(len > 255) {
-    return NULL;  /* very long filenames are not supported. 256 bytes strings should be big enough though */
-  }
-
-  memcpy(&pageBuf, filename, len + 1);
-  return fopen(&pageBuf, mode);
+FILE * fopen_z80(const char * filename, const char * mode) {
+  return fopen(filename, mode);
 }
 
-size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream) {
-  int tot2;
-  union {
-    int tot;
-    struct {
-      unsigned char remainder;  /* l */
-      unsigned char loop;  /* h */
-    } bytes;
-  } temp;
-
-  if(stream == stdin) {
-    return fread(ptr, size, count, stream);
-  }
-
-  temp.tot = size * count;
-  tot2 = 0;
-
-  while(temp.bytes.loop) {
-    tot2 += fread(&pageBuf, 1, 256, stream);
-
-    /* page out esxdos */
-    __asm
-      push af
-      ld a, (defaultBank)
-      call mypager
-      pop af
-    __endasm;
-
-    memcpy(ptr, &pageBuf, 256);
-
-    ptr += 256;
-    --(temp.bytes.loop);
-  }
-
-  tot2 += fread(&pageBuf, 1, (int)(temp.bytes.remainder), stream);
-
-  /* page out esxdos */
-  __asm
-    push af
-    ld a, (defaultBank)
-    call mypager
-    pop af
-  __endasm;
-
-  memcpy(ptr, &pageBuf, (int)(temp.bytes.remainder));
-
-  return tot2;
-}
-
-size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
-  int tot2;
-  union {
-    int tot;
-    struct {
-      unsigned char remainder;
-      unsigned char loop;
-    } bytes;
-  } temp;
-
-  temp.tot = size * count;
-
-  /* if stream is stdout or stderr then just call fputc_cons ourselves.
-  There are probably reasons why this wouldn't be correct in all general
-  cases but it should work well enough for the purposes of this program */
-  if(stream == stdout || stream == stderr) {
-    tot2 = temp.tot;
-
-    while(temp.tot--) {
-      fputc_cons(*ptr++);
-    }
-
-    return tot2;
-  }
-
-  tot2 = 0;
-
-  while(temp.bytes.loop) {
-    memcpy(&pageBuf, ptr, 256);
-    tot2 += fwrite(&pageBuf, 1, 256, stream);
-
-    /* page out esxdos */
-    __asm
-      push af
-      ld a, (defaultBank)
-      call mypager
-      pop af
-    __endasm;
-
-    ptr += 256;
-    --(temp.bytes.loop);
-  }
-
-  memcpy(&pageBuf, ptr, (int)(temp.bytes.remainder));
-  tot2 += fwrite(&pageBuf, 1, (int)(temp.bytes.remainder), stream);
-
-  /* page out esxdos */
-  __asm
-    push af
-    ld a, (defaultBank)
-    call mypager
-    pop af
-  __endasm;
-
-  return tot2;
-}
-
-void free_zx(void *addr) {
+void free_z80(void *addr) {
   if(addr == NULL) {
     return;
   }
@@ -161,8 +54,8 @@ void free_zx(void *addr) {
   myHeap.nextFree = current;
 }
 
-/* fprintf_zx/d_sprintf unified with variadic macros to save space */
-int fprintf_zx(int type, void * output, char *format, ...) __stdc {
+/* fprintf_z80/d_sprintf unified with variadic macros to save space */
+int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   size_t newSize;
   char *newStr;
   va_list args;
@@ -193,7 +86,7 @@ int fprintf_zx(int type, void * output, char *format, ...) __stdc {
 
   /* Create a new block of memory with the correct size rather than using realloc */
   /* as any old values could overlap with the format string. quit on failure */
-  if((newStr = (char*)malloc_zx(newSize + 1)) == NULL) {
+  if((newStr = (char*)malloc_z80(newSize + 1)) == NULL) {
     return FALSE;
   }
 
@@ -203,9 +96,9 @@ int fprintf_zx(int type, void * output, char *format, ...) __stdc {
   va_end(args);
 
   if(type) {
-    fwrite_zx(newStr, 1, newSize, (FILE *)output);
+    fwrite(newStr, 1, newSize, (FILE *)output);
 
-    free_zx(newStr);
+    free_z80(newStr);
 
     return newSize;
   }
@@ -218,11 +111,7 @@ int fprintf_zx(int type, void * output, char *format, ...) __stdc {
   }
 }
 
-int fputs_zx(const char * str, FILE * stream) {
-  return fwrite_zx(str, 1, strlen(str), stream);
-}
-
-void *malloc_zx(unsigned int size) {
+void *malloc_z80(unsigned int size) {
   unsigned int cleanedUp;
   unsigned int temp;
 
@@ -316,14 +205,14 @@ void *malloc_zx(unsigned int size) {
   } while (1);
 }
 
-void *realloc_zx(void *p, unsigned int size) {
+void *realloc_z80(void *p, unsigned int size) {
   void * newOne;
   unsigned int tempSize;
   unsigned int updateNextFree;
 
   /* if realloc'ing a null pointer then just do a malloc */
   if(p == NULL) {
-    return malloc_zx(size);
+    return malloc_z80(size);
   }
 
   current = (struct heapItem *)(p - sizeof(struct heapItem));
@@ -368,7 +257,7 @@ void *realloc_zx(void *p, unsigned int size) {
   }
 
   /* attempt to allocate a new block of the necessary size, memcpy the data into it then free the old one */
-  newOne = malloc_zx(size);
+  newOne = malloc_z80(size);
 
   /* if the malloc failed, just fail here as well */
   if(!newOne) {
@@ -398,98 +287,22 @@ void reallocMsg(void **mem, size_t size) {
 
   if(mem != NULL) {
     if(size) {
-      temp = realloc_zx(*mem, size);
+      temp = realloc_z80(*mem, size);
 
       if(temp == NULL) {
-        fwrite_zx(TDB_MALLOC_FAILED2, 1, 33, stderr);
+        fwrite(TDB_MALLOC_FAILED2, 1, 33, stderr);
         myexit(EXIT_FAILURE);
       }
 
       *mem = temp;
     }
     else {
-      free_zx(*mem);
+      free_z80(*mem);
       *mem = NULL;
     }
   }
   else {
-    fputs_zx(TDB_INVALID_REALLOC, stderr);
+    fputs(TDB_INVALID_REALLOC, stderr);
     myexit(EXIT_FAILURE);
   }
-}
-
-void b(char * string, unsigned char * format, ...) {
-  va_list args;
-  va_list args2;
-  double d;
-
-  FILE* test;
-  int num;
-  unsigned long num2;
-
-  num = atol(string);
-  ftoa(origWd, num, d);
-  ltoa(num2, origWd, num);
-
-  /* string = malloc(1); */
-  /* free(string); */
-  /* string = calloc(1, 3); */
-  /* string = realloc(string, 5); */
-  abs(num);
-  strcpy(string, origWd);
-  strncpy(string, origWd, 3);
-  num = strcmp(origWd, string);
-  num = stricmp(origWd, string);
-  num = strncmp(origWd, string, 3);
-  num = strnicmp(origWd, string, 3);
-  num = strlen(string);
-  string = strstr(string, origWd);
-
-  memset(string, 0, 4);
-  strcat(string, origWd);
-  strncat(string, origWd, 3);
-  memcpy(string+1, string, 2);
-  memmove(string+1, string, 2);
-
-  /* fprintf(test, origWd, 1); */
-  /* fputs(origWd, test); */
-
-  /* test = fopen(origWd, "rb"); */
-  fseek(test, 9, SEEK_SET);
-  clearerr(test);
-  num = fclose(test);
-  /* fread(string, 2, 2, stdin); */
-  num = fgetc(stdin);
-  ungetc(num, stdin);
-  num = feof(stdin);
-  /* fwrite(string, 1, 1, stdout); */
-  fputc(num, stderr);
-  /* fflush(stdout); */
-  sprintf(string, origWd, num);
-  isspace(num);
-  isdigit(num);
-
-  fprintf(stdout, string, format, args);
-
-  va_start(args, format);
-  vfprintf(string, format, args);
-  va_end(args);
-
-  va_start(args2, format);
-  vsnprintf(string, 2, format, args2);
-  va_end(args2);
-
-  /* free(string); */
-}
-
-int main(int argc, char * argv[]) {
-  /*
-    mallinit();
-    sbrk(24000, 4000);
-  */
-
-  origWd = "%d";
-  b(origWd, (unsigned char *)origWd);
-
-  return 0;
 }

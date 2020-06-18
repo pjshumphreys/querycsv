@@ -1,37 +1,12 @@
 /* libc like functions that are integrated into the main body of the program */
 
-#define QCSV_NOZXMALLOC
+#define QCSV_NOZ80MALLOC
 #include "querycsv.h"
-
-/* variables needed by libc */
-int myhand_status;
 
 /* variables needed by strtod */
 const double fltMinusOne = -1.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
-/* double fltSmall;
-int fltInited;*/
-
-const int main_origins[6] = {
-  0,
-  16384,  /* plus3dos */
-  0,      /* residos48 */
-  0,      /* residos128 */
-  8192,   /* esxdos48 */
-  8192    /* esxdos128 */
-};
-
-const int main_sizes[6] = {
-  0,
-  6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
-  16384,
-  23295,  /* 16384 + 6911 */
-  8192,
-  15103 /* 8192 + 6911 */
-};
-
-extern int stkend;
 
 double pow10a(int exp) {
   int sign = 0;
@@ -64,7 +39,7 @@ double pow10a(int exp) {
  * license: public domain
  */
 
-double strtod_zx(const char *str, char **end) {
+double strtod_z80(const char *str, char **end) {
   double d = ctof(0);
   int isNegative = 0, sign = 1;
   int n = 0;
@@ -287,7 +262,7 @@ int main(int argc, char* argv[]) {
 }
 */
 
-char* dtoa_zx(char *s, double n) {
+char* dtoa_z80(char *s, double n) {
   char *p;
   ftoa(n, 32, s);
 
@@ -306,11 +281,11 @@ char* dtoa_zx(char *s, double n) {
   return s;
 }
 
-void mallinit_zx(void) {
+void mallinit_z80(void) {
   myHeap.nextFree = myHeap.first = NULL;
 }
 
-void sbrk_zx(void *addr, unsigned int size) {
+void sbrk_z80(void *addr, unsigned int size) {
   if(addr == NULL || size < sizeof(struct heapItem)) {
     return;
   }
@@ -337,11 +312,11 @@ void sbrk_zx(void *addr, unsigned int size) {
 
 /* unused (for now) */
 /*
-void *calloc_zx(unsigned int num, unsigned int size) {
+void *calloc_z80(unsigned int num, unsigned int size) {
   unsigned int tot = num * size;
   void *temp;
 
-  temp = malloc_zx(tot);
+  temp = malloc_z80(tot);
 
   if(temp) {
     memset(temp, 0, tot);
@@ -351,18 +326,13 @@ void *calloc_zx(unsigned int num, unsigned int size) {
 }
 */
 
-void setupZX(char * filename) __z88dk_fastcall {
+void setupCPM(char * filename) __z88dk_fastcall {
   int start;
 
   /* initialise variables needed by z88dk's libc */
   myhand_status = 3;
 
   /* initialise the heap so malloc and free will work */
-  mallinit_zx();
-  sbrk_zx(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
-
-  if(filename != NULL) {
-    start = stkend + 1;
-    sbrk_zx(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
-  }
+  mallinit_z80();
+  sbrk_z80(0x8000, 0x5c00);
 }

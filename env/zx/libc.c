@@ -1,5 +1,5 @@
 /* fake program to get the necessary libc functions into 1 memory page */
-#define QCSV_NOZXMALLOC
+#define QCSV_NOZ80MALLOC
 #include "querycsv.h"
 
 void myexit(int status);
@@ -14,7 +14,7 @@ __asm
 __endasm;
 
 /* don't bother to copy the mode parameter as for our purposes it will always be a static string */
-FILE * fopen_zx(const char * filename, const char * mode) {
+FILE * fopen_z80(const char * filename, const char * mode) {
   int len;
 
   len = strlen(filename);
@@ -133,7 +133,7 @@ size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
   return tot2;
 }
 
-void free_zx(void *addr) {
+void free_z80(void *addr) {
   if(addr == NULL) {
     return;
   }
@@ -162,7 +162,7 @@ void free_zx(void *addr) {
 }
 
 /* fprintf_zx/d_sprintf unified with variadic macros to save space */
-int fprintf_zx(int type, void * output, char *format, ...) __stdc {
+int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   size_t newSize;
   char *newStr;
   va_list args;
@@ -193,7 +193,7 @@ int fprintf_zx(int type, void * output, char *format, ...) __stdc {
 
   /* Create a new block of memory with the correct size rather than using realloc */
   /* as any old values could overlap with the format string. quit on failure */
-  if((newStr = (char*)malloc_zx(newSize + 1)) == NULL) {
+  if((newStr = (char*)malloc_z80(newSize + 1)) == NULL) {
     return FALSE;
   }
 
@@ -205,7 +205,7 @@ int fprintf_zx(int type, void * output, char *format, ...) __stdc {
   if(type) {
     fwrite_zx(newStr, 1, newSize, (FILE *)output);
 
-    free_zx(newStr);
+    free_z80(newStr);
 
     return newSize;
   }
@@ -222,7 +222,7 @@ int fputs_zx(const char * str, FILE * stream) {
   return fwrite_zx(str, 1, strlen(str), stream);
 }
 
-void *malloc_zx(unsigned int size) {
+void *malloc_z80(unsigned int size) {
   unsigned int cleanedUp;
   unsigned int temp;
 
@@ -316,14 +316,14 @@ void *malloc_zx(unsigned int size) {
   } while (1);
 }
 
-void *realloc_zx(void *p, unsigned int size) {
+void *realloc_z80(void *p, unsigned int size) {
   void * newOne;
   unsigned int tempSize;
   unsigned int updateNextFree;
 
   /* if realloc'ing a null pointer then just do a malloc */
   if(p == NULL) {
-    return malloc_zx(size);
+    return malloc_z80(size);
   }
 
   current = (struct heapItem *)(p - sizeof(struct heapItem));
@@ -368,7 +368,7 @@ void *realloc_zx(void *p, unsigned int size) {
   }
 
   /* attempt to allocate a new block of the necessary size, memcpy the data into it then free the old one */
-  newOne = malloc_zx(size);
+  newOne = malloc_z80(size);
 
   /* if the malloc failed, just fail here as well */
   if(!newOne) {
@@ -398,7 +398,7 @@ void reallocMsg(void **mem, size_t size) {
 
   if(mem != NULL) {
     if(size) {
-      temp = realloc_zx(*mem, size);
+      temp = realloc_z80(*mem, size);
 
       if(temp == NULL) {
         fwrite_zx(TDB_MALLOC_FAILED2, 1, 33, stderr);
@@ -408,7 +408,7 @@ void reallocMsg(void **mem, size_t size) {
       *mem = temp;
     }
     else {
-      free_zx(*mem);
+      free_z80(*mem);
       *mem = NULL;
     }
   }

@@ -123,7 +123,7 @@ int realmain(int argc, char **argv);
 #define FALSE 0
 
 #define ENC_MAC 4
-#define ENC_UTF16BE 9
+#define ENC_UTF16BE 10
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 char* mystrdup(const char* s);
 void reallocMsg(void **mem, size_t size);

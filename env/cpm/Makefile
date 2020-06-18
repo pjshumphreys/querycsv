@@ -15,19 +15,17 @@ launcher2.com: launcher2.c
 qrycsv00.ovl: qrycsv00.bin
 	cp qrycsv00.bin qrycsv00.ovl
 
-#qrycsv01.ovl: qrycsv03.ovl
-#	cd plus3dos && make
-#	cp plus3dos/qcsv01zx.ovl .
-#	dd if=build/rodata.bin of=qcsv01zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
+#qrycsv01.ovl: pager.asm
+# zcc +cpm -lm -oqrycsv01.ovl pager.asm
+# dd if=build/rodata.bin of=qcsv01zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
 
-#qrycsv02.ovl: qrycsv03.ovl
-#	cd residos48 && make
-#	cp residos48/qcsv02zx.ovl .
-#	dd if=build/rodata.bin of=qcsv02zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
+#qrycsv02.ovl: pager.asm
+# zcc +msx --subtype=msxdos2 -lm -D__Z88DK -oqrycsv02.ovl pager.asm
+# dd if=build/rodata.bin of=qcsv02zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
 
 #qrycsv03.ovl: libc.c lexer2.c sql2.c querycsv.c stdio.asm build-cpm.js
-#	node ./build-cpm.js
-#	cp build/obj2/*.ovl .
+# node ./build-cpm.js
+# cp build/obj2/*.ovl .
 
 clean:
 	rm -rf build zcc_opt.def launcher2.bin launcher2.com querycsv.com *.ovl *.map

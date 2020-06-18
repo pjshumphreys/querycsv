@@ -10,129 +10,17 @@
 #include <string.h>
 #include <time.h>
 
+#define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
+as long as the function using them uses the __stdc calling convention */
+
+#include <stdarg.h>
+
 #if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
   #include <stdint.h>
 #endif
 
 /* translatable strings */
 #include "en_gb.h"
-
-#ifdef __Z88DK
-  /* z88dk's default implementations of classic malloc & free waste quite a
-    lot of memory due to heap fragmentation, which limits the size of scripts
-    that can be run. Replace them with our own implementations */
-  /* Some examples of the previous naive behaviour :
-
-    * realloc always allocs a new block of the requested size, memcpys the
-      data across then frees the original block.
-
-    * If a block is malloced (so will be at the top of the heap) and then freed
-      with no other calls to realloc or malloc in between then no free block
-      coalition is performed.
-
-    * The heap grows downward in memory, which forces a poorer implementation of
-      realloc. growing upward would instead permit the same pointer value to be
-      returned from realloc with a new size if the item being realloced were at
-      the top of the heap.
-
-    * Requests for large blocks aren't fit into an existing free block of the
-      correct size, but fresh memory from the end of the heap is used instead.
-  */
-  void mallinit_zx(void);
-  void sbrk_zx(void *addr, unsigned int size);
-  void *malloc_zx(unsigned int size);
-  void free_zx(void *addr);
-  void *realloc_zx(void *p, unsigned int size);
-  void *calloc_zx(unsigned int num, unsigned int size);
-
-  void reallocMsg(void **mem, size_t size);
-
-  #define HEAP_FREE 0
-  #define HEAP_ALLOCED 1
-
-  /* malloc/free related structures */
-  struct heapItem {
-    struct heapItem * next; /* where the next block is, 0 for no next block */
-    unsigned int size; /* how many bytes are contained in this block, not including these 5 header bytes */
-    unsigned char type; /* 0 = free, 1 = allocated */
-  };
-
-  struct heapInternal {
-    struct heapItem * nextFree;
-    struct heapItem * first;
-  };
-
-  /* esxdos has its disk buffer at 0x2000 - 0x3fff, but we also want to use
-    that space for our heap. Use another buffer above 0xbfff to marshal the
-    data between the two */
-  FILE * fopen_zx(const char * filename, const char * mode);
-  size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream);
-  size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream);
-  int fprintf_zx(int type, void * output, char * format, ...) __stdc;
-  int fputs_zx(const char * str, FILE * stream);
-
-  double strtod_zx(const char* str, char** endptr);  /* z88dk doesn't
-  have strtod, but does have floating point support. We supply our own implementation */
-  char* dtoa_zx(char *s, double n); /* wrapper around ftoa that rtrims trailing zeroes
-  and the decimal point if necessary */
-
-  #ifndef QCSV_NOZXMALLOC
-    #undef realloc
-    #undef calloc
-    #undef fputs
-    #define malloc malloc_zx
-    #define free free_zx
-    #define realloc realloc_zx
-    #define calloc calloc_zx
-
-    #define fopen fopen_zx
-    #define fprintf(...) fprintf_zx(1, __VA_ARGS__)
-    #define YYFPRINTF(...) fprintf_zx(1, __VA_ARGS__)   /* for the bison parser */
-    #define fputs fputs_zx
-    #define fwrite fwrite_zx
-    #define fread fread_zx
-    #define strtod strtod_zx
-  #endif
-
-  #define YY_NO_UNISTD_H 1
-  #define HAS_VSNPRINTF
-
-  /* classic clib z88dk doesn't have ferror. stub it out */
-  #define ferror(...) 0
-
-  /* in z88dk fflush only actually does anything on tcp connections, so we can eliminate the function call */
-  #define fflush(...) 0
-  #define mystrnicmp strnicmp
-
-  /* make EXIT_FAILURE report a "STOP statement" error instead of "NEXT without FOR" */
-  #undef EXIT_FAILURE
-  #define EXIT_FAILURE 9
-
-  /* z88dk doesn't have bsearch, but it does have l_bsearch.
-    employ some macro magic to smooth things over. */
-  #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
-
-  void logNum(int num) __z88dk_fastcall;
-  void setupZX(char * filename) __z88dk_fastcall;
-
-  #define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
-  as long as the function using them uses the __stdc calling convention */
-
-  /* on z88dk, the __stdc calling convention modifier is necessary to make
-  functions that use varargs work correctly */
-  /* we redirect d_sprintf to a macro so it can reside in the libc page and share code with fprintf */
-  #define d_sprintf(...) fprintf_zx(0, __VA_ARGS__)
-
-  /* z88dk's varargs never works properly for longs in user written functions,
-    but it does have a non standardized ltoa function which works. Use a macro
-    to sprintf elsewhere to do the same thing */
-  #define myltoa(x, y) ltoa((y), (x), 10)
-#else
-  #define __stdc /* nothing */
-  #define myltoa(x, y) sprintf((char *)(x), LD_STRING, (y))
-#endif
-
-#include <stdarg.h>
 
 #define YY_EXTRA_TYPE struct qryData*
 #define ECHO 1 /* disables flex from outputing unmatched input */
@@ -221,17 +109,17 @@
 #define ENC_MAC 4
 #define ENC_DEFAULT 5
 #define ENC_UNSUPPORTED 6
-#define ENC_UTF8 7
-#define ENC_UTF16LE 8
-#define ENC_UTF16BE 9
-#define ENC_UTF32LE 10
-#define ENC_UTF32BE 11
-#define ENC_CP1047 12
-#define ENC_PETSCII 13
+#define ENC_ASCII 7
+#define ENC_UTF8 8
+#define ENC_UTF16LE 9
+#define ENC_UTF16BE 10
+#define ENC_UTF32LE 11
+#define ENC_UTF32BE 12
+#define ENC_CP1047 13
 #define ENC_ATARIST 14
-#define ENC_BBC 15
-#define ENC_ZX 16
-#define ENC_ASCII 17
+#define ENC_PETSCII 15
+#define ENC_BBC 16
+#define ENC_ZX 17
 /* Tasword 2 file format. Same as the ZX (spectrum) character
  * set but with hard-coded line lengths of 64 characters.
  * Newlines and EOF are stored as graphics characters and space
@@ -245,6 +133,8 @@
 
 /* macro used to help prevent double freeing of heap data */
 #define freeAndZero(p) { free(p); p = 0; }
+
+#define myltoa(x, y) sprintf((char *)(x), LD_STRING, (y))
 
 /* this macro was intended to facilitate multi tasking on classic mac os,
 but hasn't actually been needed up to now. It's being kept just in case
@@ -460,6 +350,135 @@ Just use long ones for that compiler */
   #define ENC_PRINT ENC_ATARIST
 #endif
 
+/* This block controls both the zx spectrum and cp/m build definitions on the Z88DK compiler toolchain */
+#ifdef __Z88DK
+  /* z88dk's default implementations of classic malloc & free waste quite a
+    lot of memory due to heap fragmentation, which limits the size of scripts
+    that can be run. Replace them with our own implementations */
+  /* Some examples of the previous naive behaviour :
+
+    * realloc always allocs a new block of the requested size, memcpys the
+      data across then frees the original block.
+
+    * If a block is malloced (so will be at the top of the heap) and then freed
+      with no other calls to realloc or malloc in between then no free block
+      coalition is performed.
+
+    * The heap grows downward in memory, which forces a poorer implementation of
+      realloc. growing upward would instead permit the same pointer value to be
+      returned from realloc with a new size if the item being realloced were at
+      the top of the heap.
+
+    * Requests for large blocks aren't fit into an existing free block of the
+      correct size, but fresh memory from the end of the heap is used instead.
+  */
+  void mallinit_z80(void);
+  void sbrk_z80(void *addr, unsigned int size);
+  void *malloc_z80(unsigned int size);
+  void free_z80(void *addr);
+  void *realloc_z80(void *p, unsigned int size);
+  void *calloc_z80(unsigned int num, unsigned int size);
+
+  void reallocMsg(void **mem, size_t size);
+
+  #define HEAP_FREE 0
+  #define HEAP_ALLOCED 1
+
+  /* malloc/free related structures */
+  struct heapItem {
+    struct heapItem * next; /* where the next block is, 0 for no next block */
+    unsigned int size; /* how many bytes are contained in this block, not including these 5 header bytes */
+    unsigned char type; /* 0 = free, 1 = allocated */
+  };
+
+  struct heapInternal {
+    struct heapItem * nextFree;
+    struct heapItem * first;
+  };
+
+  double strtod_z80(const char* str, char** endptr);  /* z88dk doesn't
+  have strtod, but does have floating point support. We supply our own implementation */
+  char* dtoa_z80(char *s, double n); /* wrapper around ftoa that rtrims trailing zeroes
+  and the decimal point if necessary */
+
+  FILE * fopen_z80(const char * filename, const char * mode);
+  int fprintf_z80(int type, void * output, char * format, ...) __stdc;
+
+  #undef ENC_INPUT
+  #undef ENC_OUTPUT
+  #undef ENC_PRINT
+
+  #ifdef __SPECTRUM
+    /* esxdos has its disk buffer at 0x2000 - 0x3fff, but we also want to use
+    that space for our heap. Use another buffer above 0xbfff to marshal the
+    data between the two */
+    size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream);
+    size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream);
+    int fputs_zx(const char * str, FILE * stream);
+
+    /* make EXIT_FAILURE report a "STOP statement" error instead of "NEXT without FOR" */
+    #undef EXIT_FAILURE
+    #define EXIT_FAILURE 9
+
+    #define ENC_INPUT ENC_ZX
+    #define ENC_OUTPUT ENC_ZX
+    #define ENC_PRINT ENC_ZX  
+  #else
+    #define ENC_INPUT ENC_ASCII
+    #define ENC_OUTPUT ENC_ASCII
+    #define ENC_PRINT ENC_ASCII   
+  #endif
+
+  #ifndef QCSV_NOZ80MALLOC
+    #undef realloc
+    #undef calloc
+    #define realloc realloc_z80
+    #define calloc calloc_z80
+    #define malloc malloc_z80
+    #define free free_z80
+    #define strtod strtod_z80
+
+    #define fopen fopen_z80
+    #define fprintf(...) fprintf_z80(1, __VA_ARGS__)
+    #define YYFPRINTF(...) fprintf_z80(1, __VA_ARGS__)   /* for the bison parser */
+
+    #ifdef __SPECTRUM
+      #undef fputs
+      #define fputs fputs_zx
+      #define fwrite fwrite_zx
+      #define fread fread_zx
+    #endif
+  #endif
+
+  #define YY_NO_UNISTD_H 1
+  #define HAS_VSNPRINTF
+
+  /* classic clib z88dk doesn't have ferror. stub it out */
+  #define ferror(...) 0
+
+  /* in z88dk fflush only actually does anything on tcp connections, so we can eliminate the function call */
+  #define fflush(...) 0
+  #define mystrnicmp strnicmp
+
+  /* z88dk doesn't have bsearch, but it does have l_bsearch.
+    employ some macro magic to smooth things over. */
+  #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
+
+  void logNum(int num) __z88dk_fastcall;
+  void setupZX(char * filename) __z88dk_fastcall;
+
+  /* on z88dk, the __stdc calling convention modifier is necessary to make
+  functions that use varargs work correctly */
+  /* we redirect d_sprintf to a macro so it can reside in the libc page and share code with fprintf */
+  #define d_sprintf(...) fprintf_z80(0, __VA_ARGS__)
+
+  /* z88dk's varargs never works properly for longs in user written functions,
+    but it does have a non standardized ltoa function which works. Use a macro
+    to sprintf elsewhere to do the same thing */
+  #undef myltoa
+  #define myltoa(x, y) ltoa((y), (x), 10)
+#endif
+
 /* ugly hacks to raise the game of cc65 */
 #ifdef __CC65__
   #define YY_NO_UNISTD_H 1
@@ -530,7 +549,7 @@ Just use long ones for that compiler */
 
       #define ftostr(_d,_a) { \
         reallocMsg((void**)_d, 33); \
-        dtoa_zx(*(_d), (_a)); \
+        dtoa_z80(*(_d), (_a)); \
         reallocMsg((void**)_d, strlen(*(_d)) + 1); \
         } /* dtoa_zx function should output at
         most 32 characters */

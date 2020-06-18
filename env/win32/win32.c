@@ -16,13 +16,12 @@ extern char * devNull;
 int strAppend(char c, char **value, size_t *strSize);
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
-#define ENC_UTF16LE 8
+#define ENC_UNKNOWN 0
 #define ENC_CP437 1
 #define ENC_CP850 2
 #define ENC_CP1252 3
-#define ENC_ASCII 17
-#define ENC_UNKNOWN 0
-
+#define ENC_ASCII 7
+#define ENC_UTF16LE 9
 
 int isHxrt = FALSE;
 int hasUtf8 = FALSE;

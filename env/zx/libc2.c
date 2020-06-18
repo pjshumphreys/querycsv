@@ -1,6 +1,6 @@
 /* libc like functions that are integrated into the main body of the program */
 
-#define QCSV_NOZXMALLOC
+#define QCSV_NOZ80MALLOC
 #include "querycsv.h"
 
 /* variables needed by libc */
@@ -64,7 +64,7 @@ double pow10a(int exp) {
  * license: public domain
  */
 
-double strtod_zx(const char *str, char **end) {
+double strtod_z80(const char *str, char **end) {
   double d = ctof(0);
   int isNegative = 0, sign = 1;
   int n = 0;
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
 }
 */
 
-char* dtoa_zx(char *s, double n) {
+char* dtoa_z80(char *s, double n) {
   char *p;
   ftoa(n, 32, s);
 
@@ -306,11 +306,11 @@ char* dtoa_zx(char *s, double n) {
   return s;
 }
 
-void mallinit_zx(void) {
+void mallinit_z80(void) {
   myHeap.nextFree = myHeap.first = NULL;
 }
 
-void sbrk_zx(void *addr, unsigned int size) {
+void sbrk_z80(void *addr, unsigned int size) {
   if(addr == NULL || size < sizeof(struct heapItem)) {
     return;
   }
@@ -358,11 +358,11 @@ void setupZX(char * filename) __z88dk_fastcall {
   myhand_status = 3;
 
   /* initialise the heap so malloc and free will work */
-  mallinit_zx();
-  sbrk_zx(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
+  mallinit_z80();
+  sbrk_z80(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
 
   if(filename != NULL) {
     start = stkend + 1;
-    sbrk_zx(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
+    sbrk_z80(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
   }
 }
