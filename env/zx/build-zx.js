@@ -130,7 +130,7 @@ function start () {
   /* generate the large static arrays in the format z88dk needs */
   execSync('node ../../generateMappings.js true');
 
-  // update the jump table locations, starting at call_rom3 -4 and working downward in memory
+  // update the jump table locations, starting at call_rom3 - 4 and working downward in memory
   functionsList.forEach((item, index) => {
     hashMap[item[0].replace(/^_/, '')] = index;
     item[2] = currentAddr;

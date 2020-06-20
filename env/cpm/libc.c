@@ -1,6 +1,7 @@
 /* fake program to get the necessary libc functions into 1 memory page */
+#pragma output noprotectmsdos
 #define QCSV_NOZ80MALLOC
-#include "querycsv.h"
+#include "../../querycsv.h"
 #include <fcntl.h>
 
 void dosload(int pageNumber) __z88dk_fastcall {
@@ -8,7 +9,7 @@ void dosload(int pageNumber) __z88dk_fastcall {
 
   int temp;
 
-  sprintf(filename+6, "%02d", pageNumber);
+  sprintf(filename + 6, "%02d", pageNumber);
   filename[8] = '.';
 
   if((temp = open(filename, O_RDONLY, 0)) == -1) {
@@ -291,7 +292,7 @@ void reallocMsg(void **mem, size_t size) {
 
       if(temp == NULL) {
         fwrite(TDB_MALLOC_FAILED2, 1, 33, stderr);
-        myexit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
       }
 
       *mem = temp;
@@ -303,6 +304,6 @@ void reallocMsg(void **mem, size_t size) {
   }
   else {
     fputs(TDB_INVALID_REALLOC, stderr);
-    myexit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 }

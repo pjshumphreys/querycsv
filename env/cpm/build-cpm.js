@@ -29,43 +29,43 @@ const hashMap = {};
 let rodataSize = 0;
 
 const functionsList = [
-  ['main', 6, 0x0001, 0xC000, 'farcall'],
-  ['exit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strcmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['stricmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strncmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strlen', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strstr_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strcat_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strncat_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strnicmp_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strcpy_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['strncpy_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['memcpy_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['memmove_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['memset_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_fopen_z80', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fread', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fwrite', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_fprintf_z80', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fputs', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_malloc_z80', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_free_z80', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_realloc_z80', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_reallocMsg', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fseek', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fgetc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['ungetc', 3, 0x0001, 0x0001, 'farcall2'],
-  ['fputc_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['feof', 3, 0x0001, 0x0001, 'farcall2'],
-  ['sprintf', 3, 0x0001, 0x0001, 'farcall2'],
-  ['isspace', 3, 0x0001, 0x0001, 'farcall2'],
-  ['isdigit', 3, 0x0001, 0x0001, 'farcall2'],
-  ['abs', 3, 0x0001, 0x0001, 'farcall2'],
-  ['atol', 3, 0x0001, 0x0001, 'farcall2'],
-  ['ltoa_callee', 3, 0x0001, 0x0001, 'farcall2'],
-  ['ftoa', 3, 0x0001, 0x0001, 'farcall2']
+  ['main', 3, 0x0001, 0x4000, 'farcall'],
+  ['exit', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strcmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['stricmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strncmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strlen', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strstr_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strcat_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strncat_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strnicmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strcpy_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strncpy_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['memcpy_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['memmove_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['memset_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_fopen_z80', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fclose', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fread', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fwrite', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_fprintf_z80', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fputs_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_malloc_z80', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_free_z80', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_realloc_z80', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_reallocMsg', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fseek', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fgetc', 1, 0x0001, 0x0001, 'farcall2'],
+  ['ungetc', 1, 0x0001, 0x0001, 'farcall2'],
+  ['fputc_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['feof', 1, 0x0001, 0x0001, 'farcall2'],
+  ['sprintf', 1, 0x0001, 0x0001, 'farcall2'],
+  ['isspace', 1, 0x0001, 0x0001, 'farcall2'],
+  ['isdigit', 1, 0x0001, 0x0001, 'farcall2'],
+  ['abs', 1, 0x0001, 0x0001, 'farcall2'],
+  ['atol', 1, 0x0001, 0x0001, 'farcall2'],
+  ['ltoa_callee', 1, 0x0001, 0x0001, 'farcall2'],
+  ['ftoa', 1, 0x0001, 0x0001, 'farcall2']
 ];
 
 /* don't include these functions in the output files as they are never invoked (dead code elimination) */
@@ -93,7 +93,7 @@ const ignoreFunctions = [
   return acc;
 }, {});
 
-let currentAddr = 0xbce0 - 4;
+let currentAddr = 0x0200;
 
 /* contains a map of the addresses of all global variables */
 const defines = {};
@@ -120,8 +120,11 @@ function start () {
     'mkdir -p build/ro;' +
     'mkdir -p build/obj;' +
     'mkdir -p build/obj2;' +
+    'mkdir -p build/fcb;' +
+    'mkdir -p build/msx2;' +
     'rm -f build/rodata2.asm;' +
-    'cp stdio.asm build/data.asm'
+    'rm -f build/data.asm;' +
+    'touch build/data.asm'
   );
 
   /* generate the large static arrays in the format z88dk needs */
@@ -131,7 +134,7 @@ function start () {
   functionsList.forEach((item, index) => {
     hashMap[item[0].replace(/^_/, '')] = index;
     item[2] = currentAddr;
-    currentAddr -= 4;
+    currentAddr += 4;
   });
 
   compileLexer();
@@ -167,12 +170,12 @@ function compileLexer () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
       '../../makeheaders -h build/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/lexer3.h'
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm'
   );
 
@@ -206,12 +209,12 @@ function compileParser () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
       '../../makeheaders -h build/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/sql3.h'
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
   );
 
@@ -222,7 +225,7 @@ function compileLibC2 () {
   console.log('compileLibC2');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build/libc2.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build/libc2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0libc2/g" build/libc2.asm'
   );
 
@@ -233,7 +236,7 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
   );
 
@@ -244,7 +247,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm'
   );
 
@@ -255,7 +258,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm'
   );
 
@@ -285,7 +288,7 @@ function compileHash4a () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm'
   );
 
@@ -315,7 +318,7 @@ function compileHash4b () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm'
   );
 
@@ -345,7 +348,7 @@ function compileHash4c () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
+    'zcc +cpm -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
     'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm'
   );
 
@@ -374,7 +377,7 @@ function addROData () {
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
-  execSync(`z80asm -b -m -r=${65536 - rodataSize} build/rodata.asm`);
+  execSync(`z80asm -b -m -r=${32768 - rodataSize} build/rodata.asm`);
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
@@ -435,7 +438,7 @@ function getFunctionSizes () {
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr -= 4;
+  currentAddr += 4;
 
   name = 'compareCommon';
   execSync(
@@ -456,7 +459,7 @@ function getFunctionSizes () {
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr -= 4;
+  currentAddr += 4;
 
   name = 'compareAtariST';
   execSync(
@@ -466,7 +469,7 @@ function getFunctionSizes () {
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr -= 4;
+  currentAddr += 4;
 
   name = 'compareZX';
   execSync(
@@ -476,7 +479,7 @@ function getFunctionSizes () {
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr -= 4;
+  currentAddr += 4;
 
   name = 'compareCP1047';
   execSync(
@@ -486,7 +489,7 @@ function getFunctionSizes () {
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr -= 4;
+  currentAddr += 4;
 
   execSync('rm build/s/compareCodepoints.asm');
 
@@ -497,7 +500,7 @@ function getFunctionSizes () {
     'sh',
     [
       '-c',
-      "z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + (currentAddr + 3) + " - $5}'` build/data.asm"
+      "z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + (currentAddr + 3) + "}'` build/data.asm"
     ],
     {
       stdio: 'inherit'
@@ -644,17 +647,18 @@ function packPages (tree) {
     currentPageNumber++;
   } while (1);
 
-  compilePages(pages);
+  //compilePages(pages);
+  compileLibC();
 }
 
 function compilePages (pages) {
   console.log('compilePages');
 
   pages.forEach((elem, index) => {
-    addDefines('page' + (index + 6), elem.map(elem2 => elem2.name), 'h', true);
+    addDefines('page' + (index + 3), elem.map(elem2 => elem2.name), 'h', true);
 
     fs
-      .readFileSync('build/obj2/page' + (index + 6) + '.map', 'utf8')
+      .readFileSync('build/obj2/page' + (index + 3) + '.map', 'utf8')
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         // console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
         two = two.replace(/^_/, '');
@@ -662,89 +666,65 @@ function compilePages (pages) {
 
         if (hasProp(hashMap, two) && item !== functionsList[hashMap[two]][2]) {
           functionsList[hashMap[two]][3] = item;
-          functionsList[hashMap[two]][1] = index + 6;
+          functionsList[hashMap[two]][1] = index + 3;
         }
       });
 
-    if (fs.statSync('build/obj2/page' + (index + 6) + '_code_compiler.bin').size > (16384 - rodataSize)) {
-      console.log('page ' + (index + 6) + ' is too big');
+    if (fs.statSync('build/obj2/page' + (index + 3) + '_code_compiler.bin').size > (16384 - rodataSize)) {
+      console.log('page ' + (index + 3) + ' is too big');
       process.exit(-1);
     }
 
-    execSync('dd if=/dev/zero bs=1 count=16384 of=build/obj2/qcsv' + (('00' + (index + 6)).substr(-2)) + 'zx.ovl');
+    execSync('dd if=/dev/zero bs=1 count=16384 of=build/obj2/qrycsv' + (('00' + (index + 3)).substr(-2)) + '.ovl');
 
-    execSync('dd if=build/obj2/page' + (index + 6) + '_code_compiler.bin of=build/obj2/qcsv' +
-    (('00' + (index + 6)).substr(-2)) + 'zx.ovl conv=notrunc');
+    execSync('dd if=build/obj2/page' + (index + 3) + '_code_compiler.bin of=build/obj2/qrycsv' +
+    (('00' + (index + 3)).substr(-2)) + '.ovl conv=notrunc');
 
-    execSync('dd if=build/rodata.bin of=build/obj2/qcsv' +
-    (('00' + (index + 6)).substr(-2)) + 'zx.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+    execSync('dd if=build/rodata.bin of=build/obj2/qrycsv' +
+    (('00' + (index + 3)).substr(-2)) + '.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
   });
 
   execSync('rm build/obj2/*.bin');
 
-  compileLibC();
+  compileLibC(pages);
 }
 
-function compileLibC () {
+function compileLibC (pages) {
   console.log('compileLibC');
 
   let foo = ''; let i, j;
 
-  for (i = 0, j = functionsList.reduce((acc,curr) => {
-    const a = parseInt(curr[1], 10);
-    return a > acc ? a : acc;
-  }, 0);  i < j; i++) {
-    foo += 'defb 0b11111111 ; ' + (i + 1) + '\n';
-  }
-
   // build the asm includes
-  ['plus3dos', 'residos48', 'residos128', 'esxdos48', 'esxdos128'].forEach((name, index) => {
-    execSync('make clean', {
-      cwd: path.join(__dirname, name)
-    });
+  ['fcb', 'msx2'].forEach((name, index) => {
+    execSync('cp libc.c pager.asm Makefile build/' + name + '/');
 
-    fs.writeFileSync(name + '/lookupTable.inc', functionsList.slice().reverse().map(item =>
-       (item[1] === 3 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
-      '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
-    ).join('\n'));
-
-    fs.writeFileSync(name + '/functions.inc', functionsList.slice().reverse().map(item =>
-      (item[0] === 'main' ? '  PUBLIC _realmain\n_realmain:\n' : '') +
-      '  call ' + item[4] + '\n  defb ' + (item[1] === 3 ? index + 1 : item[1])
-    ).join('\n'));
-
-    fs.writeFileSync(name + '/pages.inc', foo);
-
-    fs.writeFileSync(name + '/defines.inc', `
-  SECTION bss_error
-  org 0x${defines._bss_error}
-  SECTION bss_clib
-  org 0x${defines._bss_clib}
-  SECTION bss_fp
-  org 0x${defines._bss_fp}
-  SECTION data_compiler
-  org 0x${defines._myhand_status}
-  SECTION code_compiler
-  org 0xc000
-` +
-      Object.keys(defines).map(item => (/^_([^_]+)?(_head|_tail|_size)$/).test(item)
+    fs.writeFileSync('build/' + name + '/defines.inc',
+      Object.keys(defines).map(item => (/^_+([^_]+)?(_head|_tail|_size)$/).test(item)
         ? ''
         : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
       ).join('\n')
     );
 
-    execSync('cp build/data.bin ' + name + '/');
+    fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
+       (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
+      '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
+    ).join('\n'));
+
+    fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
+      (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
+      '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
+    ).join('\n'));
 
     spawnSync(
-      'make',
+      'make qrycsv0' + (index + 1) + '.ovl',
       [],
       {
         stdio: 'inherit',
-        cwd: path.join(__dirname, name)
+        cwd: __dirname + '/build/' + name + '/'
       });
 
     fs
-      .readFileSync(path.join(__dirname, name, 'qcsv0'+(index+1)+'zx.map'), 'utf8')
+      .readFileSync('build/' + name + '/qrycsv0' + (index + 1) + '.map', 'utf8')
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         const four = two.replace(/^_/, '');
 
@@ -765,17 +745,17 @@ function compileLibC () {
     //console.log(JSON.stringify(functionsList, null, 2));
     //process.exit(0);
 
-    fs.writeFileSync(name + '/lookupTable.inc', functionsList.slice().reverse().map(item =>
-       (item[1] === 3 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
+    fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
+       (item[1] === 1 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
-    execSync('rm qcsv0'+(index+1)+'zx.ovl', {
+    /*execSync('rm qrycsv0'+(index+1)+'.ovl', {
       cwd: path.join(__dirname, name)
-    });
+    });*/
   });
 
-  // the rest of the build process will now be carried out by makefile
+ // compilePages(pages);
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
@@ -864,7 +844,7 @@ function splitUpFunctions (filename, callback, append) {
           simplify debugging */
           hashMap[name] = functionsList.length;
           functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-          currentAddr -= 4;
+          currentAddr += 4;
         }
       }
     } else if (rodataType && /^\./.test(line)) {
@@ -1028,8 +1008,8 @@ function addDefines (filename, filenames, folderName, pageMode) {
       'printf "\\\n" > ../' + folderName + '/' + filename + '.asm;' +
       (pageMode ? 'printf "  SECTION bss_error\n  org 0x' + defines._bss_error +
       '\n  SECTION bss_fp\n  org 0x' + defines._bss_fp +
-      '\nEXTERN extra\nEXTERN fa\nEXTERN fasign\n  SECTION code_compiler\n  org 0xc000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
-      'printf "  INCLUDE \\"z80_crt0.hdr\\"\n  INCLUDE \\"../../common/equs.inc\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
+      '\nEXTERN extra\nEXTERN fa\nEXTERN fasign\n  SECTION code_compiler\n  org 0x4000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
+      'printf "  INCLUDE \\"z80_crt0.hdr\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
       filenames.reduce((obj, elem) => {
         obj += 'cat ' + elem + '.asm >> ../' + folderName + '/' + filename + '.asm;';
         return obj;
@@ -1056,7 +1036,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
     try {
       execSync(
-        'zcc +zx ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
+        'zcc +cpm ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
           ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {

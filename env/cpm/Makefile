@@ -1,6 +1,6 @@
 #ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16128 - \$$5}'")
 
-all: querycsv.com qrycsv00.ovl
+all: querycsv.com qrycsv00.ovl qrycsv03.ovl
 
 querycsv.com: launcher2.bin launcher.c launcher.asm
 	zcc +cpm -lndos -m -o querycsv.com launcher.asm launcher.c
@@ -15,17 +15,17 @@ launcher2.com: launcher2.c
 qrycsv00.ovl: qrycsv00.bin
 	cp qrycsv00.bin qrycsv00.ovl
 
-#qrycsv01.ovl: pager.asm
-# zcc +cpm -lm -oqrycsv01.ovl pager.asm
-# dd if=build/rodata.bin of=qcsv01zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
+qrycsv01.ovl: pager.asm libc.c
+	zcc +cpm -lm -m -o qrycsv01.ovl pager.asm libc.c
+	cp qrycsv01.ovl ../obj2/
 
-#qrycsv02.ovl: pager.asm
-# zcc +msx --subtype=msxdos2 -lm -D__Z88DK -oqrycsv02.ovl pager.asm
-# dd if=build/rodata.bin of=qcsv02zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
+qrycsv02.ovl: pager.asm libc.c
+	zcc +msx -subtype=msxdos2 -lm -m -D__Z88DK -o qrycsv02.ovl pager.asm libc.c
+	cp qrycsv01.ovl ../obj2/
 
-#qrycsv03.ovl: libc.c lexer2.c sql2.c querycsv.c stdio.asm build-cpm.js
-# node ./build-cpm.js
-# cp build/obj2/*.ovl .
+qrycsv03.ovl: pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js
+	node ./build-cpm.js
+	cp build/obj2/*.ovl .
 
 clean:
 	rm -rf build zcc_opt.def launcher2.bin launcher2.com querycsv.com *.ovl *.map

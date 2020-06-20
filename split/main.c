@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   #endif
 
   #ifdef __Z88DK
-    setupZX(argv[1]);
+    setupZ80(argv[1]);
   #endif
 
   argc2 = argc;

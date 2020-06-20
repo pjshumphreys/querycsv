@@ -1,5 +1,15 @@
+;SECTION code_compiler
+  ;defs 0x8, 0 ; cpm
+  ;defs 0x1e, 0 ; msx
+
+  INCLUDE "defines.inc"
+
+EXTERN _dosload
+
 funcstart:  ; the array of call xxxx instructions and page numbers
   INCLUDE "functions.inc"
+
+BINARY "../data.bin"
 
 ;-----------------------------------------
   
@@ -131,6 +141,7 @@ notFound:
   ; jr found
 
 found:
+_logNum:
   ret
 
 ;---------------------------------------------------

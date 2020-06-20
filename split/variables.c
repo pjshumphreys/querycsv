@@ -3,13 +3,15 @@
 #ifdef __Z88DK
   long heap;  /* used by z88dk's malloc and free functions */
 
-  /* placeholders for various segments that need to be in non paged ram */
-  char bss_error[2];
-  char bss_clib[1];
-  char bss_fp[18];
+  #ifdef __SPECTRUM
+    /* placeholders for various segments that need to be in non paged ram */
+    char bss_error[2];
+    char bss_clib[1];
+    char bss_fp[18];
 
-  /* indicates which variant of the libc functions are in use. Filled out by the startup assembly language code */
-  char libCPage;
+    /* indicates which variant of the libc functions are in use. Filled out by the startup assembly language code */
+    char libCPage;
+  #endif
 
   /* hash2 helper variables */
   long codepoints[18];

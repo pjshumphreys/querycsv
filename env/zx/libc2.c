@@ -351,7 +351,7 @@ void *calloc_zx(unsigned int num, unsigned int size) {
 }
 */
 
-void setupZX(char * filename) __z88dk_fastcall {
+void setupZ80(char * filename) __z88dk_fastcall {
   int start;
 
   /* initialise variables needed by z88dk's libc */
