@@ -1,13 +1,18 @@
 /* fake program to get the necessary libc functions into 1 memory page */
 #pragma output noprotectmsdos
+
+/* not really nofileio, but we want to locate __sgoiblk ourselves to make
+it the same value for both the fcb and msx2 variants */
+#pragma output nofileio
+
 #define QCSV_NOZ80MALLOC
 #include "../../querycsv.h"
 #include <fcntl.h>
 
 void dosload(int pageNumber) __z88dk_fastcall {
-  static char * filename = "qrycsv00.ovl";
+  static const char * filename = "qrycsv00.ovl";
 
-  int temp;
+  static int temp;
 
   sprintf(filename + 6, "%02d", pageNumber);
   filename[8] = '.';
@@ -22,7 +27,8 @@ void dosload(int pageNumber) __z88dk_fastcall {
   close(temp);
 }
 
-/* don't bother to copy the mode parameter as for our purposes it will always be a static string */
+/* don't bother to copy the mode parameter as for our purposes
+it will always be a static string */
 FILE * fopen_z80(const char * filename, const char * mode) {
   return fopen(filename, mode);
 }
@@ -306,4 +312,45 @@ void reallocMsg(void **mem, size_t size) {
     fputs(TDB_INVALID_REALLOC, stderr);
     exit(EXIT_FAILURE);
   }
+}
+
+void b(char * string) {
+  double d;
+
+  FILE* test;
+  int num;
+  unsigned long num2;
+
+  num = atol(string);
+  ftoa(origWd, num, d);
+  ltoa(num2, origWd, num);
+
+  abs(num);
+  strcpy(string, origWd);
+  strncpy(string, origWd, 3);
+  num = strcmp(origWd, string);
+  num = stricmp(origWd, string);
+  num = strncmp(origWd, string, 3);
+  num = strnicmp(origWd, string, 3);
+  num = strlen(string);
+  string = strstr(string, origWd);
+
+  memset(string, 0, 4);
+  strcat(string, origWd);
+  strncat(string, origWd, 3);
+  memcpy(string+1, string, 2);
+  memmove(string+1, string, 2);
+
+  fseek(test, 9, SEEK_SET);
+  clearerr(test);
+  num = fclose(test);
+  fread(string, 2, 2, stdin);
+  num = fgetc(stdin);
+  ungetc(num, stdin);
+  num = feof(stdin);
+  fwrite(string, 1, 1, stdout);
+  fputc(num, stderr);
+  fflush(stdout);
+  isspace(num);
+  isdigit(num);
 }

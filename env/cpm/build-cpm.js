@@ -93,10 +93,14 @@ const ignoreFunctions = [
   return acc;
 }, {});
 
-let currentAddr = 0x0200;
+const startOffset = 0x1c5;//0x0200;
+
+let currentAddr = startOffset;
 
 /* contains a map of the addresses of all global variables */
 const defines = {};
+
+const libCDefines = ['_myHeap', '_next', '_current', '__sgoioblk'];
 
 const rodataLabels = [];
 const byteMaps = {};
@@ -647,8 +651,7 @@ function packPages (tree) {
     currentPageNumber++;
   } while (1);
 
-  //compilePages(pages);
-  compileLibC();
+  compileLibC(pages);
 }
 
 function compilePages (pages) {
@@ -686,7 +689,7 @@ function compilePages (pages) {
 
   execSync('rm build/obj2/*.bin');
 
-  compileLibC(pages);
+  compileLibC3();
 }
 
 function compileLibC (pages) {
@@ -704,6 +707,12 @@ function compileLibC (pages) {
         : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
       ).join('\n')
     );
+  });
+
+  ['fcb', 'msx2'].forEach((name, index) => {
+    if(name === 'fcb') {
+      execSync('printf "\nPUBLIC	__fcb\n__fcb:		defs	430,0\n" >> build/' + name + '/pager.asm');
+    }
 
     fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
        (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
@@ -716,11 +725,37 @@ function compileLibC (pages) {
     ).join('\n'));
 
     spawnSync(
-      'make qrycsv0' + (index + 1) + '.ovl',
-      [],
+      'make',
+      ['qrycsv0' + (index + 1) + '.ovl'],
       {
         stdio: 'inherit',
-        cwd: __dirname + '/build/' + name + '/'
+        cwd: path.resolve(__dirname, 'build', name)
+      });
+
+    /*
+      Force the symbol named funcstart to be located at startOffset by
+      adding some padding. The code below is a bit of a strange way to do this,
+      but it's the only way that seems to work reliably whilst minimising
+      the padding needed.
+    */
+    fs
+      .readFileSync('build/' + name + '/qrycsv0' + (index + 1) + '.map', 'utf8')
+      .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
+        const four = two.replace(/^_/, '');
+
+        if(four === 'funcstart') {
+          execSync(`sed -i '1s/^/defs ${startOffset - parseInt(three, 16)}, 0\\n/' build/${name}/defines.inc`);
+        }
+      });
+
+    execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
+
+    spawnSync(
+      'make',
+      ['qrycsv0' + (index + 1) + '.ovl'],
+      {
+        stdio: 'inherit',
+        cwd: path.resolve(__dirname, 'build', name)
       });
 
     fs
@@ -731,31 +766,63 @@ function compileLibC (pages) {
         if(four === 'main') {
           /* do nothing */
         }
-        else if (four === 'atexit') {
-          functionsList[hashMap['exit']][3] = parseInt(three, 16);
-        }
         else if(hasProp(hashMap, four)) {
           //console.log(four);
           functionsList[hashMap[four]][3] = parseInt(three, 16);
         }
+        else if(libCDefines.includes(two) && !hasProp(defines, two)) {
+          defines[two] = three;
+        }
+      });
+
+    execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
+
+    spawnSync(
+      'make',
+      ['qrycsv0' + (index + 1) + '.ovl'],
+      {
+        stdio: 'inherit',
+        cwd: path.resolve(__dirname, 'build', name)
       });
 
     //functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
     //console.log(JSON.stringify(hashMap, null, 2));
     //console.log(JSON.stringify(functionsList, null, 2));
     //process.exit(0);
+  });
+
+  compilePages(pages);
+}
+
+function compileLibC3() {
+  console.log('compileLibC');
+
+  ['fcb', 'msx2'].forEach((name, index) => {
+    fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
+      (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
+      '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
+    ).join('\n'));
 
     fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
        (item[1] === 1 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
-    /*execSync('rm qrycsv0'+(index+1)+'.ovl', {
-      cwd: path.join(__dirname, name)
-    });*/
-  });
+    execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
 
- // compilePages(pages);
+    spawnSync(
+      'make',
+      ['qrycsv0' + (index + 1) + '.ovl'],
+      {
+        stdio: 'inherit',
+        cwd: path.resolve(__dirname, 'build', name)
+      });
+
+    execSync('dd if=/dev/zero bs=1 count=16128 of=build/obj2/qrycsv0' + (index + 1) + '.ovl');
+
+    execSync('dd if=build/' + name + '/qrycsv0' + (index + 1) + '.ovl of=build/obj2/qrycsv0' +
+    + (index + 1) + '.ovl conv=notrunc');
+  });
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */
@@ -1006,9 +1073,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
     'printf "\\\n" > ../' + folderName + '/' + filename + '.inc;' +
       'printf "\\\n" > ../' + folderName + '/' + filename + '2.inc;' +
       'printf "\\\n" > ../' + folderName + '/' + filename + '.asm;' +
-      (pageMode ? 'printf "  SECTION bss_error\n  org 0x' + defines._bss_error +
-      '\n  SECTION bss_fp\n  org 0x' + defines._bss_fp +
-      '\nEXTERN extra\nEXTERN fa\nEXTERN fasign\n  SECTION code_compiler\n  org 0x4000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
+      (pageMode ? 'printf "EXTERN extra\nEXTERN fa\nEXTERN fasign\n  SECTION code_compiler\n  org 0x4000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
       'printf "  INCLUDE \\"z80_crt0.hdr\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
       filenames.reduce((obj, elem) => {
         obj += 'cat ' + elem + '.asm >> ../' + folderName + '/' + filename + '.asm;';

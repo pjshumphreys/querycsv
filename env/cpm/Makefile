@@ -16,12 +16,10 @@ qrycsv00.ovl: qrycsv00.bin
 	cp qrycsv00.bin qrycsv00.ovl
 
 qrycsv01.ovl: pager.asm libc.c
-	zcc +cpm -lm -m -o qrycsv01.ovl pager.asm libc.c
-	cp qrycsv01.ovl ../obj2/
+	zcc +cpm -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -o qrycsv01.ovl pager.asm libc.c
 
 qrycsv02.ovl: pager.asm libc.c
-	zcc +msx -subtype=msxdos2 -lm -m -D__Z88DK -o qrycsv02.ovl pager.asm libc.c
-	cp qrycsv01.ovl ../obj2/
+	zcc +msx -subtype=msxdos2 -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -D__Z88DK -o qrycsv02.ovl pager.asm libc.c
 
 qrycsv03.ovl: pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js
 	node ./build-cpm.js

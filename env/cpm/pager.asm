@@ -76,21 +76,8 @@ farcall2:
   ; backup registers
   ld (hlBackup), hl
   ld (bcBackup), bc
-  ld (deBackup), de
 
   pop hl ; (hl) contains virtual page number to use
-  ld e, 4
-  ;ld c, (hl)
-  ;ld b, 0
-  ;call serialLnBC
-
-  ; backup the return address for later use
-  pop bc
-  ld (libcRet), bc
-
-  ;push the far return loader onto the stack so we'll return to it rather than the original caller
-  ld bc, farRet2
-  push bc
 
   push af
   ;calculate which value in the jump table to use
@@ -104,24 +91,14 @@ farcall2:
 
   ld bc, lookupTable
   add hl, bc
-
   ld c, (hl)
   inc hl
   ld b, (hl)
-  ;call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later
 
-  ;change to the appropriate page
-  push af
-  ld a, (currentVirtualPage)
-  ;a = current, e = desired
-  call changePage
-  pop af
-
   ;restore all registers and jump to the function we want via ret
-  ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   ret
@@ -160,32 +137,15 @@ farRet:
   push af
   ld a, e
   ld (currentVirtualPage), a
+
   pop af
-
-farRet3:
   call changePage
-
   pop af
 
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   ret
-
-farRet2:
-  ; backup registers
-  ld (hlBackup), hl
-  ld (bcBackup), bc
-  ld (deBackup), de
-
-  ld bc, (libcRet)
-  push bc  ; get the virtual page number to return to from the stack
-
-  push af
-  ld a, (currentVirtualPage)
-  ld e, a
-  ld a, 4
-  jr farRet3
 
 ;-----------------------------------------
 
@@ -201,9 +161,6 @@ bcBackup:
 spBackup:
   defw 0
 
-libcRet:  ; backup of the return address when calling a libc function
-  defw 0
-
 currentVirtualPage: ; which virtual page currently is loaded into the memory at 0xc000-0xffff
   defb 0
 
@@ -212,3 +169,8 @@ currentVirtualPage: ; which virtual page currently is loaded into the memory at 
 lookupTable:
   INCLUDE "lookupTable.inc"
 lookupTableEnd:
+
+DEFC    CLIB_FOPEN_MAX = 10
+__sgoioblk:
+  defs CLIB_FOPEN_MAX * 10      ;stdio control block
+__sgoioblk_end:        ;end of stdio control block
