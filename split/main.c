@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
   if(argc2 == 2) {
     return runQuery(argv2[1], TRUE);
   }
-  else if (argc2 == 3 && strcmp("-c", argv2[1]) == 0) {
+  else if (argc2 == 3 && stricmp("-c", argv2[1]) == 0) {
     return runQuery(argv2[2], FALSE);
   }
 
