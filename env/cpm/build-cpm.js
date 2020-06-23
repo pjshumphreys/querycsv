@@ -126,6 +126,7 @@ function start () {
     'mkdir -p build/obj2;' +
     'mkdir -p build/fcb;' +
     'mkdir -p build/msx2;' +
+    'mkdir -p output;' +
     'rm -f build/rodata2.asm;' +
     'rm -f build/data.asm;' +
     'touch build/data.asm'
