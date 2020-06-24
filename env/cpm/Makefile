@@ -1,9 +1,9 @@
-#ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16128 - \$$5}'")
-
 all: querycsv.com output
 
 querycsv.com: launcher2.bin launcher.c launcher.asm
 	zcc +cpm -lndos -m -o querycsv.com launcher.c launcher.asm
+	mkdir -p ./output
+	cp querycsv.com ./output
 
 launcher2.bin: launcher2.com
 	z88dk-zx7 ./launcher2.com

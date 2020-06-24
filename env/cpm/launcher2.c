@@ -6,7 +6,16 @@ int isMSX2(void);
 void main(void) {
   static int tempFile;
   static int newStack;
-  char * filename = isMSX2() ? "qrycsv02.ovl" : "qrycsv01.ovl";
+  char * filename;
+
+  if(isMSX2()) {
+    filename = "qrycsv02.ovl";
+    newStack = 154;
+  }
+  else {
+    filename = "qrycsv01.ovl";
+    newStack = 146;
+  }
 
   if((tempFile = open(filename, O_RDONLY, 0)) == -1) {
     fprintf(stderr, "Couldn't open %s\n", filename);
@@ -20,7 +29,7 @@ void main(void) {
   __asm
     ld	(_st_main_tempFile), hl
     ;add 154 (decimal) to stack. E.g.:  d56c -> d5fe
-    ld hl, 154
+    ld hl, (_st_main_newStack)
     add hl, sp
     ld (_st_main_newStack), hl
     ld sp, (_st_main_newStack)
