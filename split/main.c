@@ -25,12 +25,12 @@ int main(int argc, char **argv) {
     free(temp);
   #endif
 
-  #ifdef __Z88DK
-    setupZ80(argv[1]);
-  #endif
-
-  argc2 = argc;
   argv2 = argv;
+  argc2 = argc;
+
+  #ifdef __Z88DK
+    setupZ80(&argc2, &argv2);
+  #endif
 
   #ifdef MICROSOFT
     devNull = "NUL";  /* null filename on DOS/Windows */

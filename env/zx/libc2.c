@@ -351,7 +351,7 @@ void *calloc_zx(unsigned int num, unsigned int size) {
 }
 */
 
-void setupZ80(char * filename) __z88dk_fastcall {
+void setupZ80(int * argc, char *** argv) {
   int start;
 
   /* initialise variables needed by z88dk's libc */
@@ -361,7 +361,7 @@ void setupZ80(char * filename) __z88dk_fastcall {
   mallinit_z80();
   sbrk_z80(main_origins[libCPage], main_sizes[libCPage]); /* lib c variant specific free ram. All variants permit at least some */
 
-  if(filename != NULL) {
+  if((*argv)[1] != NULL) {
     start = stkend + 1;
     sbrk_z80(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
   }

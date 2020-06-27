@@ -271,16 +271,16 @@ char* dtoa_z80(char *s, double n) {
 
   /* rtrim the trailing zeros and decimal point */
   p = s + strlen(s) - 1;
-  
+
   while(*p == '0') {
     *p = '\0';
     p--;
   }
-  
+
   if(*p == '.') {
     *p = '\0';
   }
-  
+
   return s;
 }
 
@@ -328,14 +328,118 @@ void *calloc_z80(unsigned int num, unsigned int size) {
   return temp;
 }
 */
+extern char **argv_z80;
 
-void setupZ80(char * filename) __z88dk_fastcall {
+void setupZ80(int * argc, char *** argv) {
   int start;
+  char i, j;
+  int sizeNeeded;
+  int notInQuotes = TRUE;
+  int maybeNewField = TRUE;
+  int argc_z80 = 0;
+  static char length;
+  char* test;
 
   /* initialise variables needed by z88dk's libc */
   myhand_status = 3;
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
-  sbrk_z80(0x8000, 0x5c00);
+  sbrk_z80(0x8000, 0x5bff);
+
+  /* reset the command line args and process them ourselves */
+  sizeNeeded = (*((char*)(0x0080)))+1;
+  test = ((char *)(0x0081));
+
+  /* cut up the string. Behaviour should be as described on "the old new thing" */
+  if(sizeNeeded) {
+    for(i = 0, j = 0; i < sizeNeeded; ) {
+      switch(test[i]) {
+        case '\\': {
+          if(maybeNewField) {
+            argc_z80++;
+            maybeNewField = FALSE;
+          }
+
+          if(i+2 < sizeNeeded && test[i+1] == '\\' && test[i+2] == '"') {
+            test[j] = '\\';
+            i+=2;
+            j++;
+            }
+          else if(i+1 < sizeNeeded && test[i+1] == '"') {
+            test[j] = '"';
+            i+=2;
+            j++;
+          }
+          else {
+            test[j] = '\\';
+            i++;
+            j++;
+          }
+        } break;
+
+        case '\0':
+        case ' ': {
+          if(notInQuotes) {
+             test[j] = '\0';
+             maybeNewField = TRUE;
+          }
+          else {
+            if(maybeNewField) {
+              argc_z80++;
+              maybeNewField = FALSE;
+            }
+            test[j] = ' ';
+          }
+          i++;
+          j++;
+        } break;
+
+        case '"': {
+          notInQuotes = !notInQuotes;
+          test[i] = '\0';
+          i++;
+        } break;
+
+        default: {
+          if(maybeNewField) {
+            argc_z80++;
+            maybeNewField = FALSE;
+          }
+          test[j] = test[i];
+          i++;
+          j++;
+        } break;
+      }
+    }
+  }
+
+  argc_z80++;
+
+  if((argv_z80 = (char**)malloc_z80(sizeof(char*)*(argc_z80+1))) == NULL) {
+    fprintf_z80(1, stderr, "Couldn't get command line\n");
+    exit(EXIT_FAILURE);
+  }
+
+  /* atexit(cleanup_z80); /* don't bother calling atexit as the heap isn't valid after the program exits anyway */
+  argv_z80[0] = "querycsv";
+  maybeNewField = TRUE;
+
+  if(sizeNeeded) {
+    for(i = 0, j = 1; i < sizeNeeded; i++) {
+      if(test[i] == '\0') {
+        maybeNewField = TRUE;
+      }
+      else if(maybeNewField) {
+        argv_z80[j] = &(test[i]);
+        maybeNewField = FALSE;
+        j++;
+      }
+    }
+  }
+
+  argv_z80[argc_z80] = NULL;
+
+  *argc = argc_z80;
+  *argv = argv_z80;
 }

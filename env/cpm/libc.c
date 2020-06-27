@@ -10,7 +10,7 @@ it the same value for both the fcb and msx2 variants */
 #include <fcntl.h>
 
 void dosload(int pageNumber) __z88dk_fastcall {
-  static const char * filename = "qrycsv00.ovl";
+  const char * filename = "qrycsv00.ovl";
 
   static int temp;
 

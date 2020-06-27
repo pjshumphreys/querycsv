@@ -2,6 +2,7 @@
 #pragma output nofileio
 #include <compress/zx7.h>
 extern unsigned char chooseCLib[];
+extern int newStack;
 
 void main(void) {
   /* decompress c lib chooser code from the embedded array into address 0x4000 */
@@ -9,6 +10,8 @@ void main(void) {
 
   /* jp to the code */
   __asm
+    ld hl, (cleanup+6)
+    ld (_newStack), hl
     jp 16384
   __endasm;
 }

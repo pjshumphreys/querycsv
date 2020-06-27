@@ -9,10 +9,11 @@ EXTERN _dosload
 funcstart:  ; the array of call xxxx instructions and page numbers
   INCLUDE "functions.inc"
 
-BINARY "../data.bin"
+datastart:
+  BINARY "../data.bin"
 
 ;-----------------------------------------
-  
+
 farcall:
   ; backup registers
   ld (hlBackup), hl
@@ -76,8 +77,12 @@ farcall2:
   ; backup registers
   ld (hlBackup), hl
   ld (bcBackup), bc
+  ld (deBackup), de
 
   pop hl ; (hl) contains virtual page number to use
+  ;ld c, (hl)
+  ;ld b, 0
+  ;call serialLnBC
 
   push af
   ;calculate which value in the jump table to use
@@ -94,14 +99,93 @@ farcall2:
   ld c, (hl)
   inc hl
   ld b, (hl)
+  ;call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later
 
   ;restore all registers and jump to the function we want via ret
+  ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
   ret
+
+serialLnBC:
+  push af
+  push hl
+  push bc
+  push de
+  ld hl, bc
+  jr serialLn2
+
+serialLnHL:
+  push af
+  push hl
+  push bc
+  push de
+serialLn2:
+  ld de, numstr
+  ; Get the number in hl as text in de
+  ld bc, -10000
+  call one
+  ld bc, -1000
+  call one
+  ld bc, -100
+  call one
+  ld bc, -10
+  call one
+  ld c, -1
+  call one
+  ld de, numstr
+  jp loop5
+
+serialLn:
+  push af
+  push hl
+  push bc
+  push de
+loop5:
+  ld bc, 0
+loop6:
+  ld a, (de)
+  or a
+  jr z, exit5
+  inc bc
+  inc de
+  jr loop6
+exit5:
+  ld hl, numstr
+  ld b, 6
+  ld c, 5
+exit6:
+  push hl
+  push bc
+  ld e, (hl)
+  call 0x0005
+  pop bc
+  pop hl
+  inc hl
+  djnz exit6
+  pop de
+  pop bc
+  pop hl
+  pop af
+  ret
+
+one:
+    ld a, $2f
+
+two:
+    inc a
+    add hl, bc
+    jr c, two
+    sbc hl, bc
+    ld (de), a
+    inc de
+    ret
+
+numstr:
+  defb $30, $30, $30, $30, $30, $0a, $00
 
 ;------------------------------------------------------
 

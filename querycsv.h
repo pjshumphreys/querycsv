@@ -465,7 +465,7 @@ Just use long ones for that compiler */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
 
   void logNum(int num) __z88dk_fastcall;
-  void setupZX(char * filename) __z88dk_fastcall;
+  void setupZ80(int * argc, char *** argv);
 
   /* on z88dk, the __stdc calling convention modifier is necessary to make
   functions that use varargs work correctly */

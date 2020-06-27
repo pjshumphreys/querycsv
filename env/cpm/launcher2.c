@@ -2,20 +2,11 @@
 #include <stdio.h>
 #include <cpm.h>
 int isMSX2(void);
+const int newStack = 0;  /* this will be set to the initial stack pointer on startup by the program that loads this one */
 
 void main(void) {
   static int tempFile;
-  static int newStack;
-  char * filename;
-
-  if(isMSX2()) {
-    filename = "qrycsv02.ovl";
-    newStack = 154;
-  }
-  else {
-    filename = "qrycsv01.ovl";
-    newStack = 146;
-  }
+  char * filename = isMSX2() ? "qrycsv02.ovl" : "qrycsv01.ovl";
 
   if((tempFile = open(filename, O_RDONLY, 0)) == -1) {
     fprintf(stderr, "Couldn't open %s\n", filename);
@@ -27,13 +18,7 @@ void main(void) {
 
   /* pop any extra stack values we needed to get to this point then jump to the real program */
   __asm
-    ld	(_st_main_tempFile), hl
-    ;add 154 (decimal) to stack. E.g.:  d56c -> d5fe
-    ld hl, (_st_main_newStack)
-    add hl, sp
-    ld (_st_main_newStack), hl
-    ld sp, (_st_main_newStack)
-    ld	hl,(_st_main_tempFile)
+    ld sp, (_newStack)
     jp 256
   __endasm;
 }

@@ -505,7 +505,7 @@ function getFunctionSizes () {
     'sh',
     [
       '-c',
-      "z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + (currentAddr + 3) + "}'` build/data.asm"
+      "z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + currentAddr + "}'` build/data.asm"
     ],
     {
       stdio: 'inherit'

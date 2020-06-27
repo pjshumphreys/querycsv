@@ -1,9 +1,9 @@
 all: querycsv.com output
 
-querycsv.com: launcher2.bin launcher.c launcher.asm
-	zcc +cpm -lndos -m -o querycsv.com launcher.c launcher.asm
-	mkdir -p ./output
-	cp querycsv.com ./output
+querycsv.com: launcher2.bin launcher.c launcher2.map
+	printf "PUBLIC _chooseCLib\n_chooseCLib:\nBINARY \"launcher2.bin\"\nPUBLIC _newStack\n" > launcher2.asm
+	grep _newStack launcher2.map >> launcher2.asm
+	zcc +cpm -lndos -m -o querycsv.com launcher.c launcher2.asm
 
 launcher2.bin: launcher2.com
 	z88dk-zx7 ./launcher2.com
@@ -18,10 +18,10 @@ qrycsv01.ovl: pager.asm libc.c
 qrycsv02.ovl: pager.asm libc.c
 	zcc +msx -subtype=msxdos2 -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -D__Z88DK -o qrycsv02.ovl pager.asm libc.c
 
-output: pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js
+output: querycsv.com pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js
 	node ./build-cpm.js
 	cp qrycsv00.bin ./output/qrycsv00.ovl
 	cp querycsv.com build/obj2/*.ovl ./output
 
 clean:
-	rm -rf build output zcc_opt.def launcher2.bin launcher2.com querycsv.com *.map
+	rm -rf build output zcc_opt.def launcher2.bin launcher2.com launcher2.asm querycsv.com *.map *.sym *.ovl
