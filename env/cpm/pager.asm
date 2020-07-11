@@ -12,6 +12,13 @@ funcstart:  ; the array of call xxxx instructions and page numbers
 datastart:
   BINARY "../data.bin"
 
+PUBLIC _logNum
+PUBLIC __sgoioblk
+PUBLIC __sgoioblk_end
+PUBLIC CRT_ENABLE_STDIO
+
+DEFC CRT_ENABLE_STDIO = 0
+
 ;-----------------------------------------
 
 farcall:
@@ -118,6 +125,7 @@ serialLnBC:
   ld hl, bc
   jr serialLn2
 
+_logNum:
 serialLnHL:
   push af
   push hl
@@ -202,7 +210,6 @@ notFound:
   ; jr found
 
 found:
-_logNum:
   ret
 
 ;---------------------------------------------------

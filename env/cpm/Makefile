@@ -13,9 +13,11 @@ launcher2.com: launcher2.c
 	zcc +cpm -lm -pragma-define:CRT_ORG_CODE=16384 -m -o launcher2.com launcher2.c
 
 qrycsv01.ovl: pager.asm libc.c
+#	zcc +cpm -lm -S -D__DISABLE_BUILTIN -U__STDC_VERSION__ -o qrycsv01.asm pager.asm libc.c
 	zcc +cpm -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -o qrycsv01.ovl pager.asm libc.c
 
 qrycsv02.ovl: pager.asm libc.c
+#	zcc +msx -subtype=msxdos2 -lm -S -D__DISABLE_BUILTIN -U__STDC_VERSION__ -D__Z88DK -o qrycsv02.asm pager.asm libc.c
 	zcc +msx -subtype=msxdos2 -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -D__Z88DK -o qrycsv02.ovl pager.asm libc.c
 
 output: querycsv.com pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js

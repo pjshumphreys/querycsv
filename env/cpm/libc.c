@@ -4,10 +4,12 @@
 /* not really nofileio, but we want to locate __sgoiblk ourselves to make
 it the same value for both the fcb and msx2 variants */
 #pragma output nofileio
+#pragma output CRT_ENABLE_STDIO = 0
 
 #define QCSV_NOZ80MALLOC
 #include "../../querycsv.h"
 #include <fcntl.h>
+extern int newline;
 
 void dosload(int pageNumber) __z88dk_fastcall {
   const char * filename = "qrycsv00.ovl";
@@ -61,6 +63,36 @@ void free_z80(void *addr) {
   myHeap.nextFree = current;
 }
 
+int fputs_z80(const char * ptr, FILE * stream) {
+  int tot;
+
+  if(stream != stdout && stream != stderr) {
+    return fputs(ptr, stream);
+  }
+
+  tot = strlen(ptr);
+
+  if(newline) {
+    fputc_cons('\n');
+    newline = FALSE;
+  }
+
+  if(ptr[tot-1] == '\n') {
+    newline = TRUE;
+    ptr[tot-1] = '\0';
+  }
+
+  while(*ptr) {
+    fputc_cons(*ptr++);
+  }
+
+  if(newline) {
+    *ptr = '\n';
+  }
+
+  return tot;
+}
+
 /* fprintf_z80/d_sprintf unified with variadic macros to save space */
 int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   size_t newSize;
@@ -70,18 +102,6 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   /* Check sanity of inputs */
   if(format == NULL) {
     return FALSE;
-  }
-
-  /* if the stream is stdout or stderr just do a normal printf as the esxdos
-    paging won't come into play therefore we don't need to do the formatting twice */
-  if(type) {
-    if(stdout == (FILE *)output || stderr == (FILE *)output) {
-      va_start(args, format);
-      newSize = (size_t)(vfprintf((FILE *)output, format, args));
-      va_end(args);
-
-      return newSize;
-    }
   }
 
   newStr = NULL;
@@ -102,20 +122,17 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   vsnprintf(newStr, newSize + 1, format, args);
   va_end(args);
 
+  //ensure null termination of the string
+  newStr[newSize] = '\0';
+
   if(type) {
-    fwrite(newStr, 1, newSize, (FILE *)output);
-
+    fputs_z80(newStr, (FILE *)output);
     free_z80(newStr);
-
     return newSize;
   }
-  else {
-    newStr[newSize] = '\0';
 
-    (char **)(*output) = newStr;
-
-    return TRUE;
-  }
+  (char **)(*output) = newStr;
+  return TRUE;
 }
 
 void *malloc_z80(unsigned int size) {
@@ -222,6 +239,11 @@ void *realloc_z80(void *p, unsigned int size) {
     return malloc_z80(size);
   }
 
+  if(size == 0) {
+    free_z80(p);
+    return NULL;
+  }
+
   current = (struct heapItem *)(p - sizeof(struct heapItem));
 
   next = current->next;
@@ -297,7 +319,7 @@ void reallocMsg(void **mem, size_t size) {
       temp = realloc_z80(*mem, size);
 
       if(temp == NULL) {
-        fwrite(TDB_MALLOC_FAILED2, 1, 33, stderr);
+        fputs_z80(TDB_MALLOC_FAILED2, stderr);
         exit(EXIT_FAILURE);
       }
 
@@ -348,7 +370,6 @@ void b(char * string) {
   num = fgetc(stdin);
   ungetc(num, stdin);
   num = feof(stdin);
-  fwrite(string, 1, 1, stdout);
   fputc(num, stderr);
   fflush(stdout);
   isspace(num);

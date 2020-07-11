@@ -402,6 +402,7 @@ Just use long ones for that compiler */
   and the decimal point if necessary */
 
   FILE * fopen_z80(const char * filename, const char * mode);
+  int fputs_z80(const char * str, FILE * stream);
   int fprintf_z80(int type, void * output, char * format, ...) __stdc;
 
   #undef ENC_INPUT
@@ -414,7 +415,6 @@ Just use long ones for that compiler */
     data between the two */
     size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream);
     size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream);
-    int fputs_zx(const char * str, FILE * stream);
 
     /* make EXIT_FAILURE report a "STOP statement" error instead of "NEXT without FOR" */
     #undef EXIT_FAILURE
@@ -439,12 +439,12 @@ Just use long ones for that compiler */
     #define strtod strtod_z80
 
     #define fopen fopen_z80
-    #define fprintf(...) fprintf_z80(1, __VA_ARGS__)
-    #define YYFPRINTF(...) fprintf_z80(1, __VA_ARGS__)   /* for the bison parser */
+    #define fprintf(...) fprintf_z80(1, (void *) __VA_ARGS__)
+    #define YYFPRINTF(...) fprintf_z80(1, (void *) __VA_ARGS__)   /* for the bison parser */
+    #undef fputs
+    #define fputs fputs_z80
 
     #ifdef __SPECTRUM
-      #undef fputs
-      #define fputs fputs_zx
       #define fwrite fwrite_zx
       #define fread fread_zx
     #endif
@@ -470,7 +470,7 @@ Just use long ones for that compiler */
   /* on z88dk, the __stdc calling convention modifier is necessary to make
   functions that use varargs work correctly */
   /* we redirect d_sprintf to a macro so it can reside in the libc page and share code with fprintf */
-  #define d_sprintf(...) fprintf_z80(0, __VA_ARGS__)
+  #define d_sprintf(...) fprintf_z80(0, (void *) __VA_ARGS__)
 
   /* z88dk's varargs never works properly for longs in user written functions,
     but it does have a non standardized ltoa function which works. Use a macro

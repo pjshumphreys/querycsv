@@ -209,16 +209,13 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
 
     return newSize;
   }
-  else {
-    newStr[newSize] = '\0';
 
-    (char **)(*output) = newStr;
-
-    return TRUE;
-  }
+  newStr[newSize] = '\0';
+  (char **)(*output) = newStr;
+  return TRUE;
 }
 
-int fputs_zx(const char * str, FILE * stream) {
+int fputs_z80(const char * str, FILE * stream) {
   return fwrite_zx(str, 1, strlen(str), stream);
 }
 
@@ -326,6 +323,11 @@ void *realloc_z80(void *p, unsigned int size) {
     return malloc_z80(size);
   }
 
+  if(size == 0) {
+    free_z80(p);
+    return NULL;
+  }
+
   current = (struct heapItem *)(p - sizeof(struct heapItem));
 
   next = current->next;
@@ -413,7 +415,7 @@ void reallocMsg(void **mem, size_t size) {
     }
   }
   else {
-    fputs_zx(TDB_INVALID_REALLOC, stderr);
+    fputs_z80(TDB_INVALID_REALLOC, stderr);
     myexit(EXIT_FAILURE);
   }
 }

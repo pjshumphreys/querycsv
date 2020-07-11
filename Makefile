@@ -121,7 +121,7 @@ count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -rf makeheaders querycsv node_modules package-lock.json gen.h ansimap.h atarimap.h cmnmap.h hash3.h petmap.h zxmap.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h
+	rm -rf makeheaders querycsv node_modules package-lock.json gen.h ansimap.h atarimap.h cmnmap.h hash3.h petmap.h zxmap.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h dat/create dat/hash2dat.h dat/qrycsv00.ovl
 	find . -maxdepth 1 -type f \( -iname \*.o \) -exec rm -rf {} \;
 	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.err -o -iname \*.o \) -exec rm -rf {} \;
@@ -141,6 +141,7 @@ clean:
 	cd env/atarist && rm -rf querycsv.ttp; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './atarist.c' -exec rm -rf {} \;
 	cd env/c64 && rm -rf build crt0.o floatlib/float.o querycsv.crt && find . -maxdepth 1 -type f -iname \*.c ! -name 'c64.c' ! -name 'floatlib.c' ! -name 'hash4a.c' ! -name 'hash4b.c' ! -name 'hash4c.c' ! -name 'lexer2.c' ! -name 'libc.c' ! -name 'sql2.c' -exec rm -rf {} \; && find . -maxdepth 1 -type f -iname \*.h ! -name 'cc65iso.h' -exec rm -rf {} \;
 	cd env/zx && make clean && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.bin \) ! -path './lexer2.c' ! -path './sql2.c' ! -path './libc.c' ! -path './libc2.c' -exec rm -rf {} \;
+	cd env/cpm && make clean && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.bin \) ! -path './lexer2.c' ! -path './sql2.c' ! -path './libc.c' ! -path './libc2.c' ! -path './launcher.c' ! -path './launcher2.c' -exec rm -rf {} \;
 
 .PHONY: all
 .PHONY: count

@@ -5,6 +5,7 @@
 
 /* variables needed by libc */
 int myhand_status;
+int newline;
 
 /* variables needed by strtod */
 const double fltMinusOne = -1.0;
@@ -342,6 +343,8 @@ void setupZ80(int * argc, char *** argv) {
 
   /* initialise variables needed by z88dk's libc */
   myhand_status = 3;
+
+  newline = FALSE;
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();

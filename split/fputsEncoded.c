@@ -48,35 +48,28 @@ int fputsEncoded(char *str, struct qryData *query) {
         /* tasword 2 format files must not exceed 20480 bytes (320 x 64 byte lines) as they would overrun
          * into tasword's machine code. Abort the program we try to generate this much output */
         if((offset + bytesStored) > 20480) {
-          fwrite(
-            TDB_FILE_SIZE_EXCEEDED,
-            1,
-            /* sizeof runs at compile time rather than run time (which is what we want) */
-            /* but it does include the null terminator in the length (which we don't want). */
-            /* Hopefully the expession below will be optimised out by the compiler. */
-            sizeof(TDB_FILE_SIZE_EXCEEDED)-1,
-            stderr
-          );
+          fputs(TDB_FILE_SIZE_EXCEEDED, stderr);
           exit(EXIT_FAILURE);
         }
       }
 
-      retval += fwrite(encoded, sizeof(char), bytesStored, query->outputFile);
+      strAppend('\0', &encoded, &bytesStored);
+      retval += fputs(encoded, query->outputFile);
       free(encoded);
     } break;
 
     case ENC_PETSCII: {
-      if(offset == 0) {
+      if(offset == 0 && query->outputFile != stdout) {
         /* write a pseudo load address at the start of the output file */
-        retval = fwrite("\x01\x08", sizeof(char), 2, query->outputFile);
+        retval = fputs("\x01\x08", query->outputFile);
       }
     } /* fall thru */
 
     default: {
       bytesStored = 0;
 
-      encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
-      retval += fwrite(encoded, sizeof(char), bytesStored, query->outputFile);
+      encoded = d_charsetEncode(str, query->outputEncoding, NULL, query);
+      retval += fputs(encoded, query->outputFile);
       free(encoded);
     } break;
   }

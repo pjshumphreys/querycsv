@@ -52,7 +52,7 @@ const functionsList = [
   ['_fread_zx', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fwrite_zx', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fprintf_z80', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_fputs_zx', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_fputs_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['_malloc_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['_free_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['_realloc_z80', 3, 0x0001, 0x0001, 'farcall2'],
