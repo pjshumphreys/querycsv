@@ -420,9 +420,9 @@ Just use long ones for that compiler */
     #undef EXIT_FAILURE
     #define EXIT_FAILURE 9
 
-    #define ENC_INPUT ENC_ZX
-    #define ENC_OUTPUT ENC_ZX
-    #define ENC_PRINT ENC_ZX  
+    #define ENC_INPUT ENC_TSW
+    #define ENC_OUTPUT ENC_TSW
+    #define ENC_PRINT ENC_TSW
   #else
     #define ENC_INPUT ENC_ASCII
     #define ENC_OUTPUT ENC_ASCII

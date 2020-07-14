@@ -15,9 +15,7 @@ datastart:
 PUBLIC _logNum
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
-PUBLIC CRT_ENABLE_STDIO
-
-DEFC CRT_ENABLE_STDIO = 0
+PUBLIC  __FOPEN_MAX
 
 ;-----------------------------------------
 
@@ -262,6 +260,7 @@ lookupTable:
 lookupTableEnd:
 
 DEFC    CLIB_FOPEN_MAX = 10
+defc    __FOPEN_MAX = CLIB_FOPEN_MAX
 __sgoioblk:
   defs CLIB_FOPEN_MAX * 10      ;stdio control block
 __sgoioblk_end:        ;end of stdio control block

@@ -9,7 +9,7 @@ void main(void) {
   char * filename = isMSX2() ? "qrycsv02.ovl" : "qrycsv01.ovl";
 
   if((tempFile = open(filename, O_RDONLY, 0)) == -1) {
-    fprintf(stderr, "Couldn't open %s\n", filename);
+    fprintf(stderr, "Couldn't open %s", filename);
     return;
   }
 

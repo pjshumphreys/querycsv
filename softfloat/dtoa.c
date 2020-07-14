@@ -67,7 +67,7 @@ char* mydtoa(char *s, double n) {
     m1 = m;
     m = 0;
   }
-  
+
   if(m < 0) {
     m = 0;
   }

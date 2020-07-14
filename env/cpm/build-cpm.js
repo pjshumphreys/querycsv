@@ -689,8 +689,6 @@ function compilePages (pages) {
   });
 
   execSync('rm build/obj2/*.bin');
-
-  compileLibC3();
 }
 
 function compileLibC (pages) {
@@ -708,12 +706,6 @@ function compileLibC (pages) {
         : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
       ).join('\n')
     );
-  });
-
-  ['fcb', 'msx2'].forEach((name, index) => {
-    if(name === 'fcb') {
-      execSync('printf "\nPUBLIC	__fcb\n__fcb:		defs	430,0\n" >> build/' + name + '/pager.asm');
-    }
 
     fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
        (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
@@ -724,7 +716,17 @@ function compileLibC (pages) {
       (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
       '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
     ).join('\n'));
+  });
 
+  compileLibC3(true);
+
+  compilePages(pages);
+
+  compileLibC3(false);
+}
+
+function compileLibC3(fixDefines) {
+  ['fcb', 'msx2'].forEach((name, index) => {
     spawnSync(
       'make',
       ['qrycsv0' + (index + 1) + '.ovl'],
@@ -733,21 +735,23 @@ function compileLibC (pages) {
         cwd: path.resolve(__dirname, 'build', name)
       });
 
-    /*
-      Force the symbol named funcstart to be located at startOffset by
-      adding some padding. The code below is a bit of a strange way to do this,
-      but it's the only way that seems to work reliably whilst minimising
-      the padding needed.
-    */
-    fs
-      .readFileSync('build/' + name + '/qrycsv0' + (index + 1) + '.map', 'utf8')
-      .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
-        const four = two.replace(/^_/, '');
+    if(fixDefines) {
+      /*
+        Force the symbol named funcstart to be located at startOffset by
+        adding some padding. The code below is a bit of a strange way to do this,
+        but it's the only way that seems to work reliably whilst minimising
+        the padding needed.
+      */
+      fs
+        .readFileSync('build/' + name + '/qrycsv0' + (index + 1) + '.map', 'utf8')
+        .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
+          const four = two.replace(/^_/, '');
 
-        if(four === 'funcstart') {
-          execSync(`sed -i '1s/^/defs ${startOffset - parseInt(three, 16)}, 0\\n/' build/${name}/defines.inc`);
-        }
-      });
+          if(four === 'funcstart') {
+            execSync(`sed -i '1s/^/defs ${startOffset - parseInt(three, 16)}, 0\\n/' build/${name}/defines.inc`);
+          }
+        });
+    }
 
     execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
 
@@ -776,39 +780,16 @@ function compileLibC (pages) {
         }
       });
 
-    execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
-
-    spawnSync(
-      'make',
-      ['qrycsv0' + (index + 1) + '.ovl'],
-      {
-        stdio: 'inherit',
-        cwd: path.resolve(__dirname, 'build', name)
-      });
-
-    //functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
-    //console.log(JSON.stringify(hashMap, null, 2));
-    //console.log(JSON.stringify(functionsList, null, 2));
-    //process.exit(0);
-  });
-
-  compilePages(pages);
-}
-
-function compileLibC3() {
-  console.log('compileLibC');
-
-  ['fcb', 'msx2'].forEach((name, index) => {
-    fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
-      (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
-      '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
-    ).join('\n'));
-
     fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
        (item[1] === 1 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
+    fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
+      (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
+      '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
+    ).join('\n'));
+
     execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
 
     spawnSync(
@@ -819,10 +800,17 @@ function compileLibC3() {
         cwd: path.resolve(__dirname, 'build', name)
       });
 
-    execSync('dd if=/dev/zero bs=1 count=16128 of=build/obj2/qrycsv0' + (index + 1) + '.ovl');
+    if(!fixDefines) {
+      execSync('dd if=/dev/zero bs=1 count=16128 of=build/obj2/qrycsv0' + (index + 1) + '.ovl');
 
-    execSync('dd if=build/' + name + '/qrycsv0' + (index + 1) + '.ovl of=build/obj2/qrycsv0' +
-    + (index + 1) + '.ovl conv=notrunc');
+      execSync('dd if=build/' + name + '/qrycsv0' + (index + 1) + '.ovl of=build/obj2/qrycsv0' +
+        + (index + 1) + '.ovl conv=notrunc');
+    }
+
+    //functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
+    //console.log(JSON.stringify(hashMap, null, 2));
+    //console.log(JSON.stringify(functionsList, null, 2));
+    //process.exit(0);
   });
 }
 

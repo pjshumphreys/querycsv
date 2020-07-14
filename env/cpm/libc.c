@@ -3,7 +3,6 @@
 
 /* not really nofileio, but we want to locate __sgoiblk ourselves to make
 it the same value for both the fcb and msx2 variants */
-#pragma output nofileio
 #pragma output CRT_ENABLE_STDIO = 0
 
 #define QCSV_NOZ80MALLOC
@@ -20,12 +19,12 @@ void dosload(int pageNumber) __z88dk_fastcall {
   filename[8] = '.';
 
   if((temp = open(filename, O_RDONLY, 0)) == -1) {
-    fprintf(stderr, "Couldn't open %s\n", filename);
+    fputs_z80("Couldn't open ", stderr);
+    fputs_z80(filename, stderr);
     exit(EXIT_FAILURE);
   }
 
   read(temp, (void *)16384, 16384);
-
   close(temp);
 }
 

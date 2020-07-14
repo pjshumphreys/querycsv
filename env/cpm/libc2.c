@@ -344,6 +344,16 @@ void setupZ80(int * argc, char *** argv) {
   /* initialise variables needed by z88dk's libc */
   myhand_status = 3;
 
+  __asm
+    	; Setup std* streams
+      ld      hl,__sgoioblk+2
+      ld      (hl),19 ;stdin
+      ld      hl,__sgoioblk+12
+      ld      (hl),21 ;stdout
+      ld      hl,__sgoioblk+22
+      ld      (hl),21 ;stderr
+  __endasm;
+
   newline = FALSE;
 
   /* initialise the heap so malloc and free will work */
@@ -382,6 +392,8 @@ void setupZ80(int * argc, char *** argv) {
         } break;
 
         case '\0':
+        case '\x0d':
+        case '\x0a':
         case ' ': {
           if(notInQuotes) {
              test[j] = '\0';
@@ -420,7 +432,7 @@ void setupZ80(int * argc, char *** argv) {
   argc_z80++;
 
   if((argv_z80 = (char**)malloc_z80(sizeof(char*)*(argc_z80+1))) == NULL) {
-    fprintf_z80(1, stderr, "Couldn't get command line\n");
+    fputs_z80("Couldn't get command line", stderr);
     exit(EXIT_FAILURE);
   }
 
