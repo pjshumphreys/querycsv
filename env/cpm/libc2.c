@@ -358,7 +358,7 @@ void setupZ80(int * argc, char *** argv) {
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
-  sbrk_z80(0x8000, 0x5bff);
+  sbrk_z80(0x8000, (*((int *)(0x0006)))-0x8001);
 
   /* reset the command line args and process them ourselves */
   sizeNeeded = (*((char*)(0x0080)))+1;
