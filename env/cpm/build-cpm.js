@@ -699,10 +699,9 @@ function compileLibC (pages) {
 
   let foo = ''; let i, j;
 
-  for (i = 0, j = functionsList.reduce((acc,curr) => {
-    const a = parseInt(curr[1], 10);
-    return a > acc ? a : acc;
-  }, 0);  i < j; i++) {
+  for (i = 0, j =
+  14  // TODO: make this not be hard coded
+  ; i < j; i++) {
     foo += 'defb 0b11111111 ; ' + (i + 1) + '\n';
   }
 
