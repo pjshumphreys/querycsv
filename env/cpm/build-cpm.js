@@ -54,6 +54,9 @@ const functionsList = [
   ['_free_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['_realloc_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['_reallocMsg', 1, 0x0001, 0x0001, 'farcall2'],
+  ['atexit', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_initMapper', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_cleanup_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['fseek', 1, 0x0001, 0x0001, 'farcall2'],
   ['fgetc', 1, 0x0001, 0x0001, 'farcall2'],
   ['ungetc', 1, 0x0001, 0x0001, 'farcall2'],
@@ -696,6 +699,13 @@ function compileLibC (pages) {
 
   let foo = ''; let i, j;
 
+  for (i = 0, j = functionsList.reduce((acc,curr) => {
+    const a = parseInt(curr[1], 10);
+    return a > acc ? a : acc;
+  }, 0);  i < j; i++) {
+    foo += 'defb 0b11111111 ; ' + (i + 1) + '\n';
+  }
+
   // build the asm includes
   ['fcb', 'msx2'].forEach((name, index) => {
     execSync('cp libc.c pager.asm Makefile build/' + name + '/');
@@ -716,6 +726,8 @@ function compileLibC (pages) {
       (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
       '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
     ).join('\n'));
+
+    fs.writeFileSync('build/' + name + '/pages.inc', foo);
   });
 
   compileLibC3(true);

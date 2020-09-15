@@ -11,6 +11,8 @@ int newline;
 const double fltMinusOne = -1.0;
 const double fltOne = 1.0;
 const double fltTen = 10.0;
+void initMapper(void);
+void cleanup_z80(void);
 
 double pow10a(int exp) {
   int sign = 0;
@@ -436,7 +438,9 @@ void setupZ80(int * argc, char *** argv) {
     exit(EXIT_FAILURE);
   }
 
-  /* atexit(cleanup_z80); /* don't bother calling atexit as the heap isn't valid after the program exits anyway */
+  initMapper();
+  atexit(cleanup_z80);
+  /* don't bother cleaning up the heap as it isn't valid after the program exits anyway */
   argv_z80[0] = "querycsv";
   maybeNewField = TRUE;
 

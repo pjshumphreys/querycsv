@@ -8,12 +8,63 @@ it the same value for both the fcb and msx2 variants */
 #define QCSV_NOZ80MALLOC
 #include "../../querycsv.h"
 #include <fcntl.h>
+#include <arch/z80.h>
+
+#define ALL_SEG 0x00  /* Allocate a 16K segment */
+#define FRE_SEG 0x03  /* Free a 16K segment */
+#define RD_SEG  0x06  /* Read 1 byte from the segment specified by A at the address pointed to by HL */
+#define WR_SEG  0x09  /* Write 1 byte from E to the segment specified by A at the address pointed to by HL */
+#define CAL_SEG 0x0c  /* Inter-segment call */
+#define CALLS   0x0f  /* Inter-segment call */
+#define PUT_PH  0x12  /* Put a segment on the bank specified by HL */
+#define GET_PH  0x15  /* Get the segment number of the bank specified by HL */
+#define PUT_P0  0x18  /* Put a segment on bank 0 */
+#define GET_P0  0x1b  /* Get the segment number of bank 0 (0000h~3FFFh) */
+#define PUT_P1  0x1e  /* Put a segment on bank 1 */
+#define GET_P1  0x21  /* Get the segment number of bank 1 (4000h~7FFFh) */
+#define PUT_P2  0x24  /* Put a segment on bank 2 */
+#define GET_P2  0x27  /* Get the segment number of bank 2 (8000h~CFFFh) */
+#define PUT_P3  0x2a  /* No effect */
+#define GET_P3  0x2d  /* Get the segment number of bank 3 (C000h~FFFFh) */
+
+extern char hasMapper;
+extern unsigned char loadPageStatus;
+extern unsigned char defaultBank;
+extern int mapperJumpTable;
 extern int newline;
+extern Z80_registers regs;
 
 void dosload(int pageNumber) __z88dk_fastcall {
   const char * filename = "qrycsv00.ovl";
 
   static int temp;
+
+  if(hasMapper) {
+    if(loadPageStatus == 0xff) {
+      /* no ram block has been allocated to this segment. try to allocate one now */
+      regs.Bytes.A = 0;   /* allocate user segment */
+      regs.Bytes.B = 0;   /* allocate from primary mapper */
+      AsmCall(mapperJumpTable + ALL_SEG, &regs, REGS_MAIN, REGS_MAIN);
+      regs.Bytes.B = 0;
+
+      if(regs.Flags.C) {
+        /* allocation failed. Switch to the default bank to load the code into that */
+        regs.Bytes.A = defaultBank;
+      }
+      else {
+        /* allocation suceeded. switch to the bank number that was returned */
+        loadPageStatus = regs.Bytes.A;
+      }
+
+      AsmCall(mapperJumpTable + PUT_P1, &regs, REGS_AF, REGS_NONE);
+    }
+    else {
+      /* a ram block has already been allocated to this segment. just switch to it and don't load anything */
+      regs.Bytes.A = loadPageStatus;
+      AsmCall(mapperJumpTable + PUT_P1, &regs, REGS_AF, REGS_NONE);
+      return;
+    }
+  }
 
   sprintf(filename + 6, "%02d", pageNumber);
   filename[8] = '.';

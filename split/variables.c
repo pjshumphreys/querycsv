@@ -12,6 +12,8 @@
   /* indicates which variant of the libc functions are in use. Filled out by the startup assembly language code */
   char libCPage;
 #else
+  Z80_registers regs;
+
   char **argv_z80;
 #endif
 

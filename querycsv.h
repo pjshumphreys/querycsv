@@ -424,6 +424,8 @@ Just use long ones for that compiler */
     #define ENC_OUTPUT ENC_TSW
     #define ENC_PRINT ENC_TSW
   #else
+    #include <arch/z80.h> /* needed for AsmCall function and Z80_registers definition */
+
     #define ENC_INPUT ENC_ASCII
     #define ENC_OUTPUT ENC_ASCII
     #define ENC_PRINT ENC_ASCII   

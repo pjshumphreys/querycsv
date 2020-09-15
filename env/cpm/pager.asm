@@ -13,6 +13,12 @@ datastart:
   BINARY "../data.bin"
 
 PUBLIC _logNum
+PUBLIC _hasMapper
+PUBLIC _defaultBank
+PUBLIC _mapperJumpTable
+PUBLIC _loadPageStatus
+PUBLIC _initMapper
+PUBLIC _cleanup_z80
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
 PUBLIC  __FOPEN_MAX
@@ -199,12 +205,30 @@ changePage:  ; is the virtual page currently in a ram page?
   cp e
   jr z, found
 
-notFound:
   ld h, 0
   ld l, e
+
+  ld a, (_hasMapper)
+  or a
+  jp z, notFound
+  ld bc, pageLocations
+  xor a
+  add hl, bc
+  ld a, (hl)
+  ld (_loadPageStatus), a
+  push hl
+
+notFound:
   push de
   call _dosload
   pop de
+
+  ld a, (_hasMapper)
+  or a
+  jp z, found
+  pop hl
+  ld a, (_loadPageStatus)
+  ld (hl), a
   ; jr found
 
 found:
@@ -238,6 +262,94 @@ farRet:
 
 ;-----------------------------------------
 
+_initMapper: ; detect if a msx2 compatible mem mapper is present
+  EXTBIOS equ 0xFFCA
+  HOKVLD equ 0xFB20
+
+  push de
+
+  ; call CPM_VER. msx computers always return 0x22 but still implement more bdos calls than real cp/m 2.2 does
+  ld c, 0x0c
+  call 0x0005
+  cp 0x22
+  jp nz, NOMAPPER
+
+  ; test for whether this code is running on an MSX computer by calling MSX_DOSVER
+  ld a, 1
+  ld c, 0x6f
+  call 0x0005
+  or a
+  jr nz, NOMAPPER
+
+  ; test for presence of extended bios
+  ld a, (HOKVLD)
+  bit 0, a
+  jr z, NOMAPPER  ; no extended bios
+
+  ; call GET_VARTAB to test for msx2 mapper support
+  xor a
+  ld de, 0x0401
+  call EXTBIOS
+  or a
+  jr z, NOMAPPER  ; no mapper support if a = 0
+
+  ; call GET_JMPTAB and store the resultant address
+  ld de, 0x0402
+  call EXTBIOS
+  ld (_mapperJumpTable), hl
+
+  ; store that the mapper was detected
+  ld a, 1
+  ld (_hasMapper), a
+
+  ;store the default page segment number
+  ld de, 0x0021 ; get the segment number selected on second page (GET_P1)
+  xor a
+  add hl, de
+  call jp_hl
+  ld (_defaultBank), a
+
+NOMAPPER:
+  ; store that the mapper has been inited
+  pop de
+  ret
+
+jp_hl:
+  jp (hl)
+
+_cleanup_z80:
+  ld a, (_defaultBank)
+  ld b, 0
+  ld c, a
+  ld hl, (_mapperJumpTable)
+  push hl
+  ld de, 0x1e   ; PUT_P1
+  add hl, de
+  call jp_hl  ; put the default bank back onto page 1 (0x4000 - 0x7fff)
+  pop hl
+  inc hl
+  inc hl
+  inc hl ; ld de, 0x03 FRE_SEG
+  ld d, h
+  ld e, l
+  ld hl, pageLocationsEnd-1
+freeLoop:
+  ld a, (hl)
+  cp 255 ; special code that indicates to always load from disk
+  jr z, freeSkip
+  cp c ; if the current bank is the basic bank then exit the loop
+  jr z, freeExit
+  ex de, hl
+  call jp_hl
+  ex de, hl
+freeSkip:
+  dec hl
+  jr freeLoop
+freeExit:
+  ret
+
+;-----------------------------------------
+
 hlBackup:
   defw 0
 
@@ -252,6 +364,28 @@ spBackup:
 
 currentVirtualPage: ; which virtual page currently is loaded into the memory at 0xc000-0xffff
   defb 0
+
+_hasMapper:
+  defb 0
+
+_loadPageStatus:
+  defb 0
+
+_mapperJumpTable:
+  defw 0
+
+;------------------------------------------------
+
+_defaultBank:
+  defb 0b00000000 ; -1 - stores the page that is the default for 0x4000-0x7fff
+
+pageLocations:
+  ; 255 to load from disk or whatever value resi_alloc gave us
+  defb 0b00000000 ; 00 - stores the page that contains the interrupt code and extra storage ram
+  INCLUDE "pages.inc"
+pageLocationsEnd:
+
+  defb 0x00 ; null terminator for the list of pages
 
 ;----------------------------------------------
 
