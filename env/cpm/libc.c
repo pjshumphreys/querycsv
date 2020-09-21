@@ -44,7 +44,7 @@ void dosload(int pageNumber) __z88dk_fastcall {
       /* no ram block has been allocated to this segment. try to allocate one now */
       regs.Bytes.A = 0;   /* allocate user segment */
       regs.Bytes.B = 0;   /* allocate from primary mapper */
-      AsmCall(mapperJumpTable + ALL_SEG, &regs, REGS_MAIN, REGS_MAIN);
+      AsmCall(mapperJumpTable + ALL_SEG, &regs, REGS_MAIN, REGS_AF);
       regs.Bytes.B = 0;
 
       if(regs.Flags.C) {
@@ -424,4 +424,5 @@ void b(char * string) {
   fflush(stdout);
   isspace(num);
   isdigit(num);
+  atexit(cleanup_z80);
 }

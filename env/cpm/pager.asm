@@ -5,6 +5,7 @@
   INCLUDE "defines.inc"
 
 EXTERN _dosload
+EXTERN l_jphl
 
 funcstart:  ; the array of call xxxx instructions and page numbers
   INCLUDE "functions.inc"
@@ -22,6 +23,9 @@ PUBLIC _cleanup_z80
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
 PUBLIC  __FOPEN_MAX
+
+EXTBIOS equ 0xFFCA
+HOKVLD equ 0xFB20
 
 ;-----------------------------------------
 
@@ -218,6 +222,9 @@ changePage:  ; is the virtual page currently in a ram page?
   ld (_loadPageStatus), a
   push hl
 
+  ld h, 0
+  ld l, e
+
 notFound:
   push de
   call _dosload
@@ -263,35 +270,30 @@ farRet:
 ;-----------------------------------------
 
 _initMapper: ; detect if a msx2 compatible mem mapper is present
-  EXTBIOS equ 0xFFCA
-  HOKVLD equ 0xFB20
-
-  push de
-
   ; call CPM_VER. msx computers always return 0x22 but still implement more bdos calls than real cp/m 2.2 does
   ld c, 0x0c
   call 0x0005
   cp 0x22
-  jp nz, NOMAPPER
+  jp nz, noMapper
 
   ; test for whether this code is running on an MSX computer by calling MSX_DOSVER
   ld a, 1
   ld c, 0x6f
   call 0x0005
   or a
-  jr nz, NOMAPPER
+  jr nz, noMapper
 
   ; test for presence of extended bios
   ld a, (HOKVLD)
   bit 0, a
-  jr z, NOMAPPER  ; no extended bios
+  jr z, noMapper  ; no extended bios
 
   ; call GET_VARTAB to test for msx2 mapper support
   xor a
   ld de, 0x0401
   call EXTBIOS
   or a
-  jr z, NOMAPPER  ; no mapper support if a = 0
+  jr z, noMapper  ; no mapper support if a = 0
 
   ; call GET_JMPTAB and store the resultant address
   ld de, 0x0402
@@ -306,16 +308,11 @@ _initMapper: ; detect if a msx2 compatible mem mapper is present
   ld de, 0x0021 ; get the segment number selected on second page (GET_P1)
   xor a
   add hl, de
-  call jp_hl
+  call l_jphl
   ld (_defaultBank), a
 
-NOMAPPER:
-  ; store that the mapper has been inited
-  pop de
+noMapper:
   ret
-
-jp_hl:
-  jp (hl)
 
 _cleanup_z80:
   ld a, (_defaultBank)
@@ -325,7 +322,7 @@ _cleanup_z80:
   push hl
   ld de, 0x1e   ; PUT_P1
   add hl, de
-  call jp_hl  ; put the default bank back onto page 1 (0x4000 - 0x7fff)
+  call l_jphl  ; put the default bank back onto page 1 (0x4000 - 0x7fff)
   pop hl
   inc hl
   inc hl
@@ -340,7 +337,9 @@ freeLoop:
   cp c ; if the current bank is the basic bank then exit the loop
   jr z, freeExit
   ex de, hl
-  call jp_hl
+  push bc
+  call l_jphl
+  pop bc
   ex de, hl
 freeSkip:
   dec hl
@@ -377,11 +376,9 @@ _mapperJumpTable:
 ;------------------------------------------------
 
 _defaultBank:
-  defb 0b00000000 ; -1 - stores the page that is the default for 0x4000-0x7fff
+  defb 0b00000000 ; stores the page that is the default for 0x4000-0x7fff
 
 pageLocations:
-  ; 255 to load from disk or whatever value resi_alloc gave us
-  defb 0b00000000 ; 00 - stores the page that contains the interrupt code and extra storage ram
   INCLUDE "pages.inc"
 pageLocationsEnd:
 

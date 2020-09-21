@@ -84,16 +84,22 @@ int main(int argc, char **argv) {
     #endif
   #endif
 
-  /* identify whether to run a script or display the usage message */
+  /* Identify whether to run a script or display the usage message */
+  /*
+    The Z88DK compiler (depending on the target runtime) might not call
+    atexit registered functions if the main function just returns a value,
+    so we have to explicitly call exit instead (*sigh*)
+  */
   if(argc2 == 2) {
-    return runQuery(argv2[1], TRUE);
+    exit(runQuery(argv2[1], TRUE));
   }
   else if (argc2 == 3 && stricmp("-c", argv2[1]) == 0) {
-    return runQuery(argv2[2], FALSE);
+    exit(runQuery(argv2[2], FALSE));
   }
 
   /* something else. print an error message and quit */
   fputs(TDB_INVALID_COMMAND_LINE, stderr);
+  exit(EXIT_FAILURE);
 
-  return EXIT_FAILURE;
+  return EXIT_FAILURE;  /* satisfy pedantic compilers */
 }
