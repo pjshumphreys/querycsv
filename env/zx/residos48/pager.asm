@@ -21,6 +21,8 @@ PUBLIC isr
 PUBLIC call_rom3
 PUBLIC jp_rom3
 
+attrFlash equ 0x581f
+
 farcall:
   ; backup registers
   ld (hlBackup), hl
@@ -44,10 +46,15 @@ farcall:
   push af
   ; flash the border colour
   ld a, (borderColour)
-  xor 2
+  xor 16
   ld (borderColour), a
-  ld c, 0xfe
-  out (c), a
+  ld b, a
+  ld a, (attrFlash)
+  and 0b11000111
+  or b
+  ld (attrFlash), a
+  ;ld c, 0xfe
+  ;out (c), a
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -109,9 +116,12 @@ farcall2:
 
   push af
   ; flash the border colour
-  ld a, 6
-  ld c, 0xfe
-  out (c), a
+  ld a, (attrFlash)
+  and 0b11000111
+  or 0b00110000
+  ld (attrFlash), a
+  ;ld c, 0xfe
+  ;out (c), a
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -233,9 +243,12 @@ farRet:
 farRet3:
   call changePage
 
-  ld a, 7
-  ld c, 0xfe
-  out (c), a
+  ld a, (attrFlash)
+  and 0b11000111
+  or 0b00111000
+  ld (attrFlash), a
+  ;ld c, 0xfe
+  ;out (c), a
   pop af
 
   ld de, (deBackup)

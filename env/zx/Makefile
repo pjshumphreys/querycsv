@@ -11,7 +11,7 @@ archived.tap: qcsv06zx.ovl
 	cp common/archive .
 	cp common/residos.tap .
 	cp common/plus3dos.tap .
-	sh -c "(echo archived.tap > archived.txt) && (ls querycsv >> archived.txt) && (ls querycsv.tap >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archive)"
+	sh -c "(echo archived.tap > archived.txt) && (ls test2 >> archived.txt) && (ls querycsv >> archived.txt) && (ls querycsv.tap >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archive)"
 	rm archived.txt
 
 qcsv00zx.ovl: qrycsv00.bin

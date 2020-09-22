@@ -217,6 +217,14 @@ endif
 SECTION second
 org 0xf511
 
+;get the attribute value at 0xd81f
+ld (0xd81f), a
+ret
+
+;set the attribute value at 0xd81f
+ld a, (0xd81f)
+ret
+
 ; Clear screen and move to home
 cls:
   ld hl, 0

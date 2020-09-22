@@ -77,7 +77,7 @@ argName:
   defw 0x0000
 
 borderColour:
-  defb 7  ; flash the border colour whenever a function is called
+  defb 0b00111000  ; flash the border colour whenever a function is called
 
 defaultDrive: ; the default drive letter used by esxdos
   defb 0

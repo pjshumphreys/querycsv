@@ -44,10 +44,17 @@ farcall:
   push af
   ; flash the border colour
   ld a, (borderColour)
-  xor 2
+  xor 16
   ld (borderColour), a
-  ld c, 0xfe
-  out (c), a
+  ld b, a
+  call call_rom3
+  defw 0xf515
+  and 0b11000111
+  or b
+  call call_rom3
+  defw 0xf511
+  ;ld c, 0xfe
+  ;out (c), a
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -109,9 +116,14 @@ farcall2:
 
   push af
   ; flash the border colour
-  ld a, 6
-  ld c, 0xfe
-  out (c), a
+  call call_rom3
+  defw 0xf515
+  and 0b11000111
+  or 0b00110000
+  call call_rom3
+  defw 0xf511
+  ;ld c, 0xfe
+  ;out (c), a
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -312,9 +324,14 @@ farRet:
 farRet3:
   call changePage
 
-  ld a, 7
-  ld c, 0xfe
-  out (c), a
+  call call_rom3
+  defw 0xf515
+  and 0b11000111
+  or 0b00111000
+  call call_rom3
+  defw 0xf511
+  ;ld c, 0xfe
+  ;out (c), a
   pop af
 
   ld de, (deBackup)

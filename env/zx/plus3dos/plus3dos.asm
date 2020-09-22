@@ -209,7 +209,7 @@ intSetup:
   push de
   push hl
   call call_rom3
-  defw 0xf511
+  defw 0xf519
   pop hl
   pop de
   pop bc
