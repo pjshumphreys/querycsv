@@ -153,7 +153,7 @@ serialLn2:
   ld c, -1
   call one
   ld de, numstr
-  jp loop5
+  jr loop5
 
 serialLn:
   push af
@@ -214,7 +214,7 @@ changePage:  ; is the virtual page currently in a ram page?
 
   ld a, (_hasMapper)
   or a
-  jp z, notFound
+  jr z, notFound
   ld bc, pageLocations
   xor a
   add hl, bc
@@ -232,7 +232,7 @@ notFound:
 
   ld a, (_hasMapper)
   or a
-  jp z, found
+  jr z, found
   pop hl
   ld a, (_loadPageStatus)
   ld (hl), a
@@ -274,7 +274,7 @@ _initMapper: ; detect if a msx2 compatible mem mapper is present
   ld c, 0x0c
   call 0x0005
   cp 0x22
-  jp nz, noMapper
+  jr nz, noMapper
 
   ; test for whether this code is running on an MSX computer by calling MSX_DOSVER
   ld a, 1
@@ -315,6 +315,9 @@ noMapper:
   ret
 
 _cleanup_z80:
+  ld a, (_hasMapper)
+  or a
+  jr z, freeExit
   ld a, (_defaultBank)
   ld b, 0
   ld c, a
