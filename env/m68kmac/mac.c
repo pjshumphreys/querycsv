@@ -56,6 +56,8 @@
 #include <Gestalt.h>
 #include <ControlDefinitions.h>
 #include <StandardFile.h>
+#include <Retrace.h>
+#include <OSUtils.h>
 
 
 #endif
@@ -196,6 +198,17 @@ int const fontM  = 3;
 int const sizeM  = 4;
 
 jmp_buf env_buffer;
+
+typedef struct VBLRec {
+  VBLTask theVBLTask;
+  long vblA5;
+} VBLRec, *VBLRecPtr;
+
+VBLRec taskrec;
+int isWaiting = FALSE;
+int isMouseDown = FALSE;
+int currentWaitCursor = 0;
+int nextWaitCursor = 0;
 
 /*  kMaxDocWidth is an arbitrary number used to specify the width of the TERec's
   destination rectangle so that word wrap and horizontal scrolling can be
@@ -1133,7 +1146,17 @@ void adjustCursor(Point mouse, RgnHandle region) {
 
     //change the cursor and the region parameter
     if(PtInRgn(mouse, iBeamRgn)) {
-      SetCursor(*GetCursor(iBeamCursor));
+      if(isWaiting) {
+        if(nextWaitCursor != currentWaitCursor) {
+          currentWaitCursor = nextWaitCursor;
+        }
+
+        SetCursor(*GetCursor(128 + currentWaitCursor));
+      }
+      else {
+        SetCursor(*GetCursor(iBeamCursor));
+      }
+
       CopyRgn(iBeamRgn, region);
     }
     else {
@@ -1162,6 +1185,8 @@ void contentClick(WindowPtr window, EventRecord *event) {
 
   if(isApplicationWindow(window)) {
     SetPort(window);
+
+    isMouseDown = FALSE;
 
     /* get the click position */
     mouse = event->where;
@@ -1706,6 +1731,10 @@ void handleEvent(EventRecord *event) {
   }
 #endif
 
+  if(event->what != mouseDown) {
+    isMouseDown = FALSE;
+  }
+
   switch(event->what) {
     case nullEvent: {
       idleWindow();
@@ -1728,6 +1757,7 @@ void handleEvent(EventRecord *event) {
     } break;
 
     case mouseDown: {
+      isMouseDown = TRUE;
       mouseClick(event);
     } break;
 
@@ -1775,6 +1805,9 @@ void loopTick(void) {
 #if TARGET_API_MAC_TOOLBOX
   Point mouse;
 
+  getGlobalMouse(&mouse);
+  adjustCursor(mouse, cursorRgn);
+
   if(!gHasWaitNextEvent) {
     SystemTask();
 
@@ -1787,13 +1820,13 @@ void loopTick(void) {
 
     return;
   }
-
-  getGlobalMouse(&mouse);
-  adjustCursor(mouse, cursorRgn);
 #endif
 
   if(WaitNextEvent(everyEvent, &event, 0, cursorRgn)) {
-    adjustCursor(event.where, cursorRgn);
+    #if TARGET_API_MAC_CARBON
+      adjustCursor(event.where, cursorRgn);
+    #endif
+
     handleEvent(&event);
   }
   else {
@@ -1803,6 +1836,10 @@ void loopTick(void) {
 
 void macYield(void) {
   EventRecord event;
+
+  if(nextWaitCursor == currentWaitCursor) {
+    nextWaitCursor = (nextWaitCursor + 1) % 4;
+  }
 
   if(EventAvail(-1, &event)) {
     loopTick(); // get one event
@@ -2066,6 +2103,22 @@ void exit_mac(int dummy) {
   longjmp(env_buffer, 1);
 }
 
+
+pascal void spinCursor() {
+  Point mouse;
+  long oldA5 = (long)SetCurrentA5();
+
+  SetA5(taskrec.vblA5);
+  taskrec.theVBLTask.vblCount = 20;
+
+  if(isMouseDown == FALSE) {
+    getGlobalMouse(&mouse);
+    adjustCursor(mouse, cursorRgn);
+  }
+
+  SetA5(oldA5);
+}
+
 int main(void) {
   char progName[] = "querycsv";
   char* argv[3];
@@ -2119,8 +2172,21 @@ int main(void) {
     val = setjmp(env_buffer);
 
     if(val == 0) {
+      isWaiting = TRUE;
+      isMouseDown = FALSE;
+      taskrec.theVBLTask.qType = vType;
+      taskrec.theVBLTask.vblAddr = (VBLUPP)spinCursor;
+      taskrec.theVBLTask.vblPhase = 0;
+      taskrec.theVBLTask.vblCount = 20;
+      taskrec.vblA5 = (long)SetCurrentA5();
+      VInstall((QElemPtr)(&taskrec));
+
       realmain(2, argv);
     }
+
+    isWaiting = FALSE;
+
+    VRemove((QElemPtr)(&taskrec));
 
     free(progArg);
 

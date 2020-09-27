@@ -236,14 +236,29 @@ resource 'DITL' (rUserAlert, purgeable) {
   }
 };
 
-resource 'STR ' (rFontPrefStr, preload, purgeable )
+data 'STR ' (rFontPrefStr)
 {
-  "                                                                                                                                                                                                                                                              "
+  $"064D 6F6E 6163 6F20 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 2020"
+  $"2020 2020 2020 2020 2020 2020 2020 20"
 };
 
 resource 'STR ' (rFontSizePrefStr, preload, purgeable )
 {
-  "2   " /* 10 point */
+  "3   " /* 12 point */
 };
 
 resource 'STR ' (rZoomPrefStr, preload, purgeable )
@@ -448,4 +463,36 @@ data 'ics4' (128) {
   $"00C0 CEEE EEEE C0C0 000F E8DD DDD8 EF00"
   $"00FC 8CD0 D0DC 8CF0 00F8 C8D0 D0D8 C8F0"
   $"000F FC8D 0D8C FF00 0000 0FFF FFFF 0000"
+};
+
+resource 'CURS' (128) {
+ $"07 C0 1F F0 3F F8 5F F4 4F E4 87 C2 83 82 81 02"
+ $"83 82 87 C2 4F E4 5F F4 3F F8 1F F0 07 C0",
+ $"07 C0 1F F0 3F F8 7F FC 7F FC FF FE FF FE FF FE"
+ $"FF FE FF FE 7F FC 7F FC 3F F8 1F F0 07 C0",
+ {7, 7}
+};
+
+resource 'CURS' (129) {
+ $"07 C0 19 F0 21 F8 41 FC 41 FC 81 FE 81 FE FF FE"
+ $"FF 02 FF 02 7F 04 7F 04 3F 08 1F 30 07 C0",
+ $"07 C0 1F F0 3F F8 7F FC 7F FC FF FE FF FE FF FE"
+ $"FF FE FF FE 7F FC 7F FC 3F F8 1F F0 07 C0",
+ {7, 7}
+};
+
+resource 'CURS' (130) {
+ $"07 C0 18 30 20 08 70 1C 78 3C FC 7E FE FE FF FE"
+ $"FE FE FC 7E 78 3C 70 1C 20 08 18 30 07 C0",
+ $"07 C0 1F F0 3F F8 7F FC 7F FC FF FE FF FE FF FE"
+ $"FF FE FF FE 7F FC 7F FC 3F F8 1F F0 07 C0",
+ {7, 7}
+};
+
+resource 'CURS' (131) {
+ $"07 C0 1F 30 3F 08 7F 04 7F 04 FF 02 FF 02 FF FE"
+ $"81 FE 81 FE 41 FC 41 FC 21 F8 19 F0 07 C0",
+ $"07 C0 1F F0 3F F8 7F FC 7F FC FF FE FF FE FF FE"
+ $"FF FE FF FE 7F FC 7F FC 3F F8 1F F0 07 C0",
+ {7, 7}
 };
