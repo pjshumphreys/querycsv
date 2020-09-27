@@ -24,7 +24,6 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 #define ENC_UTF16LE 9
 
 int isHxrt = FALSE;
-int hasUtf8 = FALSE;
 int usingOutput = FALSE;
 int usingError = FALSE;
 HANDLE std_out;
@@ -225,8 +224,6 @@ void setupWin32(int *argc, char ***argv) {
     return;
   }
 
-  hasUtf8 = TRUE;
-
   szArglist = GetCommandLineW();
 
   if(szArglist == NULL) {
@@ -332,60 +329,21 @@ void setupWin32(int *argc, char ***argv) {
 }
 
 int chdir_w32(const char *dirname) {
-  int len;
-  wchar_t *wide = NULL;
-  int retval;
+  wchar_t *wide = (wchar_t *)d_charsetEncode((char *)dirname, ENC_UTF16LE, NULL, NULL);
+  int retval = _wchdir(wide);
 
-  if(hasUtf8) {
-    len = MultiByteToWideChar(CP_UTF8, 0, dirname, -1, NULL, 0);
+  free(wide);
 
-    if((wide = (wchar_t*)malloc(sizeof(wchar_t)*len)) == NULL) {
-      return NULL;
-    }
-
-    MultiByteToWideChar(CP_UTF8, 0, dirname, -1, wide, len);
-
-    retval = _wchdir(wide);
-
-    free(wide);
-
-    return retval;
-  }
-
-  return _chdir(dirname);
+  return retval;
 }
 
 FILE *fopen_w32(const char *filename, const char *mode) {
-  int len;
-  FILE * retval;
-  wchar_t *wide = NULL;
-  wchar_t *wide2 = NULL;
+  wchar_t *wide = (wchar_t *)d_charsetEncode((char *)filename, ENC_UTF16LE, NULL, NULL);
+  wchar_t *wide2 = (wchar_t *)d_charsetEncode((char *)mode, ENC_UTF16LE, NULL, NULL);
+  FILE *retval = _wfopen(wide, wide2);
 
-  if(hasUtf8) {
-    len = MultiByteToWideChar(CP_UTF8, 0, filename, -1, NULL, 0);
+  free(wide2);
+  free(wide);
 
-    if((wide = (wchar_t*)malloc(sizeof(wchar_t)*len)) == NULL) {
-      return NULL;
-    }
-
-    MultiByteToWideChar(CP_UTF8, 0, filename, -1, wide, len);
-
-    len = MultiByteToWideChar(CP_UTF8, 0, mode, -1, NULL, 0);
-
-    if((wide2 = (wchar_t*)malloc(sizeof(wchar_t)*len)) == NULL) {
-      free(wide);
-      return NULL;
-    }
-
-    MultiByteToWideChar(CP_UTF8, 0, mode, -1, wide2, len);
-
-    retval = _wfopen(wide, wide2);
-
-    free(wide);
-    free(wide2);
-
-    return retval;
-  }
-
-  return fopen(filename, mode);
+  return retval;
 }

@@ -1,6 +1,8 @@
 #ifndef QUERYCSV_H
 #define QUERYCSV_H 1
 
+#define _XOPEN_SOURCE_EXTENDED
+
 /* standard lib headers */
 
 #include <stdio.h>
