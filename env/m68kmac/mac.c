@@ -2103,17 +2103,19 @@ void exit_mac(int dummy) {
   longjmp(env_buffer, 1);
 }
 
-
 pascal void spinCursor() {
   Point mouse;
   long oldA5 = (long)SetCurrentA5();
 
   SetA5(taskrec.vblA5);
-  taskrec.theVBLTask.vblCount = 20;
 
-  if(isMouseDown == FALSE) {
-    getGlobalMouse(&mouse);
-    adjustCursor(mouse, cursorRgn);
+  if(isWaiting) {
+    taskrec.theVBLTask.vblCount = 20;
+
+    if(isMouseDown == FALSE) {
+      getGlobalMouse(&mouse);
+      adjustCursor(mouse, cursorRgn);
+    }
   }
 
   SetA5(oldA5);
@@ -2186,7 +2188,7 @@ int main(void) {
 
     isWaiting = FALSE;
 
-    VRemove((QElemPtr)(&taskrec));
+    //VRemove((QElemPtr)(&taskrec));  // not needed as we can just let the VBL task not reinitialise itself instead.
 
     free(progArg);
 
