@@ -154,10 +154,11 @@ it becomes needed and because it's useful for debugging */
     properly on watcom (to have source compatability with the windows version) */
   #endif
 
-  /* used as posix doesn't have stricmp */
   #include <unistd.h> /* for _chdir */
   #include <strings.h>
   #include <locale.h>
+
+  /* used as posix doesn't have stricmp */
   #define stricmp strcasecmp
 #endif
 

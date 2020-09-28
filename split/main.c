@@ -96,10 +96,11 @@ int main(int argc, char **argv) {
   else if (argc2 == 3 && stricmp("-c", argv2[1]) == 0) {
     exit(runQuery(argv2[2], FALSE));
   }
-
-  /* something else. print an error message and quit */
-  fputs(TDB_INVALID_COMMAND_LINE, stderr);
-  exit(EXIT_FAILURE);
+  else {
+    /* something else. print an error message and quit */
+    fputs(TDB_INVALID_COMMAND_LINE, stderr);
+    exit(EXIT_FAILURE);
+  }
 
   return EXIT_FAILURE;  /* satisfy pedantic compilers */
 }
