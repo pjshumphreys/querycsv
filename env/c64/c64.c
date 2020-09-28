@@ -14,7 +14,7 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 #define TRUE 1
 #define FALSE 0
 
-int mystricmp(const char *str1, const char *str2) {
+int stricmp_c64(const char *str1, const char *str2) {
   int retval = 0;
 
   unsigned char a, b;

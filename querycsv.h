@@ -512,13 +512,15 @@ Just use long ones for that compiler */
   int fputs_c64(const char *str, FILE *stream);
   int fprintf_c64(FILE *stream, const char *format, ...);
   FILE *fopen_c64(const char *filename, const char *mode);
-  int mystricmp(const char *str1, const char *str2);
+  /* cc65's built in stricmp operates on petscii but we want to use utf-8
+  strings internally. Therefore we provide our own implementation */
+  int stricmp_c64(const char *str1, const char *str2);
 
   #define fputs fputs_c64
   #define fopen fopen_c64
   #define fprintf fprintf_c64
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
-  #define stricmp mystricmp
+  #define stricmp stricmp_c64
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -549,13 +551,13 @@ Just use long ones for that compiler */
     #define ctof(_s) ((double)(_s))
     #define fneg(_f) (-(_f))
     #ifdef __Z88DK
-      #include <math.h>   /* for ftoa */
+      #include <math.h>   /* for ftoa, used in dtoa_z80 */
 
       #define ftostr(_d,_a) { \
         reallocMsg((void**)_d, 33); \
         dtoa_z80(*(_d), (_a)); \
         reallocMsg((void**)_d, strlen(*(_d)) + 1); \
-        } /* dtoa_zx function should output at
+        } /* dtoa_z80 function should output at
         most 32 characters */
     #else
       #define ftostr(_f,_a) (_a) != (_a) ? \

@@ -337,11 +337,11 @@ void sbrk_z80(void *addr, unsigned int size) {
 
 /* unused (for now) */
 /*
-void *calloc_zx(unsigned int num, unsigned int size) {
+void *calloc_z80(unsigned int num, unsigned int size) {
   unsigned int tot = num * size;
   void *temp;
 
-  temp = malloc_zx(tot);
+  temp = malloc_z80(tot);
 
   if(temp) {
     memset(temp, 0, tot);
