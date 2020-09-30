@@ -94,6 +94,8 @@ size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
   if(stream == stdout || stream == stderr) {
     tot2 = temp.tot;
 
+    toggleSpinner(0);
+
     while(temp.tot--) {
       fputc_cons(*ptr++);
     }
@@ -173,7 +175,7 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   }
 
   /* if the stream is stdout or stderr just do a normal printf as the esxdos
-    paging won't come into play therefore we don't need to do the formatting twice */
+    paging won't come into play therefore we don't need to do the formatting twice
   if(type) {
     if(stdout == (FILE *)output || stderr == (FILE *)output) {
       va_start(args, format);
@@ -182,7 +184,7 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
 
       return newSize;
     }
-  }
+  } */
 
   newStr = NULL;
 

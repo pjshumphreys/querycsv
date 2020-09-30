@@ -6,6 +6,15 @@ RESI_DEALLOC equ 0x0328
 
 org 0xe60e
   dec l
+
+  push hl
+  ld hl, 10
+  push hl
+  call fputc_cons
+  call fputc_cons
+  pop hl
+  pop hl
+
   ld (hlBackup), hl
 
   ; restore stack pointer

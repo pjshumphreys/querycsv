@@ -47,6 +47,7 @@ const functionsList = [
   ['_fopen_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['fclose', 1, 0x0001, 0x0001, 'farcall2'],
   ['fread', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_macYield', 1, 0x0001, 0x0001, 'farcall2'],
   ['_fprintf_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['_fputs_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['fputs_callee', 1, 0x0001, 0x0001, 'farcall2'],

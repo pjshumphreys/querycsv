@@ -5,6 +5,7 @@ PUBLIC mypager
 PUBLIC defaultBank
 PUBLIC fputc_cons
 PUBLIC _logNum
+PUBLIC _toggleSpinner
 PUBLIC _myexit
 
 VARS equ 0x5c4b

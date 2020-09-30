@@ -4,6 +4,7 @@ PUBLIC mypager
 PUBLIC defaultBank
 PUBLIC fputc_cons
 PUBLIC _logNum
+PUBLIC _toggleSpinner
 PUBLIC _myexit
 
 VARS equ 0x5c4b
@@ -230,10 +231,11 @@ intSetup:
 atexit4:
   ;print a newline character to match the 128k print routine's output
   push hl
-  ld bc, 0x0a0a
-  push bc
+  ld hl, 10
+  push hl
   call fputc_cons
-  pop bc
+  call fputc_cons
+  pop hl
   pop hl
 
   dec l

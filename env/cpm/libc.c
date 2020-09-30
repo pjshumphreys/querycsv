@@ -32,7 +32,25 @@ extern unsigned char loadPageStatus;
 extern unsigned char defaultBank;
 extern int mapperJumpTable;
 extern int newline;
+extern int currentWaitCursor;
+extern int cursorOutput;
+extern int startOfLine;
+
 extern Z80_registers regs;
+
+void macYield(void) __z88dk_fastcall {
+  const char * spinner = "---ooOOoo";
+  if(startOfLine) {
+    if(cursorOutput) {
+      fputc_cons('\b');
+    }
+
+    fputc_cons(spinner[currentWaitCursor]);
+    currentWaitCursor = (currentWaitCursor + 1) % 9;
+
+    cursorOutput = TRUE;
+  }
+}
 
 void dosload(int pageNumber) __z88dk_fastcall {
   const char * filename = "qrycsv00.ovl";
@@ -121,6 +139,12 @@ int fputs_z80(const char * ptr, FILE * stream) {
   }
 
   tot = strlen(ptr);
+  startOfLine = FALSE;
+
+  if(cursorOutput) {
+    fputc_cons('\b');
+    cursorOutput = FALSE;
+  }
 
   if(newline) {
     fputc_cons('\n');

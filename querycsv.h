@@ -431,7 +431,11 @@ Just use long ones for that compiler */
 
     #define ENC_INPUT ENC_ASCII
     #define ENC_OUTPUT ENC_ASCII
-    #define ENC_PRINT ENC_ASCII   
+    #define ENC_PRINT ENC_ASCII
+
+    void macYield(void);
+    #undef MAC_YIELD
+    #define MAC_YIELD macYield();
   #endif
 
   #ifndef QCSV_NOZ80MALLOC
@@ -470,6 +474,7 @@ Just use long ones for that compiler */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
 
   void logNum(int num) __z88dk_fastcall;
+  void toggleSpinner(int num) __z88dk_fastcall;
   void setupZ80(int * argc, char *** argv);
 
   /* on z88dk, the __stdc calling convention modifier is necessary to make

@@ -4,6 +4,7 @@ PUBLIC printNoFile
 PUBLIC call_rom3
 PUBLIC switchPage
 PUBLIC _logNum
+PUBLIC _toggleSpinner
 PUBLIC _myexit
 
 PUBLIC bankmBackup
@@ -15,7 +16,6 @@ PUBLIC skip_count
 PUBLIC isr
 PUBLIC fputc_cons
 PUBLIC libcRet
-PUBLIC borderColour
 
 PUBLIC pagename
 
@@ -75,9 +75,6 @@ argv:
 argName:
   defw 0x0000
   defw 0x0000
-
-borderColour:
-  defb 0b00111000  ; flash the border colour whenever a function is called
 
 defaultDrive: ; the default drive letter used by esxdos
   defb 0
@@ -155,6 +152,10 @@ switchPage:
   pop bc
   ei ; enable interupts here so the ret statement below can quit the entire program with interupts enabled. This makes the code a few bytes smaller as well
   ret
+
+_toggleSpinner:
+  ret
+  defw 0
 
 _logNum:
   ret

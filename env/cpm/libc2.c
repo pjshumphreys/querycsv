@@ -6,6 +6,9 @@
 /* variables needed by libc */
 int myhand_status;
 int newline;
+int currentWaitCursor;
+int cursorOutput;
+int startOfLine;
 
 /* variables needed by strtod */
 const double fltMinusOne = -1.0;
@@ -357,6 +360,9 @@ void setupZ80(int * argc, char *** argv) {
   __endasm;
 
   newline = FALSE;
+  currentWaitCursor = 0;
+  cursorOutput = FALSE;
+  startOfLine = TRUE;
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();

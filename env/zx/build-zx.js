@@ -1047,7 +1047,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   if (pageMode) {
     execSync(
-      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|_logNum\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|_logNum\\|_toggleSpinner\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
         cwd: path.join(__dirname, 'build', 's')
       }

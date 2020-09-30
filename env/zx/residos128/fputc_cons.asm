@@ -512,7 +512,7 @@ print_routine:
   defw print32
 
 deltax:
-  defb 1 ;how much to move in x
+  defb 2 ;how much to move in x
 
 __zx_console_attr:
   defb 56

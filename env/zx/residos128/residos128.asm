@@ -5,6 +5,7 @@ PUBLIC mypager
 PUBLIC defaultBank
 PUBLIC fputc_cons
 PUBLIC _logNum
+PUBLIC _toggleSpinner
 PUBLIC _myexit
 
 VARS equ 0x5c4b
@@ -200,6 +201,11 @@ startup3:
   ld (fputc_cons), a ; put instruction into the fputc_cons location
   ld hl, jp_rom3
   ld (fputc_cons+1), hl ; put jp_rom3 address here
+
+  ld a, 0xc3
+  ld (_toggleSpinner), a ; put jp instruction into the _toggleSpinner location
+  ld hl, setSpinner
+  ld (_toggleSpinner+1), hl
 
   ;setup standard streams
   ld hl, __sgoioblk + 2
