@@ -373,7 +373,7 @@ farRet:
 
 farRet3:
   call changePage
-  call updateSpinner
+  ;call updateSpinner
   pop af
 
   ld de, (deBackup)
