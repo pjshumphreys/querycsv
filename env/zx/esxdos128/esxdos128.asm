@@ -175,6 +175,11 @@ startup3:
   ld hl, serialLnHL
   ld (_logNum+1), hl
 
+  ld a, 0xc3
+  ld (_toggleSpinner), a ; put jp instruction into the _toggleSpinner location
+  ld hl, setSpinner
+  ld (_toggleSpinner+1), hl
+
   ;setup standard streams
   ld hl, __sgoioblk + 2
   ld (hl), 19 ;stdin

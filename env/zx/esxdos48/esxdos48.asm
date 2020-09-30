@@ -40,6 +40,11 @@ copydata:
   ;ld (fputc_cons), a ; put instruction into the fputc_cons location
   ;ld (fputc_cons+1), hl ; put jp_rom3 address here
 
+  ld a, 0xc3
+  ld (_toggleSpinner), a ; put jp instruction into the _toggleSpinner location
+  ld hl, setSpinner
+  ld (_toggleSpinner+1), hl
+
   ; setup the esxdos pager
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
