@@ -515,6 +515,7 @@ farcall4:
   plp
   sta currentBank
   sta EASYFLASH_BANK
+  jsr updateSpinner
   lda aRegBackup
   ldx xRegBackup
   rts ; non local jmp to the real function

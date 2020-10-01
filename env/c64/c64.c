@@ -5,6 +5,12 @@
 #include <string.h>
 
 extern const unsigned short petscii[128];
+extern char spinnerEnabled;
+extern char cursorOutput;
+extern char currentWaitCursor;
+extern char * spinner;
+extern char * currentWaitCursorChar;
+
 char* mystrdup(const char* s);
 int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t *retval);
 int d_sprintf(char **str, char *format, ...);
@@ -49,12 +55,52 @@ int stricmp_c64(const char *str1, const char *str2) {
 }
 
 
+/*
+  updateSpinner - This function always needs to be mapped in, so we've
+  precompiled it and will prepend its output assembly language code (modified
+  to inline any runtime functions) to yyparse's oversize page
+*/
+/*void updateSpinner(void) {
+  if(spinnerEnabled) {
+    if(cursorOutput) {
+      __asm__ ("lda #8");
+      __asm__ ("jsr $ffd2");
+    }
+
+    do {
+      currentWaitCursor = *currentWaitCursorChar;
+
+      if(currentWaitCursor) {
+        break;
+      }
+
+      currentWaitCursorChar = spinner;
+    } while(1);
+
+    /* spinner[currentWaitCursor] will still be in register a here * /
+    __asm__ ("jsr $ffd2");
+
+    currentWaitCursorChar+=1;
+    cursorOutput = 1;
+  }
+}
+*/
+
 int fputs_c64(const char *str, FILE *stream) {
   size_t bytesStored;
   char *encoded = NULL;
 
   if(stream == stdout || stream == stderr) {
     bytesStored = 0;
+
+    /* toggleSpinner(0); inlined */
+    spinnerEnabled = 0;
+
+    if(cursorOutput != 0) {
+      cursorOutput = 0;
+      __asm__ ("lda #8");
+      __asm__ ("jsr $ffd2");
+    }
 
     encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored, NULL);
     fwrite(encoded, sizeof(char), bytesStored, stream);

@@ -1,27 +1,27 @@
-var childProcess = require('child_process');
-var execSync = childProcess.execSync;
-var exec = childProcess.exec;
-var fs = require('graceful-fs');
-var readline = require('readline');
-var walk = require('walk');
-var shellEscape = require('shell-escape');
-var i;
-var files;
-var hasProp = (obj, prop) => Object.hasOwnProperty.call(obj, prop);
+const childProcess = require('child_process');
+const execSync = childProcess.execSync;
+const exec = childProcess.exec;
+const fs = require('graceful-fs');
+const readline = require('readline');
+const walk = require('walk');
+const shellEscape = require('shell-escape');
+let i;
+const files = [];
+const hasProp = (obj, prop) => Object.hasOwnProperty.call(obj, prop);
 
-var hash2ChunkCount;
+let hash2ChunkCount;
 
-var remainder = 16384;
+let remainder = 16384;
 
-var matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
+const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
 
-var hashMap = {};
-var passPostfix = '';
+const hashMap = {};
+let passPostfix = '';
 
 /* functionsList = A mapping of function names to the memory page that
 contains them, the address within that page and which trampoline function
 in the $C000 range to call to set them up correctly */
-var functionsList = [
+const functionsList = [
   ['BASIC_FAC_to_string', 1, 0xBDDD, 'FUNC0'], /* in: FAC value   out: str at $0100 a/y ptr to str */
   ['BASIC_string_to_FAC', 1, 0xB7B5, 'FUNC0'], /* in: $22/$23 ptr to str,a=strlen out: FAC value */
 
@@ -82,7 +82,7 @@ var functionsList = [
 /* BASIC_LoadARG   = $babc     ; a/y:lo/hi ptr to 5-byte float */
 /* BASIC_LoadFAC   = $bba2     ; a/y:lo/hi ptr to 5-byte float */
 
-var floatlibFunctionsList = [
+const floatlibFunctionsList = [
   ['__ftostr', 1, 0x0001, 'farcall'],
   ['__strtof', 1, 0x0001, 'farcall'],
   ['__ctof', 1, 0x0001, 'farcall'],
@@ -98,7 +98,7 @@ var floatlibFunctionsList = [
   ['__fatan2', 1, 0x0001, 'farcall']
 ];
 
-var clibFunctionsList = [
+const clibFunctionsList = [
   /* standard C library functions */
   ['_strtod', 1, 0x0001, 'farcall'],
   ['_calloc', 2, 0x0001, 'farcall2'],
@@ -139,7 +139,7 @@ var clibFunctionsList = [
   ['_in_word_set_c', 0, 0x0001, 'farcall2']
 ];
 
-var defines = {
+const defines = {
   _stderr: 0,
   _stdin: 0,
   _stdout: 0,
@@ -151,10 +151,11 @@ var defines = {
   ___float_float_to_fac_arg: 0,
   aRegBackup: 0,
   spRegBackup: 0,
-  xRegBackup: 0
+  xRegBackup: 0,
+  updateSpinner: 0
 };
 
-var rodataLabels = [];
+const rodataLabels = [];
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
@@ -182,7 +183,7 @@ function start () {
 function createFloatLibInclude () {
   console.log('createFloatLibInclude');
 
-  var tables = fs.createWriteStream('build/floatlib.inc');
+  const tables = fs.createWriteStream('build/floatlib.inc');
 
   for (i = 0; i < functionsList.length; i++) {
     hashMap[functionsList[i][0]] = i;
@@ -278,7 +279,7 @@ function compileFloatLib () {
       as the code in each of them doesn't need to call any other page
       we can probably use farret2
       */
-      var name = '_isInHash2_' + i;
+      const name = '_isInHash2_' + i;
       hashMap[name] = functionsList.length;
       functionsList.push([
         name,
@@ -291,7 +292,7 @@ function compileFloatLib () {
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: fs.createReadStream('build/floatlib.lbl')
   });
 
@@ -336,7 +337,7 @@ function compileLibC () {
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: fs.createReadStream('build/libc.lbl')
   });
 
@@ -451,16 +452,16 @@ function compileData () {
   so that they can be copied as one blob? */
   execSync('dd if=build/data2.bin of=build/data.bin conv=notrunc;rm build/data2.bin');
 
-  var lineReader2 = readline.createInterface({
+  const lineReader2 = readline.createInterface({
     input: fs.createReadStream('build/data.lbl')
   });
 
-  var labels = fs.createWriteStream('build/labels.s');
+  const labels = fs.createWriteStream('build/labels.s');
 
   /* read the resultant memory locations and make an assembly include
   containing just their addresses */
   lineReader2.on('line', line => {
-    var name = line.replace(/^al\s+[0-9A-F]+ \./, '');
+    const name = line.replace(/^al\s+[0-9A-F]+ \./, '');
 
     if (name.match(/l[0-9a-f]{4}/)) {
       const address = parseInt(line.match(/[0-9A-F]+/), 16);
@@ -490,7 +491,7 @@ function compileData () {
 }
 
 function compileHash2 () {
-  var i, name;
+  let i, name;
 
   console.log('compileHash2');
 
@@ -628,7 +629,7 @@ function compileHash3And4 () {
 function createTrampolinesInclude () {
   console.log('createTrampolinesInclude');
 
-  var tables = fs.createWriteStream('build/tables.inc');
+  const tables = fs.createWriteStream('build/tables.inc');
 
   for (i in defines) {
     tables.write(
@@ -746,13 +747,13 @@ function compileMain () {
 
   /* read the label file and update each function address */
 
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: fs.createReadStream('build/main.lbl')
   });
 
   execSync('cat build/labels.s > build/labels2.s');
 
-  var labels = fs.createWriteStream('build/labels2.s', { flags: 'a' });
+  const labels = fs.createWriteStream('build/labels2.s', { flags: 'a' });
 
   for (i in defines) {
     labels.write(
@@ -766,8 +767,8 @@ function compileMain () {
   labels.write('.import pushl0\n');
 
   lineReader.on('line', function (line) {
-    var name = line.replace(/^al\s+[0-9A-F]+ \./, '');
-    var address = parseInt(line.match(/[0-9A-F]+/), 16);
+    const name = line.replace(/^al\s+[0-9A-F]+ \./, '');
+    const address = parseInt(line.match(/[0-9A-F]+/), 16);
 
     if (name === 'farret') {
       labels.write(
@@ -812,9 +813,7 @@ function calculateSizes () {
   updateName(['_yyparse.s', fs.readFileSync('build/s/_yyparse.s', { encoding: 'utf8' })]);
 
   execSync(
-    'echo ".include \\"../../header.inc\\"" > ./build/g/_yyparse.s;' +
-      'echo ".include \\"../labels2.s\\"" >> ./build/g/_yyparse.s;' +
-      'cat ./build/s/_yyparse.s >> ./build/g/_yyparse.s;' +
+    'cat ./updateSpinner.s ./build/s/_yyparse.s > ./build/g/_yyparse.s;' +
       'cl65 -T -t c64 ' +
       '-o ./build/obj2/yyparse.bin ' +
       '-Ln ./build/obj2/yyparse.lbl ' +
@@ -823,27 +822,27 @@ function calculateSizes () {
 
   passPostfix = 'a';
 
-  var yyparseSize = Math.max(0x2000, fs.statSync('build/obj2/yyparse.bin').size);
+  const yyparseSize = Math.max(0x2000, fs.statSync('build/obj2/yyparse.bin').size);
 
-  var yyparseStart = 0xC000 - yyparseSize;
+  const yyparseStart = 0xC000 - yyparseSize;
 
-  var dataSize = fs.statSync('build/data.bin').size;
+  const dataSize = fs.statSync('build/data.bin').size;
 
-  var dataStart = yyparseStart - dataSize;
+  const dataStart = yyparseStart - dataSize;
 
-  var libcSize = fs.statSync('build/libcdata.bin').size;
+  const libcSize = fs.statSync('build/libcdata.bin').size;
 
-  var libcStart = dataStart - libcSize;
+  const libcStart = dataStart - libcSize;
 
-  var floatlibSize = fs.statSync('build/floatlibdata.bin').size;
+  const floatlibSize = fs.statSync('build/floatlibdata.bin').size;
 
-  var floatlibStart = libcStart - floatlibSize;
+  const floatlibStart = libcStart - floatlibSize;
 
-  var mainSize = fs.statSync('build/maindata.bin').size;
+  const mainSize = fs.statSync('build/maindata.bin').size;
 
-  var mainStart = floatlibStart - mainSize;
+  const mainStart = floatlibStart - mainSize;
 
-  var heapSize = mainStart - 0x0800;
+  const heapSize = mainStart - 0x0800;
 
   remainder -= (yyparseSize + dataSize + libcSize + floatlibSize + mainSize);
 
@@ -938,7 +937,7 @@ function compileYYParse () {
 
   /* read the label file and use its contents to
   update each function address in the hashmap */
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: fs.createReadStream('./build/obj2/yyparse.lbl')
   });
 
@@ -953,8 +952,8 @@ function compileYYParse () {
 function addROData () {
   console.log('addROData');
 
-  var list = [];
-  var walker = walk.walk('./build/s', {});
+  const list = [];
+  const walker = walk.walk('./build/s', {});
 
   walker.on('file', (root, fileStats, next) => {
     list.push([fileStats.name, fs.readFileSync('build/s/' + fileStats.name, { encoding: 'utf8' })]);
@@ -1008,7 +1007,7 @@ function packPages () {
 
   /* use a bin packing algorithm to group the functions and
   produce a binary of each 8k page */
-  var list = exec(
+  const list = exec(
     "sh -c '" +
         'pushd build/obj > /dev/null;' +
           'find * -type f ! -name build/_yyparse.bin -print0|' +
@@ -1018,18 +1017,18 @@ function packPages () {
       "'"
   );
 
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: list.stdout
   });
 
-  var maxSize = 8192;// 8277;
+  const maxSize = 8192;// 8277;
 
-  files = [];
-  var totalSizes = [];
+  //files = [];
+  const totalSizes = [];
 
   lineReader.on('line', function (line) {
-    var size = parseInt(line.match(/^[0-9]+/)[0], 10);
-    var name = line.replace(/^[0-9]+ /, '');
+    const size = parseInt(line.match(/^[0-9]+/)[0], 10);
+    const name = line.replace(/^[0-9]+ /, '');
 
     if (size > maxSize) {
       throw new Error('file too big');
@@ -1056,12 +1055,12 @@ function packPages () {
 function compilePages () {
   console.log('compilePages');
 
-  var i = 0;
+  let i = 0;
 
   /* compile each page and then update the addresses and
   page numbers of each function in the table */
   for (i = 0; i < files.length; i++) {
-    var names = files[i]
+    const names = files[i]
       .map(x => JSON.stringify(x.replace(/\.bin$/g, '.s')))
       .join(' ');
 
@@ -1087,9 +1086,9 @@ function compilePages () {
 function updatePageFunctionAddresses (pageNumber) {
   console.log('updatePageFunctionAddresses: ', pageNumber - 3);
 
-  var stream = fs.createReadStream('./build/obj2/page' + (pageNumber - 3) + '.lbl');
+  const stream = fs.createReadStream('./build/obj2/page' + (pageNumber - 3) + '.lbl');
 
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: stream
   });
 
@@ -1130,7 +1129,7 @@ function glueTogetherBinary () {
   execSync('cat build/8k.bin build/querycsv.bin > build/full.bin');
   execSync('cat build/8k.bin build/floatlib.bin >> build/full.bin');
   execSync('cat build/8k.bin build/libc.bin >> build/full.bin');
-  execSync('cat build/padding.bin build/maindata.bin build/floatlibdata.bin '+
+  execSync('cat build/padding.bin build/maindata.bin build/floatlibdata.bin ' +
   'build/libcdata.bin build/data.bin build/obj2/yyparse.bin >> build/full.bin');
 
   for (i = 0; i < files.length; i++) {
@@ -1167,27 +1166,27 @@ Pause if node.js can't keep up
 function splitUpFunctions (filename, callback, append) {
   console.log('splitUpFunctions');
 
-  var j;
-  var notAddedJmpVec = true;
+  let j;
+  let notAddedJmpVec = true;
 
-  var lineReader = readline.createInterface({
+  const lineReader = readline.createInterface({
     input: fs.createReadStream('build/' + filename + '.s')
   });
 
-  var data = fs.createWriteStream('build/data.s', {
+  const data = fs.createWriteStream('build/data.s', {
     flags: append ? 'a' : 'w'
   });
 
-  var rodataOutputStreams = [];
+  const rodataOutputStreams = [];
 
-  var code = fs.createWriteStream('build/' + filename + '_code.s');
+  const code = fs.createWriteStream('build/' + filename + '_code.s');
 
-  var functionOutputStreams = [];
-  var activeStream = code;
-  var rodataType = 0;
+  const functionOutputStreams = [];
+  let activeStream = code;
+  let rodataType = 0;
 
   lineReader.on('line', function (line) {
-    var name;
+    let name;
 
     if (/^\.segment\s+"[_0-9A-Z]+"/.test(line)) {
       name = line.replace(/\.segment\s+"/, '').match(/[_0-9A-Z]+/)[0];
@@ -1365,12 +1364,12 @@ function splitUpFunctions (filename, callback, append) {
   their resultant values after compilation
 */
 function updateFunctionAddress (line) {
-  var name = line.replace(/^al\s+[0-9A-F]+ \./, '');
+  const name = line.replace(/^al\s+[0-9A-F]+ \./, '');
 
-  var address = parseInt(line.match(/[0-9A-F]+/), 16);
-  var pageNumber = this + 0;
+  const address = parseInt(line.match(/[0-9A-F]+/), 16);
+  const pageNumber = this + 0;
 
-  var name2 = name.replace(/^_/, '');
+  const name2 = name.replace(/^_/, '');
 
   // the libc page is page 2
   if (pageNumber === 2 && name === 'initlib') {
@@ -1379,6 +1378,8 @@ function updateFunctionAddress (line) {
     defines.zerobss2 = address;
   } else if (pageNumber === 2 && name === 'donelib') {
     defines.donelib2 = address;
+  } else if (pageNumber === 3 && name === '__updateSpinner') {
+    defines.updateSpinner = address;
   } else if (hasProp(defines, name)) {
     defines[name] = address;
   }
@@ -1403,9 +1404,9 @@ function updateFunctionAddress (line) {
 /* updateName adds to rodata values needed by each function to the end of
 its assembly source file */
 function updateName (elem) {
-  var text = elem[1];
+  const text = elem[1];
 
-  var hasMatches = false;
+  let hasMatches = false;
 
   rodataLabels.forEach(element => {
     element[1] = element[2].test(text);

@@ -23,6 +23,11 @@ int main(int argc, char **argv) {
     argv[1][128] = '\0';
 
     free(temp);
+
+    spinnerEnabled = 1;
+    cursorOutput = 0;
+    currentWaitCursor = 0;
+    currentWaitCursorChar = spinner;
   #endif
 
   argv2 = argv;

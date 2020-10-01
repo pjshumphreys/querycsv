@@ -54,6 +54,12 @@ const char * TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 #ifdef __CC65__
   char * fopen_read = "RB";
   char * fopen_write = "WB";
+
+  char spinnerEnabled;
+  char cursorOutput;
+  char currentWaitCursor;
+  char * spinner = "---ooOOoo";
+  char * currentWaitCursorChar;
 #else
   #define fopen_read "rb"
   #define fopen_write "wb"
