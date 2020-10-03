@@ -262,17 +262,13 @@ Just use long ones for that compiler */
 #define QCSV_SHORT short
 
 #ifdef __CC_NORCROFT
-  #define YY_NO_UNISTD_H 1
-  #define HAS_KERNEL_SWI   /* Later versions of Norcroft have vsnprintf,
-  but the early ones don't. Therefore we use the fprintf approach. */
-  #include <kernel.h> /* for _kernel_osbyte function (used by d_sprintf) */
-
-  int stricmp(const char *str1, const char *str2);
-
-  #define SOFTFLOAT /* Use John Hauser's softfloat package rather
-  than the compiler's built in floating point implementation */
-
   #if __LIB_VERSION < 300
+    /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
+    #undef QCSV_SHORT
+    #define QCSV_SHORT long
+    #define YYTYPE_UINT16 unsigned int
+    #define YYTYPE_INT16 int
+
     /* These aren't in norcroft version 2's stdlib.h */
     #define EXIT_FAILURE 1
     #define EXIT_SUCCESS 0
@@ -282,12 +278,6 @@ Just use long ones for that compiler */
     #define EINTR  4    /* Interrupted system call */
     #define ENOMEM 12   /* Cannot allocate memory */
     #define EINVAL 22   /* Invalid value */
-
-    /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
-    #define YYTYPE_UINT16 unsigned int
-    #define YYTYPE_INT16 int
-    #undef QCSV_SHORT
-    #define QCSV_SHORT long
 
     /* Mac style newlines by default */
     #undef PRM_DEFAULT
@@ -313,6 +303,16 @@ Just use long ones for that compiler */
     #undef ENC_PRINT
     #define ENC_PRINT ENC_CP1252
   #endif
+
+  #define YY_NO_UNISTD_H 1
+  #define HAS_KERNEL_SWI   /* Later versions of Norcroft have vsnprintf,
+  but the early ones don't. Therefore we use the fprintf approach. */
+  #include <kernel.h> /* for _kernel_osbyte function (used by d_sprintf) */
+
+  int stricmp(const char *str1, const char *str2);
+
+  #define SOFTFLOAT /* Use John Hauser's softfloat package rather
+  than the compiler's built in floating point implementation */
 #endif
 
 #ifdef __VBCC__
