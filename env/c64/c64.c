@@ -94,10 +94,10 @@ int fputs_c64(const char *str, FILE *stream) {
     bytesStored = 0;
 
     /* toggleSpinner(0); inlined */
-    spinnerEnabled = 0;
+    spinnerEnabled = FALSE;
 
-    if(cursorOutput != 0) {
-      cursorOutput = 0;
+    if(cursorOutput != FALSE) {
+      cursorOutput = FALSE;
       __asm__ ("lda #8");
       __asm__ ("jsr $ffd2");
     }
