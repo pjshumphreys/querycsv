@@ -766,7 +766,7 @@ function compileMain () {
   labels.write('.export _main\n');
   labels.write('.import pushl0\n');
 
-  lineReader.on('line', function (line) {
+  lineReader.on('line', line => {
     const name = line.replace(/^al\s+[0-9A-F]+ \./, '');
     const address = parseInt(line.match(/[0-9A-F]+/), 16);
 
@@ -795,7 +795,7 @@ function compileMain () {
     }
   });
 
-  lineReader.on('close', function () {
+  lineReader.on('close', () => {
     if (passPostfix === '') {
       labels.end(calculateSizes);
     } else if (passPostfix === 'a') {
@@ -1026,7 +1026,7 @@ function packPages () {
   //files = [];
   const totalSizes = [];
 
-  lineReader.on('line', function (line) {
+  lineReader.on('line', line => {
     const size = parseInt(line.match(/^[0-9]+/)[0], 10);
     const name = line.replace(/^[0-9]+ /, '');
 
@@ -1185,7 +1185,7 @@ function splitUpFunctions (filename, callback, append) {
   let activeStream = code;
   let rodataType = 0;
 
-  lineReader.on('line', function (line) {
+  lineReader.on('line', line => {
     let name;
 
     if (/^\.segment\s+"[_0-9A-Z]+"/.test(line)) {
@@ -1317,7 +1317,7 @@ function splitUpFunctions (filename, callback, append) {
     }
   });
 
-  lineReader.on('close', function () {
+  lineReader.on('close', () => {
     j = functionOutputStreams.length + rodataOutputStreams.length + 1;
 
     data.end(writeFunctionPostfixes);

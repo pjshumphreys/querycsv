@@ -3,6 +3,8 @@
 .segment "CODE"
 .export __updateSpinner
 .proc __updateSpinner: near
+  tya
+  pha
   lda _spinnerEnabled
   jeq l0083wait
 
@@ -45,6 +47,8 @@ l0099wait:
   sta _cursorOutput
 
 l0083wait:
+	pla
+	tay
 	rts
 .endproc
 

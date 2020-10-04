@@ -511,11 +511,11 @@ farcall4:
   inx
   inx
   sta bankStack, x
+  jsr updateSpinner
   pla
   plp
   sta currentBank
   sta EASYFLASH_BANK
-  jsr updateSpinner
   lda aRegBackup
   ldx xRegBackup
   rts ; non local jmp to the real function
