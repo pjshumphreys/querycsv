@@ -97,9 +97,9 @@ int fputs_c64(const char *str, FILE *stream) {
     spinnerEnabled = FALSE;
 
     if(cursorOutput != FALSE) {
-      cursorOutput = FALSE;
-      __asm__ ("lda #8");
+      __asm__ ("lda #$9d");
       __asm__ ("jsr $ffd2");
+      cursorOutput = FALSE;
     }
 
     encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored, NULL);

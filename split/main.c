@@ -27,7 +27,6 @@ int main(int argc, char **argv) {
     spinnerEnabled = TRUE;
     cursorOutput = FALSE;
     currentWaitCursor = 0;
-    currentWaitCursorChar = spinner;
   #endif
 
   argv2 = argv;

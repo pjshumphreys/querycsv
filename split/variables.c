@@ -58,7 +58,6 @@ const char * TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
   char spinnerEnabled;
   char cursorOutput;
   char currentWaitCursor;
-  char * spinner = "---ooOOoo";
   char * currentWaitCursorChar;
 #else
   #define fopen_read "rb"
