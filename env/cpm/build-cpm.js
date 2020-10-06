@@ -701,7 +701,7 @@ function compileLibC (pages) {
   let foo = ''; let i, j;
 
   for (i = 0, j =
-  14  // TODO: make this not be hard coded
+  15 // TODO: make this (numberOfPages+1) not be hard coded
   ; i < j; i++) {
     foo += 'defb 0b11111111 ; ' + (i + 1) + '\n';
   }

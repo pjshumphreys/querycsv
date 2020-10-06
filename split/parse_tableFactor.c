@@ -36,6 +36,10 @@ void parse_tableFactor(
   newTable->fileStream = csvFile;
   newTable->options = fromOptions;
   newTable->fileEncoding = fileEncoding;
+  newTable->codepoints[0] = 0;
+  newTable->codepoints[1] = 0;
+  newTable->codepoints[2] = 0;
+  newTable->codepoints[3] = 0;
   newTable->cpIndex = newTable->arrLength = 0;
 
   /* initalise the "get a codepoint" data structures */
