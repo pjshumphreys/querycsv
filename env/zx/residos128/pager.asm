@@ -29,9 +29,6 @@ farcall:
   ld (deBackup), de
 
   pop hl ; (hl) contains virtual page number to use
-  ;ld c, (hl)
-  ;ld b, 0
-  ;call serialLnBC
 
   ;push the virtual page to return to onto the stack
   ld bc, (currentVirtualPage)
@@ -41,12 +38,17 @@ farcall:
   ld bc, farRet
   push bc
 
+  ;preserve the value of af
   push af
-  ; update the progress spinner
+
   push hl
   call updateSpinner
   pop hl
+
   ld e, (hl)
+  ld c, (hl)
+  ld b, 0
+  call serialLnBC
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -62,7 +64,7 @@ farcall:
   ld c, (hl)
   inc hl
   ld b, (hl)
-  ;call serialLnBC
+  call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later
@@ -86,68 +88,9 @@ farcall:
   ld hl, (hlBackup)
   ret
 
-spinner:
-  defb "---ooOOoo"
-spinnerEnd:
+INCLUDE "../common/serialLnBC.inc"
 
-setSpinner:
-  ld a, l
-  ld (spinnerEnabled), a
-  or a  ; cp 0
-  jr nz, skipBackspace
-printBackspace:
-  ld a, (cursorOutput)
-  or a  ; cp 0
-  jr z, skipBackspace
-  xor a ;ld a, 0
-  ld (cursorOutput), a
-  ld hl, 8  ; backspace
-  push hl
-  call fputc_cons
-  pop hl
-skipBackspace:
-  ret
-
-updateSpinner:
-  ld a, (spinnerEnabled)
-  or a  ; cp 0
-  jr z, skipBackspace
-  ld a, (cursorOutput)
-  or a  ; cp 0
-  jr z, skipBackspace2
-  ld hl, 8  ; backspace
-  push hl
-  call fputc_cons
-  pop hl
-skipBackspace2:
-  ld hl, (currentWaitCursor)
-  ld de, spinnerEnd
-  xor a
-  sbc hl, de
-  add hl, de
-  jp nz, skipReset
-  ld hl, spinner
-skipReset:
-  inc hl
-  ld (currentWaitCursor), hl
-  dec hl
-  ld l, (hl)
-  ld h, 0
-  push hl
-  call fputc_cons
-  pop hl
-  ld a, 1
-  ld (cursorOutput), a
-  ret
-
-spinnerEnabled:
-  defb 1
-
-cursorOutput:
-  defb 0
-
-currentWaitCursor:
-  defw spinner
+INCLUDE "../common/spinner.inc"
 
 farcall2:
   ; backup registers
@@ -156,9 +99,6 @@ farcall2:
   ld (deBackup), de
 
   pop hl ; (hl) contains virtual page number to use
-  ;ld c, (hl)
-  ;ld b, 0
-  ;call serialLnBC
 
   ; backup the return address for later use
   pop bc
@@ -174,6 +114,9 @@ farcall2:
   call updateSpinner
   pop hl
   ld e, 3
+  ld c, 3
+  ld b, 0
+  call serialLnBC
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -190,7 +133,7 @@ farcall2:
   ld c, (hl)
   inc hl
   ld b, (hl)
-  ;call serialLnBC
+  call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later
@@ -206,8 +149,6 @@ farcall2:
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
-
-serialLnHL:
   ret
 
 ;---------------------------------------------------
