@@ -499,6 +499,7 @@ Just use long ones for that compiler */
   #undef PRM_DEFAULT
   #define PRM_DEFAULT PRM_MAC
 
+  #include <unistd.h>   /* for chdir */
   #include "cc65iso.h" /* switch back from petscii to ascii */
   #include "floatlib/float.h" /* fudges kinda support for floating point
   into cc65 by utilising functionality in the c64 basic rom */

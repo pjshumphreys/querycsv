@@ -15,14 +15,48 @@ int main(int argc, char **argv) {
 
   #ifdef __CC65__
     char * temp;
+    char temp2;
 
     temp = petsciiToUtf8(argv[1]);
-    strncpy(argv[1], temp, 128);
+    strncpy(argv[1], temp, 20);
 
     /* ensure null termination of the string */
-    argv[1][128] = '\0';
+    argv[1][19] = '\0';
 
     free(temp);
+
+    /* if a comma then a valid drive number appears after the file name then change to that drive */
+    if((temp = strchr(argv[1], ',')) != NULL) {
+      *temp = '\0';
+      temp++;
+      temp2 = 0;
+
+      switch(strlen(temp)) {
+        case 1:
+          if(!isdigit(temp[0])) {
+            break;
+          }
+
+          temp2 = temp[0] - '0';
+        break;
+
+        case 2:
+          if(!(isdigit(temp[0]) && isdigit(temp[1]))) {
+            break;
+          }
+
+          temp2 = temp[0] - '0';
+          temp2 = (((temp2 << 2) + temp2) << 1) + (temp[1] - '0');
+        break;
+      }
+    }
+
+    /* use drive 8 by default */
+    if(temp2 < 9 || temp2 > 30) {
+      temp = "8";
+    }
+
+    chdir(temp);
 
     spinnerEnabled = TRUE;
     cursorOutput = FALSE;
@@ -55,7 +89,7 @@ int main(int argc, char **argv) {
       setlocale(LC_ALL, TDB_LOCALE);
 
       /* get the original working directory to be able to */
-      /* revert it if needs to be changed during runtime */
+      /* revert it if it needs to be changed during runtime */
       origWd = getcwd(NULL, PATH_MAX + 1);
 
       #ifdef DOS_DAT
@@ -70,9 +104,8 @@ int main(int argc, char **argv) {
 
   #if defined(__unix__) || defined(__LINUX__)
     #ifdef __WATCOMC__
-      /* On the linux version of watcom vsnprintf still
-      works as it does on WIN32/MSDOS (i.e. it's broken). fall back to the
-      fprintf approach */
+      /* On the linux version of watcom vsnprintf still works as it does
+      on WIN32/MSDOS (i.e. it's broken). fall back to the fprintf approach */
       devNull = "/dev/null";
     #endif
 

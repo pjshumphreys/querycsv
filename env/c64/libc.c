@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #pragma rodata-name ("FAKERODATA")
 #pragma data-name ("FAKEDATA")
@@ -20,7 +22,6 @@ void foobar(char *string, char* format, ...) {
   string = malloc(1);
   fgets(string, 1, stdin);
   free(string);
-  string = calloc(1,3);
   string = realloc(string,5);
   strcpy(string, c);
   fgets(string,1,stdin);
@@ -35,7 +36,10 @@ void foobar(char *string, char* format, ...) {
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
+  chdir(string);
+  strchr(string, ',');
   test = fopen(c,"rb");
+  isdigit('8');
   num = ferror(test);
   clearerr(test);
   num = fclose(test);

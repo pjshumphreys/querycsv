@@ -77,7 +77,7 @@ int stricmp_c64(const char *str1, const char *str2) {
       currentWaitCursorChar = spinner;
     } while(1);
 
-    /* spinner[currentWaitCursor] will still be in register a here * /
+    / * spinner[currentWaitCursor] will still be in register a here * /
     __asm__ ("jsr $ffd2");
 
     currentWaitCursorChar+=1;
