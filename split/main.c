@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 
   #ifdef __CC65__
     char * temp;
-    char temp2;
+    char temp2 = 0;
 
     temp = petsciiToUtf8(argv[1]);
     strncpy(argv[1], temp, 20);
@@ -29,7 +29,6 @@ int main(int argc, char **argv) {
     if((temp = strchr(argv[1], ',')) != NULL) {
       *temp = '\0';
       temp++;
-      temp2 = 0;
 
       switch(strlen(temp)) {
         case 1:
