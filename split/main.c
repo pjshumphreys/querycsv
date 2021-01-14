@@ -30,23 +30,17 @@ int main(int argc, char **argv) {
       *temp = '\0';
       temp++;
 
-      switch(strlen(temp)) {
-        case 1:
-          if(!isdigit(temp[0])) {
-            break;
+      if(isdigit(temp[0])) {
+        temp2 = temp[0] - '0';
+
+        if(temp[1]) {
+          if(isdigit(temp[1]) && !temp[2]) {
+            temp2 = (((temp2 << 2) + temp2) << 1) + (temp[1] - '0');
           }
-
-          temp2 = temp[0] - '0';
-        break;
-
-        case 2:
-          if(!(isdigit(temp[0]) && isdigit(temp[1]))) {
-            break;
+          else {
+            temp2 = 0;
           }
-
-          temp2 = temp[0] - '0';
-          temp2 = (((temp2 << 2) + temp2) << 1) + (temp[1] - '0');
-        break;
+        }
       }
     }
 

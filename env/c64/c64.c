@@ -156,13 +156,6 @@ FILE *fopen_c64(const char *filename, const char *mode) {
 
   free(encoded);
 
-  if(retval != NULL && strstr(mode, "R")) {
-    /* skip petscii load address. All files loaded by the c64 build are assumed
-     * to have this. If a file doesn't, add 2 spaces to the beginning of it and they'll be ignored in most cases */
-    fgetc(retval);
-    fgetc(retval);
-  }
-
   return retval;
 }
 

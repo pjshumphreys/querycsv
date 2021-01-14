@@ -19,6 +19,11 @@ int outputSetup(struct qryData *query) {
   /* if we aren't writing to stdout we may need or want to write a byte order mark */
   if(query->outputFile != stdout) {
     switch(query->outputEncoding) {
+      case ENC_PETSCII:
+        /* petscii files have a pseudo load address of 0x801 little endian at the start of the file */
+        fputsEncoded("\x01\x08", query);
+      break;
+
       case ENC_UTF8:
         /* only write the byte order mark if it was requested for utf-8 */
         if(!(query->params & PRM_BOM)) {

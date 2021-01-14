@@ -228,6 +228,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
     }
 
     myfseek(currentInputTable->fileStream, currentInputTable->firstRecordOffset, SEEK_SET);
+    currentInputTable->codepoints[0] = 0;
 
     getNextCodepoint(currentInputTable);
 
