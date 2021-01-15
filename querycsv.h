@@ -119,7 +119,7 @@ as long as the function using them uses the __stdc calling convention */
 #define ENC_UTF32BE 12
 #define ENC_CP1047 13
 #define ENC_ATARIST 14
-#define ENC_PETSCII 15
+#define ENC_PETSCII 15  /* Files in the petscii encoding are treated as always having a two byte header/bom, which is set to 0x01, 0x08 for written files */
 #define ENC_BBC 16
 #define ENC_ZX 17
 /* Tasword 2 file format. Same as the ZX (spectrum) character
@@ -154,9 +154,9 @@ it becomes needed and because it's useful for debugging */
     properly on watcom (to have source compatability with the windows version) */
   #endif
 
-  #include <unistd.h> /* for _chdir */
-  #include <strings.h>
-  #include <locale.h>
+  #include <unistd.h> /* for chdir and getcwd */
+  #include <strings.h>  /* for strcasecmp */
+  #include <locale.h> /* for setlocale, used when compiling with watcom */
 
   /* used as posix doesn't have stricmp */
   #define stricmp strcasecmp
@@ -178,7 +178,7 @@ it becomes needed and because it's useful for debugging */
     #define fprintf fprintf_w32
     #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
-    #include <direct.h>   /* for getcwd */
+    #include <direct.h>   /* for chdir and getcwd */
     void atexit_dos(void);
     int fputs_dos(const char *str, FILE *stream);
     int fprintf_dos(FILE *stream, const char *format, ...);
@@ -427,6 +427,8 @@ Just use long ones for that compiler */
     #define ENC_OUTPUT ENC_TSW
     #define ENC_PRINT ENC_TSW
   #else
+    #include <cpm.h>  /* bdos function */
+    #include <fcntl.h>    /* chdir and getwd functions */
     #include <arch/z80.h> /* needed for AsmCall function and Z80_registers definition */
 
     #define ENC_INPUT ENC_ASCII

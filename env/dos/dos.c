@@ -10,6 +10,7 @@
 #define freeAndZero(p) { free(p); p = 0; }
 
 extern char * devNull;
+extern int origDrive;
 extern char * origWd;
 #ifdef DOS_DAT
   extern FILE * datafile;
@@ -29,6 +30,8 @@ static int newline = FALSE;
 static int consoleEncoding = ENC_UNKNOWN;
 
 void atexit_dos(void) {
+  _chdrive(origDrive);
+
   chdir(origWd);
   freeAndZero(origWd);
 

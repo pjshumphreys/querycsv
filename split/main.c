@@ -81,8 +81,9 @@ int main(int argc, char **argv) {
       /* timezone data to the date functions) */
       setlocale(LC_ALL, TDB_LOCALE);
 
-      /* get the original working directory to be able to */
-      /* revert it if it needs to be changed during runtime */
+      /* get the original drive and working directory to be able */
+      /* to revert them if they need to be changed during runtime */
+      origDrive = _getdrive();
       origWd = getcwd(NULL, PATH_MAX + 1);
 
       #ifdef DOS_DAT

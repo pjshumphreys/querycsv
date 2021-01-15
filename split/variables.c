@@ -15,6 +15,8 @@
   Z80_registers regs;
 
   char **argv_z80;
+
+  char * origWd;
 #endif
 
   /* hash2 helper variables */
@@ -39,7 +41,11 @@ struct hash4Entry entry1Internal = { NULL, 0, 0, 0 };
 struct hash4Entry entry2Internal = { NULL, 0, 0, 0 };
 
 char * devNull = NULL;
-char * origWd = NULL;
+
+#if defined(MICROSOFT) && !defined(WINDOWS) && defined(__WATCOMC__)
+  int origDrive;
+  char * origWd = NULL;
+#endif
 
 /* hash1 helper variables */
 int i;

@@ -60,7 +60,7 @@ printNoFile2:
   defb 0x0e
 
 noopen:
-  defb "Couldn't open "
+  defb "Couldn't find "
 pagename:
   defb "qcsv00zx.ovl", 0, 0
 

@@ -7,8 +7,6 @@ it the same value for both the fcb and msx2 variants */
 
 #define QCSV_NOZ80MALLOC
 #include "../../querycsv.h"
-#include <fcntl.h>
-#include <arch/z80.h>
 
 #define ALL_SEG 0x00  /* Allocate a 16K segment */
 #define FRE_SEG 0x03  /* Free a 16K segment */
@@ -35,8 +33,10 @@ extern int newline;
 extern int currentWaitCursor;
 extern int cursorOutput;
 extern int startOfLine;
-
+extern char *origWd;
 extern Z80_registers regs;
+
+void cleanup_z80(void);
 
 void macYield(void) __z88dk_fastcall {
   const char * spinner = "---ooOOoo";
@@ -88,7 +88,7 @@ void dosload(int pageNumber) __z88dk_fastcall {
   filename[8] = '.';
 
   if((temp = open(filename, O_RDONLY, 0)) == -1) {
-    fputs_z80("Couldn't open ", stderr);
+    fputs_z80("Couldn't find ", stderr);
     fputs_z80(filename, stderr);
     exit(EXIT_FAILURE);
   }
@@ -100,7 +100,48 @@ void dosload(int pageNumber) __z88dk_fastcall {
 /* don't bother to copy the mode parameter as for our purposes
 it will always be a static string */
 FILE * fopen_z80(const char * filename, const char * mode) {
-  return fopen(filename, mode);
+  char* temp = NULL;
+  int retval;
+
+  if(origWd == NULL || strlen(filename) < 2 || filename[0] == '\\') {
+    return fopen(filename, mode);
+  }
+
+  if(filename[1] == ':') {
+    retval = filename[0] & 0xdf;
+
+    if(retval > '@' && retval < '[') {
+      return fopen(filename, mode);
+    }
+  }
+
+  d_sprintf(&temp, "%s%s", origWd, filename);
+
+  retval = fopen(temp, mode);
+
+  freeAndZero(temp);
+
+  return retval;
+}
+
+void atexit_z80(void) {
+  freeAndZero(origWd);
+
+  #ifdef CPM
+    static int temp;
+
+    /* if we are on CP/M or MSX1 then try to find command.com
+    in the current drive and path. If it's not found then
+    change to drive a: before exit */
+    if((temp = open('command.com', O_RDONLY, 0)) == -1) {
+      bdos(CPM_LGIN, 0);
+    }
+    else {
+      close(temp);
+    }
+  #endif
+
+  cleanup_z80();
 }
 
 void free_z80(void *addr) {
@@ -430,6 +471,8 @@ void b(char * string) {
   num = strnicmp(origWd, string, 3);
   num = strlen(string);
   string = strstr(string, origWd);
+  strrchr(string, ',');
+  bdos(CPM_LGIN, 0);
 
   memset(string, 0, 4);
   strcat(string, origWd);

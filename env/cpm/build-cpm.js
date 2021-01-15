@@ -58,6 +58,7 @@ const functionsList = [
   ['atexit', 1, 0x0001, 0x0001, 'farcall2'],
   ['_initMapper', 1, 0x0001, 0x0001, 'farcall2'],
   ['_cleanup_z80', 1, 0x0001, 0x0001, 'farcall2'],
+  ['_atexit_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['fseek', 1, 0x0001, 0x0001, 'farcall2'],
   ['fgetc', 1, 0x0001, 0x0001, 'farcall2'],
   ['ungetc', 1, 0x0001, 0x0001, 'farcall2'],
@@ -67,6 +68,8 @@ const functionsList = [
   ['isspace', 1, 0x0001, 0x0001, 'farcall2'],
   ['isdigit', 1, 0x0001, 0x0001, 'farcall2'],
   ['abs', 1, 0x0001, 0x0001, 'farcall2'],
+  ['bdos', 1, 0x0001, 0x0001, 'farcall2'],
+  ['strrchr_callee', 1, 0x0001, 0x0001, 'farcall2'],
   ['atol', 1, 0x0001, 0x0001, 'farcall2'],
   ['ltoa_callee', 1, 0x0001, 0x0001, 'farcall2'],
   ['ftoa', 1, 0x0001, 0x0001, 'farcall2']

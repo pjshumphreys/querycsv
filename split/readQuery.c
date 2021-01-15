@@ -16,44 +16,46 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   /* read the query file and create the data structures we'll need */
   /* ///////////////////////////////////////////////////////////// */
 
-  #if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) && !(defined(EMSCRIPTEN) || defined(MPW_C))
+  #if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) || defined(CPM) || defined(MSX) && !(defined(EMSCRIPTEN) || defined(MPW_C))
     size_t strSize = 0;
     int c;
 
     MAC_YIELD
 
-    /* if the input file can't be rewound then load it into a string then read from that instead */
-    if(queryType == 1 && (queryFile = fopen(origFileName, fopen_read))) {
-      if(fseek(queryFile, 0, SEEK_SET)) {
-        queryType = 0;
-
-        while((c = fgetc(queryFile)) != EOF) {
-          strAppend(c, &queryFileName, &strSize);
-        }
-
-        strAppend(0, &queryFileName, &strSize);
-
-        origFileName = queryFileName;
-      }
-
-      fclose(queryFile);
-    }
-  #else
-    MAC_YIELD
-  #endif
-
-  if(queryType == 1) {
-    #if (defined(MICROSOFT) || defined(__unix__) || defined(__LINUX__)) && !(defined(EMSCRIPTEN) || defined(MPW_C))
+    if(queryType == 1) {
       /* on windows or posix change the current directory so filenames in the query file are relative to it */
       if(!d_fullpath(origFileName, &queryFileName)) {
         fputs(TDB_COULDNT_OPEN_INPUT, stderr);
         return EXIT_FAILURE;
       }
-    #else
-      queryFileName = mystrdup(origFileName);
-    #endif
 
-    /* attempt to open the input file */
+      /* if the input file can't be rewound then load it into a string then read from that instead */
+      if((queryFile = fopen(queryFileName, fopen_read))) {
+        if(fseek(queryFile, 0, SEEK_SET)) {
+          queryType = 0;
+
+          freeAndZero(queryFileName);
+
+          while((c = fgetc(queryFile)) != EOF) {
+            strAppend(c, &queryFileName, &strSize);
+          }
+
+          strAppend(0, &queryFileName, &strSize);
+
+          origFileName = queryFileName;
+        }
+
+        fclose(queryFile);
+      }
+    }
+  #else
+    MAC_YIELD
+
+    queryFileName = mystrdup(origFileName);
+  #endif
+
+  /* attempt to open the input file */
+  if(queryType == 1) {
     queryFile = skipBom(queryFileName, &offset, &initialEncoding);
 
     if(queryFile == NULL) {

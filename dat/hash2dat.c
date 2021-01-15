@@ -40,18 +40,13 @@ void openDat(void) {
   char * result = NULL;
   char * filename = NULL;
 
-  if(origWd == NULL) {
-    datafile = fopen(datName, "rb");
+  datafile = fopen(datName, "rb");
 
-    if(datafile != NULL) {
-      return;
-    }
+  if(datafile != NULL) {
+    return;
+  }
 
-    result = mystrdup(""); /* Look in the root directory of the current drive */
-  }
-  else {
-    result = mystrdup(origWd);
-  }
+  result = mystrdup(""); /* Look in the root directory of the current drive */
 
   /* search the path for the data file if its not found in the current working directory */
   if(datafile == NULL) {
@@ -79,7 +74,7 @@ void openDat(void) {
   }
 
   if(datafile == NULL) {
-    fprintf(stderr, "Couldn't open %s\n", datName);
+    fprintf(stderr, "Couldn't find %s\n", datName);
     exit(EXIT_FAILURE);
   }
 }
