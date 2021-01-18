@@ -27,6 +27,10 @@
   struct heapInternal myHeap;
   struct heapItem * current;
   struct heapItem * next;
+
+  void * loc_output;
+  int loc_type;
+  char * loc_format;
 #else
   /* hash2 helper variables */
   long codepoints[18];

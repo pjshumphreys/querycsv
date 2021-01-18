@@ -12,9 +12,6 @@
 #include <string.h>
 #include <time.h>
 
-#define __Z88DK_R2L_CALLING_CONVENTION /* Makes varargs kinda work on Z88DK
-as long as the function using them uses the __stdc calling convention */
-
 #include <stdarg.h>
 
 #if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
@@ -406,7 +403,7 @@ Just use long ones for that compiler */
 
   FILE * fopen_z80(const char * filename, const char * mode);
   int fputs_z80(const char * str, FILE * stream);
-  int fprintf_z80(int type, void * output, char * format, ...) __stdc;
+  int fprintf_z80(char * dummy, ...) __smallc;
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -450,8 +447,14 @@ Just use long ones for that compiler */
     #define strtod strtod_z80
 
     #define fopen fopen_z80
-    #define fprintf(...) fprintf_z80(1, (void *) __VA_ARGS__)
-    #define YYFPRINTF(...) fprintf_z80(1, (void *) __VA_ARGS__)   /* for the bison parser */
+    #define fprintf(stream, format, ...) loc_type = 1; \
+    loc_output = (void*)(stream); \
+    loc_format = format; \
+    fprintf_z80(NULL, __VA_ARGS__)
+    #define YYFPRINTF(stream, format, ...) loc_type = 1; \
+    loc_output = (void *)(stream); \
+    loc_format = format; \
+    fprintf_z80(NULL, __VA_ARGS__)   /* for the bison parser */
     #undef fputs
     #define fputs fputs_z80
 
@@ -482,7 +485,10 @@ Just use long ones for that compiler */
   /* on z88dk, the __stdc calling convention modifier is necessary to make
   functions that use varargs work correctly */
   /* we redirect d_sprintf to a macro so it can reside in the libc page and share code with fprintf */
-  #define d_sprintf(...) fprintf_z80(0, (void *) __VA_ARGS__)
+  #define d_sprintf(output, format, ...) loc_type = 0; \
+    loc_output = (void*)(output); \
+    loc_format = format; \
+    fprintf_z80(NULL, __VA_ARGS__)
 
   /* z88dk's varargs never works properly for longs in user written functions,
     but it does have a non standardized ltoa function which works. Use a macro

@@ -25,7 +25,7 @@ recompile the cc65 standard library, so the format specifiers need to be in uppe
 #define TDB_PARSER_USED_ALL_RAM "Parsing the input file used up all memory storage space\n"
 #define TDB_PARSER_UNKNOWN "An unknown error occurred when parsing the input file\n"
 #define TDB_LEX_FAILED "input in flex scanner failed"
-#define TDB_LEX_UNTERMINATED "Unterminated string on line " S_STRING " (" S_STRING ")\n", (char *)(&lineNoBuf), text
+#define TDB_LEX_UNTERMINATED "Unterminated string on line " S_STRING " (" S_STRING ")\n"
 #define TDB_MALLOC_FAILED mallocFail
 #define TDB_MALLOC_FAILED3 TDB_MALLOC_FAILED, 1, 33
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"

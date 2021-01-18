@@ -4,5 +4,5 @@ void yyerror2(long lineno, char *text) {
 
   myltoa(&lineNoBuf, lineno);
 
-  fprintf(stderr, TDB_LEX_UNTERMINATED);
+  fprintf(stderr, TDB_LEX_UNTERMINATED, (char *)(&lineNoBuf), text);
 }

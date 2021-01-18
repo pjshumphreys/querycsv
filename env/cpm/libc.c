@@ -102,10 +102,14 @@ it will always be a static string */
 FILE * fopen_z80(const char * filename, const char * mode) {
   char* temp = NULL;
   int retval;
+  int nameLen = strlen(filename);
+  int wdLen;
 
-  if(origWd == NULL || strlen(filename) < 2 || filename[0] == '\\') {
+  if(origWd == NULL || nameLen < 2 || filename[0] == '\\' || (!stricmp("qrycsv00.ovl", filename))) {
     return fopen(filename, mode);
   }
+
+  wdLen = strlen(origWd);
 
   if(filename[1] == ':') {
     retval = filename[0] & 0xdf;
@@ -115,7 +119,11 @@ FILE * fopen_z80(const char * filename, const char * mode) {
     }
   }
 
-  d_sprintf(&temp, "%s%s", origWd, filename);
+  /* join the virtual working directory to the specified filename */
+  reallocMsg(&temp, nameLen+wdLen+1);
+  strcpy(temp, origWd);
+  strcpy(temp+wdLen, filename);
+  temp[nameLen+wdLen] = '\0';
 
   retval = fopen(temp, mode);
 
@@ -208,22 +216,33 @@ int fputs_z80(const char * ptr, FILE * stream) {
   return tot;
 }
 
-/* fprintf_z80/d_sprintf unified with variadic macros to save space */
-int fprintf_z80(int type, void * output, char *format, ...) __stdc {
+/*
+  fprintf_z80/d_sprintf unified with variadic macros to save space.
+  We have to use __smallc and use custom varargs macros to
+  successfully make calls to vsnprintf on z88dk.
+*/
+int fprintf_z80(char *dummy, ...) __smallc {
+  int argc = getarg();
+  va_list args = &argc;
+  args += (argc << 1);
+
+  va_list args2;
+
+  va_copy(args2, args);
+
   size_t newSize;
   char *newStr;
-  va_list args;
 
   /* Check sanity of inputs */
-  if(format == NULL) {
+  if(loc_format == NULL) {
     return FALSE;
   }
 
   newStr = NULL;
 
   /* get the space needed for the new string */
-  va_start(args, format);
-  newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+
+  newSize = (size_t)(vsnprintf(NULL, 0, loc_format, args)); /* plus '\0' */
   va_end(args);
 
   /* Create a new block of memory with the correct size rather than using realloc */
@@ -233,20 +252,19 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   }
 
   /* do the string formatting for real. */
-  va_start(args, format);
-  vsnprintf(newStr, newSize + 1, format, args);
-  va_end(args);
+  vsnprintf(newStr, newSize + 1,  loc_format, args2);
+  va_end(args2);
 
   //ensure null termination of the string
   newStr[newSize] = '\0';
 
-  if(type) {
-    fputs_z80(newStr, (FILE *)output);
+  if(loc_type) {
+    fputs_z80(newStr, (FILE *)loc_output);
     free_z80(newStr);
     return newSize;
   }
 
-  (char **)(*output) = newStr;
+  ((char *)loc_output) = newStr;
   return TRUE;
 }
 
@@ -473,6 +491,7 @@ void b(char * string) {
   string = strstr(string, origWd);
   strrchr(string, ',');
   bdos(CPM_LGIN, 0);
+  vsnprintf(NULL, 0, "%s%ld%d", NULL);
 
   memset(string, 0, 4);
   strcat(string, origWd);
