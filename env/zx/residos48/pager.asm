@@ -89,7 +89,7 @@ farcall:
   ld hl, (hlBackup)
   ret
 
-INCLUDE "../common/spinner.inc"
+INCLUDE "../common/spinner.asm"
 
 farcall2:
   ; backup registers

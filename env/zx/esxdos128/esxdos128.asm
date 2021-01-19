@@ -170,10 +170,10 @@ startup3:
   ld hl, jp_rom3
   ld (fputc_cons+1), hl ; put jp_rom3 address here
 
-  ld a, 0xc3
-  ld (_logNum), a ; put jp instruction into the _logNum location
-  ld hl, serialLnHL
-  ld (_logNum+1), hl
+;  ld a, 0xc3
+;  ld (_logNum), a ; put jp instruction into the _logNum location
+;  ld hl, serialLnHL
+;  ld (_logNum+1), hl
 
   ld a, 0xc3
   ld (_toggleSpinner), a ; put jp instruction into the _toggleSpinner location

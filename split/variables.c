@@ -28,6 +28,10 @@
   struct heapItem * current;
   struct heapItem * next;
 
+  /*
+    fprintf_z80 parameters, using global variables
+    as varargs functions on z88dk are fairly broken.
+  */
   void * loc_output;
   int loc_type;
   char * loc_format;

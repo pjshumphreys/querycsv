@@ -469,7 +469,8 @@ void reallocMsg(void **mem, size_t size) {
   }
 }
 
-void b(char * string) {
+void b(void) {
+  char * string;
   double d;
 
   FILE* test;
@@ -477,25 +478,25 @@ void b(char * string) {
   unsigned long num2;
 
   num = atol(string);
-  ftoa(origWd, num, d);
-  ltoa(num2, origWd, num);
+  ftoa(string, num, d);
+  ltoa(num2, string, num);
 
   abs(num);
-  strcpy(string, origWd);
-  strncpy(string, origWd, 3);
-  num = strcmp(origWd, string);
-  num = stricmp(origWd, string);
-  num = strncmp(origWd, string, 3);
-  num = strnicmp(origWd, string, 3);
+  strcpy(string, string);
+  strncpy(string, string, 3);
+  num = strcmp(string, string);
+  num = stricmp(string, string);
+  num = strncmp(string, string, 3);
+  num = strnicmp(string, string, 3);
   num = strlen(string);
-  string = strstr(string, origWd);
+  string = strstr(string, string);
   strrchr(string, ',');
   bdos(CPM_LGIN, 0);
   vsnprintf(NULL, 0, "%s%ld%d", NULL);
 
   memset(string, 0, 4);
-  strcat(string, origWd);
-  strncat(string, origWd, 3);
+  strcat(string, string);
+  strncat(string, string, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 

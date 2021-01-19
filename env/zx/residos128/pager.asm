@@ -46,9 +46,9 @@ farcall:
   pop hl
 
   ld e, (hl)
-  ld c, (hl)
-  ld b, 0
-  call serialLnBC
+;  ld c, (hl)
+;  ld b, 0
+;  call serialLnBC
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -61,10 +61,10 @@ farcall:
 
   ld bc, lookupTable
   add hl, bc
-  ld c, (hl)
-  inc hl
-  ld b, (hl)
-  call serialLnBC
+;  ld c, (hl)
+;  inc hl
+;  ld b, (hl)
+;  call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later
@@ -88,9 +88,9 @@ farcall:
   ld hl, (hlBackup)
   ret
 
-INCLUDE "../common/serialLnBC.inc"
+;INCLUDE "../common/serialLnBC.asm"
 
-INCLUDE "../common/spinner.inc"
+INCLUDE "../common/spinner.asm"
 
 farcall2:
   ; backup registers
@@ -114,9 +114,9 @@ farcall2:
   call updateSpinner
   pop hl
   ld e, 3
-  ld c, 3
-  ld b, 0
-  call serialLnBC
+;  ld c, 3
+;  ld b, 0
+;  call serialLnBC
 
   ;calculate which value in the jump table to use
   or a ; clear carry bit
@@ -130,10 +130,10 @@ farcall2:
   ld bc, lookupTable
   add hl, bc
 
-  ld c, (hl)
-  inc hl
-  ld b, (hl)
-  call serialLnBC
+;  ld c, (hl)
+;  inc hl
+;  ld b, (hl)
+;  call serialLnBC
   pop af
 
   push bc ; store the address of the function to call on the stack for later

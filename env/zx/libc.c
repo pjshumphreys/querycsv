@@ -163,14 +163,25 @@ void free_z80(void *addr) {
   myHeap.nextFree = current;
 }
 
-/* fprintf_zx/d_sprintf unified with variadic macros to save space */
-int fprintf_z80(int type, void * output, char *format, ...) __stdc {
+/*
+  fprintf_z80/d_sprintf unified with variadic macros to save space.
+  We have to use __smallc and use custom varargs macros to
+  successfully make calls to vsnprintf on z88dk.
+*/
+int fprintf_z80(char *dummy, ...) __smallc {
+  int argc = getarg();
+  va_list args = &argc;
+  args += (argc << 1);
+
+  va_list args2;
+
+  va_copy(args2, args);
+
   size_t newSize;
   char *newStr;
-  va_list args;
 
   /* Check sanity of inputs */
-  if(format == NULL) {
+  if(loc_format == NULL) {
     return FALSE;
   }
 
@@ -189,8 +200,8 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   newStr = NULL;
 
   /* get the space needed for the new string */
-  va_start(args, format);
-  newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+
+  newSize = (size_t)(vsnprintf(NULL, 0, loc_format, args)); /* plus '\0' */
   va_end(args);
 
   /* Create a new block of memory with the correct size rather than using realloc */
@@ -200,20 +211,20 @@ int fprintf_z80(int type, void * output, char *format, ...) __stdc {
   }
 
   /* do the string formatting for real. */
-  va_start(args, format);
-  vsnprintf(newStr, newSize + 1, format, args);
-  va_end(args);
+  vsnprintf(newStr, newSize + 1,  loc_format, args2);
+  va_end(args2);
 
-  if(type) {
-    fwrite_zx(newStr, 1, newSize, (FILE *)output);
+  if(loc_type) {
+    fwrite_zx(newStr, 1, newSize, (FILE *)loc_output);
 
     free_z80(newStr);
 
     return newSize;
   }
 
+  /* ensure null termination of the string */
   newStr[newSize] = '\0';
-  (char **)(*output) = newStr;
+  ((char *)loc_output) = newStr;
   return TRUE;
 }
 
@@ -422,9 +433,8 @@ void reallocMsg(void **mem, size_t size) {
   }
 }
 
-void b(char * string, unsigned char * format, ...) {
-  va_list args;
-  va_list args2;
+int main(int argc, char * argv[]) {
+  char * string = NULL;
   double d;
 
   FILE* test;
@@ -432,68 +442,37 @@ void b(char * string, unsigned char * format, ...) {
   unsigned long num2;
 
   num = atol(string);
-  ftoa(origWd, num, d);
-  ltoa(num2, origWd, num);
+  ftoa(string, num, d);
+  ltoa(num2, string, num);
 
-  /* string = malloc(1); */
-  /* free(string); */
-  /* string = calloc(1, 3); */
-  /* string = realloc(string, 5); */
   abs(num);
-  strcpy(string, origWd);
-  strncpy(string, origWd, 3);
-  num = strcmp(origWd, string);
-  num = stricmp(origWd, string);
-  num = strncmp(origWd, string, 3);
-  num = strnicmp(origWd, string, 3);
+  strcpy(string, string);
+  strncpy(string, string, 3);
+  num = strcmp(string, string);
+  num = stricmp(string, string);
+  num = strncmp(string, string, 3);
+  num = strnicmp(string, string, 3);
   num = strlen(string);
-  string = strstr(string, origWd);
+  string = strstr(string, string);
 
   memset(string, 0, 4);
-  strcat(string, origWd);
-  strncat(string, origWd, 3);
+  strcat(string, string);
+  strncat(string, string, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
 
-  /* fprintf(test, origWd, 1); */
-  /* fputs(origWd, test); */
-
-  /* test = fopen(origWd, "rb"); */
   fseek(test, 9, SEEK_SET);
   clearerr(test);
   num = fclose(test);
-  /* fread(string, 2, 2, stdin); */
   num = fgetc(stdin);
   ungetc(num, stdin);
   num = feof(stdin);
-  /* fwrite(string, 1, 1, stdout); */
   fputc(num, stderr);
-  /* fflush(stdout); */
-  sprintf(string, origWd, num);
+  sprintf(string, string, num);
   isspace(num);
   isdigit(num);
 
-  fprintf(stdout, string, format, args);
-
-  va_start(args, format);
-  vfprintf(string, format, args);
-  va_end(args);
-
-  va_start(args2, format);
-  vsnprintf(string, 2, format, args2);
-  va_end(args2);
-
-  /* free(string); */
-}
-
-int main(int argc, char * argv[]) {
-  /*
-    mallinit();
-    sbrk(24000, 4000);
-  */
-
-  origWd = "%d";
-  b(origWd, (unsigned char *)origWd);
+  vsnprintf(NULL, 0, "%s%ld%d", NULL);
 
   return 0;
 }
