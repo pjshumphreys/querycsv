@@ -224,7 +224,8 @@ int fprintf_z80(char *dummy, ...) __smallc {
 
   /* ensure null termination of the string */
   newStr[newSize] = '\0';
-  ((char *)loc_output) = newStr;
+
+  *((char **)loc_output) = newStr;
   return TRUE;
 }
 

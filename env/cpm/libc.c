@@ -264,7 +264,7 @@ int fprintf_z80(char *dummy, ...) __smallc {
     return newSize;
   }
 
-  ((char *)loc_output) = newStr;
+  *((char **)loc_output) = newStr;
   return TRUE;
 }
 
