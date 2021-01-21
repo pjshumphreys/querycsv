@@ -6,12 +6,12 @@ qcsv04zx.ovl: esxdos48.asm pager.bin
 	dd if=/dev/zero bs=1 count=`ls -nl qcsv04zx.ovl | awk '{print 16384 - $$5}'` >> qcsv04zx.ovl
 
 pager.bin: pager.asm page2page.bin pages.inc lookupTable.inc data.bin functions.inc defines.inc
-	z80asm -b -r=49152 pager.asm
-	z80asm -m -b -r=`ls -nl pager.bin | awk '{print 48352 - $$5}'` pager.asm
+	z88dk-z80asm -b -r=49152 pager.asm
+	z88dk-z80asm -m -b -r=`ls -nl pager.bin | awk '{print 48352 - $$5}'` pager.asm
 	-awk '{print $$1, "equ", $$3}' pager.map > pager.inc
 
 page2page.bin: page2page.asm
-	z80asm -m -b page2page.asm
+	z88dk-z80asm -m -b page2page.asm
 	-awk '{print $$1, "equ", $$3}' page2page.map > page2page.inc
 
 pages.inc:
@@ -21,7 +21,7 @@ lookupTable.inc:
 	cp ../common/lookupTable.txt lookupTable.inc
 
 data.bin:
-	z80asm -b -o=data.bin ../stdio.asm
+	z88dk-z80asm -b -o=data.bin ../stdio.asm
 
 functions.inc:
 	cp ../common/functions.txt functions.inc

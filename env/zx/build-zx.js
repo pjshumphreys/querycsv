@@ -370,14 +370,14 @@ function addROData () {
     'mv build/i_1hash4*.asm build/ro/'
   );
 
-  execSync('z80asm -b build/rodata.asm');
+  execSync('z88dk-z80asm -b build/rodata.asm');
 
   rodataSize = fs.statSync('build/rodata.bin').size;
   pageSize = /*16644*/16383 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
-  execSync(`z80asm -b -m -r=${65536 - rodataSize} build/rodata.asm`);
+  execSync(`z88dk-z80asm -b -m -r=${65536 - rodataSize} build/rodata.asm`);
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
@@ -494,13 +494,13 @@ function getFunctionSizes () {
   execSync('rm build/s/compareCodepoints.asm');
 
   /* compile the data immediately above the function jump table */
-  execSync('z80asm -b -r=49152 build/data.asm');
+  execSync('z88dk-z80asm -b -r=49152 build/data.asm');
 
   spawnSync(
     'sh',
     [
       '-c',
-      "z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + (currentAddr + 3) + " - $5}'` build/data.asm"
+      "z88dk-z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + (currentAddr + 3) + " - $5}'` build/data.asm"
     ],
     {
       stdio: 'inherit'
