@@ -338,14 +338,7 @@ extern char **argv_z80;
 void atexit_z80(void);
 
 void setupZ80(int * argc, char *** argv) {
-  int start;
-  char i, j;
-  int sizeNeeded;
-  int notInQuotes = TRUE;
-  int maybeNewField = TRUE;
-  int argc_z80 = 0;
   static char length;
-  char* test;
 
   /* initialise variables needed by z88dk's libc */
   myhand_status = 3;
@@ -367,11 +360,17 @@ void setupZ80(int * argc, char *** argv) {
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
-  sbrk_z80(0x8000, (*((int *)(0x0006)))-0x8001);
+  sbrk_z80(0x8000, -0x8001 + ((*((char *)(0x0007))) << 8));
 
   /* reset the command line args and process them ourselves */
-  sizeNeeded = (*((char*)(0x0080)))+1;
-  test = ((char *)(0x0081));
+  int sizeNeeded = (*((char*)(0x0080)))+1;
+  char * test = ((char *)(0x0081));
+
+  int notInQuotes = TRUE;
+  int maybeNewField = TRUE;
+  int argc_z80 = 0;
+
+  char i, j;
 
   /* cut up the string. Behaviour should be as described on "the old new thing" */
   if(sizeNeeded) {
