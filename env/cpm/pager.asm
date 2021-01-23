@@ -215,7 +215,7 @@ changePage:  ; is the virtual page currently in a ram page?
   ld a, (_hasMapper)
   or a
   jr z, notFound
-  ld bc, pageLocations
+  ld bc, pageLocations-1
   xor a
   add hl, bc
   ld a, (hl)

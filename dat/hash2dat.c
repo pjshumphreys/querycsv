@@ -3,13 +3,9 @@
 
 #define DATDEBUG 0
 #if DATDEBUG
-  char longBuf[12]; /* cater for z88dk's broken varargs */
-
   #define printfd(...) fprintf(stdout, __VA_ARGS__)
-  #define printLong(n) { myltoa(&longBuf, n); fputs(&longBuf, stdout); }
 #else
   #define printfd(...)
-  #define printLong(n)
 #endif
 
 void isInHash2_0(void) {
@@ -35,7 +31,7 @@ void isInHash2_0(void) {
 FILE* datafile = NULL;
 
 void openDat(void) {
-  char * datName = "qrycsv00.ovl";
+  static const char * datName = "qrycsv00.ovl";
   char * path = NULL;
   char * result = NULL;
   char * filename = NULL;
@@ -46,20 +42,16 @@ void openDat(void) {
     return;
   }
 
-  result = mystrdup(""); /* Look in the root directory of the current drive */
+  #ifndef __Z88DK
+    /* search the path for the data file if its not found in the current working directory */
+    if(datafile == NULL) {
+      result = mystrdup(""); /* Look in the root directory of the current drive */
 
-  /* search the path for the data file if its not found in the current working directory */
-  if(datafile == NULL) {
-    do {
-      d_sprintf(&filename, "%s\\%s", result, datName);
-      datafile = fopen(filename, "rb");
-      freeAndZero(filename);
+      do {
+        d_sprintf(&filename, "%s\\%s", result, datName);
+        datafile = fopen(filename, "rb");
+        freeAndZero(filename);
 
-      /* z88dk doesn't have getenv. just quit without iterating over the PATH */
-      #ifdef __Z88DK
-        freeAndZero(result);
-        break;
-      #else
         if(
           datafile != NULL ||
           (path == NULL && (path = getenv("PATH")) == NULL)
@@ -69,9 +61,9 @@ void openDat(void) {
         }
 
         d_strtok(&result, ";", &path);
-      #endif
-    } while (result != NULL);
-  }
+      } while (result != NULL);
+    }
+  #endif
 
   if(datafile == NULL) {
     fprintf(stderr, "Couldn't find %s\n", datName);
@@ -96,29 +88,20 @@ void isInHash2_1(void) {
 
   do {
     /* get the current codepoint */
-    printfd("1 ");
-    printLong(current);
-    printfd(" ");
+    printfd("1 %ld ", current);
 
     fread(&current, sizeof(int32_t), 1, datafile);
 
-    printLong(current);
-    printfd(" ");
-    printLong(lookFor);
-    printfd("\n");
+    printfd("%ld %ld\n", current, lookFor);
 
     if(current == lookFor) {
       /* skip left value */
       fread(&current, sizeof(int32_t), 1, datafile);
-      printfd("2 ");
-      printLong(current);
-      printfd("\n");
+      printfd("2 %ld\n", current);
 
       /* skip right value */
       fread(&current, sizeof(int32_t), 1, datafile);
-      printfd("3 ");
-      printLong(current);
-      printfd("\n");
+      printfd("3 %ld\n", current);
 
       /* read length */
       fread(&shortVar, 1, 1, datafile);
@@ -129,9 +112,7 @@ void isInHash2_1(void) {
       for(length = 0; length != entry.length; length++) {
         fread(&current, sizeof(int32_t), 1, datafile);
 
-        printfd("5 ");
-        printLong(current);
-        printfd("\n");
+        printfd("5 %ld\n", current);
         codepoints[length] = current;
       }
 
@@ -141,9 +122,7 @@ void isInHash2_1(void) {
     else if(current > lookFor) {
       /* read left value */
       fread(&current, sizeof(int32_t), 1, datafile);
-      printfd("6 ");
-      printLong(current);
-      printfd("\n");
+      printfd("6 %ld\n", current);
 
       if(current == -1) {
         /* the value we're looking for isn't in the tree */
@@ -156,15 +135,11 @@ void isInHash2_1(void) {
     else {
       /* skip left value */
       fread(&current, sizeof(int32_t), 1, datafile);
-      printfd("7 ");
-      printLong(current);
-      printfd("\n");
+      printfd("7 %ld\n", current);
 
       /* read right value */
       fread(&current, sizeof(int32_t), 1, datafile);
-      printfd("8 ");
-      printLong(current);
-      printfd("\n");
+      printfd("8 %ld\n", current);
 
       if(current == -1) {
         /* the value we're looking for isn't in the tree */
@@ -181,9 +156,7 @@ void isInHash2_1(void) {
 
     #if DATDEBUG
       for(i = 0; i < length; i++) {
-        printfd("codepoint %d: ", i);
-        printLong(codepoints[i]);
-        printfd("\n");
+        printfd("codepoint %d: %ld\n", i, codepoints[i]);
       }
     #endif
 

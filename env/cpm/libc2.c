@@ -358,13 +358,20 @@ void setupZ80(int * argc, char *** argv) {
   cursorOutput = FALSE;
   startOfLine = TRUE;
 
+
+  unsigned char * test = ((unsigned char *)(0x0007));
+  if(*test < 0x89) {
+    fputs_z80("Not enough memory", stderr);
+    exit(-1);
+  }
+
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
-  sbrk_z80(0x8000, -0x8001 + ((*((char *)(0x0007))) << 8));
+  sbrk_z80(0x8000, -0x8001 + (((*test)-2) << 8)); /* use 2 kb for the stack , the rest of memory above 0x8000 for the heap */
 
   /* reset the command line args and process them ourselves */
   int sizeNeeded = (*((char*)(0x0080)))+1;
-  char * test = ((char *)(0x0081));
+  test = ((unsigned char *)(0x0081));
 
   int notInQuotes = TRUE;
   int maybeNewField = TRUE;

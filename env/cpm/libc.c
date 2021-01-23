@@ -101,11 +101,24 @@ void dosload(int pageNumber) __z88dk_fastcall {
 it will always be a static string */
 FILE * fopen_z80(const char * filename, const char * mode) {
   char* temp = NULL;
-  int retval;
+  int retval = 0;
   int nameLen = strlen(filename);
-  int wdLen;
+  int wdLen = 0;
 
-  if(origWd == NULL || nameLen < 2 || filename[0] == '\\' || (!stricmp("qrycsv00.ovl", filename))) {
+  if(origWd == NULL) {
+    retval = 1;
+  }
+  else if(nameLen < 2) {
+    retval = 1;
+  }
+  else if(filename[0] == '\\') {
+    retval = 1;
+  }
+  else if(stricmp("qrycsv00.ovl", filename) == 0) {
+    retval = 1;
+  }
+
+  if(retval) {
     return fopen(filename, mode);
   }
 

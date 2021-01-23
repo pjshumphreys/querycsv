@@ -288,13 +288,13 @@ function compileHash4a () {
       's/static unsigned short/' +
         'static const unsigned short/gi;' +
       's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
-        'while(len \\&\\& *str \\&\\& (*str == *s)) { ++str; ++s; --len; } if(len == 0 \\&\\& *s/gi;' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
       's/return \\&wordlist\\[key\\];/' +
-        '{' +
-          'hash4export.script = wordlist[key].script;' +
-          'hash4export.index = wordlist[key].index;' +
-          'hash4export.isNotLower = wordlist[key].isNotLower;' +
-          'return \\&hash4export;' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return \\&hash4export;\\n' +
         '}/gi;' +
     '" hash4a.c > build/hash4a.c'
   );
@@ -318,13 +318,13 @@ function compileHash4b () {
       's/static unsigned short/' +
         'static const unsigned short/gi;' +
       's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
-        'while(len \\&\\& *str \\&\\& (*str == *s)) { ++str; ++s; --len; } if(len == 0 \\&\\& *s/gi;' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
       's/return \\&wordlist\\[key\\];/' +
-        '{' +
-          'hash4export.script = wordlist[key].script;' +
-          'hash4export.index = wordlist[key].index;' +
-          'hash4export.isNotLower = wordlist[key].isNotLower;' +
-          'return \\&hash4export;' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return \\&hash4export;\\n' +
         '}/gi;' +
     '" hash4b.c > build/hash4b.c'
   );
@@ -348,13 +348,13 @@ function compileHash4c () {
       's/static unsigned short/' +
         'static const unsigned short/gi;' +
       's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
-        'while(len \\&\\& *str \\&\\& (*str == *s)) { ++str; ++s; --len; } if(len == 0 \\&\\& *s/gi;' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
       's/return \\&wordlist\\[key\\];/' +
-        '{' +
-          'hash4export.script = wordlist[key].script;' +
-          'hash4export.index = wordlist[key].index;' +
-          'hash4export.isNotLower = wordlist[key].isNotLower;' +
-          'return \\&hash4export;' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return \\&hash4export;\\n' +
         '}/gi;' +
     '" hash4c.c > build/hash4c.c'
   );
