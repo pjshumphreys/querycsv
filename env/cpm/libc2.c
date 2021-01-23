@@ -360,14 +360,14 @@ void setupZ80(int * argc, char *** argv) {
 
 
   unsigned char * test = ((unsigned char *)(0x0007));
-  if(*test < 0x89) {
+  if(*test < 0xC0) {
     fputs_z80("Not enough memory", stderr);
     exit(-1);
   }
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
-  sbrk_z80(0x8000, -0x8001 + (((*test)-2) << 8)); /* use 2 kb for the stack , the rest of memory above 0x8000 for the heap */
+  sbrk_z80(0x8000, 16384);
 
   /* reset the command line args and process them ourselves */
   int sizeNeeded = (*((char*)(0x0080)))+1;
