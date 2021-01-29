@@ -61,9 +61,9 @@ farcall:
 
   ld bc, lookupTable
   add hl, bc
-;  ld c, (hl)
-;  inc hl
-;  ld b, (hl)
+  ld c, (hl)  ; XX Don't coment out these 3 lines
+  inc hl      ; XX
+  ld b, (hl)  ; XX
 ;  call serialLnBC
   pop af
 
@@ -130,9 +130,9 @@ farcall2:
   ld bc, lookupTable
   add hl, bc
 
-;  ld c, (hl)
-;  inc hl
-;  ld b, (hl)
+  ld c, (hl)  ; XX Don't coment out these 3 lines
+  inc hl      ; XX
+  ld b, (hl)  ; XX
 ;  call serialLnBC
   pop af
 
