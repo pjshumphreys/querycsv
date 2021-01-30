@@ -20,10 +20,11 @@ int main(int argc, char *argv[]) {
   char * firstBlock;
   uint16_t * readBytes;
   int c;
+  uint16_t bytesOut;
 
   FILE * output = NULL;
 
-  temp = 0xBFEF;
+  temp = (char *)(0xBFEF);
 
   clrscr();
 
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
     fputs("Pause!\n", stdout);
 
     firstBlock = temp + strlen(temp) + 1;
-    readBytes = firstBlock + 1;
+    readBytes = (uint16_t *)(firstBlock + 1);
     readBytes2 = *readBytes;
     temp2 = firstBlock + 3;
 
@@ -87,7 +88,15 @@ int main(int argc, char *argv[]) {
       return 0;
     }
 
-    fwrite(temp2, 1, readBytes2, output);
+    if(readBytes2 < 200) {
+      for(bytesOut = 0; bytesOut < readBytes2; bytesOut++) {
+        printf("%03d ", temp2[bytesOut]);
+        fputc(temp2[bytesOut], output);
+      }
+    }
+    else {
+      fwrite(temp2, 1, readBytes2, output);
+    }
 
     /* residos files may need a soft eof */
     if(readBytes2 % 128 != 0) {

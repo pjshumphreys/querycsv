@@ -35,6 +35,7 @@ void getCodepointsPetscii(
   *arrLength = *byteLength = 1;
 
   if((c = fgetc(stream)) == EOF) {
+    *byteLength = 0;
     codepoints[0] = MYEOF;
     return;
   }

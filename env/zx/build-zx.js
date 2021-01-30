@@ -713,7 +713,7 @@ function compileLibC () {
 
     fs.writeFileSync(name + '/functions.inc', functionsList.slice().reverse().map(item =>
       (item[0] === 'main' ? '  PUBLIC _realmain\n_realmain:\n' : '') +
-      '  call ' + item[4] + '\n  defb ' + (item[1] === 3 ? index + 1 : item[1])
+      '  call ' + item[4] + '  ;' + item[0] + '\n  defb ' + (item[1] === 3 ? index + 1 : item[1])
     ).join('\n'));
 
     fs.writeFileSync(name + '/pages.inc', foo);

@@ -1,4 +1,5 @@
-static const unsigned QCSV_SHORT zx[16] = {
+static const unsigned QCSV_SHORT zx[17] = {
+  0x00A9, /* copyright symbol */
   0x25A1, /* white square */
   0x259D, /* Quadrant upper right */
   0x2598, /* Quadrant upper left */
@@ -43,9 +44,8 @@ void getCodepointsZXCommon(
     return;
   }
 
-  c = fgetc(stream);
-
-  if(c == EOF) {
+  if((c = fgetc(stream)) == EOF) {
+    *byteLength = 0;
     codepoints[0] = MYEOF;
     return;
   }
@@ -53,11 +53,6 @@ void getCodepointsZXCommon(
   if(isTsw) {
     if(c == 0x80) {
       codepoints[0] = 0x0A;
-      return;
-    }
-
-    if(c < 0x20) {
-      codepoints[0] = 0x20;
       return;
     }
 
@@ -74,7 +69,7 @@ void getCodepointsZXCommon(
         } return;
 
         default: {
-          codepoints[0] = MYEOF;
+          codepoints[0] = 0x001A; /* Soft EOF */
         } return;
       }
     }
@@ -92,20 +87,14 @@ void getCodepointsZXCommon(
     }
 
     codepoints[0] = (long)c;
+    return;
   }
-  else {
-    if(c > 0x8F) {
-      codepoints[0] = 0xFFFD;
-      return;
-    }
-
-    if(c > 0x7F) {
-      codepoints[0] = zx[c - 0x80];
-      return;
-    }
-
-    codepoints[0] = 0xA9;
+  else if (c < 0x90) {
+    codepoints[0] = zx[c - 0x7f];
+    return;
   }
+
+  codepoints[0] = 0xFFFD;
 }
 
 void getCodepointsZX(
