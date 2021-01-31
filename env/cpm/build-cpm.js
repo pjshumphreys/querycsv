@@ -727,7 +727,7 @@ function compileLibC (pages) {
 
     fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
       (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
-      '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
+      '  call ' + item[4] + '  ;' + item[0] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
     ).join('\n'));
 
     fs.writeFileSync('build/' + name + '/pages.inc', foo);

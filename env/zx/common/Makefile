@@ -1,4 +1,4 @@
-all: querycsv querycsv.tap archive residos.tap plus3dos.tap
+all: querycsv archive residos.tap plus3dos.tap esxdos.tap
 
 querycsv: querycsv.bas
 	./zmakebas -a 10 -n querycsv -p -o querycsv querycsv.bas
@@ -46,6 +46,10 @@ residos.tap: unarchive.c
 plus3dos.tap: unarchive.c
 	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
 	mv a.tap plus3dos.tap
+
+esxdos.tap: unarchive.c
+	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
+	mv a.tap esxdos.tap
 
 clean:
 	rm -f querycsv.bas querycsv querycsv.tap residos.tap plus3dos.tap archive *.bin *.o *.inc *.map

@@ -82,6 +82,9 @@ defaultDrive: ; the default drive letter used by esxdos
 bcBackup:
   defw 0
 
+hlBackup2:
+  defw 0
+
 exhlBackup:
   defw 0
 
@@ -94,7 +97,7 @@ libcRet:  ; backup of the return address when calling a libc function
 ;---------------------------------
 ; call_rom3
 jp_rom3:
-  ld (hlBackup), hl
+  ld (hlBackup2), hl
   pop hl
   push de
   ld e, (hl)
@@ -105,7 +108,7 @@ jp_rom3:
   jr call_rom3b
 
 call_rom3:
-  ld (hlBackup), hl
+  ld (hlBackup2), hl
   pop hl
   push de
   ld e, (hl)
@@ -117,7 +120,7 @@ call_rom3:
   push hl
 
 call_rom3b:
-  ld hl, (hlBackup)
+  ld hl, (hlBackup2)
   push af
   di
   ld a, (basicBank)

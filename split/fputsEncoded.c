@@ -5,19 +5,22 @@ int fputsEncoded(char *str, struct qryData *query) {
   int offset = query->outputOffset;
 
   MAC_YIELD
+
   if(query->outputEncoding == ENC_UTF8 && !(query->params & (PRM_INSERT | PRM_REMOVE))) {
     retval = fputs(str, query->outputFile);
   }
   else switch(query->outputEncoding) {
     /* Tasword 2 format accounting stuff */
     case ENC_TSW: {
-      bytesStored = 0;
-
       /* Tasword 2 is a file only representation. switch to regular zx spectrum format if outputting to the screen */
-      if(query->outputFile == stdout) {
-        encoded = d_charsetEncode(str, ENC_ZX, &bytesStored, query);
+      if(query->outputFile == stdout || query->outputFile == stderr) {
+        encoded = d_charsetEncode(str, ENC_ZX, NULL, query);
+        retval = fputs(encoded, query->outputFile);
+        free(encoded);
       }
       else {
+        bytesStored = 0;
+
         encoded = d_charsetEncode(str, ENC_TSW, &bytesStored, query);
 
         if(bytesStored) { /* 2 if statements here as z88dk can't handle && and || in the same expression */
@@ -51,11 +54,11 @@ int fputsEncoded(char *str, struct qryData *query) {
           fputs(TDB_FILE_SIZE_EXCEEDED, stderr);
           exit(EXIT_FAILURE);
         }
-      }
 
-      strAppend('\0', &encoded, &bytesStored);
-      retval += fputs(encoded, query->outputFile);
-      free(encoded);
+        strAppend('\0', &encoded, &bytesStored);
+        retval = fputs(encoded, query->outputFile);
+        free(encoded);
+      }
     } break;
 
     case ENC_PETSCII: {
@@ -66,8 +69,6 @@ int fputsEncoded(char *str, struct qryData *query) {
     } /* fall thru */
 
     default: {
-      bytesStored = 0;
-
       encoded = d_charsetEncode(str, query->outputEncoding, NULL, query);
       retval += fputs(encoded, query->outputFile);
       free(encoded);

@@ -7,8 +7,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
   int bytesToStore;
   char* bytes = NULL; /* a pointer to constant data *OR* some allocated data for utf-16 */
   char utf16Bytes[4];
-  void (*getBytes)(long, char **, int *);
   size_t temp;
+  void (*getBytes)(long, char **, int *);
 
   MAC_YIELD
 

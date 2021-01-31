@@ -1,17 +1,21 @@
 ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16384 - \$$5}'")
 
-all: querycsv.tap qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl archived.tap
+all: querycsv qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl archived.tap
+
+querycsv:
+	cd common && make
+	cp common/querycsv .
 
 querycsv.tap:
 	cd common && make
 	cp common/querycsv.tap .
-	cp common/querycsv .
 
 archived.tap: qcsv06zx.ovl
 	cp common/archive .
 	cp common/residos.tap .
 	cp common/plus3dos.tap .
-	sh -c "(echo archived.tap > archived.txt) && (ls test2 >> archived.txt) && (ls querycsv >> archived.txt) && (ls querycsv.tap >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archive)"
+	cp common/esxdos.tap .
+	sh -c "(echo archived.tap > archived.txt) && (ls querycsv >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archive)"
 	rm archived.txt
 
 qcsv00zx.ovl: qrycsv00.bin
@@ -27,7 +31,7 @@ qcsv02zx.ovl: qcsv06zx.ovl
 	cp residos48/qcsv02zx.ovl .
 	dd if=build/rodata.bin of=qcsv02zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
 
-qcsv03zx.ovl: querycsv.tap
+qcsv03zx.ovl: qcsv06zx.ovl
 	cd residos128 && make
 	cp residos128/qcsv03zx.ovl .
 	dd if=build/rodata.bin of=qcsv03zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
@@ -42,7 +46,7 @@ qcsv05zx.ovl: qcsv06zx.ovl
 	cp esxdos128/qcsv05zx.ovl .
 	dd if=build/rodata.bin of=qcsv05zx.ovl bs=1 seek=$(ROSIZE) conv=notrunc
 
-qcsv06zx.ovl: querycsv.tap libc.c lexer2.c sql2.c querycsv.c stdio.asm build-zx.js
+qcsv06zx.ovl: querycsv libc.c lexer2.c sql2.c querycsv.c stdio.asm build-zx.js
 	node ./build-zx.js
 	cp build/obj2/*.ovl .
 
