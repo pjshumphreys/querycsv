@@ -1,4 +1,0 @@
-select names
-from 'test.csv' as test encoding 'utf-8'
-order by names
---into 'output.txt'
