@@ -1,11 +1,14 @@
 # Fetch the latest registry of available tools.
-#~/emsdk_portable/emsdk update
+#~/emsdk/emsdk update
 
 # Download and install the latest SDK tools.
-#~/emsdk_portable/emsdk install latest
+#~/emsdk/emsdk install 1.39.10-fastcomp
 
 # Make the "latest" SDK "active"
-#~/emsdk_portable/emsdk activate latest
+#~/emsdk/emsdk activate 1.39.10-fastcomp
+
+# Add the compiler env vars
+#source ~/emsdk/emsdk_env.sh
 
 querycsv.tar.gz: build/appcache.html.gz build/svcworker.min.js build/index.html build/index.html.gz build/worker.min.js build/worker.min.js.gz build/apple-touch-icon-114x114-precomposed.png build/apple-touch-icon-120x120-precomposed.png build/apple-touch-icon-144x144-precomposed.png build/apple-touch-icon-152x152-precomposed.png build/apple-touch-icon-180x180-precomposed.png build/apple-touch-icon-72x72-precomposed.png build/apple-touch-icon-76x76-precomposed.png build/apple-touch-icon-precomposed.png build/touch-icon-192x192.png build/fonts/icomoon.woff build/fonts/icomoon.ttf build/fonts/icomoon.eot build/fonts/icomoon.svg
 	cd build;find * -type f -print0|sort -z| tar --null --owner=0 --group=0 -ncvf ../querycsv.tar.gz -T -
@@ -65,39 +68,39 @@ emcc.js: prefix.js lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c quer
 
 build/apple-touch-icon-114x114-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-114x114-precomposed.png -w 114 -h 114 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-114x114-precomposed.png -w 114 -h 114 icon.svg
 
 build/apple-touch-icon-120x120-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-120x120-precomposed.png -w 120 -h 120 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-120x120-precomposed.png -w 120 -h 120 icon.svg
 
 build/apple-touch-icon-144x144-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-144x144-precomposed.png -w 144 -h 144 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-144x144-precomposed.png -w 144 -h 144 icon.svg
 
 build/apple-touch-icon-152x152-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-152x152-precomposed.png -w 152 -h 152 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-152x152-precomposed.png -w 152 -h 152 icon.svg
 
 build/apple-touch-icon-180x180-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-180x180-precomposed.png -w 180 -h 180 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-180x180-precomposed.png -w 180 -h 180 icon.svg
 
 build/apple-touch-icon-72x72-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-72x72-precomposed.png -w 72 -h 72 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-72x72-precomposed.png -w 72 -h 72 icon.svg
 
 build/apple-touch-icon-76x76-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-76x76-precomposed.png -w 76 -h 76 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-76x76-precomposed.png -w 76 -h 76 icon.svg
 
 build/apple-touch-icon-precomposed.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/apple-touch-icon-precomposed.png -w 57 -h 57 icon.svg
+	inkscape --export-filename=build/apple-touch-icon-precomposed.png -w 57 -h 57 icon.svg
 
 build/touch-icon-192x192.png: icon.svg
 	mkdir -p build
-	inkscape -z --export-file=build/touch-icon-192x192.png -w 192 -h 192 icon.svg
+	inkscape --export-filename=build/touch-icon-192x192.png -w 192 -h 192 icon.svg
 
 build/svcworker.min.js: build/index.html
 	mkdir -p build

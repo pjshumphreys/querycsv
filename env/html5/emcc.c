@@ -3,6 +3,10 @@ output interface is working correctly*/
 
 #include <stdio.h>
 #include <unistd.h>
+#include <setjmp.h>     /* jmp_buf, setjmp, longjmp */
+
+jmp_buf env;
+int retval;
 
 /*the real entry point for the html5 version of querycsv. we can't use main as it's treated specially on emscripten and so can only be called once (on page load which we don't want) */
 int realmain(int argc, char **argv);
@@ -24,9 +28,17 @@ int realmain(int argc, char **argv) {
 }
 //*/
 
+void exit_emcc(int status) {
+  retval = status;
+
+  longjmp(env, 1);
+}
+
 int wrapmain(char *path, char* filename) {
-  int retval;
   static char *argv2[3];
+  int jumpCode = 0;
+
+  retval = 0;
 
   chdir(path);
 
@@ -34,9 +46,11 @@ int wrapmain(char *path, char* filename) {
   argv2[1] = filename;
   argv2[2] = NULL;
 
-  retval = realmain(2, (char**)argv2);
+  jumpCode = setjmp(env);
 
-  fputs("\n", stdout);
+  if(jumpCode == 0) {
+    retval = realmain(2, (char**)argv2);
+  }
 
   return retval;
 }

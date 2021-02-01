@@ -142,7 +142,10 @@ it becomes needed and because it's useful for debugging */
 
 #if defined(__unix__) || defined(__LINUX__)
   #ifdef EMSCRIPTEN
+    void exit_emcc(int status);
+
     #define main realmain
+    #define exit exit_emcc
   #endif
 
   #ifndef __WATCOMC__
