@@ -139,7 +139,7 @@ clean:
 	cd env/riscos/h && find . -maxdepth 1 ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/amiga && rm -rf QueryCSV; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './amiga.c' -exec rm -rf {} \;
 	cd env/atarist && rm -rf querycsv.ttp; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -path './atarist.c' -exec rm -rf {} \;
-	cd env/c64 && rm -rf build crt0.o floatlib/float.o querycsv.crt && find . -maxdepth 1 -type f -iname \*.c ! -name 'c64.c' ! -name 'floatlib.c' ! -name 'hash4a.c' ! -name 'hash4b.c' ! -name 'hash4c.c' ! -name 'lexer2.c' ! -name 'libc.c' ! -name 'sql2.c' -exec rm -rf {} \; && find . -maxdepth 1 -type f -iname \*.h ! -name 'cc65iso.h' -exec rm -rf {} \;
+	cd env/c64 && rm -rf build crt0.o floatlib/float.o querycsv.crt && find . -maxdepth 1 -type f -iname \*.c ! -name 'c64.c' ! -name 'floatlib.c' ! -name 'lexer2.c' ! -name 'libc.c' ! -name 'sql2.c' -exec rm -rf {} \; && find . -maxdepth 1 -type f -iname \*.h ! -name 'cc65iso.h' -exec rm -rf {} \;
 	cd env/zx && make clean && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.bin \) ! -path './lexer2.c' ! -path './sql2.c' ! -path './libc.c' ! -path './libc2.c' -exec rm -rf {} \;
 	cd env/cpm && make clean && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.bin \) ! -path './lexer2.c' ! -path './sql2.c' ! -path './libc.c' ! -path './libc2.c' ! -path './launcher.c' ! -path './launcher2.c' -exec rm -rf {} \;
 

@@ -552,20 +552,28 @@ function compileHash3And4 () {
     'sed -e"' +
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
-      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.isNotLower = wordlist[key].isNotLower;return \\&hash4export;}/gi;' +
+      's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
+      's/return \\&wordlist\\[key\\];/' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return \\&hash4export;\\n' +
+        '}/gi;' +
       '" hash4a.h > hash4a2.h');
 
   execSync(
     'sed -e"' +
-      '1s/^/#include \\"cc65iso.h\\"/;' +
-      '" hash4a.c > hash4a2.c');
+      '1s/^/#include \\"cc65iso.h\\"\\nextern struct hash4Entry hash4export;\\n/;' +
+      '" hash4a2.h > hash4a.c');
 
   execSync(
     'cl65 -T -t c64 ' +
       '-o build/obj2/hash4a.bin ' +
       '-Ln build/obj2/hash4a.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4a2.c build/labels.s;' +
+      'hash4a.c build/labels.s;' +
       'rm *.o');
 
   functionsList[hashMap._in_word_set_a][2] = parseInt(execSync(
@@ -577,20 +585,28 @@ function compileHash3And4 () {
     'sed -e"' +
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
-      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.isNotLower = wordlist[key].isNotLower;return \\&hash4export;}/gi;' +
+      's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
+      's/return \\&wordlist\\[key\\];/' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return \\&hash4export;\\n' +
+        '}/gi;' +
       '" hash4b.h > hash4b2.h');
 
   execSync(
     'sed -e"' +
-      '1s/^/#include \\"cc65iso.h\\"/;' +
-      '" hash4b.c > hash4b2.c');
+      '1s/^/#include \\"cc65iso.h\\"\\nextern struct hash4Entry hash4export;\\n/;' +
+      '" hash4b2.h > hash4b.c');
 
   execSync(
     'cl65 -T -t c64 ' +
       '-o build/obj2/hash4b.bin ' +
       '-Ln build/obj2/hash4b.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4b2.c build/labels.s;' +
+      'hash4b.c build/labels.s;' +
       'rm *.o'
   );
 
@@ -603,20 +619,28 @@ function compileHash3And4 () {
     'sed -e"' +
       's/static struct hash4Entry/static const struct hash4Entry/gi;' +
       's/static unsigned short/static const unsigned short/gi;' +
-      's/return \\&wordlist\\[key\\];/{hash4export.script = wordlist[key].script;hash4export.index = wordlist[key].index;hash4export.isNotLower = wordlist[key].isNotLower;return \\&hash4export;}/gi;' +
+      's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
+      's/return \\&wordlist\\[key\\];/' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return \\&hash4export;\\n' +
+        '}/gi;' +
       '" hash4c.h > hash4c2.h');
 
   execSync(
     'sed -e"' +
-      '1s/^/#include \\"cc65iso.h\\"/;' +
-      '" hash4c.c > hash4c2.c');
+      '1s/^/#include \\"cc65iso.h\\"\\nextern struct hash4Entry hash4export;\\n/;' +
+      '" hash4c2.h > hash4c.c');
 
   execSync(
     'cl65 -T -t c64 ' +
       '-o build/obj2/hash4c.bin ' +
       '-Ln build/obj2/hash4c.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4c2.c build/labels.s;' +
+      'hash4c.c build/labels.s;' +
       'rm *.o'
   );
 
