@@ -1,4 +1,4 @@
-all: querycsv archive residos.tap plus3dos.tap esxdos.tap
+all: querycsv archiver residos.tap plus3dos.tap esxdos.tap
 
 querycsv: querycsv.bas
 	./zmakebas -a 10 -n querycsv -p -o querycsv querycsv.bas
@@ -36,20 +36,17 @@ querycsv.bas: querycsv.bin
 	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "\\{0xBE}23635+256*\\{0xBE}23636+51"\n30 REM' > querycsv.bas
 	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\\\{0x\1\}/g" >> querycsv.bas
 
-archive: archive.c
-	gcc -o archive archive.c
+archiver: archiver.c
+	gcc -o archiver archiver.c
 
-residos.tap: unarchive.c
-	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
-	mv a.tap residos.tap
+residos.tap: unarchiver.c
+	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -o residos -create-app unarchiver.c
 
-plus3dos.tap: unarchive.c
-	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
-	mv a.tap plus3dos.tap
+plus3dos.tap: unarchiver.c
+	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -o plus3dos -create-app unarchiver.c
 
-esxdos.tap: unarchive.c
-	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -create-app unarchive.c
-	mv a.tap esxdos.tap
+esxdos.tap: unarchiver.c
+	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -o esxdos -create-app unarchiver.c
 
 clean:
-	rm -f querycsv.bas querycsv querycsv.tap residos.tap plus3dos.tap archive *.bin *.o *.inc *.map
+	rm -f querycsv.bas querycsv querycsv.tap residos.tap plus3dos.tap esxdos.tap archiver *.bin *.o *.inc *.map

@@ -1,6 +1,6 @@
 ROSIZE=$(shell sh -c "ls -nl build/rodata.bin | awk '{print 16384 - \$$5}'")
 
-all: querycsv qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl archived.tap
+all: querycsv qcsv00zx.ovl qcsv01zx.ovl qcsv02zx.ovl qcsv03zx.ovl qcsv04zx.ovl qcsv05zx.ovl archive.tap
 
 querycsv:
 	cd common && make
@@ -10,12 +10,12 @@ querycsv.tap:
 	cd common && make
 	cp common/querycsv.tap .
 
-archived.tap: qcsv06zx.ovl
-	cp common/archive .
+archive.tap: qcsv06zx.ovl
+	cp common/archiver .
 	cp common/residos.tap .
 	cp common/plus3dos.tap .
 	cp common/esxdos.tap .
-	sh -c "(echo archived.tap > archived.txt) && (ls querycsv >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archive)"
+	sh -c "(echo archive.tap > archived.txt) && (ls querycsv >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archiver)"
 	rm archived.txt
 
 qcsv00zx.ovl: qrycsv00.bin
@@ -57,4 +57,4 @@ clean:
 	cd residos128 && make clean
 	cd esxdos48 && make clean
 	cd esxdos128 && make clean
-	rm -rf build zcc_opt.def archive querycsv *.tap *.ovl
+	rm -rf build zcc_opt.def archiver querycsv *.tap *.ovl
