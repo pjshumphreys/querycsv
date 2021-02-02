@@ -4,6 +4,12 @@ dir:0.$
 fadfs
 dir :0.$.querycsv.c
 xfer disc adfs
+fadfs
+dir :0.$.querycsv.h
+xfer disc adfs
+rename softflo softfloat
+rename querycs querrycsv
+rename atarima atarimap
 adfs
 lib $.archc.library
 dir $.querycsv
