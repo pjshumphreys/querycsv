@@ -58,11 +58,11 @@ typedef void* yyscan_t;
 %token WHEN WHERE
 %token COLUMNS NEXT VALUE DATE OUTPUT NOW
 
-%token <intval> AMMSC
+%token <intval> AGGFN
 %token <strval> NAME STRING
 %token <strval> INTNUM
 %token <intval> APPROXNUM /* floatval*/
-%type <strval> optional_as_name literal command_types
+%type <strval> optional_as_name literal
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding from_options
 %type <expressionPtr> case_exp simple_case searched_case
@@ -89,9 +89,9 @@ command_or_select:
     scalar_exp_commalist
     opt_from_clause
     opt_where_clause
+    opt_order_by_clause
     opt_group_by_clause
     opt_having_clause
-    opt_order_by_clause
     opt_into_clause
   | COLUMNS STRING optional_encoding opt_into_clause {
       queryData->commandMode = 1;
@@ -304,16 +304,16 @@ column_ref:
   ;
 
 function_ref:
-    AMMSC '(' '*' ')' {
+    AGGFN '(' '*' ')' {
       $$ = parse_functionRefStar(queryData, $1);
     }
-  | AMMSC '(' DISTINCT scalar_exp ')' {
-      $$ = parse_functionRef(queryData, $1, $4, TRUE);
+  | AGGFN '(' DISTINCT scalar_exp ')' {
+     $$ = parse_functionRef(queryData, $1, $4, TRUE);
     }
-  | AMMSC '(' ALL scalar_exp ')' {
+  | AGGFN '(' ALL scalar_exp ')' {
       $$ = parse_functionRef(queryData, $1, $4, FALSE);
     }
-  | AMMSC '(' scalar_exp ')' {
+  | AGGFN '(' scalar_exp ')' {
       $$ = parse_functionRef(queryData, $1, $3, FALSE);
     }
   ;
@@ -441,7 +441,7 @@ atom_commalist:
 
 opt_group_by_clause:
     /* empty */
-  | GROUP BY column_ref_commalist
+  | GROUP BY column_ref_commalist opt_order_by_clause
   ;
 
 column_ref_commalist:
@@ -460,7 +460,9 @@ opt_now_brackets:
 
 opt_having_clause:
     /* empty */
-  | HAVING search_condition
+  | HAVING search_condition {
+    parse_whereClause(queryData, $2);
+  } opt_order_by_clause
   ;
 
 opt_order_by_clause:

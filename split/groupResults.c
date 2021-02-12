@@ -8,6 +8,9 @@ void groupResults(struct qryData *query) {
   resultsOrig = query->resultSet;
   query->resultSet = NULL;
 
+  /* reset the record count as we'll be counting the groups now */
+  query->recordCount = 0;
+
   /* populate query->resultSet with the grouped results,
     while cleaning up the memory of the original result set */
   tree_walkAndCleanup(

@@ -61,7 +61,6 @@ int runQuery(char *queryFileName, int queryIsntString) {
     if(query.hasGrouping) {
       groupResults(&query);
       query.useGroupBy = FALSE;
-      query.recordCount = query.groupCount;
     }
 
     /* output the results to the specified file */

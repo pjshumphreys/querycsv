@@ -1,7 +1,7 @@
 int yyerror(struct qryData *queryData, void *scanner, const char *msg) {
   MAC_YIELD
 
-  fputs(msg, stderr);
+  fprintf(stderr, "%s\n", msg);
 
   return 1;
 }

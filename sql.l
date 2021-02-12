@@ -32,13 +32,13 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
 (?i:ALL)    TOK(ALL)
 (?i:AND)    TOK(AND)
-(?i:AVG)    { yylval->intval = GRP_AVG;return AMMSC; }
-(?i:MIN)    { yylval->intval = GRP_MIN;return AMMSC; }
-(?i:MAX)    { yylval->intval = GRP_MAX;return AMMSC; }
-(?i:SUM)    { yylval->intval = GRP_SUM;return AMMSC; }
+(?i:AVG)    { yylval->intval = GRP_AVG;return AGGFN; }
+(?i:MIN)    { yylval->intval = GRP_MIN;return AGGFN; }
+(?i:MAX)    { yylval->intval = GRP_MAX;return AGGFN; }
+(?i:SUM)    { yylval->intval = GRP_SUM;return AGGFN; }
 (?i:CURRENT_TIMESTAMP)    { return NOW; }
-(?i:COUNT)    { yylval->intval = GRP_COUNT;return AMMSC; }
-(?i:GROUP_CONCAT)   { yylval->intval = GRP_CONCAT;return AMMSC; }
+(?i:COUNT)    { yylval->intval = GRP_COUNT;return AGGFN; }
+(?i:GROUP_CONCAT)   { yylval->intval = GRP_CONCAT;return AGGFN; }
 (?i:AS)     TOK(AS)
 (?i:ASC)    TOK(ASC)
 (?i:BY)     TOK(BY)
