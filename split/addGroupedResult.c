@@ -15,6 +15,7 @@ void addGroupedResult(
   /* calculate remaining columns that make use of aggregation */
   getCalculatedColumns(query, match, TRUE);
 
+  /* Apply the aggregate "having" clause filters  */
   if(!walkRejectRecord(
     query->joinsAndWhereClause->minTable+1, /* +1 means all tables and *CALCULATED* columns */
     query->joinsAndWhereClause,
