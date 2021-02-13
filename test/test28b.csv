@@ -1,0 +1,12 @@
+label
+__code_compiler_head
+fgetc
+fclose
+strlen
+asm_strlen
+strcpy_callee
+fwrite
+memset_callee
+strcmp_callee
+_wrapper
+

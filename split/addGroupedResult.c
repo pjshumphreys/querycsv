@@ -9,23 +9,28 @@ void addGroupedResult(
   matchParams.ptr = match;
   matchParams.params = query->params;
 
-  /* fix up the calculated columns that need it */
+  /* Fix up the calculated columns that need it */
   getGroupedColumns(query);
 
-  /* calculate remaining columns that make use of aggregation */
+  /* Calculate remaining columns that make use of aggregation */
   getCalculatedColumns(query, match, TRUE);
 
-  /* Apply the aggregate "having" clause filters  */
-  if(!walkRejectRecord(
-    query->joinsAndWhereClause->minTable+1, /* +1 means all tables and *CALCULATED* columns */
-    query->joinsAndWhereClause,
-    &matchParams
-  )) {
-    query->recordCount++;
-
-    /* append the record to the new result set */
-    query->useGroupBy = FALSE;
-    tree_insert(query, match, &(query->resultSet));
-    query->useGroupBy = TRUE;
+  /* Apply the aggregate "having" clause filters if necessary */
+  if(
+    query->joinsAndWhereClause != NULL &&
+    walkRejectRecord(
+      query->joinsAndWhereClause->minTable+1, /* +1 means all tables and *CALCULATED* columns */
+      query->joinsAndWhereClause,
+      &matchParams
+    )
+  ) {
+    return;
   }
+
+  query->recordCount++;
+
+  /* Append the record to the new result set */
+  query->useGroupBy = FALSE;
+  tree_insert(query, match, &(query->resultSet));
+  query->useGroupBy = TRUE;
 }

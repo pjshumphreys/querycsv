@@ -1,0 +1,15 @@
+select
+  b.page,
+  b.address,
+  b.label
+from
+  'test28a.csv' as b
+left join
+  'test28b.csv' as a on a.label = b.label
+group by
+  b.page,
+  b.address,
+  b.label
+having count(a.label) = 0
+into 'test28d.csv'
+

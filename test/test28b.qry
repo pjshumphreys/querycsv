@@ -1,0 +1,10 @@
+select
+  a.page,
+  a.address,
+  b.label
+from
+  'test28d.csv' as b
+join 'test28c.csv' as a
+on a.page = b.page and a.address = b.address
+into 'test28e.csv'
+
