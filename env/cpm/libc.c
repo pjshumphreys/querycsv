@@ -512,6 +512,7 @@ void b(void) {
   strncat(string, string, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
+  fwrite(string, 1, 1, test);
 
   fseek(test, 9, SEEK_SET);
   clearerr(test);
