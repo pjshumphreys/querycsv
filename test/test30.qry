@@ -1,0 +1,3 @@
+select
+  first, case when second is null then second else 1 end
+from 'test29.csv'
