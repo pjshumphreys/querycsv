@@ -62,7 +62,7 @@ typedef void* yyscan_t;
 %token <strval> NAME STRING
 %token <strval> INTNUM
 %token <intval> APPROXNUM /* floatval*/
-%type <strval> optional_as_name literal
+%type <strval> optional_as_name literal optional_separator
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding from_options
 %type <expressionPtr> case_exp simple_case searched_case
@@ -307,14 +307,23 @@ function_ref:
     AGGFN '(' '*' ')' {
       $$ = parse_functionRefStar(queryData, $1);
     }
-  | AGGFN '(' DISTINCT scalar_exp ')' {
-     $$ = parse_functionRef(queryData, $1, $4, TRUE);
+  | AGGFN '(' DISTINCT scalar_exp optional_separator ')' {
+     $$ = parse_functionRef(queryData, $1, $4, TRUE, $5);
     }
-  | AGGFN '(' ALL scalar_exp ')' {
-      $$ = parse_functionRef(queryData, $1, $4, FALSE);
+  | AGGFN '(' ALL scalar_exp optional_separator ')' {
+      $$ = parse_functionRef(queryData, $1, $4, FALSE, $5);
     }
-  | AGGFN '(' scalar_exp ')' {
-      $$ = parse_functionRef(queryData, $1, $3, FALSE);
+  | AGGFN '(' scalar_exp optional_separator ')' {
+      $$ = parse_functionRef(queryData, $1, $3, FALSE, $4);
+    }
+  ;
+
+optional_separator:
+    {
+    $$ = NULL;
+  }
+  | ',' STRING {
+      $$ = queryData->parseMode != 1 ? NULL : mystrdup($2);
     }
   ;
 

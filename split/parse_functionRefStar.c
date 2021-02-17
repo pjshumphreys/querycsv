@@ -19,6 +19,7 @@ struct expression *parse_functionRefStar(
     queryData,
     GRP_STAR,
     parse_scalarExpLiteral(queryData, ""),
-    FALSE
+    FALSE,
+    NULL
   );
 }

@@ -1,0 +1,3 @@
+select
+  first, case when count(second) > 0 then count(second) else 'null' end
+from 'test29.csv'

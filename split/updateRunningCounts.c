@@ -104,22 +104,34 @@ void updateRunningCounts(
 
               case GRP_DIS_CONCAT: {
                 if(j == query->groupCount) {
-                  d_sprintf(
+                  if(currentResultColumn->groupText != NULL) {
+                    d_sprintf(
                       &(currentResultColumn->groupText),
-                      S_STRING S_STRING,
+                      S_STRING S_STRING S_STRING,
                       currentResultColumn->groupText,
+                      currentResultColumn->groupSeparator,
                       tempString
                     );
+                  }
+                  else {
+                    currentResultColumn->groupText = mystrdup(tempString != NULL ? tempString : "");
+                  }
                 }
               } break;
 
               case GRP_CONCAT: {
-                d_sprintf(
+                if(currentResultColumn->groupText != NULL) {
+                  d_sprintf(
                     &(currentResultColumn->groupText),
-                    S_STRING S_STRING,
+                    S_STRING S_STRING S_STRING,
                     currentResultColumn->groupText,
+                    currentResultColumn->groupSeparator,
                     tempString
                   );
+                }
+                else {
+                  currentResultColumn->groupText = mystrdup(tempString != NULL ? tempString : "");
+                }
               } break;
 
               case GRP_MIN:

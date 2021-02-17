@@ -17,7 +17,7 @@ struct resultColumn *parse_expCommaList(
   }
 
   /* increment the column count for display purposes */
-  if(aggregationType == GRP_NONE && expressionPtr->type != EXP_CASE) {
+  if(aggregationType == GRP_NONE) {
     queryData->columnCount++;
 
     /* if the expression wasn't given a name then provide it with a default one */
@@ -152,7 +152,7 @@ struct resultColumn *parse_expCommaList(
     else {
       newReference->reference.calculatedPtr.firstResultColumn = parse_newResultColumn(
           queryData,
-          /*isHidden = */aggregationType != GRP_NONE || expressionPtr->type == EXP_CASE,
+          /*isHidden = */aggregationType != GRP_NONE,
           /*isCalculated = */TRUE,
           /*resultColumnName = */mystrdup(newReference->referenceName),
           /*aggregationType = */aggregationType

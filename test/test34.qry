@@ -1,0 +1,4 @@
+select
+  first, group_concat(distinct second, "|")
+from 'test32.csv'
+group by first

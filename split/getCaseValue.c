@@ -13,14 +13,14 @@ void getCaseValue(
     currentCase = currentCase->nextInList;
   }
 
-  getValue(currentCase->value, match);
-
   if(currentCase->value->isNull) {
     freeAndZero(currentCase->value->value);
     expressionPtr->isNull = TRUE;
-    expressionPtr->value = mystrdup("");
+    expressionPtr->value = NULL;
   }
   else {
+    getValue(currentCase->value, match);
+
     expressionPtr->isNull = FALSE;
     expressionPtr->value = currentCase->value->value;
     currentCase->value->value = NULL;

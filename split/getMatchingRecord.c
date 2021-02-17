@@ -121,7 +121,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
 
           if(isQuoted == FALSE && clause2(currentInputTable, &columnOffsetData)) {
             freeAndZero(columnOffsetData.value);
-            columnOffsetData.value = mystrdup("");
             columnOffsetData.isNull = TRUE;
           }
           else {

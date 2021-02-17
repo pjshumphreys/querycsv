@@ -32,6 +32,7 @@ struct resultColumn *parse_newResultColumn(
 
   newResultColumn->groupType = aggregationType;
   newResultColumn->groupText = NULL;
+  newResultColumn->groupSeparator = NULL;
   newResultColumn->groupNum = ctof(0);
   newResultColumn->groupCount = 0;
   newResultColumn->groupingDone = FALSE;

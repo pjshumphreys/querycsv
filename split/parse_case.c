@@ -1,4 +1,4 @@
-/* this creates a new hidden table column to store the expression, and another for other suff to reference
+/* this creates a new hidden table column to store the expression, and another for other stuff to reference
   The expression populates the calculated column when getCalculatedColumns is run
 */
 
@@ -98,21 +98,11 @@ struct expression *parse_case(
   if(newExpression->containsAggregates) {
     newExpression = parse_functionRef(
         queryData,
-        GRP_NONE,
+        GRP_CASE,
         newExpression,
-        FALSE
+        FALSE,
+        NULL
       );
-  }
-  else {
-    newExpression = parse_functionRef(
-        queryData,
-        GRP_NONE,
-        newExpression,
-        FALSE
-      );
-
-    /* not a real aggregation, so grouping is already done */
-    ((struct resultColumn *)(newExpression->unionPtrs.voidPtr))->groupingDone = TRUE;
   }
 
   return newExpression;

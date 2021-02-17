@@ -73,6 +73,7 @@
 #define GRP_DIS_SUM 11
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
+#define GRP_CASE 14
 
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_BOM 1    /* output a utf-8 byte order mark before the file contents. UTF-16 and 32 always get a BOM */
@@ -597,6 +598,7 @@ struct resultColumn {
   int groupingDone;
   double groupNum;
   char *groupText;
+  char * groupSeparator;
   char *resultColumnName;
   struct resultColumn *nextColumnInstance;  /* if the same expression is used in multiple places */
   struct resultColumn *nextColumnInResults;

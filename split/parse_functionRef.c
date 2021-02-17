@@ -2,7 +2,8 @@ struct expression *parse_functionRef(
     struct qryData *queryData,
     int aggregationType,
     struct expression *expressionPtr,
-    int isDistinct
+    int isDistinct,
+    char * separator
 ) {
   struct expression *expressionPtr2 = NULL;
   struct resultColumn *columnPtr = NULL;
@@ -13,7 +14,7 @@ struct expression *parse_functionRef(
     return NULL;
   }
 
-  if(aggregationType != GRP_NONE) {
+  if(aggregationType != GRP_NONE && aggregationType != GRP_CASE) {
     queryData->hasGrouping = TRUE;
 
     if(isDistinct) {
@@ -32,6 +33,17 @@ struct expression *parse_functionRef(
   /* new, hidden, calculated column in the output result set */
   columnPtr = parse_expCommaList(queryData, expressionPtr, NULL, aggregationType);   /* parse_exp_commalist returns an output column pointer */
 
+  switch(aggregationType) {
+    case GRP_CONCAT:
+    case GRP_DIS_CONCAT:
+      columnPtr->groupSeparator = separator ? separator : mystrdup(",");
+    break;
+
+    default:
+      free(separator);
+    break;
+  }
+
   /* we then want to create a new expression node that references this new column */
   /* create an expression node that references the new hidden column */
   reallocMsg((void**)(&expressionPtr2), sizeof(struct expression));
@@ -39,7 +51,7 @@ struct expression *parse_functionRef(
   expressionPtr2->type = EXP_GROUP;
   expressionPtr2->value = NULL;
 
-  expressionPtr2->unionPtrs.voidPtr = (void *)(columnPtr);  /* the expression nodes reference points directly to the hidden column */
+  expressionPtr2->unionPtrs.voidPtr = (void *)(columnPtr);  /* the reference in the expression node points directly to the hidden column */
   expressionPtr2->minColumn = expressionPtr->minColumn;
   expressionPtr2->minTable = expressionPtr->minTable;
 

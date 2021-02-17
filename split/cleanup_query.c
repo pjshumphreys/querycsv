@@ -52,6 +52,7 @@ void cleanup_query(struct qryData *query) {
 
       free(currentResultColumn->resultColumnName);
       free(currentResultColumn);
+      free(currentResultColumn->groupSeparator);
 
       currentResultColumn = next;
     }
