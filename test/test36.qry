@@ -2,8 +2,8 @@ select
   slice(
   case when second is not null then second else current_timestamp() end
   , 0, 10)
-   as hello, count(first)
+   as theDate, count(first) as howMany
 from 'test29.csv'
 group by
-  hello
-order by hello desc
+  theDate
+order by theDate asc
