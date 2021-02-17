@@ -35,24 +35,28 @@
 #define EXP_MINUS 5
 #define EXP_MULTIPLY 6
 #define EXP_DIVIDE 7
-#define EXP_CONCAT 8
-#define EXP_UPLUS 9
-#define EXP_UMINUS 10
-#define EXP_AND 11
-#define EXP_OR 12
-#define EXP_NOT 13
-#define EXP_EQ 14
-#define EXP_NEQ 15
-#define EXP_LT 16
-#define EXP_GT 17
-#define EXP_LTE 18
-#define EXP_GTE 19
-#define EXP_IN 20
-#define EXP_NOTIN 21
-#define EXP_GROUP 22
-#define EXP_ISNULL 23
-#define EXP_NOTNULL 24
-#define EXP_CASE 25
+#define EXP_SLICE 8
+#define EXP_LIMITS 9
+#define EXP_CASE 10
+#define EXP_CONCAT 11
+#define EXP_UPLUS 12
+#define EXP_UMINUS 13
+#define EXP_AND 14
+#define EXP_OR 15
+#define EXP_NOT 16
+#define EXP_EQ 17
+#define EXP_NEQ 18
+#define EXP_LT 19
+#define EXP_GT 20
+#define EXP_LTE 21
+#define EXP_GTE 22
+#define EXP_IN 23
+#define EXP_NOTIN 24
+#define EXP_GROUP 25
+#define EXP_ISNULL 26
+#define EXP_NOTNULL 27
+
+
 
 /* identifier reference types */
 #define REF_COLUMN 1

@@ -101,6 +101,7 @@ const floatlibFunctionsList = [
 const clibFunctionsList = [
   /* standard C library functions */
   ['_strtod', 1, 0x0001, 'farcall'],
+  ['_atol', 2, 0x0001, 'farcall2'],
   ['_ltoa', 2, 0x0001, 'farcall2'],
   ['_ultoa', 2, 0x0001, 'farcall2'],
   ['_isdigit', 2, 0x0001, 'farcall2'],

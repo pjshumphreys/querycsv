@@ -1,0 +1,3 @@
+select
+  first, slice(case when second is not null then second else current_timestamp() end, 0, 10) as hello
+from 'test29.csv'

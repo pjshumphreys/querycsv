@@ -53,6 +53,7 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 (?i:NOW)   { TOK(NOW) }
 
 (?i:CONCAT)   TOK(CONCAT)
+(?i:SLICE)  TOK(SLICE)
 (?i:DESC)   TOK(DESC)
 (?i:DISTINCT)   TOK(DISTINCT)
 (?i:ELSE)   TOK(ELSE)

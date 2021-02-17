@@ -118,6 +118,15 @@ void getValue(
         break;
       }
 
+      if(expressionPtr->type == EXP_CASE) {
+        getCaseValue(
+          expressionPtr,
+          match
+        );
+
+        break;
+      }
+
       getValue(
           expressionPtr->unionPtrs.leaves.leftPtr,
           match
@@ -136,7 +145,28 @@ void getValue(
         expressionPtr->value = mystrdup("");
       }
       else {
-        switch(expressionPtr->type){
+        switch(expressionPtr->type) {
+          case EXP_LIMITS:
+            expressionPtr->value = NULL;
+            /* don't cleanup the two parameters just yet as the values will be used later in the EXP_SLICE case */
+          return;
+
+          case EXP_SLICE:
+            calculatedField = expressionPtr->unionPtrs.leaves.rightPtr;
+
+            /* perform the substring extraction */
+            strSlice(
+              &(expressionPtr->value),
+              expressionPtr->unionPtrs.leaves.leftPtr->value,
+              atol(calculatedField->unionPtrs.leaves.leftPtr->value),
+              atol(calculatedField->unionPtrs.leaves.rightPtr->value)
+            );
+
+            /* free up the child values from the EXP_LIMITS case now */
+            freeAndZero(calculatedField->unionPtrs.leaves.leftPtr->value);
+            freeAndZero(calculatedField->unionPtrs.leaves.rightPtr->value);
+          break;
+
           case EXP_PLUS:
             temp1 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
             temp2 = fadd(temp1, strctod(expressionPtr->unionPtrs.leaves.rightPtr->value, NULL));

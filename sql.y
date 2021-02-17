@@ -47,7 +47,7 @@ typedef void* yyscan_t;
 /* literal keyword tokens */
 
 %token ALL AS ASC BY CASE
-%token CONCAT
+%token CONCAT SLICE
 %token DESC DISTINCT ELSE ENCODING
 %token END FROM
 %token GROUP HAVING IN INTO
@@ -66,7 +66,7 @@ typedef void* yyscan_t;
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding from_options
 %type <expressionPtr> case_exp simple_case searched_case
-%type <expressionPtr> scalar_exp search_condition predicate function_ref
+%type <expressionPtr> scalar_exp optional_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
 %type <atomPtr> atom_commalist
 %type <casePtr> when_clause when_clause2
@@ -173,6 +173,15 @@ optional_as_name:
     }
   ;
 
+optional_exp:
+    /* empty */ {
+      $$ = parse_scalarExpLiteral(queryData, "0");
+    }
+  | ',' scalar_exp {
+      $$ = $2;
+    }
+  ;
+
 scalar_exp:
     scalar_exp COLLATE STRING {
       if($1 != NULL) {
@@ -195,6 +204,9 @@ scalar_exp:
     }
   | CONCAT '(' scalar_exp ',' scalar_exp ')' {
       $$ = parse_scalarExp(queryData, $3, EXP_CONCAT, $5);
+    }
+  | SLICE '(' scalar_exp ',' scalar_exp optional_exp ')' {
+      $$ = parse_scalarExp(queryData, $3, EXP_SLICE, parse_scalarExp(queryData, $5, EXP_LIMITS, $6));
     }
   | '+' scalar_exp %prec UMINUS {
       $$ = parse_scalarExp(queryData, $2, EXP_UPLUS, NULL);
