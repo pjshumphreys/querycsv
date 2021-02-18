@@ -175,7 +175,7 @@ optional_as_name:
 
 optional_exp:
     /* empty */ {
-      $$ = parse_scalarExpLiteral(queryData, "0");
+      $$ = parse_scalarExpLiteral(queryData, NULL);
     }
   | ',' scalar_exp {
       $$ = $2;

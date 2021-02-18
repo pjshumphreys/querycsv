@@ -1,20 +1,18 @@
 [Anjuta]
-Geometry=1366x715+0+26
+Maximized=1
+Geometry=1920x1052+1366+0
 
 [File Loader]
-Files=../../querycsv.c#6071
+Files=../../querycsv.c#5855
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=test2%%%test.qry%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry%%%--run test11.qry
+Program arguments=-c "select slice('hello', 0)"%%%test2%%%test.qry%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry%%%--run test10.qry
 Program uri=../../querycsv%%%querycsv%%%ttyraw%%%listdir
 Run in terminal=2
 Working directories=../../.%%%../../../../.%%%../../../../test%%%.%%%.%%%test%%%.
-
-[Project Manager]
-Expand=posix
 
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized
@@ -26,4 +24,5 @@ BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS
 
 [Debugger]
 Watch=currentPosition%%%lineHeadLength + lineTailLength%%%sequence%%%sequenceLength
+Breakpoint=1:../../querycsv.c:5994:0:%%%1:../../querycsv.c:3695:0:%%%1:../../querycsv.c:5988:0:%%%1:../../querycsv.c:5972:0:
 Stop at beginning=2

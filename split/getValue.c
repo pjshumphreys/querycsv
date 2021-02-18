@@ -10,10 +10,9 @@ void getValue(
   struct resultColumnValue *field;
   double temp1;
   double temp2;
+  long temp3;
 
   MAC_YIELD
-
-  expressionPtr->isNull = FALSE;
 
   switch(expressionPtr->type) {
     case EXP_COLUMN: {
@@ -31,6 +30,7 @@ void getValue(
         expressionPtr->value = mystrdup("");
       }
       else {
+        expressionPtr->isNull = FALSE;
         stringGet((unsigned char **)(&(expressionPtr->value)), field);
       }
     } break;
@@ -56,11 +56,13 @@ void getValue(
         field = &(match->ptr[column->resultColumnIndex]);
 
         if(field->isNull == FALSE) {
+          expressionPtr->isNull = FALSE;
           stringGet((unsigned char **)(&(expressionPtr->value)), field);
           break;
         }
       }
       else if(column->groupText != NULL) {
+        expressionPtr->isNull = FALSE;
         expressionPtr->value = mystrdup(column->groupText);
         break;
       }
@@ -121,6 +123,7 @@ void getValue(
 
     default: {
       if(expressionPtr->type > EXP_CONCAT) {
+        expressionPtr->isNull = FALSE;
         expressionPtr->value = mystrdup("");
         break;
       }
@@ -137,12 +140,15 @@ void getValue(
 
       if(
           expressionPtr->unionPtrs.leaves.leftPtr->isNull ||
-          expressionPtr->unionPtrs.leaves.rightPtr->isNull
+          (expressionPtr->unionPtrs.leaves.rightPtr->isNull &&
+          expressionPtr->type != EXP_LIMITS)
         ) {
         expressionPtr->isNull = TRUE;
         expressionPtr->value = mystrdup("");
       }
       else {
+        expressionPtr->isNull = FALSE;
+
         switch(expressionPtr->type) {
           case EXP_LIMITS:
             expressionPtr->value = NULL;
@@ -151,14 +157,20 @@ void getValue(
 
           case EXP_SLICE:
             calculatedField = expressionPtr->unionPtrs.leaves.rightPtr;
+            temp3 = atol(calculatedField->unionPtrs.leaves.rightPtr->value);
 
-            /* perform the substring extraction */
-            strSlice(
-              &(expressionPtr->value),
-              expressionPtr->unionPtrs.leaves.leftPtr->value,
-              atol(calculatedField->unionPtrs.leaves.leftPtr->value),
-              atol(calculatedField->unionPtrs.leaves.rightPtr->value)
-            );
+            if((!calculatedField->unionPtrs.leaves.rightPtr->isNull) && temp3 == 0) {
+              expressionPtr->value = mystrdup("");
+            }
+            else {
+              /* perform the substring extraction */
+              strSlice(
+                &(expressionPtr->value),
+                expressionPtr->unionPtrs.leaves.leftPtr->value,
+                atol(calculatedField->unionPtrs.leaves.leftPtr->value),
+                temp3
+              );
+            }
 
             /* free up the child values from the EXP_LIMITS case now */
             freeAndZero(calculatedField->unionPtrs.leaves.leftPtr->value);

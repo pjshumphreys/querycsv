@@ -18,7 +18,7 @@ struct expression *parse_scalarExpLiteral(
   expressionPtr->containsAggregates = FALSE;
   expressionPtr->isNull = literal == NULL;
   expressionPtr->value = NULL;
-  expressionPtr->unionPtrs.voidPtr = literal ? mystrdup(literal) : NULL;
+  expressionPtr->unionPtrs.voidPtr = mystrdup(literal ? literal: "");
 
 
   return expressionPtr;
