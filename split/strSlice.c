@@ -9,7 +9,7 @@ void strSlice(char ** output, char * input, long beginIndex, long endIndex) {
   }
 
   /* If either beginIndex or EndIndex is negative we need to get the number of codepoints in the original string first */
-  if(beginIndex < 0 || endIndex < 1) {
+  if(beginIndex < 0 || endIndex < 0) {
     /* count the length of the original string in terms of unicode code points */
     temp = input;
 
@@ -27,17 +27,31 @@ void strSlice(char ** output, char * input, long beginIndex, long endIndex) {
       beginIndex += currentIndex;
     }
 
-    if(endIndex < 1) {
+    if(endIndex < 0) {
       endIndex += currentIndex;
     }
   }
 
   temp = NULL;
 
-  /* if beginIndex >= endIndex, we can quickly just return an empty string */
-  if(beginIndex < endIndex) {
-    currentIndex = 0;
+  currentIndex = 0;
 
+  if(endIndex == 0) {
+    /* loop over the original string again, and add characters to the output string if they fall within the specified range */
+    while(*input != 0) {
+      /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
+      if(((unsigned char)(*input)) < 0x80 || ((unsigned char)(*input)) > 0xBF) {
+        currentIndex++;
+      }
+
+      if(currentIndex > beginIndex) {
+        strAppend(*input, &temp, &strSize);
+      }
+
+      input++;
+    }
+  }
+  else if(beginIndex < endIndex) {
     /* loop over the original string again, and add characters to the output string if they fall within the specified range */
     while(*input != 0) {
       /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
