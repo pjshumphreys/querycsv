@@ -14,7 +14,7 @@ struct expression *parse_functionRef(
     return NULL;
   }
 
-  if(aggregationType != GRP_NONE && aggregationType != GRP_CASE) {
+  if(aggregationType != GRP_NONE) {
     queryData->hasGrouping = TRUE;
 
     if(isDistinct) {

@@ -77,7 +77,6 @@
 #define GRP_DIS_SUM 11
 #define GRP_DIS_COUNT 12
 #define GRP_DIS_CONCAT 13
-#define GRP_CASE 14
 
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_BOM 1    /* output a utf-8 byte order mark before the file contents. UTF-16 and 32 always get a BOM */

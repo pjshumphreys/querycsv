@@ -95,16 +95,6 @@ struct expression *parse_case(
     currentCase = currentCase->nextInList;
   }
 
-  if(newExpression->containsAggregates) {
-    newExpression = parse_functionRef(
-        queryData,
-        GRP_CASE,
-        newExpression,
-        FALSE,
-        NULL
-      );
-  }
-
   return newExpression;
 }
 
