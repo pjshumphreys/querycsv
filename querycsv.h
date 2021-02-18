@@ -9,10 +9,9 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <string.h>
 #include <time.h>
-
-#include <stdarg.h>
 
 #if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
   #include <stdint.h>
@@ -55,8 +54,6 @@
 #define EXP_GROUP 25
 #define EXP_ISNULL 26
 #define EXP_NOTNULL 27
-
-
 
 /* identifier reference types */
 #define REF_COLUMN 1
