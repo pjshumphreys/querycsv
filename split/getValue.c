@@ -112,18 +112,16 @@ void getValue(
       freeAndZero(expressionPtr->unionPtrs.leaves.leftPtr->value);
     } break;
 
+    case EXP_CASE: {
+      getCaseValue(
+        expressionPtr,
+        match
+      );
+    } break;
+
     default: {
       if(expressionPtr->type > EXP_CONCAT) {
         expressionPtr->value = mystrdup("");
-        break;
-      }
-
-      if(expressionPtr->type == EXP_CASE) {
-        getCaseValue(
-          expressionPtr,
-          match
-        );
-
         break;
       }
 
