@@ -82,6 +82,7 @@ void getValue(
         expressionPtr->value = mystrdup("");
       }
       else {
+        expressionPtr->isNull = FALSE;
         temp1 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
         ftostr(&(expressionPtr->value), temp1);
       }
@@ -100,6 +101,7 @@ void getValue(
         expressionPtr->value = mystrdup("");
       }
       else {
+        expressionPtr->isNull = FALSE;
         temp1 = ctof(0);
         temp2 = strctod(expressionPtr->unionPtrs.leaves.leftPtr->value, NULL);
 
