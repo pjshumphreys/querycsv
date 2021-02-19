@@ -55,11 +55,9 @@ void strSlice(char ** output, char * input, int beginIndex, int endIndex) {
 
     /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
     if(((unsigned char)(*input)) < 0x80 || ((unsigned char)(*input)) > 0xBF) {
-      ++currentIndex;
-    }
-
-    if(currentIndex > endIndex) {
-      break;
+      if(++currentIndex > endIndex) {
+        break;
+      }
     }
 
     if(currentIndex > beginIndex) {
