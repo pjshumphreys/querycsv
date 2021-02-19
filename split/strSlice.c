@@ -1,14 +1,14 @@
-void strSlice(char ** output, char * input, long beginIndex, long endIndex) {
-  char * temp = NULL;
-  long currentIndex = 0;
+void strSlice(char ** output, char * input, int beginIndex, int endIndex) {
   size_t strSize = 0;
+  int currentIndex = 0;
+  char * temp;
 
   if(output == NULL || input == NULL) {
     fputs(TDB_INVALID_STRSLICE, stderr);
     exit(EXIT_FAILURE);
   }
 
-  /* If either beginIndex or EndIndex is negative we need to get the number of codepoints in the original string first */
+  /* If either beginIndex or endIndex is negative we need to get the number of codepoints in the original string first */
   if(beginIndex < 0 || endIndex < 0) {
     /* count the length of the original string in terms of unicode code points */
     temp = input;
@@ -16,10 +16,10 @@ void strSlice(char ** output, char * input, long beginIndex, long endIndex) {
     while(*temp != 0) {
       /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
       if(((unsigned char)(*temp)) < 0x80 || ((unsigned char)(*temp)) > 0xBF) {
-        currentIndex++;
+        ++currentIndex;
       }
 
-      temp++;
+      ++temp;
     }
 
     /* update beginIndex and endIndex with our results */
@@ -30,45 +30,43 @@ void strSlice(char ** output, char * input, long beginIndex, long endIndex) {
     if(endIndex < 0) {
       endIndex += currentIndex;
     }
+
+    currentIndex = 0;
   }
 
   temp = NULL;
 
-  currentIndex = 0;
-
-  if(endIndex == 0) {
+  if(endIndex == 0) while(*input != 0) {
     /* loop over the original string again, and add characters to the output string if they fall within the specified range */
-    while(*input != 0) {
-      /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
-      if(((unsigned char)(*input)) < 0x80 || ((unsigned char)(*input)) > 0xBF) {
-        currentIndex++;
-      }
 
-      if(currentIndex > beginIndex) {
-        strAppend(*input, &temp, &strSize);
-      }
-
-      input++;
+    /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
+    if(((unsigned char)(*input)) < 0x80 || ((unsigned char)(*input)) > 0xBF) {
+      ++currentIndex;
     }
+
+    if(currentIndex > beginIndex) {
+      strAppend(*input, &temp, &strSize);
+    }
+
+    ++input;
   }
-  else if(beginIndex < endIndex) {
+  else if(beginIndex < endIndex) while(*input != 0) {
     /* loop over the original string again, and add characters to the output string if they fall within the specified range */
-    while(*input != 0) {
-      /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
-      if(((unsigned char)(*input)) < 0x80 || ((unsigned char)(*input)) > 0xBF) {
-        currentIndex++;
-      }
 
-      if(currentIndex > endIndex) {
-        break;
-      }
-
-      if(currentIndex > beginIndex) {
-        strAppend(*input, &temp, &strSize);
-      }
-
-      input++;
+    /* count ASCII chars and UTF-8 lead bytes. We assume the utf-8 is valid at this point */
+    if(((unsigned char)(*input)) < 0x80 || ((unsigned char)(*input)) > 0xBF) {
+      ++currentIndex;
     }
+
+    if(currentIndex > endIndex) {
+      break;
+    }
+
+    if(currentIndex > beginIndex) {
+      strAppend(*input, &temp, &strSize);
+    }
+
+    ++input;
   }
 
   /* null terminate the string */

@@ -169,8 +169,8 @@ void getValue(
               strSlice(
                 &(expressionPtr->value),
                 expressionPtr->unionPtrs.leaves.leftPtr->value,
-                atol(calculatedField->unionPtrs.leaves.leftPtr->value),
-                temp3
+                (int)atol(calculatedField->unionPtrs.leaves.leftPtr->value),
+                (int)temp3
               );
             }
 
