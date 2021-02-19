@@ -161,7 +161,7 @@ void getValue(
             calculatedField = expressionPtr->unionPtrs.leaves.rightPtr;
             temp3 = atol(calculatedField->unionPtrs.leaves.rightPtr->value);
 
-            if((!calculatedField->unionPtrs.leaves.rightPtr->isNull) && temp3 == 0) {
+            if(temp3 == 0 && (!(calculatedField->unionPtrs.leaves.rightPtr->isNull))) {
               expressionPtr->value = mystrdup("");
             }
             else {
