@@ -29,6 +29,7 @@ struct expression *parse_case(
   reallocMsg((void **)&newExpression, sizeof(struct expression));
 
   newExpression->type = EXP_CASE;
+  newExpression->caseSensitive = FALSE;
 
   /* initial setup of expression values */
   if(simpleCompareTo != NULL) {

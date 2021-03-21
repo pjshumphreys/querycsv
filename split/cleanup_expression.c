@@ -34,6 +34,8 @@ void cleanup_expression(struct expression *currentExpression) {
         /* the memory used here is cleaned up elsewhere */
       /* break; */
 
+      case EXP_ROWNUMBER:
+
       case EXP_CALCULATED:
         /* TODO: confirm that the expression will be freed elsewhere */
       break;

@@ -86,6 +86,10 @@ void updateRunningCounts(
                 currentResultColumn->groupCount++;
               } break;
 
+              case GRP_ROWNUMBER: {
+                currentResultColumn->groupNum = query->recordCount + 1;
+              } break;
+
               case GRP_DIS_AVG:
               case GRP_DIS_SUM: {
                 if(j == query->groupCount) {

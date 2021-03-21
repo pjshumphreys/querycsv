@@ -15,9 +15,15 @@ struct expression *parse_scalarExp(
   reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->type = operator;
+  expressionPtr->caseSensitive = FALSE;
   expressionPtr->value = NULL;
 
-  if(rightPtr == NULL) {
+  if(leftPtr == NULL) {
+    expressionPtr->minColumn = 0;
+    expressionPtr->minTable = 0;
+    expressionPtr->containsAggregates = FALSE;
+  }
+  else if(rightPtr == NULL) {
     expressionPtr->unionPtrs.leaves.leftPtr = leftPtr;
     expressionPtr->unionPtrs.leaves.rightPtr = NULL;
 

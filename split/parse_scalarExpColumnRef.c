@@ -15,6 +15,7 @@ struct expression *parse_scalarExpColumnRef(
   reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->value = NULL;
+  expressionPtr->caseSensitive = FALSE;
 
   if(referencePtr->referenceType == REF_COLUMN) {
     expressionPtr->type = EXP_COLUMN;
@@ -39,6 +40,7 @@ struct expression *parse_scalarExpColumnRef(
     expressionPtr->unionPtrs.voidPtr = (void *)(expressionColumnPtr);
     expressionPtr->minColumn = expressionColumnPtr->minColumn;
     expressionPtr->minTable = expressionColumnPtr->minTable;
+    expressionPtr->caseSensitive = expressionColumnPtr->caseSensitive;
 
     /* this line might need to be changed */
     expressionPtr->containsAggregates = expressionColumnPtr->containsAggregates;

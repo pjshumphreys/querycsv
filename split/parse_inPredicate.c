@@ -15,6 +15,7 @@ struct expression *parse_inPredicate(
   reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->type = isNotIn == TRUE ? EXP_NOTIN : EXP_IN;
+  expressionPtr->caseSensitive = FALSE;
   expressionPtr->value = NULL;
   expressionPtr->unionPtrs.inLeaves.leftPtr = leftPtr;
   expressionPtr->unionPtrs.inLeaves.lastEntryPtr = lastEntryPtr;

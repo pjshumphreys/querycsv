@@ -47,7 +47,7 @@ typedef void* yyscan_t;
 /* literal keyword tokens */
 
 %token ALL AS ASC BY CASE
-%token CONCAT SLICE
+%token CONCAT SLICE ROWNUMBER
 %token DESC DISTINCT ELSE ENCODING
 %token END FROM
 %token GROUP HAVING IN INTO
@@ -205,6 +205,9 @@ scalar_exp:
   | CONCAT '(' scalar_exp ',' scalar_exp ')' {
       $$ = parse_scalarExp(queryData, $3, EXP_CONCAT, $5);
     }
+  | ROWNUMBER opt_now_brackets {
+    $$ = parse_functionRef(queryData, GRP_ROWNUMBER, parse_scalarExp(queryData, NULL, EXP_ROWNUMBER, NULL), FALSE, NULL);
+  }
   | SLICE '(' scalar_exp ',' scalar_exp optional_exp ')' {
       $$ = parse_scalarExp(queryData, $3, EXP_SLICE, parse_scalarExp(queryData, $5, EXP_LIMITS, $6));
     }

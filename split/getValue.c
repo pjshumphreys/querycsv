@@ -45,9 +45,9 @@ void getValue(
       getValue(calculatedField, match);
 
       expressionPtr->isNull = calculatedField->isNull;
-      expressionPtr->value = mystrdup(calculatedField->value);
+      expressionPtr->value = calculatedField->value;
 
-      freeAndZero(calculatedField->value);
+      calculatedField->value = NULL;
     } break;
 
     case EXP_GROUP: {

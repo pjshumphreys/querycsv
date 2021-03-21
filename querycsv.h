@@ -54,6 +54,7 @@
 #define EXP_GROUP 25
 #define EXP_ISNULL 26
 #define EXP_NOTNULL 27
+#define EXP_ROWNUMBER 28
 
 /* identifier reference types */
 #define REF_COLUMN 1
@@ -67,13 +68,14 @@
 #define GRP_SUM 4
 #define GRP_COUNT 5
 #define GRP_CONCAT 6
-#define GRP_STAR 7
-#define GRP_DIS_AVG 8   /* DIS = Distinct */
-#define GRP_DIS_MIN 9
-#define GRP_DIS_MAX 10
-#define GRP_DIS_SUM 11
-#define GRP_DIS_COUNT 12
-#define GRP_DIS_CONCAT 13
+#define GRP_ROWNUMBER 7
+#define GRP_STAR 8
+#define GRP_DIS_AVG 9   /* DIS = Distinct */
+#define GRP_DIS_MIN 10
+#define GRP_DIS_MAX 11
+#define GRP_DIS_SUM 12
+#define GRP_DIS_COUNT 13
+#define GRP_DIS_CONCAT 14
 
 /* output parameters. Now specified as part of the input grammar */
 #define PRM_BOM 1    /* output a utf-8 byte order mark before the file contents. UTF-16 and 32 always get a BOM */

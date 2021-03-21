@@ -13,6 +13,7 @@ struct expression *parse_scalarExpLiteral(
   reallocMsg((void**)(&expressionPtr), sizeof(struct expression));
 
   expressionPtr->type = EXP_LITERAL;
+  expressionPtr->caseSensitive = FALSE;
   expressionPtr->minTable = 0;
   expressionPtr->minColumn = 0;
   expressionPtr->containsAggregates = FALSE;

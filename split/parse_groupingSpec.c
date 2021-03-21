@@ -10,6 +10,8 @@ void parse_groupingSpec(
     return;
   }
 
+  queryData->hasGrouping = TRUE;
+
   reallocMsg(
       (void**)&(sortingListPtr),
       sizeof(struct sortingList)
