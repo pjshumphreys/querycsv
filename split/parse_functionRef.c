@@ -15,17 +15,22 @@ struct expression *parse_functionRef(
   }
 
   if(aggregationType != GRP_NONE) {
-    queryData->hasGrouping = TRUE;
+    if(aggregationType != GRP_ROWNUMBER) {
+      queryData->hasGrouping = TRUE;
 
-    if(isDistinct) {
-      aggregationType+=GRP_STAR;
+      if(isDistinct) {
+        aggregationType+=GRP_STAR;
+      }
+
+      if(expressionPtr->containsAggregates) {
+        /* I don't think in sql you can aggregate an aggregate. */
+        /* therefore we should error out if we get to this point */
+        fputs(TDB_AGGREG_AGGREG, stderr);
+        exit(EXIT_FAILURE);
+      }
     }
-
-    if(expressionPtr->containsAggregates) {
-      /* I don't think in sql you can aggregate an aggregate. */
-      /* therefore we should error out if we get to this point */
-      fputs(TDB_AGGREG_AGGREG, stderr);
-      exit(EXIT_FAILURE);
+    else {
+      queryData->hasRowCount = TRUE;
     }
   }
 

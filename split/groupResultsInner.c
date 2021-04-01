@@ -17,22 +17,24 @@ void groupResultsInner(
 
     updateRunningCounts(query, item);
 
-    /* look at the next item */
-    tempItem = item->link[1];
+    if(query->hasGrouping) {
+      /* look at the next item */
+      tempItem = item->link[1];
 
-    /* while the next nth result is part of the same group
-    as this result, add to the number of items to look ahead */
-    while(
-      tempItem &&
-      recordCompare(
-        (void *)columns,
-        (void *)tempItem->columns,
-        (void *)query
-      ) == 0
-    ) {
-      updateRunningCounts(query, tempItem);
-      tempItem->type = TRE_SKIP;
-      tempItem = tempItem->link[1];
+      /* while the next nth result is part of the same group
+      as this result, add to the number of items to look ahead */
+      while(
+        tempItem &&
+        recordCompare(
+          (void *)columns,
+          (void *)tempItem->columns,
+          (void *)query
+        ) == 0
+      ) {
+        updateRunningCounts(query, tempItem);
+        tempItem->type = TRE_SKIP;
+        tempItem = tempItem->link[1];
+      }
     }
 
     addGroupedResult(query, columns);

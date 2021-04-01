@@ -715,6 +715,7 @@ struct resultTree {
 struct qryData {
   int parseMode;  /* 0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure, */
   int hasGrouping;
+  int hasRowCount;
   int commandMode;
   int columnCount;
   int hiddenColumnCount;

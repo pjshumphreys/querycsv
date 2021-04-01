@@ -24,7 +24,8 @@ int runQuery(char *queryFileName, int queryIsntString) {
   if(
       query.orderByClause == NULL &&
       query.outputFileName == NULL &&
-      !query.hasGrouping
+      (!query.hasGrouping) &&
+      (!query.hasRowCount)
     ) {
 
     /* output the header */
@@ -61,6 +62,12 @@ int runQuery(char *queryFileName, int queryIsntString) {
     if(query.hasGrouping) {
       groupResults(&query);
       query.useGroupBy = FALSE;
+    }
+    else if(query.hasRowCount) {
+      /* do fake grouping if only row count based output columns are requested.
+      This is because the numbering should be only done after the initial
+      grouping/ordering */
+      groupResults(&query);
     }
 
     /* output the results to the specified file */

@@ -3,5 +3,4 @@ select
   concat('a', row_number())
 from
   'test.csv' as test encoding 'utf-8'
-group by
-  names
+order by names
