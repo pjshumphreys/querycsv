@@ -661,10 +661,15 @@ struct expression {
   } unionPtrs;
 };
 
+struct expressionEntry {
+  struct expression* value;
+  struct expressionEntry *nextInList;
+};
+
 struct caseEntry {
-  struct expression* test;
   struct expression* value;
   struct caseEntry *nextInList;
+  struct expression* test;
 };
 
 struct columnReference {
@@ -678,6 +683,11 @@ struct columnReference {
     } calculatedPtr;
   } reference; /* a pointer to the information we want */
   struct columnReference *nextReferenceWithName; /* if this is non null and the query didn't specify which table to use then we should error */
+};
+
+struct columnEntry {
+  struct columnReference* reference;
+  struct columnEntry *nextInList;
 };
 
 struct columnRefHashEntry {

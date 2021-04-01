@@ -52,7 +52,7 @@ typedef void* yyscan_t;
 %token END FROM
 %token GROUP HAVING IN INTO
 %token IS JOIN LEFT LIKE NULLX ON
-%token ORDER OPTIONS
+%token ORDER PARTITION OVER OPTIONS
 %token SELECT SORT
 %token THEN
 %token WHEN WHERE
@@ -65,7 +65,7 @@ typedef void* yyscan_t;
 %type <strval> optional_as_name literal optional_separator
 %type <referencePtr> column_ref
 %type <intval> opt_asc_desc optional_encoding from_options
-%type <expressionPtr> case_exp simple_case searched_case
+%type <expressionPtr> case_exp simple_case searched_case opt_over column_ref_commalist2
 %type <expressionPtr> scalar_exp optional_exp search_condition predicate function_ref
 %type <expressionPtr> comparison_predicate in_predicate join_condition where_clause
 %type <atomPtr> atom_commalist
@@ -205,8 +205,8 @@ scalar_exp:
   | CONCAT '(' scalar_exp ',' scalar_exp ')' {
       $$ = parse_scalarExp(queryData, $3, EXP_CONCAT, $5);
     }
-  | ROWNUMBER opt_now_brackets {
-    $$ = parse_functionRef(queryData, GRP_ROWNUMBER, parse_scalarExp(queryData, NULL, EXP_ROWNUMBER, NULL), FALSE, NULL);
+  | ROWNUMBER opt_now_brackets opt_over {
+    $$ = parse_functionRef(queryData, GRP_ROWNUMBER, $3, FALSE, NULL);
   }
   | SLICE '(' scalar_exp ',' scalar_exp optional_exp ')' {
       $$ = parse_scalarExp(queryData, $3, EXP_SLICE, parse_scalarExp(queryData, $5, EXP_LIMITS, $6));
@@ -242,6 +242,15 @@ scalar_exp:
     }
   | '(' scalar_exp ')' {
       $$ = $2;
+    }
+  ;
+
+opt_over:
+    /* empty */ {
+      $$ = parse_scalarExp(queryData, NULL, EXP_ROWNUMBER, NULL);
+    }
+  | OVER '(' PARTITION BY column_ref_commalist2 ')' {
+      $$ = parse_columnRefList(queryData, $5, NULL);
     }
   ;
 
@@ -474,6 +483,15 @@ column_ref_commalist:
     }
   | column_ref_commalist ',' column_ref {
       parse_groupingSpec(queryData, parse_scalarExpColumnRef(queryData, $3));
+    }
+  ;
+
+column_ref_commalist2:
+    column_ref {
+      $$ = parse_scalarExpColumnRef(queryData, $1);
+    }
+  | column_ref_commalist2 ',' column_ref {
+      $$ = parse_columnRefList(queryData, $1, $3);
     }
   ;
 

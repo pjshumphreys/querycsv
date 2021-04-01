@@ -87,7 +87,28 @@ void updateRunningCounts(
               } break;
 
               case GRP_ROWNUMBER: {
-                currentResultColumn->groupNum = query->recordCount + 1;
+                if(item->link[0] == NULL) {
+                  currentResultColumn->groupNum = 1;
+                }
+                else {
+                  currentResultColumn->groupNum = strctod(match[currentResultColumn->resultColumnIndex].value, NULL);
+                  freeAndZero(match[currentResultColumn->resultColumnIndex].value);
+                }
+
+                /* calculate whether the next row will increment the row number or start from 1 again */
+                if(item->link[1]) {
+                  setRowNumber(
+                    query,
+                    currentResultColumn->resultColumnIndex,
+                    currentResultColumn->groupNum,
+
+                    /* the series of expressions that must remain the same for the row_number to not be reset */
+                    (struct expressionEntry *)(currentReference->reference.calculatedPtr.expressionPtr->unionPtrs.voidPtr),
+
+                    match,
+                    item->link[1]->columns
+                  );
+                }
               } break;
 
               case GRP_DIS_AVG:
