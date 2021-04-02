@@ -1,0 +1,7 @@
+select
+  id,
+  name,
+  result,
+  row_number() over (partition by result) as rowNumber
+from 'test39.csv' as a
+order by result, id desc
