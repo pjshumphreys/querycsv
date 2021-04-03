@@ -15,7 +15,7 @@ void groupResultsInner(
   else {
     query->groupCount = 0;
 
-    updateRunningCounts(query, item);
+    updateRunningCounts(query, item, NULL);
 
     if(query->hasGrouping) {
       /* look at the next item */
@@ -31,8 +31,8 @@ void groupResultsInner(
           (void *)query
         ) == 0
       ) {
-        updateRunningCounts(query, tempItem);
         tempItem->type = TRE_SKIP;
+        updateRunningCounts(query, tempItem, item);
         tempItem = tempItem->link[1];
       }
     }

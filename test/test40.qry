@@ -1,0 +1,5 @@
+select [group], max([value]) as max_value, sum([value]) as sum_value, count(distinct [value]), count([value]) as count_value,  min([value]) as min_value, avg(distinct [value]) as avg_value, row_number() as [row_number]
+from 'test40.csv' as test
+group by [group]
+order by [group] desc
+

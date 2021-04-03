@@ -1,6 +1,7 @@
 void updateRunningCounts(
     struct qryData *query,
-    struct resultTree *item
+    struct resultTree *item,
+    struct resultTree *groupItem
 ) {
   struct resultTree *tempItem;
   struct resultColumnValue *match = item->columns;
@@ -87,12 +88,14 @@ void updateRunningCounts(
               } break;
 
               case GRP_ROWNUMBER: {
-                if(item->link[0] == NULL) {
-                  currentResultColumn->groupNum = 1;
-                }
-                else {
-                  currentResultColumn->groupNum = strctod(match[currentResultColumn->resultColumnIndex].value, NULL);
-                  freeAndZero(match[currentResultColumn->resultColumnIndex].value);
+                if(groupItem == NULL) {
+                  if(item->link[0] == NULL) {
+                    currentResultColumn->groupNum = ctof(1);
+                  }
+                  else {
+                    currentResultColumn->groupNum = strctod(match[currentResultColumn->resultColumnIndex].value, NULL);
+                    freeAndZero(match[currentResultColumn->resultColumnIndex].value);
+                  }
                 }
 
                 /* calculate whether the next row will increment the row number or start from 1 again */
@@ -105,8 +108,7 @@ void updateRunningCounts(
                     /* the series of expressions that must remain the same for the row_number to not be reset */
                     (struct expressionEntry *)(currentReference->reference.calculatedPtr.expressionPtr->unionPtrs.voidPtr),
 
-                    match,
-                    item->link[1]->columns
+                    (groupItem ? groupItem : item)
                   );
                 }
               } break;

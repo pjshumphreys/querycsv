@@ -3,15 +3,29 @@ void setRowNumber(
   int columnIndex,
   double defaultValue,
   struct expressionEntry * entry,
-  struct resultColumnValue * currentMatch,
-  struct resultColumnValue * nextMatch
+  struct resultTree * item
 ) {
   char * temp1 = NULL;
   char * temp2 = NULL;
+  struct resultColumnValue * currentMatch = item->columns;
+  struct resultColumnValue * nextMatch = NULL;
 
   struct resultColumnParam matchParams;
 
   MAC_YIELD
+
+  /* set the right row even when true groupings are being done in addition to row_number() */
+  item = item->link[1];
+
+  while(item && item->type == TRE_SKIP) {
+    if(item->link[1] == NULL) {
+      return;
+    }
+
+    item = item->link[1];
+  }
+
+  nextMatch = item->columns;
 
   matchParams.params = query->params;
 
