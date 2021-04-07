@@ -24,6 +24,7 @@ void addGroupedResult(
       &matchParams
     )
   ) {
+    cleanup_matchValues(query, &match);
     return;
   }
 

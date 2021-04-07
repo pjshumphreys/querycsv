@@ -94,9 +94,10 @@ void updateRunningCounts(
                   }
                   else {
                     currentResultColumn->groupNum = strctod(match[currentResultColumn->resultColumnIndex].value, NULL);
-                    freeAndZero(match[currentResultColumn->resultColumnIndex].value);
                   }
                 }
+
+                freeAndZero(match[currentResultColumn->resultColumnIndex].value);
 
                 /* calculate whether the next row will increment the row number or start from 1 again */
                 if(item->link[1]) {
@@ -171,7 +172,7 @@ void updateRunningCounts(
                     (void (*)(void))getUnicodeChar
                   ) == -1) {
 
-                  free(currentResultColumn->groupText);
+                  freeAndZero(currentResultColumn->groupText);
                   currentResultColumn->groupText = tempString;
                   tempString = NULL;
                   currentReference = currentReference->nextReferenceWithName;
@@ -189,7 +190,7 @@ void updateRunningCounts(
                     (void (*)(void))getUnicodeChar
                   ) == 1) {
 
-                  free(currentResultColumn->groupText);
+                  freeAndZero(currentResultColumn->groupText);
                   currentResultColumn->groupText = tempString;
                   tempString = NULL;
                   currentReference = currentReference->nextReferenceWithName;

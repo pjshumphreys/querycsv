@@ -50,6 +50,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
 
   matchParams.ptr = match;
   matchParams.params = query->params;
+  columnOffsetData.value = NULL;
 
   /* if secondaryInputTable is NULL then */
   /* the query hasn't returned any results yet. */
@@ -107,8 +108,9 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
         /* if we haven't yet reached the end of a record, get the next column value. */
         /* if it returns false we use an empty string for the value instead */
 
+        freeAndZero(columnOffsetData.value);
+
         if(recordHasColumn == TRUE && !doLeftRecord) {
-          columnOffsetData.value = NULL;
           recordHasColumn = getCsvColumn(
               currentInputTable,
               &(columnOffsetData.value),
@@ -120,7 +122,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             );
 
           if(isQuoted == FALSE && clause2(currentInputTable, &columnOffsetData)) {
-            freeAndZero(columnOffsetData.value);
             columnOffsetData.isNull = TRUE;
           }
           else {
@@ -141,14 +142,18 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             currentResultColumn != NULL;
             currentResultColumn = currentResultColumn->nextColumnInstance
           ) {
+          freeAndZero(match[currentResultColumn->resultColumnIndex].value);
 
-          free(match[currentResultColumn->resultColumnIndex].value);
+          columnOffsetData.isNull = doLeftRecord;
+          columnOffsetData.length = strlen(columnOffsetData.value);
 
           memcpy(
               &(match[currentResultColumn->resultColumnIndex]),
               &columnOffsetData,
               sizeof(struct resultColumnValue)
             );
+
+          columnOffsetData.value = mystrdup(columnOffsetData.value);
         }
       }
       /* end of columns */
@@ -206,6 +211,7 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
           query->joinsAndWhereClause,
           &matchParams
         )) {
+          freeAndZero(columnOffsetData.value);
           return TRUE;
         }
       }
@@ -251,5 +257,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   /* end of tables */
 
   /* all data scanned. no more matches */
+  freeAndZero(columnOffsetData.value);
   return FALSE;
 }

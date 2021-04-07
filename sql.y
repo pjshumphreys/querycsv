@@ -347,7 +347,11 @@ optional_separator:
     $$ = NULL;
   }
   | ',' STRING {
-      $$ = queryData->parseMode != 1 ? NULL : mystrdup($2);
+      if(queryData->parseMode != 1) {
+        freeAndZero($2);
+      }
+
+      $$ = $2;
     }
   ;
 

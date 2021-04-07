@@ -4,6 +4,7 @@ int parse_params(struct qryData *queryData, char *string, int params) {
   MAC_YIELD
 
   if(queryData->parseMode == 1 || string == NULL) {
+    freeAndZero(string);
     return params;
   }
 
@@ -97,5 +98,6 @@ int parse_params(struct qryData *queryData, char *string, int params) {
     i++;
   }
 
+  freeAndZero(string);
   return params;
 }

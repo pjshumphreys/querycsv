@@ -32,9 +32,18 @@ void cleanup_expression(struct expression *currentExpression) {
 
       case EXP_GROUP:
         /* the memory used here is cleaned up elsewhere */
-      /* break; */
+      break;
 
       case EXP_ROWNUMBER:
+        while(currentExpression->unionPtrs.voidPtr) {
+          struct expressionEntry *currentEntry = (struct expressionEntry *)(currentExpression->unionPtrs.voidPtr);
+
+          currentExpression->unionPtrs.voidPtr = (void *)(currentEntry->nextInList);
+
+          cleanup_expression(currentEntry->value);
+          free(currentEntry);
+        }
+      break;
 
       case EXP_CALCULATED:
         /* TODO: confirm that the expression will be freed elsewhere */

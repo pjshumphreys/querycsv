@@ -40,18 +40,22 @@ void getCalculatedColumns(
           getValue(currentExpression, &matchParams);
 
           /* change ownership of the expression value to the result set */
+          free(match[j].value);
+
           if(currentExpression->isNull) {
             match[j].length = 0;
             match[j].isNull = TRUE;
             match[j].value = mystrdup("");
+
+            freeAndZero(currentExpression->value);
           }
           else {
             match[j].isNull = FALSE;
             match[j].length = strlen(currentExpression->value);
             match[j].value = currentExpression->value;
-          }
 
-          currentExpression->value = NULL;
+            currentExpression->value = NULL;
+          }
         }
 
         currentReference = currentReference->nextReferenceWithName;

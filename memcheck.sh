@@ -1,1 +1,1 @@
-valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./querycsv test.qry 2>results.txt
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes ./querycsv $1 2>results.txt
