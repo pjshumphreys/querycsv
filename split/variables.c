@@ -73,7 +73,4 @@ const char * TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
   char cursorOutput;
   char currentWaitCursor;
   char * currentWaitCursorChar;
-#else
-  #define fopen_read "rb"
-  #define fopen_write "wb"
 #endif

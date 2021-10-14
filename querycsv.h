@@ -549,6 +549,9 @@ Just use long ones for that compiler */
   #define ENC_OUTPUT ENC_PETSCII
   /* ENC_PRINT is kept as utf-8 as we do the charset conversion in the fputs/fprintf wrapper functions now */
 #else
+  #define fopen_read "rb"
+  #define fopen_write "wb"
+
   #define __fastcall__ /* do nothing */
 
   #ifdef SOFTFLOAT

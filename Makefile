@@ -37,7 +37,7 @@ hash4c.c: hash4c.gperf
 	gperf hash4c.gperf > hash4c.c
 
 hash2.c: UnicodeData.txt generate_hash2.js dcompose.json hash2iT.h hash2outT.h hash2T.h
-	npm install graceful-fs match-all strip-json-comments readline walk shell-escape cheerio normalize-html-whitespace
+	npm install graceful-fs match-all strip-json-comments@3.1.1 readline walk shell-escape cheerio normalize-html-whitespace
 	node ./generate_hash2.js
 	cp hash2T.h hash2.c
 
@@ -49,8 +49,10 @@ lexer.c: sql.l querycsv.h
 
 sql.c: sql.y lexer.c
 	bison sql.y
+	# fix for GCC specific idiocy
+	sed -i.bak "s/= {yyssp, yyesa, &yyes, &yyes_capacity, yytoken}//g;s/int yysyntax_error_status;/int yysyntax_error_status;yyctx.yyssp=yyssp;yyctx.yyesa=yyesa;yyctx.yyes=\&yyes;yyctx.yyes_capacity=\&yyes_capacity;yyctx.yytoken=yytoken;/g;" sql.c
 #	sed -i.bak "/^#line/d" sql.c
-#	rm sql.c.bak
+	rm sql.c.bak
 
 hash2.o: gen.h en_gb.h querycsv.h
 hash3.o: hash3.h gen.h en_gb.h querycsv.h

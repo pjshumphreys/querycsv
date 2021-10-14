@@ -3,7 +3,7 @@ struct atomEntry *parse_atomCommaList(
     struct atomEntry *lastEntryPtr,
     char *newEntry
 ) {
-  struct atomEntry *newEntryPtr;
+  struct atomEntry *newEntryPtr = NULL;
 
   MAC_YIELD
 

@@ -1194,6 +1194,7 @@ for (let mapping of Object.entries(mappings)) {
 
   if(process.argv.length === 2) {
     output += `
+#ifndef ${mapping[1].define}
 #define ${mapping[1].define} ${mapping[1].values.length}
 
 static const ${mapping[1].type} ${mapping[0]}[${mapping[1].define}] = `;
@@ -1212,11 +1213,12 @@ static const ${mapping[1].type} ${mapping[0]}[${mapping[1].define}] = `;
 
   });
 
-    output += ';\n';
+    output += ';\n#endif\n';
   }
   else {
     //z88dk version
     output += `
+#ifndef ${mapping[1].define}
 #define ${mapping[1].define} ${mapping[1].values.length}
 
 static const ${mapping[1].type}
@@ -1239,7 +1241,7 @@ static const ${mapping[1].type}
         output+= ',\n';
       }
       else {
-        output += ';\n';
+        output += ';\n#endif\n';
       }
     }
 
