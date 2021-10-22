@@ -387,13 +387,14 @@ function compileParser () {
     'sed -e"' +
       's/YY_INITIAL_VALUE (static YYSTYPE yyval_default;)//g;' +
       's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
+      's/yyr1\\[\\(.[^]]*\\)\\]/yyr1a(\\1)/g;' +
       's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_OESTABLISH/g;' +
       's/%s/%S/g;' +
       's/%d/%D/g;' +
       's/%lu/%LU/g;' +
       's/\'s\'/\'S\'/g;' +
       's/YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);/static YYSTYPE yylval;/g;' +
-      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);static const yytype_int16 yypact[]/g;' +
+      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);yytype_int8 yyr1a(int offset);static const yytype_int16 yypact[]/g;' +
       '" sql.c > build/sql2.h');
 
   execSync(
@@ -1113,13 +1114,20 @@ function compilePages () {
 function updatePageFunctionAddresses (pageNumber) {
   console.log('updatePageFunctionAddresses: ', pageNumber - 3);
 
-  const stream = fs.createReadStream('./build/obj2/page' + (pageNumber - 3) + '.lbl');
+  const input = fs.createReadStream('./build/obj2/page' + (pageNumber - 3) + '.lbl');
 
-  const lineReader = readline.createInterface({
-    input: stream
+  input.once('readable', () => {
+    const lineReader = readline.createInterface({ input });
+
+    lineReader.on('line', updateFunctionAddress.bind(pageNumber));
+
+    /* when finished, start the next step (compiling libc) */
+    lineReader.on('close', () => {
+      updatePageFunctionAddresses(pageNumber + 1);
+    });
   });
 
-  stream.on('error', err => {
+  input.once('error', err => {
     if (err.code === 'ENOENT') {
       passPostfix = 'b';
 
@@ -1137,13 +1145,6 @@ function updatePageFunctionAddresses (pageNumber) {
     } else {
       console.log('Caught', err);
     }
-  });
-
-  lineReader.on('line', updateFunctionAddress.bind(pageNumber));
-
-  /* when finished, start the next step (compiling libc) */
-  lineReader.on('close', () => {
-    updatePageFunctionAddresses(pageNumber + 1);
   });
 }
 

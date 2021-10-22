@@ -29,3 +29,7 @@ yytype_int16 yycheck2(int offset) {
 yytype_int16 yypact2(int offset) {
   return yypact[offset];
 }
+
+yytype_int8 yyr1a(int offset) {
+  return yyr1[offset];
+}
