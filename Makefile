@@ -24,7 +24,7 @@ hash3.h: ./generateMappings.js
 	node ./generateMappings.js
 
 querycsv.c: hash3.h $(SOURCES)
-	printf "#include \"querycsv.h\"\n" > querycsv.c
+	printf "#include \"querycsv.h\"\n#include \"ansimap.h\"\n" > querycsv.c
 	cat $(SOURCES) >> querycsv.c
 
 hash4a.c: hash4a.gperf

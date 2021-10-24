@@ -1,5 +1,3 @@
-#include "ansimap.h"
-
 void getBytesCP1252(
     long codepoint,
     char **bytes,

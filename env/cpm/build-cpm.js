@@ -200,10 +200,15 @@ function compileParser () {
 
   execSync(
     'sed "' +
+      's/\\[[+][*]/\\[0+*/g;' +
+      's/[(][+][*]/(0+*/g;' +
       's/YY_INITIAL_VALUE (static YYSTYPE yyval_default;)/' +
         'static YYSTYPE yyval_default;/g;' +
       's/YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);/' +
         'YYSTYPE yylval;/g;' +
+      's/typedef enum yysymbol_kind_t yysymbol_kind_t;//g;' +
+      's/enum yysymbol_kind_t/enum yysymbol_kind_e/g;' +
+      's/#ifndef YYPTRDIFF_T/typedef yytype_int16 yysymbol_kind_t;\\n#ifndef YYPTRDIFF_T/g;' +
       's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
       's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_ESTABLISH/g;'+
       's/char const/' +
