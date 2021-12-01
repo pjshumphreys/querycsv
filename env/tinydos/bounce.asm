@@ -2,6 +2,7 @@
 		PUBLIC	__PRO
 		PUBLIC	__EPI
 		EXTRN	_big_code_:BYTE
+		EXTRN	__STK:BYTE
 DGROUP		GROUP	CONST,CONST2,_DATA
 ; File contains no line numbers.
 bounce_TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'

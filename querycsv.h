@@ -807,10 +807,17 @@ struct codepointToBytes {
   char mac;
 };
 
+#ifndef NOHASH4
+struct hash4aEntry {struct hash4Entry a; };
+struct hash4bEntry {struct hash4Entry b; };
+struct hash4cEntry {struct hash4Entry c; };
+
 /* function prototypes */
-struct hash4Entry *in_word_set_a(register const char *str, register unsigned int len);
-struct hash4Entry *in_word_set_b(register const char *str, register unsigned int len);
-struct hash4Entry *in_word_set_c(register const char *str, register unsigned int len);
+struct hash4aEntry *in_word_set_a(register const char *str, register unsigned int len);
+struct hash4bEntry *in_word_set_b(register const char *str, register unsigned int len);
+struct hash4cEntry *in_word_set_c(register const char *str, register unsigned int len);
+
+#endif
 
 int isCombiningChar(long codepoint);
 

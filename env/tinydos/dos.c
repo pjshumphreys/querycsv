@@ -153,3 +153,18 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 
   return retval;
 }
+
+/* include the rest of the code here so we can build just 1 .obj file that twe can then disassmble and cut up */
+#include "hash4a.c"
+#include "hash4b.c"
+#include "hash4c.c"
+#define NOHASH4
+#define YY_BUFFER_NEW 0
+#define YY_BUFFER_NORMAL 1
+#define YY_BUFFER_EOF_PENDING 2
+#include "sql.c"
+#include "lexer.c"
+#include "hash2dat.c"
+#include "hash3.c"
+#include "ansimap.h"
+#include "querycsv.c"

@@ -3,19 +3,19 @@ static struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
 struct hash4Entry * clause4(unsigned char **offset, int totalBytes2) {
   struct hash4Entry *temp;
 
-  temp = in_word_set_a((char *)(*offset), totalBytes2);
+  temp = (struct hash4Entry *)in_word_set_a((char *)(*offset), totalBytes2);
 
   if(temp != NULL) {
     return temp;
   }
 
-  temp = in_word_set_b((char *)(*offset), totalBytes2);
+  temp = (struct hash4Entry *)in_word_set_b((char *)(*offset), totalBytes2);
 
   if(temp != NULL) {
     return temp;
   }
 
-  temp = in_word_set_c((char *)(*offset), totalBytes2);
+  temp = (struct hash4Entry *)in_word_set_c((char *)(*offset), totalBytes2);
 
   if(temp != NULL) {
     return temp;
