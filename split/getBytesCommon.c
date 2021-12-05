@@ -24,11 +24,6 @@ char* getBytesCommon(long codepoint, int key) {
     break;
 
     case 2:
-      returnByte = lookup->cp1047;
-
-    return &returnByte; /* don't do the if statement below for cp1047 */
-
-    case 3:
       returnByte = lookup->mac;
     break;
   }

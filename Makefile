@@ -74,12 +74,12 @@ dat/create: hash2.c dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/
 	cd dat && $(CC) create.c externs.c -o create
 
 dat/qrycsv00.ovl: dat/create dat/hash2dat.c
-	cd dat && ./create && (echo ../env/zx ../env/cpm ../env/tinydos | xargs -n 1 cp hash2dat.h hash2dat.c qrycsv00.ovl)
+	cd dat && ./create && (echo ../env/zx ../env/cpm ../env/smalldos | xargs -n 1 cp hash2dat.h hash2dat.c qrycsv00.ovl)
 	mv env/cpm/qrycsv00.ovl env/cpm/qrycsv00.bin
 	mv env/zx/qrycsv00.ovl env/zx/qrycsv00.bin
 	sed -i "s/qrycsv00/qcsv00zx/" env/zx/hash2dat.c
-#	mv env/dos/qrycsv00.ovl env/dos/querycsv.ovl
-#	sed -i "s/qrycsv00/querycsv/" env/dos/hash2dat.c
+	mv env/smalldos/qrycsv00.ovl env/smalldos/qrycsv16.dat
+	sed -i "s/qrycsv00.ovl/qrycsv16.dat/" env/smalldos/hash2dat.c
 
 env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
@@ -97,9 +97,13 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o en
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/html5/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*' -exec cp {} env/zx/ \;
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*' -exec cp {} env/cpm/ \;
-	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*'  -exec cp {} env/tinydos/ \;
-	cd env/tinydos; unix2dos *
+	#cd split && find * -maxdepth 1 -type f | xargs -I {} sh -c 'echo "#include \"querycsv.h\"" | cat - {} > ../env/smalldos/{}' \;
+	#cd env/smalldos && rm -f batch.bat && find * -type f -name "*.c" | xargs -I {} sh -c 'echo "wcc /dMICROSOFT=1 /dDOS_DAT=1 /mm /zm /fpc /0 /os /s" {} >> batch.bat'
+	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*' -exec cp {} env/smalldos/ \;
+	sed -i.bak "s/static struct/static const struct/g;s/static unsigned short/static const unsigned short/g" env/smalldos/hash4*.c
+	cd env/smalldos; rm -rf *.bak; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
+	sed -i.bak "s/static struct/static const struct/g;s/static unsigned short/static const unsigned short/g" env/dos/hash4*.c
 	cd env/dos; unix2dos *
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/win32/ \;
 	cd env/win32; unix2dos *
@@ -129,7 +133,7 @@ clean:
 	find . -maxdepth 1 -type f \( -iname \*.o \) -exec rm -rf {} \;
 	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.err -o -iname \*.o \) -exec rm -rf {} \;
-	cd env/tinydos && find . -maxdepth 1 ! -path './dos.c' ! -path './direct.cfg' ! -path './bounce.asm' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/dos && find . -maxdepth 1 ! -path './dos.c' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './direct.cfg' ! -path './querycsv.ico' ! -path './querycsv.rc' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/m68kmac && find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.s' ! -path './TEGlue.a' ! -path './.finf/QueryCSV.make' ! -path './QueryCSV.make' ! -path './CMakeLists.txt' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *

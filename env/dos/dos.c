@@ -80,7 +80,7 @@ int fputs_dos(const char *str, FILE *stream) {
     }
 
     if(newline) {
-      fputs("\n", lastWasErr ? stderr : stdout);
+      fputc('\n', lastWasErr ? stderr : stdout);
 
       newline = FALSE;
     }

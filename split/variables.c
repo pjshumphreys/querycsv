@@ -62,8 +62,8 @@ int i;
 char returnByte;
 
 /*dedup string literals */
-const char * TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
-const char * TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
+const char * const TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
+const char * const TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 
 #ifdef __CC65__
   char * fopen_read = "RB";

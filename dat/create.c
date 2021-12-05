@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  fprintf(fp, ";\n\nstatic const int * hash2_[96] = {");
+  fprintf(fp, ";\n\nstatic const int * const hash2_[96] = {");
 
   j = 0;
 

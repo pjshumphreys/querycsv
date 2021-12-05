@@ -3,7 +3,7 @@
 %define hash-function-name hash_a
 %define lookup-function-name in_word_set_a
 %struct-type
-struct hash4aEntry {
+struct hash4EntryA {
   const char *name;
   int script;
   int index;

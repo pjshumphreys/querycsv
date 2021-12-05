@@ -80,7 +80,7 @@ int fputs_dos(const char *str, FILE *stream) {
     }
 
     if(newline) {
-      fputs("\n", lastWasErr ? stderr : stdout);
+      fputc('\n', lastWasErr ? stderr : stdout);
 
       newline = FALSE;
     }
@@ -155,10 +155,11 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 }
 
 /* include the rest of the code here so we can build just 1 .obj file that twe can then disassmble and cut up */
+#define NOHASH4
+#include "querycsv.h"
 #include "hash4a.c"
 #include "hash4b.c"
 #include "hash4c.c"
-#define NOHASH4
 #define YY_BUFFER_NEW 0
 #define YY_BUFFER_NORMAL 1
 #define YY_BUFFER_EOF_PENDING 2

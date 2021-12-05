@@ -288,7 +288,7 @@ function compileHash4a () {
 
   execSync(
     'sed "' +
-      '1s/^/extern struct hash4Entry hash4export;\\n/;' +
+      '1s/^/struct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
       's/static struct hash4Entry/' +
         'static const struct hash4Entry/gi;' +
       's/static unsigned short/' +
@@ -318,7 +318,7 @@ function compileHash4b () {
 
   execSync(
     'sed "' +
-      '1s/^/extern struct hash4Entry hash4export;\\n/;' +
+      '1s/^/struct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
       's/static struct hash4Entry/' +
         'static const struct hash4Entry/gi;' +
       's/static unsigned short/' +
@@ -348,7 +348,7 @@ function compileHash4c () {
 
   execSync(
     'sed "' +
-      '1s/^/extern struct hash4Entry hash4export;\\n/;' +
+      '1s/^/struct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
       's/static struct hash4Entry/' +
         'static const struct hash4Entry/gi;' +
       's/static unsigned short/' +
