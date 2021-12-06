@@ -68,18 +68,20 @@ int main(int argc, char **argv) {
 
     #ifdef WINDOWS
       setupWin32(&argc2, &argv2);
-    #elif defined(__WATCOMC__)
-      /* Watcom StdClib on MSDOS needs the TZ environment variable set
-      then setlocale to be called to properly calculate gmtime */
+    #else
+      #ifdef __WATCOMC__
+        /* Watcom StdClib on MSDOS needs the TZ environment variable set
+        then setlocale to be called to properly calculate gmtime */
 
-      /* supply some default timezone data if none is present */
-      if(getenv("TZ") == NULL) {
-        putenv(TDB_DEFAULT_TZ);
-      }
+        /* supply some default timezone data if none is present */
+        if(getenv("TZ") == NULL) {
+          putenv(TDB_DEFAULT_TZ);
+        }
 
-      /* set the locale (among other things, this applies the */
-      /* timezone data to the date functions) */
-      setlocale(LC_ALL, TDB_LOCALE);
+        /* set the locale (among other things, this applies the */
+        /* timezone data to the date functions) */
+        setlocale(LC_ALL, TDB_LOCALE);
+      #endif
 
       /* get the original drive and working directory to be able */
       /* to revert them if they need to be changed during runtime */

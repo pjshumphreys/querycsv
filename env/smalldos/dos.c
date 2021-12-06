@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
-#include <direct.h>
 
 #define FALSE 0
 #define TRUE  1
@@ -16,6 +15,9 @@ extern char * origWd;
   extern FILE * datafile;
 #endif
 int strAppend(char c, char **value, size_t *strSize);
+
+#define NOHASH4
+#include "querycsv.h"
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 #define ENC_UNKNOWN 0
@@ -118,26 +120,28 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
       return FALSE;
     }
 
-    //get the space needed for the new string
+    /* get the space needed for the new string */
     va_start(args, format);
-    newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
+    newSize = (size_t)(vfprintf(pFile, format, args)); /* plus L'\0' */
     va_end(args);
 
-    //close the file. We don't need to look at the return code as we were writing to /dev/null
+    /* close the file. We don't need to look at the return code as we were writing to /dev/null */
     fclose(pFile);
 
-    //Create a new block of memory with the correct size rather than using realloc
-    //as any old values could overlap with the format string. quit on failure
+    /*
+      Create a new block of memory with the correct size rather than using realloc
+      as any old values could overlap with the format string. quit on failure
+    */
     if((newStr = (char*)malloc(newSize+1)) == NULL) {
       return FALSE;
     }
 
-    //do the string formatting for real
+    /* do the string formatting for real */
     va_start(args, format);
     vsprintf(newStr, format, args);
     va_end(args);
 
-    //ensure null termination of the string
+    /* ensure null termination of the string */
     newStr[newSize] = '\0';
 
     fputs_dos(newStr, stream);
@@ -155,8 +159,7 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 }
 
 /* include the rest of the code here so we can build just 1 .obj file that twe can then disassmble and cut up */
-#define NOHASH4
-#include "querycsv.h"
+
 #include "hash4a.c"
 #include "hash4b.c"
 #include "hash4c.c"

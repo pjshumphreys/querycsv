@@ -181,7 +181,14 @@ it becomes needed and because it's useful for debugging */
     #define fprintf fprintf_w32
     #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
-    #include <direct.h>   /* for chdir and getcwd */
+    #ifdef __TURBOC__
+      #define PATH_MAX 256
+      #include <dir.h>   /* for chdir and getcwd */
+      typedef long int32_t;
+    #else
+      #include <direct.h>   /* for chdir and getcwd */
+    #endif
+
     void atexit_dos(void);
     int fputs_dos(const char *str, FILE *stream);
     int fprintf_dos(FILE *stream, const char *format, ...);
