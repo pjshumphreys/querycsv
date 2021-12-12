@@ -159,7 +159,6 @@ it becomes needed and because it's useful for debugging */
 
   #include <unistd.h> /* for chdir and getcwd */
   #include <strings.h>  /* for strcasecmp */
-  #include <locale.h> /* for setlocale, used when compiling with watcom */
 
   /* used as posix doesn't have stricmp */
   #define stricmp strcasecmp
@@ -192,11 +191,9 @@ it becomes needed and because it's useful for debugging */
       #include <direct.h>   /* for chdir and getcwd */
     #endif
 
-    #ifndef NOHASH4
-      void atexit_dos(void);
-      int fputs_dos(const char *str, FILE *stream);
-      int fprintf_dos(FILE *stream, const char *format, ...);
-    #endif
+    void atexit_dos(void);
+    int fputs_dos(const char *str, FILE *stream);
+    int fprintf_dos(FILE *stream, const char *format, ...);
 
     #ifdef DOS_DAT
       void openDat(void);
@@ -205,11 +202,6 @@ it becomes needed and because it's useful for debugging */
     #define fputs fputs_dos
     #define fprintf fprintf_dos
     #define YYFPRINTF fprintf_dos   /* for the bison parser */
-
-    #ifdef __WATCOMC__
-      #include <locale.h>  /* we need to call setlocale after setting the
-      TZ environment variable for gmtime to work correctly on msdos watcom */
-    #endif
 
     #undef ENC_INPUT
     #undef ENC_OUTPUT

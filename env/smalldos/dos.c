@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
+#ifdef __TURBOC__
+  #include <dir.h>
+  #define _chdrive setdisk
+#else
+  #include <direct.h>
+#endif
 
 #define FALSE 0
 #define TRUE  1
@@ -15,9 +21,6 @@ extern char * origWd;
   extern FILE * datafile;
 #endif
 int strAppend(char c, char **value, size_t *strSize);
-
-#define NOHASH4
-#include "querycsv.h"
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 #define ENC_UNKNOWN 0
@@ -159,8 +162,9 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 }
 
 /* include the rest of the code here so we can build just 1 .obj file that twe can then disassmble and cut up */
-
 #ifndef __TURBOC__
+#define NOHASH4
+#include "querycsv.h"
 #include "hash4a.c"
 #include "hash4b.c"
 #include "hash4c.c"
