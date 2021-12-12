@@ -160,6 +160,7 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 
 /* include the rest of the code here so we can build just 1 .obj file that twe can then disassmble and cut up */
 
+#ifndef __TURBOC__
 #include "hash4a.c"
 #include "hash4b.c"
 #include "hash4c.c"
@@ -172,3 +173,4 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 #include "hash3.c"
 #include "ansimap.h"
 #include "querycsv.c"
+#endif

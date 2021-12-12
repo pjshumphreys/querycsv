@@ -185,19 +185,23 @@ it becomes needed and because it's useful for debugging */
       #define PATH_MAX 256
       #include <dir.h>   /* for chdir and getcwd */
       typedef long int32_t;
+      /* these two functions have a different name in turbo c */
+      #define _getdrive getdisk
+      #define _chdrive setdisk
     #else
       #include <direct.h>   /* for chdir and getcwd */
     #endif
 
-    void atexit_dos(void);
-    int fputs_dos(const char *str, FILE *stream);
-    int fprintf_dos(FILE *stream, const char *format, ...);
+    #ifndef NOHASH4
+      void atexit_dos(void);
+      int fputs_dos(const char *str, FILE *stream);
+      int fprintf_dos(FILE *stream, const char *format, ...);
+    #endif
 
     #ifdef DOS_DAT
       void openDat(void);
     #endif
 
-    #define chdir _chdir
     #define fputs fputs_dos
     #define fprintf fprintf_dos
     #define YYFPRINTF fprintf_dos   /* for the bison parser */

@@ -50,7 +50,7 @@ struct hash4Entry entry2Internal = { NULL, 0, 0, 0 };
 
 char * devNull = NULL;
 
-#if defined(MICROSOFT) && !defined(WINDOWS) && defined(__WATCOMC__)
+#if defined(MICROSOFT) && !defined(WINDOWS)
   int origDrive;
   char * origWd = NULL;
 #endif

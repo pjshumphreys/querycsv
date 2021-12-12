@@ -30,22 +30,25 @@ int getCurrentDate(char **retval) {
   /* place the utc offset in the output string. */
   /* %z unfortunately can't be used as it doesn't work properly */
   /* in some c library implementations (Watcom and MSVC) */
-  if(d_sprintf(&output, "%%Y-%%m-%%dT%%H:%%M:%%S%s", output) == FALSE) {
+  if(
+    d_sprintf(
+      &output,
+      "%d-%02d-%02dT%02d:%02d:%02d%s",
+      local.tm_year + 1900,
+      local.tm_mon + 1,
+      local.tm_mday,
+      local.tm_hour,
+      local.tm_min,
+      local.tm_sec,
+      output
+    ) == FALSE
+  ) {
     fputs(TDB_SPRINTFD_FAILED, stderr);
 
     freeAndZero(output);
 
     return FALSE;
   };
-
-  /* place the rest of the time data in the output string */
-  if(d_strftime(&output, output, &local) == FALSE) {
-    fputs(TDB_STRFTIMED_FAILED, stderr);
-
-    freeAndZero(output);
-
-    return FALSE;
-  }
 #endif
 
   if(*retval) {
