@@ -28,6 +28,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
     /* if the file encoding is unknown and a 128 byte zx spectrum PLUS3DOS header is found then skip it */
     if(
+        internalOffset == 0 &&
         encoding &&
         *encoding == ENC_UNKNOWN &&
         c == 'P'
