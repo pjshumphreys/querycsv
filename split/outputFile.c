@@ -6,12 +6,13 @@ int outputFile(
   char * outText = NULL;
   struct inputTable table;
   size_t byteLength = 0;
+  long temp = query->CMD_PARAMS & PRM_HEADER ? 128 : 0;
   long c;
 
   MAC_YIELD
 
   /* attempt to open the input file */
-  inputFile = skipBom(inputFileName, NULL, &(query->CMD_ENCODING));
+  inputFile = skipBom(inputFileName, &temp, &(query->CMD_ENCODING));
 
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);

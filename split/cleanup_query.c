@@ -1,10 +1,11 @@
 void cleanup_query(struct qryData *query) {
+  int i;
+
   MAC_YIELD
 
   /* cleanup_columnReferences */
   {
     struct columnReferenceHash *table = query->columnReferenceHashTable;
-    int i;
     struct columnRefHashEntry *currentHashEntry, *nextHashEntry;
     struct columnReference *currentReference, *nextReference;
 
@@ -115,18 +116,27 @@ void cleanup_query(struct qryData *query) {
   free(query->dateString);
 
   if(query->outputFileName) {
-    if(query->outputEncoding == ENC_TSW &&  query->outputOffset % 64 != 0) {
-      /* add EOF byte and padding with spaces */
-      i = 64 - (query->outputOffset % 64);
+    if(query->outputEncoding == ENC_TSW) {
+      if(query->outputOffset % 64 != 0) {
+        /* add EOF byte and padding with spaces */
+        i = 64 - (query->outputOffset % 64);
 
-      fputc(query->params & PRM_REMOVE ? 32 : 143, query->outputFile);
+        fputc(query->params & PRM_REMOVE ? 32 : 143, query->outputFile);
 
-      i--;
+        i--;
 
-      while(i--) {
-        fputc(32, query->outputFile);
+        while(i--) {
+          fputc(32, query->outputFile);
+        }
       }
     }
+
+    #ifdef __Z88DK
+      else {
+        /* output a soft-EOF byte to end the file on cp/m or zx spectrum builds */
+        fputc(26, query->outputFile);
+      }
+    #endif
 
     fclose(query->outputFile);
 

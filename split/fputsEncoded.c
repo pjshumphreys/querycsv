@@ -47,7 +47,7 @@ int fputsEncoded(char *str, struct qryData *query) {
         }
 
         /* tasword 2 format files must not exceed 20480 bytes (320 x 64 byte lines) as they would overrun
-         * into tasword's machine code. Abort the program we try to generate this much output */
+         * into tasword's machine code. Abort the program if we try to generate this much output */
         if((offset + bytesStored) > 20480) {
           fputs(TDB_FILE_SIZE_EXCEEDED, stderr);
           exit(EXIT_FAILURE);

@@ -93,40 +93,44 @@ command_or_select:
     opt_group_by_clause
     opt_having_clause
     opt_into_clause
-  | COLUMNS STRING optional_encoding opt_into_clause {
+  | COLUMNS STRING from_options optional_encoding opt_into_clause {
       queryData->commandMode = 1;
       queryData->inputFileName = $2;
-      queryData->CMD_ENCODING = $3;
+      queryData->CMD_PARAMS = $3;
+      queryData->CMD_ENCODING = $4;
 
       YYACCEPT;
     }
-  | OUTPUT STRING optional_encoding opt_into_clause {
+  | OUTPUT STRING from_options optional_encoding opt_into_clause {
       queryData->commandMode = 5;
       queryData->inputFileName = $2;
-      queryData->CMD_ENCODING = $3;
+      queryData->CMD_PARAMS = $3;
+      queryData->CMD_ENCODING = $4;
 
       YYACCEPT;
     }
-  | NEXT STRING optional_encoding INTNUM opt_into_clause {
+  | NEXT STRING from_options optional_encoding INTNUM opt_into_clause {
       queryData->commandMode = 2;
       queryData->inputFileName = $2;
-      queryData->CMD_ENCODING = $3;
+      queryData->CMD_PARAMS = $3;
+      queryData->CMD_ENCODING = $4;
 
-      queryData->CMD_OFFSET = atol($4);
-      free($4);
+      queryData->CMD_OFFSET = atol($5);
+      free($5);
 
       YYACCEPT;
     }
-  | VALUE STRING optional_encoding INTNUM INTNUM opt_into_clause {
+  | VALUE STRING from_options optional_encoding INTNUM INTNUM opt_into_clause {
       queryData->commandMode = 3;
       queryData->inputFileName = $2;
-      queryData->CMD_ENCODING = $3;
+      queryData->CMD_PARAMS = $3;
+      queryData->CMD_ENCODING = $4;
 
-      queryData->CMD_OFFSET = atol($4);
-      free($4);
-
-      queryData->CMD_COLINDEX = atol($5);
+      queryData->CMD_OFFSET = atol($5);
       free($5);
+
+      queryData->CMD_COLINDEX = atol($6);
+      free($6);
 
       YYACCEPT;
     }

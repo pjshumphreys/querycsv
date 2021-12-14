@@ -4,24 +4,22 @@ int inputSeek(
     long *offset,
     FILE **inputFile
 ) {
-  long temp = 0;
+  long temp = query->CMD_PARAMS & PRM_HEADER ? 128 : 0;
 
   MAC_YIELD
 
-  /* Attempt to open the input file and update the character encoding if the file has a BOM */
-  *inputFile = skipBom(inputFileName, &temp, &(query->CMD_ENCODING));
-
-  if(*inputFile == NULL) {
-    fputs(TDB_COULDNT_OPEN_INPUT, stderr);
-    return EXIT_FAILURE;
-  }
-
   if(*offset == 0) {
+    /* Attempt to open the input file and update the character encoding if the file has a BOM */
+    *inputFile = skipBom(inputFileName, &temp, &(query->CMD_ENCODING));
+
+    if(*inputFile == NULL) {
+      fputs(TDB_COULDNT_OPEN_INPUT, stderr);
+      return EXIT_FAILURE;
+    }
+
     *offset = temp;
   }
   else {
-    fclose(*inputFile);
-
     /* go directly to the specified offset if it's non zero */
     *inputFile = fopen(inputFileName, fopen_read);
 

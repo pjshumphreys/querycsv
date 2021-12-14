@@ -767,6 +767,7 @@ struct qryData {
 #define CMD_OFFSET hiddenColumnCount
 #define CMD_COLINDEX recordCount
 #define CMD_ENCODING groupCount
+#define CMD_PARAMS useGroupBy
 
 struct resultColumnParam {
   int params;

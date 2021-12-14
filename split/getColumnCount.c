@@ -6,11 +6,12 @@ int getColumnCount(
   int columnCount = 1;
   char * outText = NULL;
   struct inputTable table;
+  long offset = query->CMD_PARAMS & PRM_HEADER ? 128 : 0;
 
   MAC_YIELD
 
   /* attempt to open the input file */
-  inputFile = skipBom(inputFileName, NULL, &(query->CMD_ENCODING));
+  inputFile = skipBom(inputFileName, &offset, &(query->CMD_ENCODING));
 
   if(inputFile == NULL) {
     fputs(TDB_COULDNT_OPEN_INPUT, stderr);
@@ -35,6 +36,10 @@ int getColumnCount(
   fputsEncoded(outText, query);
 
   freeAndZero(outText);
+
+  if(query->outputFile == stdout) {
+    fputsEncoded(query->newLine, query);
+  }
 
   /* close the input file and return */
   fclose(inputFile);

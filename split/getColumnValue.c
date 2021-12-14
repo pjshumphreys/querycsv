@@ -46,6 +46,10 @@ int getColumnValue(
     freeAndZero(output);
   }
 
+  if(query->outputFile == stdout) {
+    fputsEncoded(query->newLine, query);
+  }
+
   /* close the input file and return */
   fclose(inputFile);
 

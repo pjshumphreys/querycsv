@@ -5,6 +5,7 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
   FILE *file;
   int c;
   int internalOffset = 0;
+  int i;
 
   MAC_YIELD
 
@@ -15,6 +16,13 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
   file = fopen(filename, fopen_read);
 
   if(file != NULL) {
+    /* if a preset offset was set, skip that number of bytes of the file */
+    if(internalOffset) {
+      for(i = internalOffset; i; i--) {
+        fgetc(file);
+      }
+    }
+
     /* skip over the bom if present */
     c = fgetc(file);
 
