@@ -1241,7 +1241,7 @@ static const ${mapping[1].type}
         output+= ',\n';
       }
       else {
-        output += ';\n#endif\n';
+        output += ';\n';
       }
     }
 
@@ -1255,7 +1255,7 @@ static const ${mapping[1].type} * ${mapping[0]}[${mapping[1].define}] = {
         output+= ',\n';
       }
       else {
-        output += '\n};\n';
+        output += '\n};\n#endif\n';
       }
     }
   }

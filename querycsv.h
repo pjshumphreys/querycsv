@@ -720,7 +720,6 @@ struct resultColumnValue { /* this information should be stored in files */
 };
 
 /* results are sorted in a binary tree for quick in order retrieval */
-/* TODO: make the tree_insert function use a red black tree algorithm */
 struct resultTree {
   struct resultTree *link[2];
   struct resultTree *parent;

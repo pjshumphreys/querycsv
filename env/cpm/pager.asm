@@ -22,7 +22,6 @@ PUBLIC _initMapper
 PUBLIC _cleanup_z80
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
-PUBLIC  __FOPEN_MAX
 
 EXTBIOS equ 0xFFCA
 HOKVLD equ 0xFB20
@@ -394,7 +393,6 @@ lookupTable:
 lookupTableEnd:
 
 DEFC    CLIB_FOPEN_MAX = 10
-defc    __FOPEN_MAX = CLIB_FOPEN_MAX
 __sgoioblk:
   defs CLIB_FOPEN_MAX * 10      ;stdio control block
 __sgoioblk_end:        ;end of stdio control block

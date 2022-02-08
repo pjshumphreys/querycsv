@@ -28,7 +28,7 @@ resource 'vers' (1) {
   0x02, 0x00, release, 0x00,
   verUS,
   "2.0",
-  "2.0, Copyright \251 Paul Humphreys 2015-2021"
+  "2.0, Copyright \251 Paul Humphreys 2015-2022"
 };
 
 resource 'WIND' (rDocWindow, preload, purgeable) {
@@ -186,7 +186,7 @@ resource 'DITL' (rAboutAlert, purgeable) {
     {10, 60, 65, 230},
     StaticText {
       disabled,
-      "Version 2.0\n\251 Paul Humphreys 2015-2021"
+      "Version 2.0\n\251 Paul Humphreys 2015-2022"
     },
     /* [3] */
     {8, 8, 40, 40},
