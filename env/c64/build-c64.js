@@ -387,6 +387,7 @@ function compileParser () {
     'sed -e"' +
       's/YY_INITIAL_VALUE (static YYSTYPE yyval_default;)//g;' +
       's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
+      's/yydefact\\[\\(.[^]]*\\)\\]/yydefact2(\\1)/g;' +
       's/yyr1\\[\\(.[^]]*\\)\\]/yyr1a(\\1)/g;' +
       's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_OESTABLISH/g;' +
       's/%s/%S/g;' +
@@ -394,7 +395,7 @@ function compileParser () {
       's/%lu/%LU/g;' +
       's/\'s\'/\'S\'/g;' +
       's/YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);/static YYSTYPE yylval;/g;' +
-      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);yytype_int8 yyr1a(int offset);static const yytype_int16 yypact[]/g;' +
+      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);yytype_int8 yydefact2(int offset);yytype_int8 yyr1a(int offset);static const yytype_int16 yypact[]/g;' +
       '" sql.c > build/sql2.h');
 
   execSync(
@@ -551,9 +552,12 @@ function compileHash3And4 () {
   ).toString(), 10);
 
   execSync(
-    'sed -e"' +
-      's/static struct hash4Entry/static const struct hash4Entry/gi;' +
-      's/static unsigned short/static const unsigned short/gi;' +
+    'sed "' +
+      '1s/^/#include \\"cc65iso.h\\"\\nstruct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
+      's/static struct hash4Entry/' +
+        'static const struct hash4Entry/gi;' +
+      's/static unsigned short/' +
+        'static const unsigned short/gi;' +
       's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
         'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
       's/return \\&wordlist\\[key\\];/' +
@@ -561,14 +565,9 @@ function compileHash3And4 () {
           'hash4export.script = wordlist[key].script;\\n' +
           'hash4export.index = wordlist[key].index;\\n' +
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
-          'return \\&hash4export;\\n' +
+          'return (struct hash4EntryA *)\\&hash4export;\\n' +
         '}/gi;' +
-      '" hash4a.h > hash4a2.h');
-
-  execSync(
-    'sed -e"' +
-      '1s/^/#include \\"cc65iso.h\\"\\nextern struct hash4Entry hash4export;\\n/;' +
-      '" hash4a2.h > hash4a.c');
+      '" hash4a.h > hash4a.c');
 
   execSync(
     'cl65 -T -t c64 ' +
@@ -585,8 +584,11 @@ function compileHash3And4 () {
 
   execSync(
     'sed -e"' +
-      's/static struct hash4Entry/static const struct hash4Entry/gi;' +
-      's/static unsigned short/static const unsigned short/gi;' +
+      '1s/^/#include \\"cc65iso.h\\"\\nstruct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
+      's/static struct hash4Entry/' +
+        'static const struct hash4Entry/gi;' +
+      's/static unsigned short/' +
+        'static const unsigned short/gi;' +
       's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
         'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
       's/return \\&wordlist\\[key\\];/' +
@@ -594,14 +596,9 @@ function compileHash3And4 () {
           'hash4export.script = wordlist[key].script;\\n' +
           'hash4export.index = wordlist[key].index;\\n' +
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
-          'return \\&hash4export;\\n' +
+          'return (struct hash4EntryB *)\\&hash4export;\\n' +
         '}/gi;' +
-      '" hash4b.h > hash4b2.h');
-
-  execSync(
-    'sed -e"' +
-      '1s/^/#include \\"cc65iso.h\\"\\nextern struct hash4Entry hash4export;\\n/;' +
-      '" hash4b2.h > hash4b.c');
+      '" hash4b.h > hash4b.c');
 
   execSync(
     'cl65 -T -t c64 ' +
@@ -619,8 +616,11 @@ function compileHash3And4 () {
 
   execSync(
     'sed -e"' +
-      's/static struct hash4Entry/static const struct hash4Entry/gi;' +
-      's/static unsigned short/static const unsigned short/gi;' +
+      '1s/^/#include \\"cc65iso.h\\"\\nstruct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
+      's/static struct hash4Entry/' +
+        'static const struct hash4Entry/gi;' +
+      's/static unsigned short/' +
+        'static const unsigned short/gi;' +
       's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
         'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
       's/return \\&wordlist\\[key\\];/' +
@@ -628,14 +628,9 @@ function compileHash3And4 () {
           'hash4export.script = wordlist[key].script;\\n' +
           'hash4export.index = wordlist[key].index;\\n' +
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
-          'return \\&hash4export;\\n' +
+          'return (struct hash4EntryC *)\\&hash4export;\\n' +
         '}/gi;' +
-      '" hash4c.h > hash4c2.h');
-
-  execSync(
-    'sed -e"' +
-      '1s/^/#include \\"cc65iso.h\\"\\nextern struct hash4Entry hash4export;\\n/;' +
-      '" hash4c2.h > hash4c.c');
+      '" hash4c.h > hash4c.c');
 
   execSync(
     'cl65 -T -t c64 ' +

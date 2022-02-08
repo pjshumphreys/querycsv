@@ -300,7 +300,7 @@ function compileHash4a () {
           'hash4export.script = wordlist[key].script;\\n' +
           'hash4export.index = wordlist[key].index;\\n' +
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
-          'return \\&hash4export;\\n' +
+          'return (struct hash4EntryA *)\\&hash4export;\\n' +
         '}/gi;' +
     '" hash4a.c > build/hash4a.c'
   );
@@ -330,7 +330,7 @@ function compileHash4b () {
           'hash4export.script = wordlist[key].script;\\n' +
           'hash4export.index = wordlist[key].index;\\n' +
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
-          'return \\&hash4export;\\n' +
+          'return (struct hash4EntryB *)\\&hash4export;\\n' +
         '}/gi;' +
     '" hash4b.c > build/hash4b.c'
   );
@@ -360,7 +360,7 @@ function compileHash4c () {
           'hash4export.script = wordlist[key].script;\\n' +
           'hash4export.index = wordlist[key].index;\\n' +
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
-          'return \\&hash4export;\\n' +
+          'return (struct hash4EntryC *)\\&hash4export;\\n' +
         '}/gi;' +
     '" hash4c.c > build/hash4c.c'
   );
@@ -654,9 +654,9 @@ function packPages (tree) {
     if (currentFunctions.length === 0) {
       break;
     }
-    else {
-      console.log(currentFunctions);
-    }
+    //else {
+    //  console.log(currentFunctions);
+    //}
 
     // otherwise open a new page
     pages.push([]);
@@ -1115,7 +1115,8 @@ function addDefines (filename, filenames, folderName, pageMode) {
           ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {
-          cwd: path.join(__dirname, 'build', 's')
+          cwd: path.join(__dirname, 'build', 's'),
+          stdio: 'pipe'
         }
       );
     } catch (e) {
