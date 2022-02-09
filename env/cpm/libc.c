@@ -140,7 +140,7 @@ FILE * fopen_z80(const char * filename, const char * mode) {
 
   retval = fopen(temp, mode);
 
-  freeAndZero(temp);
+  free_z80(temp);
 
   return retval;
 }

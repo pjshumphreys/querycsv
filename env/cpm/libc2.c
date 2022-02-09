@@ -338,7 +338,6 @@ extern char **argv_z80;
 void atexit_z80(void);
 
 void setupZ80(int * argc, char *** argv) {
-  static char length;
 
   /* initialise variables needed by z88dk's libc */
   myhand_status = 3;

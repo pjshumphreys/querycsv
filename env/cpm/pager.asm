@@ -20,8 +20,6 @@ PUBLIC _mapperJumpTable
 PUBLIC _loadPageStatus
 PUBLIC _initMapper
 PUBLIC _cleanup_z80
-PUBLIC __fcb
-PUBLIC __fcb_end
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
 
@@ -395,15 +393,8 @@ lookupTable:
 lookupTableEnd:
 
 defc CLIB_FOPEN_MAX=6
-defc CLIB_OPEN_MAX=6
-
 PUBLIC CLIB_FOPEN_MAX
-PUBLIC CLIB_OPEN_MAX
 
 __sgoioblk:
   defs CLIB_FOPEN_MAX * 10      ;stdio control block
 __sgoioblk_end:        ;end of stdio control block
-
-__fcb:
-    defs    CLIB_FOPEN_MAX * 166
-__fcb_end:
