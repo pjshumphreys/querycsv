@@ -149,7 +149,7 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 
 [ \t\r\n\205]+  /* white space */
 
-"--"[^\n]*  /* comment */
+"--"[^\r\n]*  /* comment */
 
 
 .   /* random non-SQL text. trigger a syntax error */
