@@ -170,12 +170,12 @@ function compileLexer () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
       '../../makeheaders -h build/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/lexer3.h'
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm'
   );
 
@@ -214,12 +214,12 @@ function compileParser () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
       '../../makeheaders -h build/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/sql3.h'
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
   );
 
@@ -230,7 +230,7 @@ function compileLibC2 () {
   console.log('compileLibC2');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build/libc2.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build/libc2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0libc2/g" build/libc2.asm'
   );
 
@@ -241,7 +241,7 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
   );
 
@@ -252,7 +252,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm'
   );
 
@@ -263,7 +263,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm'
   );
 
@@ -293,7 +293,7 @@ function compileHash4a () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm'
   );
 
@@ -323,7 +323,7 @@ function compileHash4b () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm'
   );
 
@@ -353,7 +353,7 @@ function compileHash4c () {
   );
 
   execSync(
-    'zcc +zx -O0 --c-code-in-asm -Cc-base=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
+    'zcc +zx -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
     'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm'
   );
 
@@ -1073,7 +1073,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
       notQuit = true;
 
       /* create an array of all the missing symbol names */
-      arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /symbol '([^']+)/g).toArray())));
+      arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /undefined symbol: ([^' \r\n]+)/g).toArray())));
 
       execSync(
         'rm ../' + folderName + '/' + filename + '2.inc;' +
