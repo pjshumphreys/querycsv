@@ -9,6 +9,7 @@ int newline;
 int currentWaitCursor;
 int cursorOutput;
 int startOfLine;
+char versionMajor;
 
 /* variables needed by strtod */
 const double fltMinusOne = -1.0;
@@ -364,9 +365,17 @@ void setupZ80(int * argc, char *** argv) {
     exit(-1);
   }
 
+  initMapper();
+
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
-  sbrk_z80(0x8000, 16384);
+
+  /* the msx2 variant has a bit more free memory that we can use for heap data */
+  if(versionMajor == 2) {
+    sbrk_z80(0x2e00, 4607);
+  }
+
+  sbrk_z80(0x8000, 26000);
 
   /* reset the command line args and process them ourselves */
   int sizeNeeded = (*((char*)(0x0080)))+1;
@@ -449,8 +458,6 @@ void setupZ80(int * argc, char *** argv) {
     fputs_z80("Couldn't get command line", stderr);
     exit(EXIT_FAILURE);
   }
-
-  initMapper();
 
   atexit(atexit_z80);
 

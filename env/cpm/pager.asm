@@ -22,6 +22,7 @@ PUBLIC _initMapper
 PUBLIC _cleanup_z80
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
+EXTERN _versionMajor
 
 EXTBIOS equ 0xFFCA
 HOKVLD equ 0xFB20
@@ -281,6 +282,10 @@ _initMapper: ; detect if a msx2 compatible mem mapper is present
   call 0x0005
   or a
   jr nz, noMapper
+
+  ;store major msx version
+  ld a, b
+  ld (_versionMajor), a
 
   ; test for presence of extended bios
   ld a, (HOKVLD)
