@@ -12,7 +12,13 @@ struct columnReference *hash_lookupString(
    * If it isn't, the item isn't in the table, so return NULL.
    */
   for(list = hashtable->table[hashval]; list != NULL; list = list->nextReferenceInHash) {
-    if(mystricmp(str, list->referenceName) == 0) {
+    if(
+#ifdef __Z88DK
+    stricmp(str, list->referenceName) == 0
+#else
+    mystrnicmp(str, list->referenceName, 0) == 0
+#endif
+    ) {
       return list->content;
     }
   }

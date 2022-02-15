@@ -465,7 +465,6 @@ Just use long ones for that compiler */
 
   /* in z88dk fflush only actually does anything on tcp connections, so we can eliminate the function call */
   #define fflush(...) 0
-  #define mystricmp stricmp
   #define mystrnicmp strnicmp
 
   /* z88dk doesn't have bsearch, but it does have l_bsearch.
@@ -489,8 +488,6 @@ Just use long ones for that compiler */
     to sprintf elsewhere to do the same thing */
   #undef myltoa
   #define myltoa(x, y) ltoa((y), (x), 10)
-#else
-  #define mystricmp(...) mystrnicmp(__VA_ARGS__, 0)
 #endif
 
 /* ugly hacks to raise the game of cc65 */
