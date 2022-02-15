@@ -375,7 +375,7 @@ void setupZ80(int * argc, char *** argv) {
     sbrk_z80(0x2e00, 4607);
   }
 
-  sbrk_z80(0x8000, 26000);
+  sbrk_z80(0x8000, 16383);
 
   /* reset the command line args and process them ourselves */
   int sizeNeeded = (*((char*)(0x0080)))+1;

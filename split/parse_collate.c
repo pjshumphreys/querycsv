@@ -9,17 +9,17 @@ int parse_collate(char* currentLocation) {
       return retval;
     }
 
-    if(stricmp(result, "sensitive") == 0) {
+    if(mystrnicmp(result, "sensitive", 10) == 0) {
       retval |= 2;
       retval &= ~(1);
     }
-    else if(stricmp(result, "digits") == 0) {
+    else if(mystrnicmp(result, "digits", 7) == 0) {
       retval |= 4;
     }
-    else if(stricmp(result, "upper") == 0) {
+    else if(mystrnicmp(result, "upper", 6) == 0) {
       retval |= 8;
     }
-    else if(stricmp(result, "kana") == 0) {
+    else if(mystrnicmp(result, "kana", 5) == 0) {
       retval |= 16;
     }
 

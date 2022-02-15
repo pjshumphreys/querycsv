@@ -237,38 +237,6 @@ jmp_buf env_buffer;
   of the horizontal scrollbar is pressed. */
 #define kButtonScroll     4
 
-// ---------------------------------------------------------------------------
-//      € stricmp
-// ---------------------------------------------------------------------------
-//  Compare two strings case insensitive.
-//  Based on MSL version of strcmp, just added tolower() before comparing.
-
-int stricmp(const char *str1, const char *str2) {
-#if !__POWERPC__
-  const unsigned char *p1 = (unsigned char *)str1;
-  const unsigned char *p2 = (unsigned char *)str2;
-  unsigned char c1, c2;
-
-  while(tolower(c1 = *p1++) == tolower(c2 = *p2++)) {
-    if(!c1) {
-      return 0;
-    }
-  }
-#else
-  const unsigned char *p1 = (unsigned char *)str1-1;
-  const unsigned char *p2 = (unsigned char *)str2-1;
-  unsigned long c1, c2;
-
-  while(tolower(c1 = *++p1) == tolower(c2 = *++p2)){
-    if(!c1) {
-      return(0);
-    }
-  }
-#endif
-
-  return(c1 - c2);
-}
-
 #if TARGET_API_MAC_TOOLBOX
 short getWindowKind(WindowPtr window) {
   return ((WindowPeek) window)->windowKind;

@@ -158,10 +158,6 @@ it becomes needed and because it's useful for debugging */
   #endif
 
   #include <unistd.h> /* for chdir and getcwd */
-  #include <strings.h>  /* for strcasecmp */
-
-  /* used as posix doesn't have stricmp */
-  #define stricmp strcasecmp
 #endif
 
 #ifdef MICROSOFT
@@ -228,12 +224,6 @@ it becomes needed and because it's useful for debugging */
   /* Mac style newlines by default */
   #undef PRM_DEFAULT
   #define PRM_DEFAULT PRM_BLANK | PRM_MAC
-
-  /* macs don't have stricmp, so we provide our own implementation */
-  #if defined(__unix__) || defined(RETRO68)
-    #undef stricmp
-    int stricmp(const char *str1, const char *str2);
-  #endif
 
   int fputs_mac(const char *str, FILE *stream);
   int fprintf_mac(FILE *stream, const char *format, ...);
@@ -315,8 +305,6 @@ Just use long ones for that compiler */
   but the early ones don't. Therefore we use the fprintf approach. */
   #include <kernel.h> /* for _kernel_osbyte function (used by d_sprintf) */
 
-  int stricmp(const char *str1, const char *str2);
-
   #define SOFTFLOAT /* Use John Hauser's softfloat package rather
   than the compiler's built in floating point implementation */
 #endif
@@ -331,8 +319,6 @@ Just use long ones for that compiler */
   #define PRM_DEFAULT PRM_BLANK & PRM_UNIX
 
   #define YY_NO_UNISTD_H 1
-  int stricmp(const char *str1, const char *str2); /* use our own stricmp as the
-  amiga's built in one is a hassle to use with vbcc */
 
   #define main realmain   /* We need to define our own main function as
   VBCC seems to be doing something automagical with the main function
@@ -346,8 +332,6 @@ Just use long ones for that compiler */
 
 #ifdef ATARI
   #define YY_NO_UNISTD_H 1
-  int stricmp(const char *str1, const char *str2); /* atari st computers
-  don't have stricmp, so we provide our own implementation */
 
   #define main realmain   /* as the atari st by default has no command line
   user interface and can only perform co-operative multitasking via desk
@@ -481,6 +465,7 @@ Just use long ones for that compiler */
 
   /* in z88dk fflush only actually does anything on tcp connections, so we can eliminate the function call */
   #define fflush(...) 0
+  #define mystricmp stricmp
   #define mystrnicmp strnicmp
 
   /* z88dk doesn't have bsearch, but it does have l_bsearch.
@@ -504,6 +489,8 @@ Just use long ones for that compiler */
     to sprintf elsewhere to do the same thing */
   #undef myltoa
   #define myltoa(x, y) ltoa((y), (x), 10)
+#else
+  #define mystricmp(...) mystrnicmp(__VA_ARGS__, 0)
 #endif
 
 /* ugly hacks to raise the game of cc65 */
@@ -536,15 +523,11 @@ Just use long ones for that compiler */
   int fputs_c64(const char *str, FILE *stream);
   int fprintf_c64(FILE *stream, const char *format, ...);
   FILE *fopen_c64(const char *filename, const char *mode);
-  /* cc65's built in stricmp operates on petscii but we want to use utf-8
-  strings internally. Therefore we provide our own implementation */
-  int stricmp_c64(const char *str1, const char *str2);
 
   #define fputs fputs_c64
   #define fopen fopen_c64
   #define fprintf fprintf_c64
   #define YYFPRINTF fprintf_c64   /* for the bison parser */
-  #define stricmp stricmp_c64
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT

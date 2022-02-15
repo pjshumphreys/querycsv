@@ -20,41 +20,6 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 #define TRUE 1
 #define FALSE 0
 
-int stricmp_c64(const char *str1, const char *str2) {
-  int retval = 0;
-
-  unsigned char a, b;
-
-  for(;;) {
-    a = *str1++;
-    b = *str2++;
-
-    if(a >= 'A' && a <= 'Z') {
-      a = a - 'A' + 'a';
-    }
-
-    if(b >= 'A' && b <= 'Z') {
-      b = b - 'A' + 'a';
-    }
-
-    retval = a - b;
-
-    if(retval) {
-      break;
-    }
-
-    if(*str1 && *str2) {
-      continue;
-    }
-    else {
-      break;
-    }
-  }
-
-  return retval;
-}
-
-
 /*
   updateSpinner - This function always needs to be mapped in, so we've
   precompiled it and will prepend its output assembly language code (modified

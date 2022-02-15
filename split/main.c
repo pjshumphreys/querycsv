@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
   if(argc2 == 2) {
     exit(runQuery(argv2[1], TRUE));
   }
-  else if (argc2 == 3 && stricmp("-c", argv2[1]) == 0) {
+  else if (argc2 == 3 && mystrnicmp("-c", argv2[1], 3) == 0) {
     exit(runQuery(argv2[2], FALSE));
   }
   else {
