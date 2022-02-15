@@ -38,12 +38,14 @@ int outputFile(
         }
 
         fputsEncoded(query->newLine, query);
+        query->codepointsInLine = 0;
       } continue;
 
       case 0x0A:
       case 0x85: {
         getNextCodepoint(&table);
         fputsEncoded(query->newLine, query);
+        query->codepointsInLine = 0;
       } continue;
     }
 
@@ -52,6 +54,14 @@ int outputFile(
     fputsEncoded(outText, query);
     freeAndZero(outText);
     byteLength = 0;
+
+    if(query->params & PRM_INSERT) {
+      if(query->codepointsInLine == 65) {
+        fputsEncoded(query->newLine, query);
+        query->codepointsInLine = 0;
+      }
+    }
+
     getNextCodepoint(&table);
   }
 
