@@ -100,10 +100,12 @@ void dosload(int pageNumber) __z88dk_fastcall {
 /* don't bother to copy the mode parameter as for our purposes
 it will always be a static string */
 FILE * fopen_z80(const char * filename, const char * mode) {
-  char* temp = NULL;
-  int retval = 0;
-  int nameLen = strlen(filename);
-  int wdLen = 0;
+  static char* temp = NULL;
+  static int retval = 0;
+  static int wdLen = 0;
+  static int nameLen;
+
+  nameLen = strlen(filename);
 
   if(origWd == NULL) {
     retval = 1;
@@ -145,26 +147,6 @@ FILE * fopen_z80(const char * filename, const char * mode) {
   return retval;
 }
 
-void atexit_z80(void) {
-  freeAndZero(origWd);
-
-  #ifdef CPM
-    static int temp;
-
-    /* if we are on CP/M or MSX1 then try to find command.com
-    in the current drive and path. If it's not found then
-    change to drive a: before exit */
-    if((temp = open('command.com', O_RDONLY, 0)) == -1) {
-      bdos(CPM_LGIN, 0);
-    }
-    else {
-      close(temp);
-    }
-  #endif
-
-  cleanup_z80();
-}
-
 void free_z80(void *addr) {
   if(addr == NULL) {
     return;
@@ -193,13 +175,32 @@ void free_z80(void *addr) {
   myHeap.nextFree = current;
 }
 
-int fputs_z80(const char * ptr, FILE * stream) {
-  int tot;
+void atexit_z80(void) {
+  free_z80(origWd);
 
+  #ifdef CPM
+    static int temp;
+
+    /* if we are on CP/M or MSX1 then try to find command.com
+    in the current drive and path. If it's not found then
+    change to drive a: before exit */
+    if((temp = open('command.com', O_RDONLY, 0)) == -1) {
+      bdos(CPM_LGIN, 0);
+    }
+    else {
+      close(temp);
+    }
+  #endif
+
+  cleanup_z80();
+}
+
+int fputs_z80(const char * ptr, FILE * stream) {
   if(stream != stdout && stream != stderr) {
     return fputs(ptr, stream);
   }
 
+  static int tot;
   tot = strlen(ptr);
   startOfLine = FALSE;
 
@@ -282,8 +283,8 @@ int fprintf_z80(char *dummy, ...) __smallc {
 }
 
 void *malloc_z80(unsigned int size) {
-  unsigned int cleanedUp;
-  unsigned int temp;
+  static unsigned int cleanedUp;
+  static unsigned int temp;
 
   cleanedUp = FALSE;
 
@@ -376,9 +377,9 @@ void *malloc_z80(unsigned int size) {
 }
 
 void *realloc_z80(void *p, unsigned int size) {
-  void * newOne;
-  unsigned int tempSize;
-  unsigned int updateNextFree;
+  static void * newOne;
+  static unsigned int tempSize;
+  static unsigned int updateNextFree;
 
   /* if realloc'ing a null pointer then just do a malloc */
   if(p == NULL) {
@@ -458,7 +459,7 @@ void *realloc_z80(void *p, unsigned int size) {
 }
 
 void reallocMsg(void **mem, size_t size) {
-  void *temp;
+  static void *temp;
 
   if(mem != NULL) {
     if(size) {
@@ -483,28 +484,25 @@ void reallocMsg(void **mem, size_t size) {
 }
 
 void b(void) {
-  char * string;
-  double d;
+  static char * string;
+  static double d;
 
-  FILE* test;
-  int num;
-  unsigned long num2;
+  static FILE* test;
+  static int num;
+  static unsigned long num2;
 
   num = atol(string);
   ftoa(string, num, d);
   ltoa(num2, string, num);
 
   abs(num);
-  strcpy(string, string);
   strncpy(string, string, 3);
   num = strcmp(string, string);
   num = stricmp(string, string);
   num = strncmp(string, string, 3);
   num = strnicmp(string, string, 3);
-  num = strlen(string);
   string = strstr(string, string);
   strrchr(string, ',');
-  bdos(CPM_LGIN, 0);
   vsnprintf(NULL, 0, "%s%ld%d", NULL);
 
   memset(string, 0, 4);

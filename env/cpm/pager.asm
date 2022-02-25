@@ -397,7 +397,7 @@ lookupTable:
   INCLUDE "lookupTable.inc"
 lookupTableEnd:
 
-defc CLIB_FOPEN_MAX=6
+defc CLIB_FOPEN_MAX=8
 PUBLIC CLIB_FOPEN_MAX
 
 __sgoioblk:

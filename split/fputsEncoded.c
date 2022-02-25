@@ -14,8 +14,8 @@ int fputsEncoded(char *str, struct qryData *query) {
     case ENC_TSW: {
       /* Tasword 2 is a file only representation. switch to regular zx spectrum format if outputting to the screen */
       if(query->outputFile == stdout || query->outputFile == stderr) {
-        encoded = d_charsetEncode(str, ENC_ZX, &bytesStored, query);
-        retval = fwrite(encoded, 1, bytesStored, query->outputFile);
+        encoded = d_charsetEncode(str, ENC_ZX, NULL, query);
+        retval = fputs(encoded, query->outputFile);
         free(encoded);
       }
       else {
@@ -59,6 +59,16 @@ int fputsEncoded(char *str, struct qryData *query) {
       }
     } break;
 
+    /* account for embedded \0 bytes in utf-16 and utf-32 */
+    case ENC_UTF16LE:
+    case ENC_UTF16BE:
+    case ENC_UTF32LE:
+    case ENC_UTF32BE: {
+      encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
+      retval += fwrite(encoded, 1, bytesStored, query->outputFile);
+      free(encoded);
+    } break;
+
     case ENC_PETSCII: {
       if(offset == 0 && query->outputFile != stdout) {
         /* write a pseudo load address at the start of the output file */
@@ -67,8 +77,8 @@ int fputsEncoded(char *str, struct qryData *query) {
     } /* fall thru */
 
     default: {
-      encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
-      retval += fwrite(encoded, 1, bytesStored, query->outputFile);
+      encoded = d_charsetEncode(str, query->outputEncoding, NULL, query);
+      retval += fputs(encoded, query->outputFile);
       free(encoded);
     } break;
   }

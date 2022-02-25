@@ -339,9 +339,9 @@ extern char **argv_z80;
 void atexit_z80(void);
 
 void setupZ80(int * argc, char *** argv) {
+  static short sp;
 
   /* initialise variables needed by z88dk's libc */
-  myhand_status = 3;
 
   __asm
     	; Setup std* streams
@@ -351,19 +351,8 @@ void setupZ80(int * argc, char *** argv) {
       ld      (hl),21 ;stdout
       ld      hl,__sgoioblk+22
       ld      (hl),21 ;stderr
+      ld      (_st_setupZ80_sp), sp
   __endasm;
-
-  newline = FALSE;
-  currentWaitCursor = 0;
-  cursorOutput = FALSE;
-  startOfLine = TRUE;
-
-
-  unsigned char * test = ((unsigned char *)(0x0007));
-  if(*test < 0xC0) {
-    fputs_z80("Not enough memory", stderr);
-    exit(-1);
-  }
 
   initMapper();
 
@@ -372,14 +361,27 @@ void setupZ80(int * argc, char *** argv) {
 
   /* the msx2 variant has a bit more free memory that we can use for heap data */
   if(versionMajor == 2) {
-    sbrk_z80(0x2e00, 4607);
+    sbrk_z80(0x2c00, 0x3fff - 0x2c00);
   }
 
-  sbrk_z80(0x8000, 16383);
+  sp = sp - 2000 - 0x8000;  /* reserve 2kb for stack */
+
+  if(sp < 4000) { /* must have 4kb minimum */
+    fputs_z80("Not enough memory", stderr);
+    exit(-1);
+  }
+
+  sbrk_z80(0x8000, sp);
+
+  myhand_status = 3;
+  newline = FALSE;
+  currentWaitCursor = 0;
+  cursorOutput = FALSE;
+  startOfLine = TRUE;
 
   /* reset the command line args and process them ourselves */
   int sizeNeeded = (*((char*)(0x0080)))+1;
-  test = ((unsigned char *)(0x0081));
+  unsigned char * test = ((unsigned char *)(0x0081));
 
   int notInQuotes = TRUE;
   int maybeNewField = TRUE;
