@@ -1,12 +1,14 @@
 #ifndef __Z88DK
+#ifndef ELIM
 void logNum(int num) {
-  FILE * pFile = fopen ("log.txt", "a");
+  FILE * pFile = fopen("log.txt", "a");
 
   if(pFile != NULL) {
     fprintf(pFile, "%05d\n", num);
     fclose (pFile);
   }
 }
+#endif
 #endif
 
 int main(int argc, char **argv) {

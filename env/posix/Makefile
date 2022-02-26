@@ -24,16 +24,16 @@ querycsv: $(OBJECTS)
 
 querycsv.arm: $(SOURCES)
 	rm -f $(OBJECTS) querycsv
-	/opt/cross/bin/arm-linux-musleabi-gcc -o querycsv -static -Os -O2 -fmax-errors=20 -Wl,-O,-s,--gc-sections $(SOURCES)
+	/opt/cross/bin/arm-linux-musleabi-gcc -o querycsv -static -Os -fmax-errors=20 -Wl,-O,-s,--gc-sections $(SOURCES)
 	/opt/cross/bin/arm-linux-musleabi-strip --remove-section=.eh_frame --remove-section=.comment ./querycsv
-	upx querycsv
+	#upx querycsv
 	mv querycsv querycsv.arm
 
 querycsv.x64: $(SOURCES)
 	rm -f $(OBJECTS) querycsv
-	/usr/local/musl/bin/musl-gcc -o querycsv -static -Os -O2 -fmax-errors=20 -Wl,-O,-s,--gc-sections $(SOURCES)
+	/usr/local/musl/bin/x86_64-linux-musl-gcc -o querycsv -static -Os -DELIM -fmax-errors=20 -Wl,-O,-s,--gc-sections $(SOURCES)
 	strip --remove-section=.eh_frame --remove-section=.comment ./querycsv
-	upx querycsv
+	#upx querycsv
 	mv querycsv querycsv.x64
 
 querycsv.386: $(SOURCES)
