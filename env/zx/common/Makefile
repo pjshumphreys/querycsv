@@ -40,13 +40,13 @@ archiver: archiver.c
 	gcc -o archiver archiver.c
 
 residos.tap: unarchiver.c
-	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -o residos -create-app unarchiver.c
+	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC2 -o residos -create-app unarchiver.c
 
 plus3dos.tap: unarchiver.c
-	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -o plus3dos -create-app unarchiver.c
+	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC2 -o plus3dos -create-app unarchiver.c
 
 esxdos.tap: unarchiver.c
-	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -DAMALLOC2 -o esxdos -create-app unarchiver.c
+	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC2 -o esxdos -create-app unarchiver.c
 
 clean:
 	rm -f querycsv.bas querycsv querycsv.tap residos.tap plus3dos.tap esxdos.tap archiver *.bin *.o *.inc *.map

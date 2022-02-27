@@ -53,4 +53,4 @@ l0083wait:
 .endproc
 
 _spinner:
-	.asciiz "---OOooOO"
+	.asciiz "...ooOOoo"

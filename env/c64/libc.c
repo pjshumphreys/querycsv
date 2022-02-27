@@ -49,7 +49,6 @@ void foobar(char *string, char* format, ...) {
   num = feof(stdin);
   fwrite(string, 1, 1, stdout);
   num = fgetc(stdin);
-  fputc(num, stderr);
   fflush(stdout);
   sprintf(string, c, num);
 

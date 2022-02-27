@@ -39,11 +39,6 @@ void getCodepointsZXCommon(
 
   *arrLength = *byteLength = 1;
 
-  /* Don't return any other bytes after MYEOF has been returned */
-  if(codepoints[0] == MYEOF) {
-    return;
-  }
-
   if((c = fgetc(stream)) == EOF) {
     *byteLength = 0;
     codepoints[0] = MYEOF;

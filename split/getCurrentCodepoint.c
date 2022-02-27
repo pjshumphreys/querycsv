@@ -9,8 +9,6 @@ long getCurrentCodepoint(struct inputTable* table, int* byteLength) {
     retval = (table->codepoints)[table->cpIndex];
 
     if(retval == 0x1a) {
-      table->codepoints[0] = MYEOF;
-      table->cpIndex = table->arrLength;
       return MYEOF;
     }
 

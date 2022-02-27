@@ -24,12 +24,11 @@ int main(int argc, char *argv[]) {
 
   FILE * output = NULL;
 
+  fputs("\nChoose destination drive (A-P)\n"
+        "or press any other key to use\n"
+        "current drive\n", stdout);
+
   temp = (char *)(0xBFEF);
-
-  clrscr();
-
-  fputs("Choose desination drive (A-P)\n"
-        "or press any other key to use current drive\n", stdout);
 
   c = getchar() & 0x5f;
 

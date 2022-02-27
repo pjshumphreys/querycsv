@@ -63,7 +63,6 @@ const functionsList = [
   ['fseek', 1, 0x0001, 0x0001, 'farcall2'],
   ['fgetc', 1, 0x0001, 0x0001, 'farcall2'],
   ['ungetc', 1, 0x0001, 0x0001, 'farcall2'],
-  ['fputc_callee', 1, 0x0001, 0x0001, 'farcall2'],
   ['feof', 1, 0x0001, 0x0001, 'farcall2'],
   ['sprintf', 1, 0x0001, 0x0001, 'farcall2'],
   ['isspace', 1, 0x0001, 0x0001, 'farcall2'],

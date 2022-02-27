@@ -113,7 +113,6 @@ const clibFunctionsList = [
   ['_fgetc', 2, 0x0001, 'farcall2'],
   ['_fgets', 2, 0x0001, 'farcall2'],
   ['_fopen', 2, 0x0001, 'farcall2'],
-  ['_fputc', 2, 0x0001, 'farcall2'],
   ['_fread', 2, 0x0001, 'farcall2'],
   ['_fwrite', 2, 0x0001, 'farcall2'],
   ['_chdir', 2, 0x0001, 'farcall2'],

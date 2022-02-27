@@ -4,7 +4,7 @@
 
 void myexit(int status);
 
-const char pageBuf[256];  /* not really a constant but a buffer that exists in high memory that's only used internally to the libc functions */
+const char pageBuf[256] = { 0 };  /* not really a constant but a buffer that exists in high memory that's only used internally to the libc functions */
 
 __asm
   EXTERN mypager
@@ -468,7 +468,6 @@ int main(int argc, char * argv[]) {
   num = fgetc(stdin);
   ungetc(num, stdin);
   num = feof(stdin);
-  fputc(num, stderr);
   sprintf(string, string, num);
   isspace(num);
   isdigit(num);

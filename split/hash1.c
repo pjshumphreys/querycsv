@@ -39,13 +39,13 @@ void getCodepointsUTF8(
   MAC_YIELD
 
   if(stream == NULL) {
-    *arrLength = 0;
-    *byteLength = 0;
+    *arrLength = *byteLength = 0;
     return;
   }
 
   if((c = fgetc(stream)) == EOF) {
-    *arrLength = *byteLength = 1;
+    *arrLength = 1;
+    *byteLength = 0;
     codepoints[0] = MYEOF;
     return;
   }

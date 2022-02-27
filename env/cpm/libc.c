@@ -39,7 +39,7 @@ extern Z80_registers regs;
 void cleanup_z80(void);
 
 void macYield(void) __z88dk_fastcall {
-  const char * spinner = "---ooOOoo";
+  const char * spinner = "...ooOOoo";
   if(startOfLine) {
     if(cursorOutput) {
       fputc_cons('\b');
@@ -519,7 +519,6 @@ void b(void) {
   num = fgetc(stdin);
   ungetc(num, stdin);
   num = feof(stdin);
-  fputc(num, stderr);
   fflush(stdout);
   isspace(num);
   isdigit(num);

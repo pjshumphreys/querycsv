@@ -1,5 +1,5 @@
 spinner:
-  defb "---ooOOoo"
+  defb "...ooOOoo"
 spinnerEnd:
 
 setSpinner:

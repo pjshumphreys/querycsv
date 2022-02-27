@@ -62,26 +62,26 @@ int getCsvColumn(
 
             if(canEnd) {
               exitCode = 2;
+              break;
             }
-            else {
-              if(quotedValue != NULL) {
-                *quotedValue = TRUE;
-              }
 
-              if(notFoundLeft) {
-                notFoundLeft = FALSE;
-                minLeft = *strSize;
-              }
-
-              nlCurrent = newLine;
-
-              while(*nlCurrent) {
-                strAppend(*nlCurrent, value, strSize);
-                nlCurrent++;
-              }
-
-              minRight = *strSize;
+            if(quotedValue != NULL) {
+              *quotedValue = TRUE;
             }
+
+            if(notFoundLeft) {
+              notFoundLeft = FALSE;
+              minLeft = *strSize;
+            }
+
+            nlCurrent = newLine;
+
+            while(*nlCurrent) {
+              strAppend(*nlCurrent, value, strSize);
+              nlCurrent++;
+            }
+
+            minRight = *strSize;
           } break;
 
           case 4: { /* found double quote */

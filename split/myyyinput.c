@@ -23,18 +23,10 @@ void myyyinput(FILE * stream, void* extra, char * buf, int *result, size_t max_s
       }
       if(c < 0x80) {
         if(c == 0x1a) {
-          c = MYEOF;
-          /*soft EOF. */
-          #ifdef __Z88DK
-            /* fgetc on z88dk seems to behave oddly, but as it doesn't have
-               ferror (I implemented it as a macro) we can just close the
-               file instead to return EOF from now on */
-            fclose(stream);
-          #else
-            /* Eat up the rest of the file */
-            while(fgetc(stream) != EOF) {}
-          #endif
+          /* turn soft-EOF to a real one for the benefit of flex */
+          ungetc(c, stream);
 
+          c = MYEOF;
           break;
         }
 
