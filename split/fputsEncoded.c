@@ -15,6 +15,7 @@ int fputsEncoded(char *str, struct qryData *query) {
       /* Tasword 2 is a file only representation. switch to regular zx spectrum format if outputting to the screen */
       if(query->outputFile == stdout || query->outputFile == stderr) {
         encoded = d_charsetEncode(str, ENC_ZX, &bytesStored, query);
+        strAppend(0, &encoded, &bytesStored);
         retval = fputs(encoded, query->outputFile);
         free(encoded);
       }
@@ -78,6 +79,7 @@ int fputsEncoded(char *str, struct qryData *query) {
 
     default: {
       encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
+      strAppend(0, &encoded, &bytesStored);
       retval += fputs(encoded, query->outputFile);
       free(encoded);
     } break;
