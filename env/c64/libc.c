@@ -20,15 +20,14 @@ void foobar(char *string, char* format, ...) {
   int num;
 
   string = malloc(1);
-  fgets(string, 1, stdin);
   free(string);
-  string = realloc(string,5);
+  string = realloc(string, 5);
   strcpy(string, c);
-  fgets(string,1,stdin);
   num = strcmp(c, string);
   num = strncmp(c, string, 3);
   num = strlen(string);
   string = strstr(string, c);
+  strchr(string, ',');
 
   memset(string, 0, 4);
   strcat(string, c);
@@ -37,19 +36,17 @@ void foobar(char *string, char* format, ...) {
   memmove(string+1, string, 2);
 
   chdir(string);
-  strchr(string, ',');
-  test = fopen(c,"rb");
   isdigit('8');
+  test = fopen(c, string);
   num = ferror(test);
   clearerr(test);
+  num = feof(test);
   num = fclose(test);
+  fflush(stdout);
   fread(string, 2, 2, stdin);
   num = fgetc(stdin);
   ungetc(num, stdin);
-  num = feof(stdin);
   fwrite(string, 1, 1, stdout);
-  num = fgetc(stdin);
-  fflush(stdout);
   sprintf(string, c, num);
 
   va_start(args, format);

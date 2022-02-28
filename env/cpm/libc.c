@@ -195,13 +195,13 @@ void atexit_z80(void) {
   cleanup_z80();
 }
 
-int fputs_z80(const char * ptr, FILE * stream) {
+size_t fwrite_z80(const void * ptr, size_t size, size_t count, FILE * stream) {
   if(stream != stdout && stream != stderr) {
-    return fputs(ptr, stream);
+    return fwrite(ptr, size, count, stream);
   }
 
-  static int tot;
-  tot = strlen(ptr);
+  static int tot, tot2;
+  tot = tot2 = size * count;
   startOfLine = FALSE;
 
   if(cursorOutput) {
@@ -216,18 +216,18 @@ int fputs_z80(const char * ptr, FILE * stream) {
 
   if(ptr[tot-1] == '\n') {
     newline = TRUE;
-    ptr[tot-1] = '\0';
+    tot--;
   }
 
-  while(*ptr) {
+  while(tot--) {
     fputc_cons(*ptr++);
   }
 
-  if(newline) {
-    *ptr = '\n';
-  }
+  return tot2;
+}
 
-  return tot;
+int fputs_z80(const char * str, FILE * stream) {
+  return fwrite_z80(str, 1, strlen(str), stream);
 }
 
 /*
@@ -269,12 +269,14 @@ int fprintf_z80(char *dummy, ...) __smallc {
   vsnprintf(newStr, newSize + 1,  loc_format, args2);
   va_end(args2);
 
-  //ensure null termination of the string
+  /* ensure null termination of the string */
   newStr[newSize] = '\0';
 
   if(loc_type) {
-    fputs_z80(newStr, (FILE *)loc_output);
+    fwrite_z80(newStr, 1, newSize, (FILE *)loc_output);
+
     free_z80(newStr);
+
     return newSize;
   }
 

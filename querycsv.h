@@ -397,6 +397,7 @@ Just use long ones for that compiler */
   FILE * fopen_z80(const char * filename, const char * mode);
   int fputs_z80(const char * str, FILE * stream);
   int fprintf_z80(char * dummy, ...) __smallc;
+  size_t fwrite_z80(const void * ptr, size_t size, size_t count, FILE * stream);
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
@@ -406,7 +407,6 @@ Just use long ones for that compiler */
     /* esxdos has its disk buffer at 0x2000 - 0x3fff, but we also want to use
     that space for our heap. Use another buffer above 0xbfff to marshal the
     data between the two */
-    size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream);
     size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream);
 
     /* make EXIT_FAILURE report a "STOP statement" error instead of "NEXT without FOR" */
@@ -450,9 +450,9 @@ Just use long ones for that compiler */
     fprintf_z80(NULL, __VA_ARGS__)   /* for the bison parser */
     #undef fputs
     #define fputs fputs_z80
+    #define fwrite fwrite_z80
 
     #ifdef __SPECTRUM
-      #define fwrite fwrite_zx
       #define fread fread_zx
     #endif
   #endif
@@ -517,10 +517,12 @@ Just use long ones for that compiler */
   uses cc65-floatlib */
 
   char * petsciiToUtf8(char *input);
+  size_t fwrite_c64(const void * ptr, size_t size, size_t count, FILE * stream);
   int fputs_c64(const char *str, FILE *stream);
   int fprintf_c64(FILE *stream, const char *format, ...);
   FILE *fopen_c64(const char *filename, const char *mode);
 
+  #define fwrite fwrite_c64
   #define fputs fputs_c64
   #define fopen fopen_c64
   #define fprintf fprintf_c64
@@ -528,9 +530,10 @@ Just use long ones for that compiler */
 
   #undef ENC_INPUT
   #undef ENC_OUTPUT
+  #undef ENC_PRINT
   #define ENC_INPUT ENC_PETSCII
   #define ENC_OUTPUT ENC_PETSCII
-  /* ENC_PRINT is kept as utf-8 as we do the charset conversion in the fputs/fprintf wrapper functions now */
+  #define ENC_PRINT ENC_PETSCII
 #else
   #define fopen_read "rb"
   #define fopen_write "wb"

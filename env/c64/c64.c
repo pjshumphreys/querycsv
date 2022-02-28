@@ -51,13 +51,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 }
 */
 
-int fputs_c64(const char *str, FILE *stream) {
-  size_t bytesStored;
-  char *encoded = NULL;
-
+size_t fwrite_c64(const void * ptr, size_t size, size_t count, FILE * stream) {
   if(stream == stdout || stream == stderr) {
-    bytesStored = 0;
-
     /* toggleSpinner(0); inlined */
     spinnerEnabled = FALSE;
 
@@ -66,9 +61,18 @@ int fputs_c64(const char *str, FILE *stream) {
       __asm__ ("jsr $ffd2");
       cursorOutput = FALSE;
     }
+  }
 
+  return fwrite(ptr, size, count, stream);
+}
+
+int fputs_c64(const char *str, FILE *stream) {
+  size_t bytesStored = 0;
+  char *encoded = NULL;
+
+  if(stream == stdout || stream == stderr) {
     encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored, NULL);
-    fwrite(encoded, sizeof(char), bytesStored, stream);
+    fwrite_c64(encoded, sizeof(char), bytesStored, stream);
     free(encoded);
 
     return (int)bytesStored;
@@ -103,7 +107,7 @@ int fprintf_c64(FILE *stream, const char *format, ...) {
   vsprintf(newStr, format, args);
   va_end(args);
 
-  //ensure null termination of the string
+  /* ensure null termination of the string */
   newStr[newSize] = '\0';
 
   fputs_c64(newStr, stream);

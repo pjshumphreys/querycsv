@@ -50,7 +50,7 @@ const functionsList = [
   ['_fopen_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['fclose', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fread_zx', 3, 0x0001, 0x0001, 'farcall2'],
-  ['_fwrite_zx', 3, 0x0001, 0x0001, 'farcall2'],
+  ['_fwrite_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fprintf_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['_fputs_z80', 3, 0x0001, 0x0001, 'farcall2'],
   ['_malloc_z80', 3, 0x0001, 0x0001, 'farcall2'],

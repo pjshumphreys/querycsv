@@ -76,7 +76,7 @@ size_t fread_zx(void * ptr, size_t size, size_t count, FILE * stream) {
   return tot2;
 }
 
-size_t fwrite_zx(const void * ptr, size_t size, size_t count, FILE * stream) {
+size_t fwrite_z80(const void * ptr, size_t size, size_t count, FILE * stream) {
   int tot2;
   union {
     int tot;
@@ -215,7 +215,7 @@ int fprintf_z80(char *dummy, ...) __smallc {
   va_end(args2);
 
   if(loc_type) {
-    fwrite_zx(newStr, 1, newSize, (FILE *)loc_output);
+    fwrite_z80(newStr, 1, newSize, (FILE *)loc_output);
 
     free_z80(newStr);
 
@@ -230,7 +230,7 @@ int fprintf_z80(char *dummy, ...) __smallc {
 }
 
 int fputs_z80(const char * str, FILE * stream) {
-  return fwrite_zx(str, 1, strlen(str), stream);
+  return fwrite_z80(str, 1, strlen(str), stream);
 }
 
 void *malloc_z80(unsigned int size) {
@@ -417,7 +417,7 @@ void reallocMsg(void **mem, size_t size) {
       temp = realloc_z80(*mem, size);
 
       if(temp == NULL) {
-        fwrite_zx(TDB_MALLOC_FAILED2, 1, 33, stderr);
+        fwrite_z80(TDB_MALLOC_FAILED2, 1, 33, stderr);
         myexit(EXIT_FAILURE);
       }
 

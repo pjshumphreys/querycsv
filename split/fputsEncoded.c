@@ -6,17 +6,13 @@ int fputsEncoded(char *str, struct qryData *query) {
 
   MAC_YIELD
 
-  if(query->outputEncoding == ENC_UTF8 && !(query->params & (PRM_INSERT | PRM_REMOVE))) {
-    retval = fputs(str, query->outputFile);
-  }
-  else switch(query->outputEncoding) {
+  switch(query->outputEncoding) {
     /* Tasword 2 format accounting stuff */
     case ENC_TSW: {
       /* Tasword 2 is a file only representation. switch to regular zx spectrum format if outputting to the screen */
       if(query->outputFile == stdout || query->outputFile == stderr) {
         encoded = d_charsetEncode(str, ENC_ZX, &bytesStored, query);
-        strAppend(0, &encoded, &bytesStored);
-        retval = fputs(encoded, query->outputFile);
+        retval = fwrite(encoded, 1, bytesStored, query->outputFile);
         free(encoded);
       }
       else {
@@ -54,8 +50,7 @@ int fputsEncoded(char *str, struct qryData *query) {
           exit(EXIT_FAILURE);
         }
 
-        strAppend('\0', &encoded, &bytesStored);
-        retval = fputs(encoded, query->outputFile);
+        retval = fwrite(encoded, 1, bytesStored, query->outputFile);
         free(encoded);
       }
     } break;
@@ -65,22 +60,47 @@ int fputsEncoded(char *str, struct qryData *query) {
     case ENC_UTF16BE:
     case ENC_UTF32LE:
     case ENC_UTF32BE: {
+      if(offset == 0 && query->outputFile != stdout) {
+        /* utf-16 and utf-32 files being written to disk always get a bom */
+        encoded = d_charsetEncode("\xEF\xBB\xBF", query->outputEncoding, &bytesStored, query);
+        retval = fwrite(encoded, 1, bytesStored, query->outputFile);
+        free(encoded);
+        offset = -retval;
+      }
+
       encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
       retval += fwrite(encoded, 1, bytesStored, query->outputFile);
       free(encoded);
     } break;
 
     case ENC_PETSCII: {
-      if(offset == 0 && query->outputFile != stdout) {
+      if(offset == 0 && query->outputFile != stdout && query->params & PRM_BOM) {
         /* write a pseudo load address at the start of the output file */
-        retval = fputs("\x01\x08", query->outputFile);
+        retval = fwrite("\x01\x08", 1, 2, query->outputFile);
+        offset = -retval;
+      }
+
+      encoded = d_charsetEncode(str, ENC_PETSCII, &bytesStored, query);
+      retval += fwrite(encoded, 1, bytesStored, query->outputFile);
+      free(encoded);
+    } break;
+
+    case ENC_UTF8: {
+      if(offset == 0 && query->outputFile != stdout && query->params & PRM_BOM) {
+        /* write a pseudo load address at the start of the output file */
+        retval = fwrite("\xEF\xBB\xBF", 1, 3, query->outputFile);
+        offset = -retval;
+      }
+
+      if(!(query->params & (PRM_INSERT | PRM_REMOVE))) {
+        retval = fwrite(str, 1, strlen(str), query->outputFile);
+        break;
       }
     } /* fall thru */
 
     default: {
       encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
-      strAppend(0, &encoded, &bytesStored);
-      retval += fputs(encoded, query->outputFile);
+      retval += fwrite(encoded, 1, bytesStored, query->outputFile);
       free(encoded);
     } break;
   }

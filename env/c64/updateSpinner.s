@@ -53,4 +53,4 @@ l0083wait:
 .endproc
 
 _spinner:
-	.asciiz "...ooOOoo"
+	.asciiz "...OOooOO" ; because upper case and lower case are swapped in petscii

@@ -16,32 +16,9 @@ int outputSetup(struct qryData *query) {
 
   query->outputOffset = 0;
 
-  /* if we aren't writing to stdout we may need or want to write a byte order mark */
-  if(query->outputFile != stdout) {
-    switch(query->outputEncoding) {
-      case ENC_PETSCII:
-        /* petscii files have a pseudo load address of 0x801 little endian at the start of the file */
-        fputsEncoded("\x01\x08", query);
-      break;
-
-      case ENC_UTF8:
-        /* only write the byte order mark if it was requested for utf-8 */
-        if(!(query->params & PRM_BOM)) {
-          break;
-        }
-
-      /* the 16 and 32 bit encodings always need a bom */
-      case ENC_UTF16LE:
-      case ENC_UTF16BE:
-      case ENC_UTF32LE:
-      case ENC_UTF32BE: {
-        fputsEncoded("\xEF\xBB\xBF", query);
-      }
-    }
-  }
   /* if we're printing the results, each environment can only
   correctly display its own print encoding */
-  else {
+  if(query->outputFile == stdout) {
     query->outputEncoding = ENC_PRINT;
   }
 
