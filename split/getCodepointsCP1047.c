@@ -41,8 +41,6 @@ void getCodepointsCP1047(
 ) {
   int c;
 
-  MAC_YIELD
-
   if(stream == NULL) {
     *arrLength = *byteLength = 0;
     return;

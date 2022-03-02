@@ -12,15 +12,13 @@ int outputSetup(struct qryData *query) {
   }
   else {
     query->outputFile = stdout;
+
+    /* if we're printing the results, each environment can only
+    correctly display its own print encoding */
+    query->outputEncoding = ENC_PRINT;
   }
 
   query->outputOffset = 0;
-
-  /* if we're printing the results, each environment can only
-  correctly display its own print encoding */
-  if(query->outputFile == stdout) {
-    query->outputEncoding = ENC_PRINT;
-  }
 
   return TRUE;
 }

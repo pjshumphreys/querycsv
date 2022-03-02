@@ -9,8 +9,6 @@ void getCodepointsUtf16Be(
   unsigned QCSV_SHORT highSurrogate;
   unsigned QCSV_SHORT lowSurrogate;
 
-  MAC_YIELD
-
   *byteLength = 0;
 
   if(stream == NULL) {

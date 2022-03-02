@@ -8,6 +8,7 @@ int outputFile(
   size_t byteLength = 0;
   long temp = query->CMD_PARAMS & PRM_HEADER ? 128 : 0;
   long c;
+  int batched = 0;
 
   MAC_YIELD
 
@@ -30,39 +31,47 @@ int outputFile(
   while((c = getCurrentCodepoint(&table, NULL)) != MYEOF) {
     /* perform newline translation */
     switch(c) {
-      case 0x0D: {
-        getNextCodepoint(&table);
-
-        if((c = getCurrentCodepoint(&table, NULL)) == 0x0A) {
-          getNextCodepoint(&table);
-        }
-
-        fputsEncoded(query->newLine, query);
-        query->codepointsInLine = 0;
-      } continue;
-
+      case 0x0D:
       case 0x0A:
       case 0x85: {
         getNextCodepoint(&table);
+
+        if(c == 0x0D && (c = getCurrentCodepoint(&table, NULL)) == 0x0A) {
+          getNextCodepoint(&table);
+        }
+
+        if(batched) {
+          strAppend(0, &outText, &byteLength);
+          fputsEncoded(outText, query);
+          freeAndZero(outText);
+          byteLength = 0;
+          batched = 0;
+        }
+
         fputsEncoded(query->newLine, query);
         query->codepointsInLine = 0;
       } continue;
     }
 
     strAppendUTF8(c, (unsigned char **)(&outText), &byteLength);
+    batched++;
+
+    if(batched > 79) {
+      strAppend(0, &outText, &byteLength);
+      fputsEncoded(outText, query);
+      freeAndZero(outText);
+      byteLength = 0;
+      batched = 0;
+    }
+
+    getNextCodepoint(&table);
+  }
+
+  if(batched) {
     strAppend(0, &outText, &byteLength);
     fputsEncoded(outText, query);
     freeAndZero(outText);
     byteLength = 0;
-
-    if(query->params & PRM_INSERT) {
-      if(query->codepointsInLine == 65) {
-        fputsEncoded(query->newLine, query);
-        query->codepointsInLine = 0;
-      }
-    }
-
-    getNextCodepoint(&table);
   }
 
   if(query->outputFile == stdout) {

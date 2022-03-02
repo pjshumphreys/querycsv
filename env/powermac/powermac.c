@@ -1562,56 +1562,57 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
       break;
     }
 
+    while(lineChars > 32767) {
+      startPoint = &(startPoint[32767]);
+      lineChars -= 32767;
+    }
+
     //While the line length plus the total length used is greater than 32767 and
     //there are lines to be removed (not the last line) then remove the first line
-    while((temp = textUsed+lineChars) > 32767 && firstLine != lastLine) {
+    while((temp = textUsed + lineChars) > 32767) {
       TXNSetSelection(object, 0, firstLine->lineLength);
       TXNClear(object);
 
       textUsed -= firstLine->lineLength;
 
-      temp2 = firstLine;
-      firstLine = firstLine->nextLine;
-      free(temp2);
-      temp2 = NULL;
+      if(firstLine == lastLine) {
+        lastLine->lineLength = 0;
+      }
+      else {
+        temp2 = firstLine;
+        firstLine = firstLine->nextLine;
+        free(temp2);
+        temp2 = NULL;
+      }
     }
 
-    //If the line length greater than 32767 then remove the last line of text.
-    //Otherwise insert the text gathered.
-    if((temp = lineChars+(lastLine->lineLength)) > 32767) {
-      TXNSetSelection(object, 0, lastLine->lineLength);
-      TXNClear(object);
-      lastLine->lineLength = 0;
-      textUsed = 0;
-    }
-    else {
-      TXNSetSelection(object, kTXNEndOffset, kTXNEndOffset);
-      TXNSetTypeAttributes(
-        object,
-        3,
-        iAttributes,
-        kTXNUseCurrentSelection,
-        kTXNUseCurrentSelection
-      );
+    //Insert the text gathered.
+    TXNSetSelection(object, kTXNEndOffset, kTXNEndOffset);
+    TXNSetTypeAttributes(
+      object,
+      3,
+      iAttributes,
+      kTXNUseCurrentSelection,
+      kTXNUseCurrentSelection
+    );
 
-      len = lineChars;
-      wide = (wchar_t *)d_charsetEncode(startPoint, ENC_UTF16BE, &len, NULL);
+    len = lineChars;
+    wide = (wchar_t *)d_charsetEncode(startPoint, ENC_UTF16BE, &len, NULL);
 
-      TXNSetData(
-        object,
-        kTXNUnicodeTextData,
-        (void *)wide,
-        len,
-        kTXNUseCurrentSelection,
-        kTXNUseCurrentSelection
-      );
+    TXNSetData(
+      object,
+      kTXNUnicodeTextData,
+      (void *)wide,
+      len,
+      kTXNUseCurrentSelection,
+      kTXNUseCurrentSelection
+    );
 
-      free(wide);
-      wide = NULL;
+    free(wide);
+    wide = NULL;
 
-      lastLine->lineLength = temp;
-      textUsed += lineChars;
-    }
+    lastLine->lineLength += lineChars;
+    textUsed += lineChars;
 
     //allocate another line if one is needed
     if(startPoint[lineChars-1] == nl && lastLine->lineLength != 0) {
@@ -1624,6 +1625,7 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
 
     //update the starting point for the next line to be output
     startPoint = &(startPoint[lineChars]);
+    lineChars = 0;
 
     //eat /n after /r (as in /r/n)
     if(skipByte) {
