@@ -13,6 +13,6 @@ void getBytesMac(
       return;
     }
 
-    *bytes = getBytesCommon(codepoint, 3);
+    *bytes = getBytesCommon(codepoint, 2);
   }
 }

@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
 #include <direct.h>
+#include <time.h>
+#include "en_gb.h"
 
 #define FALSE 0
 #define TRUE  1
@@ -27,7 +29,8 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 
 static int lastWasErr = FALSE;
 static int newline = FALSE;
-static int consoleEncoding = ENC_UNKNOWN;
+int consoleEncoding = ENC_UNKNOWN;
+
 
 void atexit_dos(void) {
   _chdrive(origDrive);
@@ -42,68 +45,92 @@ void atexit_dos(void) {
   #endif
 }
 
-/* eat the last newline emitted as dos will add one back */
-int fputs_dos(const char *str, FILE *stream) {
+void setupDos(void) {
   union REGS regs;
-  size_t len = 0;
-  char* output = NULL;
-  unsigned long retval;
 
-  if(stream == stdout || stream == stderr) {
-    if(consoleEncoding == ENC_UNKNOWN) {
-      regs.x.ax = 0x6601;
-      regs.x.bx = 0;
+  regs.x.ax = 0x6601;
+  regs.x.bx = 0;
 
-      int86(0x21, &regs, &regs);
+  int86(0x21, &regs, &regs);
 
-      if(regs.x.cflag != 0) {
-        regs.x.bx = 0;
-      }
-
-      switch(regs.x.bx) {
-        case 437: {
-          consoleEncoding = ENC_CP437;
-        } break;
-
-        case 850: {
-          consoleEncoding = ENC_CP850;
-        } break;
-
-        case 1252: {
-          consoleEncoding = ENC_CP1252;
-        } break;
-
-        default: {
-          consoleEncoding = ENC_ASCII;
-        } break;
-      }
-    }
-
-    if(newline) {
-      fputc('\n', lastWasErr ? stderr : stdout);
-
-      newline = FALSE;
-    }
-
-    output = d_charsetEncode((char *)str, consoleEncoding, &len, NULL);
-
-    /* eat last trailing newline (if we print something else we'll display it then) */
-    if(output && output[len-1] == '\n') {
-      newline = TRUE;
-      lastWasErr = stream == stderr;
-      output[len-1] = '\0';
-    }
-    else {
-      /*d_charsetEncode (correctly) doesn't null terminate here so we do it ourselves */
-      strAppend('\0', &output, &len);
-    }
-
-    retval = fputs(output, stream);
-    free(output);
-    return retval;
+  if(regs.x.cflag != 0) {
+    regs.x.bx = 0;
   }
 
-  return fputs(str, stream);
+  switch(regs.x.bx) {
+    case 437: {
+      consoleEncoding = ENC_CP437;
+    } break;
+
+    case 850: {
+      consoleEncoding = ENC_CP850;
+    } break;
+
+    case 1252: {
+      consoleEncoding = ENC_CP1252;
+    } break;
+
+    default: {
+      consoleEncoding = ENC_ASCII;
+    } break;
+  }
+
+  /* MSDOS needs the TZ environment variable set then
+  setlocale to be called to properly calculate gmtime */
+
+  /* supply some default timezone data if none is present */
+  if(getenv("TZ") == NULL) {
+    putenv(TDB_DEFAULT_TZ);
+  }
+
+  /* update the timezone info from the tz environmant variable */
+  tzset();
+
+  /* get the original drive and working directory to be able */
+  /* to revert them if they need to be changed during runtime */
+  origDrive = _getdrive();
+  origWd = getcwd(NULL, PATH_MAX + 1);
+
+  #ifdef DOS_DAT
+    /* open the hash2 data file on startup */
+    openDat();
+  #endif
+
+  /* set the working directory back to its original value at exit */
+  atexit(atexit_dos);
+}
+
+/* eat the last newline emitted as dos will add one back */
+size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
+  size_t len = size * count;
+  size_t written = len;
+
+  if(stream != stdout && stream != stderr) {
+    return fwrite(ptr, size, count, stream);
+  }
+
+  if(newline) {
+    fputc('\n', lastWasErr ? stderr : stdout);
+
+    newline = FALSE;
+    written++;
+  }
+
+  /* eat last trailing newline (if we print something else we'll display it then) */
+  if(((char*)ptr)[len-1] == '\n') {
+    newline = TRUE;
+    lastWasErr = stream == stderr;
+    len--;
+    written--;
+  }
+
+  fwrite(ptr, 1, len, stream);
+
+  return written;
+}
+
+int fputs_dos(const char *str, FILE *stream) {
+  return fwrite_dos(str, 1, strlen(str), stream);
 }
 
 int fprintf_dos(FILE *stream, const char *format, ...) {
@@ -128,7 +155,7 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
-    if((newStr = (char*)malloc(newSize+1)) == NULL) {
+    if((newStr = (char*)malloc(newSize)) == NULL) {
       return FALSE;
     }
 
@@ -137,10 +164,7 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
     vsprintf(newStr, format, args);
     va_end(args);
 
-    //ensure null termination of the string
-    newStr[newSize] = '\0';
-
-    fputs_dos(newStr, stream);
+    fwrite_dos(newStr, 1, newSize, stream);
 
     free(newStr);
 

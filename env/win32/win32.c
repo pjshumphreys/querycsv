@@ -39,8 +39,8 @@ void cleanup_w32(void) {
   free(argv_w32);
 }
 
-int fputs_w32(const char *str, FILE *stream) {
-  size_t len = 0;
+size_t fwrite_w32(const void * str, size_t size, size_t count, FILE * stream) {
+  size_t len = size * count;
   char* output = NULL;
   wchar_t *wide = NULL;
   HANDLE hnd;
@@ -108,7 +108,7 @@ int fputs_w32(const char *str, FILE *stream) {
 
     if(newline) {
       /* display the newline from before */
-      fputs("\n", lastWasErr ? stderr : stdout);
+      fwrite("\n", 1, 1, lastWasErr ? stderr : stdout);
 
       newline = FALSE;
     }
@@ -119,14 +119,10 @@ int fputs_w32(const char *str, FILE *stream) {
     if(output && output[len-1] == '\n') {
       newline = TRUE;
       lastWasErr = stream == stderr;
-      output[len-1] = '\0';
-    }
-    else {
-      /*d_charsetEncode (correctly) doesn't null terminate here so we do it ourselves */
-      strAppend('\0', &output, &len);
+      len--;
     }
 
-    retval = fputs(output, stream);
+    retval = fwrite(output, 1, len, stream);
 
     if(newline) {
       retval++;
@@ -136,7 +132,11 @@ int fputs_w32(const char *str, FILE *stream) {
     return retval;
   }
 
-  return fputs(str, stream);
+  return fwrite(str, 1, len, stream);
+}
+
+int fputs_w32(const char *str, FILE *stream) {
+  fwrite_w32(str, 1, strlen(str), stream);
 }
 
 int fprintf_w32(FILE *stream, const char *format, ...) {
@@ -164,7 +164,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
 
     //Create a new block of memory with the correct size rather than using realloc
     //as any old values could overlap with the format string. quit on failure
-    if((newStr = (char*)malloc(newSize + 1)) == NULL) {
+    if((newStr = (char*)malloc(newSize)) == NULL) {
       return FALSE;
     }
 
@@ -173,10 +173,7 @@ int fprintf_w32(FILE *stream, const char *format, ...) {
     vsprintf(newStr, format, args);
     va_end(args);
 
-    //ensure null termination of the string
-    newStr[newSize] = '\0';
-
-    fputs_w32(newStr, stream);
+    fwrite_w32(newStr, 1, newSize, stream);
 
     free(newStr);
 

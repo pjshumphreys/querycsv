@@ -129,9 +129,9 @@
  * which will cause the program to abort if exceeded */
 #define ENC_TSW 18
 
-#define ENC_INPUT ENC_UTF8
-#define ENC_OUTPUT ENC_UTF8
-#define ENC_PRINT ENC_UTF8
+#define ENC_INPUT ENC_UTF8  /* used when a file is read */
+#define ENC_OUTPUT ENC_UTF8 /* used when a file is written */
+#define ENC_PRINT ENC_UTF8  /* used when outputting to the screen */
 
 /* macro used to help prevent double freeing of heap data */
 #define freeAndZero(p) { free(p); p = 0; }
@@ -165,14 +165,16 @@ it becomes needed and because it's useful for debugging */
 
   #ifdef WINDOWS
     void setupWin32(int * argc, char *** argv);
+    size_t fwrite_w32(const void * ptr, size_t size, size_t count, FILE * stream);
     int fputs_w32(const char *str, FILE *stream);
     int fprintf_w32(FILE *stream, const char *format, ...);
     int chdir_w32(const char *dirname);
     FILE *fopen_w32(const char *filename, const char *mode);
 
     #define chdir chdir_w32
-    #define fputs fputs_w32
     #define fopen fopen_w32
+    #define fwrite fwrite_w32
+    #define fputs fputs_w32
     #define fprintf fprintf_w32
     #define YYFPRINTF fprintf_w32   /* for the bison parser */
   #else
@@ -187,7 +189,13 @@ it becomes needed and because it's useful for debugging */
       #include <direct.h>   /* for chdir and getcwd */
     #endif
 
+    extern int consoleEncoding;
+    #undef ENC_PRINT
+    #define ENC_PRINT consoleEncoding
+
+    void setupDos(void);
     void atexit_dos(void);
+    size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream);
     int fputs_dos(const char *str, FILE *stream);
     int fprintf_dos(FILE *stream, const char *format, ...);
 
@@ -196,6 +204,7 @@ it becomes needed and because it's useful for debugging */
     #endif
 
     #define fputs fputs_dos
+    #define fwrite fwrite_dos
     #define fprintf fprintf_dos
     #define YYFPRINTF fprintf_dos   /* for the bison parser */
 
@@ -225,8 +234,10 @@ it becomes needed and because it's useful for debugging */
   #undef PRM_DEFAULT
   #define PRM_DEFAULT PRM_BLANK | PRM_MAC
 
+  size_t fwrite_mac(const void * str, size_t size, size_t count, FILE * stream);
   int fputs_mac(const char *str, FILE *stream);
   int fprintf_mac(FILE *stream, const char *format, ...);
+  #define fwrite fwrite_mac
   #define fputs fputs_mac
   #define fprintf fprintf_mac
   #define YYFPRINTF fprintf_mac   /* for the bison parser */
@@ -248,6 +259,7 @@ it becomes needed and because it's useful for debugging */
     #define ENC_INPUT ENC_MAC
     #define ENC_OUTPUT ENC_MAC
   #endif
+  /* ENC_PRINT is kept as utf-8 as we do the charset conversion in the fputs/fprintf wrapper functions now */
 
   void exit_mac(int dummy);
   #define exit exit_mac
@@ -789,7 +801,6 @@ struct codepointToBytes {
   unsigned QCSV_SHORT codepoint;
   char cp437;
   char cp850;
-  char cp1047;
   char mac;
 };
 

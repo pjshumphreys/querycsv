@@ -71,29 +71,7 @@ int main(int argc, char **argv) {
     #ifdef WINDOWS
       setupWin32(&argc2, &argv2);
     #else
-      /* MSDOS needs the TZ environment variable set then
-      setlocale to be called to properly calculate gmtime */
-
-      /* supply some default timezone data if none is present */
-      if(getenv("TZ") == NULL) {
-        putenv(TDB_DEFAULT_TZ);
-      }
-
-      /* update the timezone info from the tz environmant variable */
-      tzset();
-
-      /* get the original drive and working directory to be able */
-      /* to revert them if they need to be changed during runtime */
-      origDrive = _getdrive();
-      origWd = getcwd(NULL, PATH_MAX + 1);
-
-      #ifdef DOS_DAT
-        /* open the hash2 data file on startup */
-        openDat();
-      #endif
-
-      /* set the working directory back to its original value at exit */
-      atexit(atexit_dos);
+      setupDos();
     #endif
   #endif
 

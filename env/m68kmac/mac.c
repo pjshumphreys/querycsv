@@ -1996,19 +1996,20 @@ void output(char *buffer, size_t nChars, Boolean isBold) {
   adjustScrollBars(mainWindowPtr, FALSE);
 }
 
-int fputs_mac(const char *str, FILE *stream) {
-  size_t len;
+size_t fwrite_mac(const void * str, size_t size, size_t count, FILE * stream) {
+  size_t len = size * count;
 
-  if(stream == stdout || stream == stderr) {
-    len = strlen(str);
+  if(stream != stdout && stream != stderr) {
+    return fwrite(str, 1, len, stream);
+  }
 
-    output((char *)str, len, stream == stderr);
-  }
-  else {
-    len = fputs(str, stream);
-  }
+  output((char *)str, len, stream == stderr);
 
   return len;
+}
+
+int fputs_mac(const char *str, FILE *stream) {
+  return fwrite_mac(str, 1, strlen(str), stream);
 }
 
 int fprintf_mac(FILE *stream, const char *format, ...) {
@@ -2021,50 +2022,46 @@ int fprintf_mac(FILE *stream, const char *format, ...) {
     FILE * pFile;
   #endif
 
-  if(stream == stdout || stream == stderr) {
-    #ifdef RETRO68
-      va_start(args, format);
-      newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
-      va_end(args);
-    #else
-      if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
-        return FALSE;
-      }
-
-      //get the space needed for the new string
-      va_start(args, format);
-      newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
-      va_end(args);
-
-      //close the file. We don't need to look at the return code as we were writing to /dev/null
-      fclose(pFile);
-    #endif
-
-    //Create a new block of memory with the correct size rather than using realloc
-    //as any old values could overlap with the format string. quit on failure
-    reallocMsg((void**)&newStr, newSize+1);
-
-    //do the string formatting for real
-    va_start(args, format);
-    vsprintf(newStr, format, args);
-    va_end(args);
-
-    //ensure null termination of the string
-    newStr[newSize] = '\0';
-
-    output(newStr, newSize-1, stream == stderr);
-
-    free(newStr);
-
-    retval = newSize-1;
-  }
-  else {
+  if(stream != stdout && stream != stderr) {
     va_start(args, format);
     retval = vfprintf(stream, format, args);
     va_end(args);
+    
+    return retval;
   }
 
-  return retval;
+  #ifdef RETRO68
+    va_start(args, format);
+    newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+    va_end(args);
+  #else
+    if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
+      return FALSE;
+    }
+
+    //get the space needed for the new string
+    va_start(args, format);
+    newSize = (size_t)(vfprintf(pFile, format, args)); //plus L'\0'
+    va_end(args);
+
+    //close the file. We don't need to look at the return code as we were writing to /dev/null
+    fclose(pFile);
+  #endif
+
+  //Create a new block of memory with the correct size rather than using realloc
+  //as any old values could overlap with the format string. quit on failure
+  reallocMsg((void**)&newStr, newSize);
+
+  //do the string formatting for real
+  va_start(args, format);
+  vsprintf(newStr, format, args);
+  va_end(args);
+
+  output(newStr, newSize, stream == stderr);
+
+  free(newStr);
+
+  return newSize;
 }
 
 void exit_mac(int dummy) {

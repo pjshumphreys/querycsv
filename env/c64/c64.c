@@ -70,16 +70,15 @@ int fputs_c64(const char *str, FILE *stream) {
   size_t bytesStored = 0;
   char *encoded = NULL;
 
-  if(stream == stdout || stream == stderr) {
-    encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored, NULL);
-    fwrite_c64(encoded, sizeof(char), bytesStored, stream);
-    free(encoded);
-
-    return (int)bytesStored;
-  }
-  else {
+  if(stream != stdout && stream != stderr) {
     return fwrite(str, sizeof(char), strlen(str), stream);
   }
+
+  encoded = d_charsetEncode((char *)str, ENC_PETSCII, &bytesStored, NULL);
+  fwrite_c64(encoded, sizeof(char), bytesStored, stream);
+  free(encoded);
+
+  return (int)bytesStored;
 }
 
 int fprintf_c64(FILE *stream, const char *format, ...) {
@@ -93,7 +92,7 @@ int fprintf_c64(FILE *stream, const char *format, ...) {
 
   //get the space needed for the new string
   va_start(args, format);
-  newSize = (size_t)(vsnprintf(NULL, 0, format, args)); /* plus '\0' */
+  newSize = (size_t)(vsnprintf(NULL, 0, format, args)); // plus '\0'
   va_end(args);
 
   //Create a new block of memory with the correct size rather than using realloc
@@ -107,7 +106,7 @@ int fprintf_c64(FILE *stream, const char *format, ...) {
   vsprintf(newStr, format, args);
   va_end(args);
 
-  /* ensure null termination of the string */
+  //ensure null termination of the string
   newStr[newSize] = '\0';
 
   fputs_c64(newStr, stream);
