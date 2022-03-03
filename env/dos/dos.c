@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
-#include <direct.h>
+#ifdef __TURBOC__
+  #include <dir.h>
+  #define _chdrive setdisk
+#else
+  #include <direct.h>
+#endif
 #include <time.h>
 #include "en_gb.h"
 
@@ -30,7 +36,6 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
 static int lastWasErr = FALSE;
 static int newline = FALSE;
 int consoleEncoding = ENC_UNKNOWN;
-
 
 void atexit_dos(void) {
   _chdrive(origDrive);
