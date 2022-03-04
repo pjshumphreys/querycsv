@@ -449,8 +449,8 @@ function getFunctionSizes () {
   always in the same page) */
   name = 'compareCP1252';
   execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytesCP1252.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build/s/getBytesCP1252.asm"
+    'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
+    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -468,40 +468,10 @@ function getFunctionSizes () {
   delete hashMap.compareCodepoints;
   functionsList[hashMap[name]][0] = name;
 
-  name = 'comparePetscii';
-  execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytesPetscii.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv3/g;' build/s/getBytesPetscii.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  name = 'compareAtariST';
-  execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytesAtariST.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv4/g;' build/s/getBytesAtariST.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
   name = 'compareZX';
   execSync(
     'cat build/s/compareCodepoints.asm >> build/s/getBytesZXCommon.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv5/g;' build/s/getBytesZXCommon.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  name = 'compareCP1047';
-  execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytesCP1047.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv6/g;' build/s/getBytesCP1047.asm"
+    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv3/g;' build/s/getBytesZXCommon.asm"
   );
 
   hashMap[name] = functionsList.length;

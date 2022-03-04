@@ -1000,12 +1000,9 @@ function packPages () {
   always in the same page) */
   execSync("sed -i 's/jmp     farret/rts/g;s/__compareCodepoints/_compareCodepoints/g;' build/s/_compareCodepoints.s");
 
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesCP1252.s;sed -i 's/_compareCodepoints/_compareCP1252/g;s/querycsv/querycsv1/g;' build/s/_getBytesCP1252.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytes.s;sed -i 's/_compareCodepoints/_compareCP1252/g;s/querycsv/querycsv1/g;' build/s/_getBytes.s");
   execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesCommon.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv2/g;' build/s/_getBytesCommon.s");
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesPetscii.s;sed -i 's/_compareCodepoints/_comparePetscii/g;s/querycsv/querycsv3/g;' build/s/_getBytesPetscii.s");
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesAtariST.s;sed -i 's/_compareCodepoints/_compareAtariST/g;s/querycsv/querycsv4/g;' build/s/_getBytesAtariST.s");
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesZXCommon.s;sed -i 's/_compareCodepoints/_compareZX/g;s/querycsv/querycsv5/g;' build/s/_getBytesZXCommon.s");
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesCP1047.s;sed -i 's/_compareCodepoints/_compareCP1047/g;s/querycsv/querycsv6/g;' build/s/_getBytesCP1047.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesZXCommon.s;sed -i 's/_compareCodepoints/_compareZX/g;s/querycsv/querycsv3/g;' build/s/_getBytesZXCommon.s");
   execSync('rm build/s/_compareCodepoints.s');
 
   execSync(

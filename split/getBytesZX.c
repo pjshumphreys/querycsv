@@ -69,19 +69,3 @@ void getBytesZXCommon(
     *bytes = &returnByte;
   }
 }
-
-void getBytesZX(
-    long codepoint,
-    char **bytes,
-    int *byteLength
-) {
-  getBytesZXCommon(codepoint, bytes, byteLength, FALSE);
-}
-
-void getBytesTSW(
-    long codepoint,
-    char **bytes,
-    int *byteLength
-) {
-  getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
-}
