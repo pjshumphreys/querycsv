@@ -85,120 +85,30 @@ void getBytes(
       }
     } break;
 
-    case ENC_PETSCII: {
-      struct codepointToByte *lookup;
+    case ENC_ASCII: {
+      unsigned char * temp;
 
       if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
-        if(codepoint < 0x41) {
-          *bytes = NULL;
+        if(codepoint < 0x80) {
+          *bytes = 0;
           return;
         }
 
-        if((lookup = (struct codepointToByte*)bsearch(
-          (void *)&codepoint,
-          (void *)petsciiBytes,
-          SIZE_PETSCIIBYTES,
-          sizeof(struct codepointToByte),
-          compareCodepoints
-        )) == NULL) {
+        if(codepoint < 0xe000 || codepoint > 0xe07f) {
           returnByte = 0x3f;  /* ascii question mark */
-          *bytes = &returnByte;
-          return;
+        }
+        else {
+          temp = (unsigned char *)(&returnByte);
+
+          /* cast private use area into high bit set bytes */
+          *temp = (unsigned char)(codepoint-0xdf80);
         }
 
-        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
       }
-    } break;
-
-    case ENC_CP1047: {
-      struct codepointToByte *lookup;
-
-      if(byteLength != NULL && bytes != NULL) {
-        *byteLength = 1;
-
-        if(codepoint < 0x80 || (codepoint > 0x9f && codepoint < 0x100)) {
-          returnByte = cp1047LowBytes[codepoint];
-          *bytes = &returnByte;
-          return;
-        }
-
-        if((lookup = (struct codepointToByte*)bsearch(
-          (void *)&codepoint,
-          (void *)cp1252Bytes,
-          SIZE_CP1252BYTES,
-          sizeof(struct codepointToByte),
-          compareCodepoints
-        )) == NULL) {
-          returnByte = 0x6f;  /* ebcdic question mark */
-          *bytes = &returnByte;
-          return;
-        }
-
-        returnByte = cp1047LowBytes[(unsigned char)(lookup->byte)];
-        *bytes = &returnByte;
-      }
-    } break;
-
-    case ENC_ATARIST: {
-      struct codepointToByte *lookup;
-
-      if(byteLength != NULL && bytes != NULL) {
-        *byteLength = 1;
-
-        /* just cast the codepoint to a byte for basic ascii */
-        if(codepoint > 0x1F && codepoint < 0x80) {
-          *bytes = NULL;
-          return;
-        }
-
-        if((lookup = (struct codepointToByte*)bsearch(
-          (void *)&codepoint,
-          (void *)atariBytes,
-          SIZE_ATARIBYTES,
-          sizeof(struct codepointToByte),
-          compareCodepoints
-        )) == NULL) {
-          returnByte = 0x3f;  /* ascii question mark */
-          *bytes = &returnByte;
-          return;
-        }
-
-        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
-        *bytes = &returnByte;
-      }
-    } break;
-
-    case ENC_BBC: {
-      if(byteLength != NULL && bytes != NULL) {
-        *byteLength = 1;
-
-        /* just cast the codepoint to a byte for ascii control codes and symbols */
-        if(codepoint < 0x80 && codepoint != 0x60) {
-          *bytes = NULL;
-          return;
-        }
-
-        if(codepoint == 0xa3) { /* £ symbol */
-          returnByte = 0x60;  /* normally a backtick, but not on the bbc micro */
-          *bytes = &returnByte;
-          return;
-        }
-
-        returnByte = 0x3f;  /* ascii question mark */
-        *bytes = &returnByte;
-      }
-    } break;
-
-    case ENC_ZX: {
-      getBytesZXCommon(codepoint, bytes, byteLength, FALSE);
-    } break;
-
-    case ENC_TSW: {
-      getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
     } break;
 
     case ENC_UTF16LE: {
@@ -275,30 +185,120 @@ void getBytes(
       }
     } break;
 
-    case ENC_ASCII: {
-      unsigned char * temp;
+    case ENC_CP1047: {
+      struct codepointToByte *lookup;
+
+      if(byteLength != NULL && bytes != NULL) {
+        *byteLength = 1;
+
+        if(codepoint < 0x80 || (codepoint > 0x9f && codepoint < 0x100)) {
+          returnByte = cp1047LowBytes[codepoint];
+          *bytes = &returnByte;
+          return;
+        }
+
+        if((lookup = (struct codepointToByte*)bsearch(
+          (void *)&codepoint,
+          (void *)cp1252Bytes,
+          SIZE_CP1252BYTES,
+          sizeof(struct codepointToByte),
+          compareCodepoints
+        )) == NULL) {
+          returnByte = 0x6f;  /* ebcdic question mark */
+          *bytes = &returnByte;
+          return;
+        }
+
+        returnByte = cp1047LowBytes[(unsigned char)(lookup->byte)];
+        *bytes = &returnByte;
+      }
+    } break;
+
+    case ENC_ATARIST: {
+      struct codepointToByte *lookup;
+
+      if(byteLength != NULL && bytes != NULL) {
+        *byteLength = 1;
+
+        /* just cast the codepoint to a byte for basic ascii */
+        if(codepoint > 0x1F && codepoint < 0x80) {
+          *bytes = NULL;
+          return;
+        }
+
+        if((lookup = (struct codepointToByte*)bsearch(
+          (void *)&codepoint,
+          (void *)atariBytes,
+          SIZE_ATARIBYTES,
+          sizeof(struct codepointToByte),
+          compareCodepoints
+        )) == NULL) {
+          returnByte = 0x3f;  /* ascii question mark */
+          *bytes = &returnByte;
+          return;
+        }
+
+        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
+        *bytes = &returnByte;
+      }
+    } break;
+
+    case ENC_PETSCII: {
+      struct codepointToByte *lookup;
 
       if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
-        if(codepoint < 0x80) {
-          *bytes = 0;
+        if(codepoint < 0x41) {
+          *bytes = NULL;
           return;
         }
 
-        if(codepoint < 0xe000 || codepoint > 0xe07f) {
+        if((lookup = (struct codepointToByte*)bsearch(
+          (void *)&codepoint,
+          (void *)petsciiBytes,
+          SIZE_PETSCIIBYTES,
+          sizeof(struct codepointToByte),
+          compareCodepoints
+        )) == NULL) {
           returnByte = 0x3f;  /* ascii question mark */
-        }
-        else {
-          temp = (unsigned char *)(&returnByte);
-
-          /* cast private use area into high bit set bytes */
-          *temp = (unsigned char)(codepoint-0xdf80);
+          *bytes = &returnByte;
+          return;
         }
 
+        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
       }
+    } break;
+
+    case ENC_BBC: {
+      if(byteLength != NULL && bytes != NULL) {
+        *byteLength = 1;
+
+        /* just cast the codepoint to a byte for ascii control codes and symbols */
+        if(codepoint < 0x80 && codepoint != 0x60) {
+          *bytes = NULL;
+          return;
+        }
+
+        if(codepoint == 0xa3) { /* £ symbol */
+          returnByte = 0x60;  /* normally a backtick, but not on the bbc micro */
+          *bytes = &returnByte;
+          return;
+        }
+
+        returnByte = 0x3f;  /* ascii question mark */
+        *bytes = &returnByte;
+      }
+    } break;
+
+    case ENC_ZX: {
+      getBytesZXCommon(codepoint, bytes, byteLength, FALSE);
+    } break;
+
+    case ENC_TSW: {
+      getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
     } break;
 
     default: {
