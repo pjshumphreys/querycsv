@@ -66,7 +66,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   }
 
   /* setup the initial values in the queryData structure */
-  query->inputEncoding = ENC_UNKNOWN;
+  query->inputEncoding = initialEncoding;
   query->parseMode = 0;   /* specify we want to just read the file data for now */
   query->hasGrouping = FALSE;
   query->hasRowCount = FALSE;
@@ -91,7 +91,6 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   query->resultSet = NULL;
   query->dateString = NULL;
   query->newLine = "\n";
-
 
   /* setup reentrant flex scanner data structure */
   yylex_init_extra(query, &scanner);
@@ -120,11 +119,11 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   yylex_destroy(scanner);
   scanner = NULL;
 
-  /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
   if(queryType == 1) {
+    /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
     fclose(queryFile);
 
-    if(parserReturn == 0 && query->inputEncoding != ENC_UNKNOWN) {
+    if(parserReturn == 0 && query->parseMode == 2) {
       /* the input file specified its own encoding. rewind and parse again */
       queryFile = fopen(queryFileName, fopen_read);
 
@@ -159,9 +158,22 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
       /* rewind the file. Can't use fseek though as it doesn't work on CC65 */
       fclose(queryFile);
     }
-    else {
-      query->inputEncoding = initialEncoding;
-    }
+  }
+  else if(parserReturn == 0 && query->parseMode == 2) {
+    /* the input file specified its own encoding. rewind and parse again */
+
+    /* setup reentrant flex scanner data structure */
+    yylex_init_extra(query, &scanner);
+
+    /* feed our script string into the scanner structure */
+    yy_scan_string(origFileName, scanner);
+
+    /* do the first parser pass again using the proper encoding */
+    parserReturn = yyparse(query, scanner);
+
+    /* clean up the re-entrant flex scanner */
+    yylex_destroy(scanner);
+    scanner = NULL;
   }
 
   switch(parserReturn) {

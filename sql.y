@@ -74,12 +74,20 @@ typedef void* yyscan_t;
 
 main_file:
     ENCODING STRING ';' {
-      if(queryData->inputEncoding == ENC_UNKNOWN) {
-        if((queryData->inputEncoding = parse_encoding($2)) == ENC_UNSUPPORTED) {
-          YYABORT;
-        }
+      switch(queryData->parseMode) {
+        case 0: {
+          queryData->parseMode = 2;
 
-        YYACCEPT;
+          if((queryData->inputEncoding = parse_encoding($2)) == ENC_UNSUPPORTED) {
+            YYABORT;
+          }
+
+          YYACCEPT;
+        } break;
+
+        case 2: {
+          queryData->parseMode = 0;
+        } break;
       }
     } opt_params command_or_select
   | opt_params command_or_select;

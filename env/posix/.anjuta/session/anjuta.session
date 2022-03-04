@@ -3,21 +3,19 @@ Maximized=1
 Geometry=1920x1052+1366+0
 
 [File Loader]
-Files=../../querycsv.c#3765
+Files=../../querycsv.c#1
 
 [Document Manager]
 bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
 
 [Execution]
-Program arguments=test38.qry%%%-c "select slice('hello', 0)"%%%test2%%%test.qry%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry%%%--run test12.qry
+Program arguments=test.qry%%%testibm.qry%%%test38.qry%%%-c "select slice('hello', 0)"%%%test2%%%test10.qry%%%test997.qry%%%test997.qry > fooby2.txt%%%--run test11.qry s%%%--run test13.qry
 Program uri=../../querycsv%%%querycsv%%%ttyraw%%%listdir
 Run in terminal=2
-Working directories=../../../../test%%%../../.%%%../../../../.%%%.%%%.%%%test%%%.
+Working directories=../../../../.%%%../../../../test%%%../../.%%%.%%%.%%%test%%%.
 
-[Debugger]
-Watch=currentMatch[columnIndex].value
-Breakpoint=1:../../querycsv.c:671:0:%%%1:../../querycsv.c:3765:0:
-Stop at beginning=2
+[Project Manager]
+Expand=posix
 
 [Build]
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized
@@ -26,3 +24,7 @@ BuildArgs/Default=--enable-maintainer-mode
 BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
 BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
 BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
+
+[Debugger]
+Watch=currentMatch[columnIndex].value
+Stop at beginning=2
