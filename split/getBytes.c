@@ -46,32 +46,8 @@ void getBytes(
   MAC_YIELD
 
   switch(encoding) {
-    case ENC_CP437: {
-      if(byteLength != NULL && bytes != NULL) {
-        *byteLength = 1;
-
-        if(codepoint < 0x80) {
-          *bytes = NULL;
-          return;
-        }
-
-        *bytes = getBytesCommon(codepoint, 0);
-      }
-    } break;
-
-    case ENC_CP850: {
-      if(byteLength != NULL && bytes != NULL) {
-        *byteLength = 1;
-
-        if(codepoint < 0x80) {
-          *bytes = NULL;
-          return;
-        }
-
-        *bytes = getBytesCommon(codepoint, 1);
-      }
-    } break;
-
+    case ENC_CP437:
+    case ENC_CP850:
     case ENC_MAC: {
       if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
@@ -81,7 +57,7 @@ void getBytes(
           return;
         }
 
-        *bytes = getBytesCommon(codepoint, 2);
+        *bytes = getBytesCommon(codepoint, encoding);
       }
     } break;
 

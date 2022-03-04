@@ -15,15 +15,15 @@ char* getBytesCommon(long codepoint, int key) {
     returnByte = 0;
   }
   else switch(key) {
-    case 0:
+    case ENC_CP437:
       returnByte = lookup->cp437;
     break;
 
-    case 1:
+    case ENC_CP850:
       returnByte = lookup->cp850;
     break;
 
-    case 2:
+    case ENC_MAC:
       returnByte = lookup->mac;
     break;
   }
