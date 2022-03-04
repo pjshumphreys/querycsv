@@ -66,7 +66,6 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   }
 
   /* setup the initial values in the queryData structure */
-  query->getCodepoints = chooseGetter(initialEncoding);
   query->inputEncoding = ENC_UNKNOWN;
   query->parseMode = 0;   /* specify we want to just read the file data for now */
   query->hasGrouping = FALSE;
@@ -93,12 +92,20 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   query->dateString = NULL;
   query->newLine = "\n";
 
+
   /* setup reentrant flex scanner data structure */
   yylex_init_extra(query, &scanner);
 
   /* feed our script file into the scanner structure */
   if(queryType == 1) {
     yyset_in(queryFile, scanner);
+
+    query->inputFileStream = queryFile;
+    query->cpIndex = 0;
+    query->cpByteLength = 0;
+    query->arrLength = 0;
+    query->byteLength = 0;
+    getNextCodepoint((struct inputTable *)query);
   }
   else {
     yy_scan_string(origFileName, scanner);
@@ -129,14 +136,18 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
 
       myfseek(queryFile, offset, SEEK_SET);
 
-      /*specify the getter to use*/
-      query->getCodepoints = chooseGetter(query->inputEncoding);
-
       /* setup reentrant flex scanner data structure */
       yylex_init_extra(query, &scanner);
 
       /* feed our script file into the scanner structure */
       yyset_in(queryFile, scanner);
+
+      query->inputFileStream = queryFile;
+      query->cpIndex = 0;
+      query->cpByteLength = 0;
+      query->arrLength = 0;
+      query->byteLength = 0;
+      getNextCodepoint((struct inputTable *)query);
 
       /* do the first parser pass again using the proper encoding */
       parserReturn = yyparse(query, scanner);
@@ -253,6 +264,13 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   /* feed our script file into the scanner structure */
   if(queryType == 1) {
     yyset_in(queryFile, scanner);
+
+    query->inputFileStream = queryFile;
+    query->cpIndex = 0;
+    query->cpByteLength = 0;
+    query->arrLength = 0;
+    query->byteLength = 0;
+    getNextCodepoint((struct inputTable *)query);
   }
   else {
     yy_scan_string(origFileName, scanner);

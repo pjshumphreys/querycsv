@@ -616,21 +616,22 @@ struct inputColumn {
 };
 
 struct inputTable {
-  int fileIndex;
-  int columnCount;
-  int isLeftJoined;
-  int noLeftRecord;
-  long firstRecordOffset;  /* where in the file the beginning of the first record is located */
-  char *queryTableName;  /* according to the query */
   char *fileName;
   FILE *fileStream;
-  int options;
   int fileEncoding;
   long codepoints[4];
   int cpIndex;
   int cpByteLength;
   int arrLength;
   int byteLength;
+
+  int fileIndex;
+  int columnCount;
+  int isLeftJoined;
+  int noLeftRecord;
+  long firstRecordOffset;  /* where in the file the beginning of the first record is located */
+  char *queryTableName;  /* according to the query */
+  int options;
   struct inputTable *nextInputTable;
   struct inputColumn *firstInputColumn;
 };
@@ -723,6 +724,15 @@ struct resultTree {
 };
 
 struct qryData {
+  char *inputFileName;
+  FILE *inputFileStream;
+  int inputEncoding;
+  long codepoints[4];
+  int cpIndex;
+  int cpByteLength;
+  int arrLength;
+  int byteLength;
+
   int parseMode;  /* 0 - open files and get their layouts cached, 1 - use the cache data to populate the rest of this data structure, */
   int hasGrouping;
   int hasRowCount;
@@ -733,9 +743,6 @@ struct qryData {
   int groupCount;
   int useGroupBy;
   int params;
-  char *inputFileName;
-  int inputEncoding;
-  void (*getCodepoints)(FILE *, long *, int *, int *);
   int outputEncoding;
   int outputOffset;
   int codepointsInLine;

@@ -1,8 +1,10 @@
 void cleanup_query(struct qryData *query) {
   int i;
-  unsigned char c;
+  unsigned char c[2];
 
   MAC_YIELD
+
+  c[1] = 0;
 
   /* cleanup_columnReferences */
   {
@@ -122,12 +124,12 @@ void cleanup_query(struct qryData *query) {
         /* add EOF byte and padding with spaces */
         i = 64 - (query->outputOffset % 64);
 
-        c = query->params & PRM_REMOVE ? 32 : 143;
+        c[0] = query->params & PRM_REMOVE ? 32 : 143;
         fwrite((void*)&c, 1, 1, query->outputFile);
 
         i--;
 
-        c = 32;
+        c[0] = 32;
 
         while(i--) {
           fwrite((void*)&c, 1, 1, query->outputFile);
@@ -138,8 +140,8 @@ void cleanup_query(struct qryData *query) {
     #ifdef __Z88DK
       else {
         /* output a soft-EOF byte to end the file on cp/m or zx spectrum builds */
-        c = 26;
-        fwrite((void*)&c, 1, 1, query->outputFile);
+        c[0] = 26;
+        fputsEncoded((char*)c, query);
       }
     #endif
 
