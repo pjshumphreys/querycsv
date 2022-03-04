@@ -12,6 +12,11 @@ long getCurrentCodepoint(struct inputTable* table, int* byteLength) {
       return MYEOF;
     }
 
+    /* prevent unicode surrogates being unescaped */
+    if(retval > 0xD7FF && retval < 0xE000) {
+      return 0xFFFD;
+    }
+
     return retval;
   }
 

@@ -67,15 +67,9 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
         ) {
           internalOffset += 4;
 
-          if(offset) {
-            *offset = internalOffset;
-          }
-
           if(encoding) {
             *encoding = ENC_UTF32BE;
           }
-
-          return file;
         }
       } break;
 
@@ -85,15 +79,9 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
         ) {
           internalOffset += 2;
 
-          if(offset) {
-            *offset = internalOffset;
-          }
-
           if(encoding) {
             *encoding = ENC_PETSCII;
           }
-
-          return file;
         }
       } break;
 
@@ -105,31 +93,19 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
         ) {
           internalOffset += 3;
 
-          if(offset) {
-            *offset = internalOffset;
-          }
-
           if(encoding) {
             *encoding = ENC_UTF8;
           }
-
-          return file;
         }
       } break;
 
-      case 254: { /* maybe UTF-16BE */
+      case 254: { /* maybe UTF-16BE or UTF-32BE */
         if(fgetc(file) == 255) {
           internalOffset += 2;
-
-          if(offset) {
-            *offset = internalOffset;
-          }
 
           if(encoding) {
             *encoding = ENC_UTF16BE;
           }
-
-          return file;
         }
       } break;
 
@@ -141,27 +117,12 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
           ) { /* UTF-32LE */
             internalOffset += 4;
 
-            if(offset) {
-              *offset = internalOffset;
-            }
-
             if(encoding) {
               *encoding = ENC_UTF32LE;
             }
           }
           else {  /* UTF-16LE */
-            fclose(file);
-
-            file = fopen(filename, fopen_read);
-
-            fgetc(file);
-            fgetc(file);
-
             internalOffset += 2;
-
-            if(offset) {
-              *offset = internalOffset;
-            }
 
             if(encoding) {
               *encoding = ENC_UTF16LE;
@@ -183,19 +144,17 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
           *encoding = ENC_CP1047;
           break;
         }
-      } /*fall thru */
+      } break;
+    }
 
-      default: {
-        if(encoding && (*encoding == ENC_DEFAULT || *encoding == ENC_UNKNOWN)) {
-          *encoding = ENC_INPUT;
+    if(encoding && (*encoding == ENC_DEFAULT || *encoding == ENC_UNKNOWN)) {
+      *encoding = ENC_INPUT;
 
-          /* On the c64 build files with an unknown encoding are assumed to
-            be petscii, which has a two byte header */
-          #if ENC_INPUT == ENC_PETSCII
-            internalOffset = 2;
-          #endif
-        }
-      }
+      /* On the c64 build files with an unknown encoding are assumed to
+        be petscii, which has a two byte header */
+      #if ENC_INPUT == ENC_PETSCII
+        internalOffset = 2;
+      #endif
     }
 
     if(offset) {

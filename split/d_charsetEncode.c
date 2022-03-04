@@ -63,6 +63,16 @@ char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData
       bytes = (char *)utf16Bytes;
     } break;
 
+    case ENC_UTF32LE: {
+      getBytes = getBytesUtf32Le;
+      bytes = (char *)utf16Bytes;
+    } break;
+
+    case ENC_UTF32BE: {
+      getBytes = getBytesUtf32Be;
+      bytes = (char *)utf16Bytes;
+    } break;
+
     case ENC_ASCII: {
       getBytes = getBytesAscii;
     } break;

@@ -21,14 +21,12 @@ void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
 
     case ENC_UTF16BE:
       return &getCodepointsUtf16Be;
-    /*
 
     case ENC_UTF32LE:
-      return &getCodepointsUTF32LE;
+      return &getCodepointsUtf32Le;
 
     case ENC_UTF32BE:
-      return &getCodepointsUTF32BE;
-    */
+      return &getCodepointsUtf32Be;
 
     case ENC_PETSCII:
       return &getCodepointsPetscii;

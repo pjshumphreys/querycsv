@@ -66,6 +66,7 @@ int fputsEncoded(char *str, struct qryData *query) {
         retval = fwrite(encoded, 1, bytesStored, query->outputFile);
         free(encoded);
         offset = -retval;
+        bytesStored = 0;
       }
 
       encoded = d_charsetEncode(str, query->outputEncoding, &bytesStored, query);
@@ -78,6 +79,7 @@ int fputsEncoded(char *str, struct qryData *query) {
         /* write a pseudo load address at the start of the output file */
         retval = fwrite("\x01\x08", 1, 2, query->outputFile);
         offset = -retval;
+        bytesStored = 0;
       }
 
       encoded = d_charsetEncode(str, ENC_PETSCII, &bytesStored, query);
@@ -90,6 +92,7 @@ int fputsEncoded(char *str, struct qryData *query) {
         /* write a pseudo load address at the start of the output file */
         retval = fwrite("\xEF\xBB\xBF", 1, 3, query->outputFile);
         offset = -retval;
+        bytesStored = 0;
       }
 
       if(!(query->params & (PRM_INSERT | PRM_REMOVE))) {
