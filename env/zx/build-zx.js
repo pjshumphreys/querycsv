@@ -434,7 +434,7 @@ function getFunctionSizes () {
 
   /* patch compareCodepoints into the functions that need it (so the table is
   always in the same page) */
-  name = 'compareCP1252';
+  name = 'compareCommon';
   execSync(
     'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
     "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
@@ -444,21 +444,10 @@ function getFunctionSizes () {
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr -= 4;
 
-  name = 'compareCommon';
-  execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytesCommon.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv2/g;' build/s/getBytesCommon.asm"
-  );
-
-  // replace compareCodepoints with compareCommon
-  hashMap[name] = hashMap.compareCodepoints;
-  delete hashMap.compareCodepoints;
-  functionsList[hashMap[name]][0] = name;
-
   name = 'compareZX';
   execSync(
     'cat build/s/compareCodepoints.asm >> build/s/getBytesZXCommon.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv3/g;' build/s/getBytesZXCommon.asm"
+    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv2/g;' build/s/getBytesZXCommon.asm"
   );
 
   hashMap[name] = functionsList.length;

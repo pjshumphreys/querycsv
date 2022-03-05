@@ -1,6 +1,7 @@
 #include "atarimap.h"
 #include "ansimap.h"
 #include "petmap.h"
+#include "cmnmap.h"
 
 static const char cp1047LowBytes[256] = {
     0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F,
@@ -45,11 +46,13 @@ void getBytes(
 ) {
   MAC_YIELD
 
-  switch(encoding) {
-    case ENC_CP437:
-    case ENC_CP850:
-    case ENC_MAC: {
-      if(byteLength != NULL && bytes != NULL) {
+  if(byteLength != NULL && bytes != NULL) {
+    switch(encoding) {
+      case ENC_CP437:
+      case ENC_CP850:
+      case ENC_MAC: {
+        struct codepointToBytes *lookup;
+
         *byteLength = 1;
 
         if(codepoint < 0x80) {
@@ -57,14 +60,39 @@ void getBytes(
           return;
         }
 
-        *bytes = getBytesCommon(codepoint, encoding);
-      }
-    } break;
+        if((lookup = (struct codepointToBytes*)bsearch(
+          (void *)&codepoint,
+          (void *)commonBytes,
+          SIZE_COMMONBYTES,
+          sizeof(struct codepointToBytes),
+          compareCodepoints
+        )) == NULL) {
+          returnByte = 0;
+        }
+        else switch(encoding) {
+          case ENC_CP437:
+            returnByte = lookup->cp437;
+          break;
 
-    case ENC_ASCII: {
-      unsigned char * temp;
+          case ENC_CP850:
+            returnByte = lookup->cp850;
+          break;
 
-      if(byteLength != NULL && bytes != NULL) {
+          case ENC_MAC:
+            returnByte = lookup->mac;
+          break;
+        }
+
+        if(!returnByte) {
+          returnByte = 0x3f;  /* ascii question mark */
+        }
+
+        *bytes = &returnByte;
+      } break;
+
+      case ENC_ASCII: {
+        unsigned char * temp;
+
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
@@ -84,14 +112,12 @@ void getBytes(
         }
 
         *bytes = &returnByte;
-      }
-    } break;
+      } break;
 
-    case ENC_UTF16LE: {
-      unsigned QCSV_SHORT highSurrogate;
-      unsigned QCSV_SHORT lowSurrogate;
+      case ENC_UTF16LE: {
+        unsigned QCSV_SHORT highSurrogate;
+        unsigned QCSV_SHORT lowSurrogate;
 
-      if(byteLength != NULL && bytes != NULL) {
         if(codepoint < 0x10000) {
           *byteLength = 2;
 
@@ -110,14 +136,12 @@ void getBytes(
           (*bytes)[2] = lowSurrogate & 0xFF;
           (*bytes)[3] = (lowSurrogate & 0xFF00) >> 8;
         }
-      }
-    } break;
+      } break;
 
-    case ENC_UTF16BE: {
-      QCSV_SHORT highSurrogate;
-      QCSV_SHORT lowSurrogate;
+      case ENC_UTF16BE: {
+        QCSV_SHORT highSurrogate;
+        QCSV_SHORT lowSurrogate;
 
-      if(byteLength != NULL && bytes != NULL) {
         if(codepoint < 0x10000) {
           *byteLength = 2;
 
@@ -136,35 +160,29 @@ void getBytes(
           (*bytes)[3] = lowSurrogate & 0xFF;
           (*bytes)[2] = (lowSurrogate & 0xFF00) >> 8;
         }
-      }
-    } break;
+      } break;
 
-    case ENC_UTF32LE: {
-      if(byteLength != NULL && bytes != NULL) {
+      case ENC_UTF32LE: {
         *byteLength = 4;
 
         (*bytes)[0] = codepoint & 0xFF;
         (*bytes)[1] = (codepoint >> 8) & 0xFF;
         (*bytes)[2] = (codepoint >> 16) & 0xFF;
         (*bytes)[3] = (codepoint >> 24) & 0xFF;
-      }
-    } break;
+      } break;
 
-    case ENC_UTF32BE: {
-      if(byteLength != NULL && bytes != NULL) {
+      case ENC_UTF32BE: {
         *byteLength = 4;
 
         (*bytes)[3] = codepoint & 0xFF;
         (*bytes)[2] = (codepoint >> 8) & 0xFF;
         (*bytes)[1] = (codepoint >> 16) & 0xFF;
         (*bytes)[0] = (codepoint >> 24) & 0xFF;
-      }
-    } break;
+      } break;
 
-    case ENC_CP1047: {
-      struct codepointToByte *lookup;
+      case ENC_CP1047: {
+        struct codepointToByte *lookup;
 
-      if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
 
         if(codepoint < 0x80 || (codepoint > 0x9f && codepoint < 0x100)) {
@@ -187,13 +205,11 @@ void getBytes(
 
         returnByte = cp1047LowBytes[(unsigned char)(lookup->byte)];
         *bytes = &returnByte;
-      }
-    } break;
+      } break;
 
-    case ENC_ATARIST: {
-      struct codepointToByte *lookup;
+      case ENC_ATARIST: {
+        struct codepointToByte *lookup;
 
-      if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for basic ascii */
@@ -216,13 +232,11 @@ void getBytes(
 
         returnByte = lookup->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
-      }
-    } break;
+      } break;
 
-    case ENC_PETSCII: {
-      struct codepointToByte *lookup;
+      case ENC_PETSCII: {
+        struct codepointToByte *lookup;
 
-      if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
@@ -245,11 +259,9 @@ void getBytes(
 
         returnByte = lookup->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
-      }
-    } break;
+      } break;
 
-    case ENC_BBC: {
-      if(byteLength != NULL && bytes != NULL) {
+      case ENC_BBC: {
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
@@ -266,21 +278,19 @@ void getBytes(
 
         returnByte = 0x3f;  /* ascii question mark */
         *bytes = &returnByte;
-      }
-    } break;
+      } break;
 
-    case ENC_ZX: {
-      getBytesZXCommon(codepoint, bytes, byteLength, FALSE);
-    } break;
+      case ENC_ZX: {
+        getBytesZXCommon(codepoint, bytes, byteLength, FALSE);
+      } break;
 
-    case ENC_TSW: {
-      getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
-    } break;
+      case ENC_TSW: {
+        getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
+      } break;
 
-    default: {
-      struct codepointToByte *lookup;
+      default: {
+        struct codepointToByte *lookup;
 
-      if(byteLength != NULL && bytes != NULL) {
         *byteLength = 1;
 
         if(codepoint < 0x80 || (codepoint > 0x9F && codepoint < 0x100)) {
@@ -302,7 +312,7 @@ void getBytes(
 
         returnByte = lookup->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
-      }
-    } break;
+      } break;
+    }
   }
 }

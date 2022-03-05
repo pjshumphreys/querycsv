@@ -1000,9 +1000,8 @@ function packPages () {
   always in the same page) */
   execSync("sed -i 's/jmp     farret/rts/g;s/__compareCodepoints/_compareCodepoints/g;' build/s/_compareCodepoints.s");
 
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytes.s;sed -i 's/_compareCodepoints/_compareCP1252/g;s/querycsv/querycsv1/g;' build/s/_getBytes.s");
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesCommon.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv2/g;' build/s/_getBytesCommon.s");
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesZXCommon.s;sed -i 's/_compareCodepoints/_compareZX/g;s/querycsv/querycsv3/g;' build/s/_getBytesZXCommon.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytes.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv1/g;' build/s/_getBytes.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytesZXCommon.s;sed -i 's/_compareCodepoints/_compareZX/g;s/querycsv/querycsv2/g;' build/s/_getBytesZXCommon.s");
   execSync('rm build/s/_compareCodepoints.s');
 
   execSync(
