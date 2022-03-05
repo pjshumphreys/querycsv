@@ -504,6 +504,7 @@ Just use long ones for that compiler */
 
 /* ugly hacks to raise the game of cc65 */
 #ifdef __CC65__
+  #define ELIM 1
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
