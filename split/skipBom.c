@@ -128,8 +128,6 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
               *encoding = ENC_UTF16LE;
             }
           }
-
-          return file;
         }
       } break;
 
