@@ -457,16 +457,6 @@ function getFunctionSizes () {
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
-  name = 'compareZX';
-  execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytesZXCommon.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv2/g;' build/s/getBytesZXCommon.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
   execSync('rm build/s/compareCodepoints.asm');
 
   /* compile the data immediately above the function jump table */

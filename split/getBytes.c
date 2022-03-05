@@ -2,6 +2,7 @@
 #include "ansimap.h"
 #include "petmap.h"
 #include "cmnmap.h"
+#include "zxmap.h"
 
 static const char cp1047LowBytes[256] = {
     0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F,
@@ -266,12 +267,64 @@ void getBytes(
         *bytes = &returnByte;
       } break;
 
-      case ENC_ZX: {
-        getBytesZXCommon(codepoint, bytes, byteLength, FALSE);
-      } break;
-
+      case ENC_ZX:
       case ENC_TSW: {
-        getBytesZXCommon(codepoint, bytes, byteLength, TRUE);
+        *byteLength = 1;
+
+        /* just cast the codepoint to a byte for basic ascii */
+        if(codepoint < 0x80) {
+          switch(codepoint) {
+            case 0x5E:    /* ^ */
+            case 0x60:    /* ` */
+            case 0x7F: {  /* DEL */
+              returnByte = 0x3f;  /* ascii question mark */
+              *bytes = &returnByte;
+            } return;
+
+            default: {
+              if(codepoint > 0x1f || encoding == ENC_ZX) {
+                *bytes = NULL;
+                return;
+              }
+              else if(codepoint == 0x0a) {
+                returnByte = 0x80;  /* tasword 2 newline */
+              }
+              else {
+                returnByte = 0x20;  /* ascii space */
+              }
+
+              *bytes = &returnByte;
+            } return;
+          }
+        }
+
+        if((lookup = bsearch(
+          (void *)&codepoint,
+          (void *)zxBytes,
+          SIZE_ZXBYTES,
+          sizeof(struct codepointToByte),
+          compareCodepoints
+        )) == NULL) {
+          returnByte = 0x3f;  /* ascii question mark */
+          *bytes = &returnByte;
+          return;
+        }
+
+        returnByte = ((struct codepointToByte *)lookup)->byte;  /* whatever the hash table lookup returned */
+
+        if(encoding == ENC_TSW) {
+          switch((unsigned char)returnByte) {
+            case 0x80:
+            case 0x8f: {
+              *byteLength = 2;
+
+              (*bytes)[0] = 0x8f;
+              (*bytes)[1] = returnByte;
+            } return;
+          }
+        }
+
+        *bytes = &returnByte;
       } break;
 
       default: {
