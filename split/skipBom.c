@@ -140,7 +140,6 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
             ((c = fgetc(file)) == 131 || c == 195) /* 'C' */
         ) {
           *encoding = ENC_CP1047;
-          break;
         }
       } break;
     }
