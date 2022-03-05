@@ -44,6 +44,10 @@ void getBytes(
     int *byteLength,
     int encoding
 ) {
+  void *lookup;
+  unsigned QCSV_SHORT highSurrogate;
+  unsigned QCSV_SHORT lowSurrogate;
+
   MAC_YIELD
 
   if(byteLength != NULL && bytes != NULL) {
@@ -51,8 +55,6 @@ void getBytes(
       case ENC_CP437:
       case ENC_CP850:
       case ENC_MAC: {
-        struct codepointToBytes *lookup;
-
         *byteLength = 1;
 
         if(codepoint < 0x80) {
@@ -60,7 +62,7 @@ void getBytes(
           return;
         }
 
-        if((lookup = (struct codepointToBytes*)bsearch(
+        if((lookup = bsearch(
           (void *)&codepoint,
           (void *)commonBytes,
           SIZE_COMMONBYTES,
@@ -71,15 +73,15 @@ void getBytes(
         }
         else switch(encoding) {
           case ENC_CP437:
-            returnByte = lookup->cp437;
+            returnByte = ((struct codepointToBytes *)lookup)->cp437;
           break;
 
           case ENC_CP850:
-            returnByte = lookup->cp850;
+            returnByte = ((struct codepointToBytes *)lookup)->cp850;
           break;
 
           case ENC_MAC:
-            returnByte = lookup->mac;
+            returnByte = ((struct codepointToBytes *)lookup)->mac;
           break;
         }
 
@@ -91,8 +93,6 @@ void getBytes(
       } break;
 
       case ENC_ASCII: {
-        unsigned char * temp;
-
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
@@ -105,19 +105,14 @@ void getBytes(
           returnByte = 0x3f;  /* ascii question mark */
         }
         else {
-          temp = (unsigned char *)(&returnByte);
-
           /* cast private use area into high bit set bytes */
-          *temp = (unsigned char)(codepoint-0xdf80);
+          returnByte = (unsigned char)(codepoint - 0xdf80);
         }
 
         *bytes = &returnByte;
       } break;
 
       case ENC_UTF16LE: {
-        unsigned QCSV_SHORT highSurrogate;
-        unsigned QCSV_SHORT lowSurrogate;
-
         if(codepoint < 0x10000) {
           *byteLength = 2;
 
@@ -139,9 +134,6 @@ void getBytes(
       } break;
 
       case ENC_UTF16BE: {
-        QCSV_SHORT highSurrogate;
-        QCSV_SHORT lowSurrogate;
-
         if(codepoint < 0x10000) {
           *byteLength = 2;
 
@@ -181,8 +173,6 @@ void getBytes(
       } break;
 
       case ENC_CP1047: {
-        struct codepointToByte *lookup;
-
         *byteLength = 1;
 
         if(codepoint < 0x80 || (codepoint > 0x9f && codepoint < 0x100)) {
@@ -191,7 +181,7 @@ void getBytes(
           return;
         }
 
-        if((lookup = (struct codepointToByte*)bsearch(
+        if((lookup = bsearch(
           (void *)&codepoint,
           (void *)cp1252Bytes,
           SIZE_CP1252BYTES,
@@ -203,13 +193,11 @@ void getBytes(
           return;
         }
 
-        returnByte = cp1047LowBytes[(unsigned char)(lookup->byte)];
+        returnByte = cp1047LowBytes[(unsigned char)(((struct codepointToByte *)lookup)->byte)];
         *bytes = &returnByte;
       } break;
 
       case ENC_ATARIST: {
-        struct codepointToByte *lookup;
-
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for basic ascii */
@@ -218,7 +206,7 @@ void getBytes(
           return;
         }
 
-        if((lookup = (struct codepointToByte*)bsearch(
+        if((lookup = bsearch(
           (void *)&codepoint,
           (void *)atariBytes,
           SIZE_ATARIBYTES,
@@ -230,13 +218,11 @@ void getBytes(
           return;
         }
 
-        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
+        returnByte = ((struct codepointToByte *)lookup)->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
       } break;
 
       case ENC_PETSCII: {
-        struct codepointToByte *lookup;
-
         *byteLength = 1;
 
         /* just cast the codepoint to a byte for ascii control codes and symbols */
@@ -245,7 +231,7 @@ void getBytes(
           return;
         }
 
-        if((lookup = (struct codepointToByte*)bsearch(
+        if((lookup = bsearch(
           (void *)&codepoint,
           (void *)petsciiBytes,
           SIZE_PETSCIIBYTES,
@@ -257,7 +243,7 @@ void getBytes(
           return;
         }
 
-        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
+        returnByte = ((struct codepointToByte *)lookup)->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
       } break;
 
@@ -289,8 +275,6 @@ void getBytes(
       } break;
 
       default: {
-        struct codepointToByte *lookup;
-
         *byteLength = 1;
 
         if(codepoint < 0x80 || (codepoint > 0x9F && codepoint < 0x100)) {
@@ -298,7 +282,7 @@ void getBytes(
           return;
         }
 
-        if((lookup = (struct codepointToByte*)bsearch(
+        if((lookup = bsearch(
           (void *)&codepoint,
           (void *)cp1252Bytes,
           SIZE_CP1252BYTES,
@@ -310,7 +294,7 @@ void getBytes(
           return;
         }
 
-        returnByte = lookup->byte;  /* whatever the hash table lookup returned */
+        returnByte = ((struct codepointToByte *)lookup)->byte;  /* whatever the hash table lookup returned */
         *bytes = &returnByte;
       } break;
     }
