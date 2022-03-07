@@ -16,6 +16,7 @@ struct expression *parse_scalarExpColumnRef(
 
   expressionPtr->value = NULL;
   expressionPtr->caseSensitive = FALSE;
+  expressionPtr->isNull = FALSE;
 
   if(referencePtr->referenceType == REF_COLUMN) {
     expressionPtr->type = EXP_COLUMN;

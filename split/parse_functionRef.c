@@ -55,6 +55,7 @@ struct expression *parse_functionRef(
 
   expressionPtr2->type = EXP_GROUP;
   expressionPtr2->value = NULL;
+  expressionPtr2->isNull = FALSE;
   expressionPtr2->caseSensitive = FALSE;
 
   expressionPtr2->unionPtrs.voidPtr = (void *)(columnPtr);  /* the reference in the expression node points directly to the hidden column */

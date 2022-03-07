@@ -17,6 +17,7 @@ struct expression *parse_scalarExp(
   expressionPtr->type = operator;
   expressionPtr->caseSensitive = FALSE;
   expressionPtr->value = NULL;
+  expressionPtr->isNull = FALSE;
 
   if(leftPtr == NULL) {
     expressionPtr->minColumn = 0;

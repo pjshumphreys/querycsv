@@ -17,25 +17,6 @@ int clause1(struct inputTable *currentInputTable) {
   return FALSE;
 }
 
-int clause2(struct inputTable *currentInputTable, struct resultColumnValue *columnOffsetData) {
-
-  MAC_YIELD
-
-  if((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData->value, "") == 0) {
-    return TRUE;
-  }
-
-  if((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData->value, "\\N") == 0) {
-    return TRUE;
-  }
-
-  if((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData->value, "NULL") == 0) {
-    return TRUE;
-  }
-
-  return FALSE;
-}
-
 int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
   struct inputTable *currentInputTable;
   struct inputColumn *currentInputColumn;
@@ -121,7 +102,19 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
               query->newLine
             );
 
-          if(isQuoted == FALSE && clause2(currentInputTable, &columnOffsetData)) {
+          if(isQuoted == TRUE) {
+            columnOffsetData.isNull = FALSE;
+          }
+
+          else if((currentInputTable->options & PRM_BLANK) && strcmp(columnOffsetData.value, "") == 0) {
+            columnOffsetData.isNull = TRUE;
+          }
+
+          else if((currentInputTable->options & PRM_POSTGRES) && strcmp(columnOffsetData.value, "\\N") == 0) {
+            columnOffsetData.isNull = TRUE;
+          }
+
+          else if((currentInputTable->options & PRM_NULL) && strcmp(columnOffsetData.value, "NULL") == 0) {
             columnOffsetData.isNull = TRUE;
           }
           else {
@@ -143,9 +136,6 @@ int getMatchingRecord(struct qryData *query, struct resultColumnValue *match) {
             currentResultColumn = currentResultColumn->nextColumnInstance
           ) {
           freeAndZero(match[currentResultColumn->resultColumnIndex].value);
-
-          columnOffsetData.isNull = doLeftRecord;
-          columnOffsetData.length = strlen(columnOffsetData.value);
 
           memcpy(
               &(match[currentResultColumn->resultColumnIndex]),

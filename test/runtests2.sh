@@ -8,6 +8,5 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 for i in $(find "$DIR" -name \*.qry | sort -V); do
   f="$(basename -- $i)"
   echo "$f"
-  echo "$i" >> output.txt
- $DIR/../querycsv "$i" >> output.txt
+ valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes $DIR/../querycsv "$i" > /dev/null 2>>results.txt
 done

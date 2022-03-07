@@ -8,12 +8,17 @@ void getCaseValue(
 
   while(
     currentCase->test != NULL &&
-    walkRejectRecord(expressionPtr->minTable, currentCase->test, match)
+    walkRejectRecord(expressionPtr->minTable, currentCase->test, match) &&
+    currentCase->nextInList != NULL
   ) {
     currentCase = currentCase->nextInList;
   }
 
-  if(currentCase->value->isNull) {
+  if(currentCase == NULL || currentCase->value == NULL) {
+    expressionPtr->isNull = TRUE;
+    expressionPtr->value = NULL;
+  }
+  else if(currentCase->value->isNull) {
     freeAndZero(currentCase->value->value);
     expressionPtr->isNull = TRUE;
     expressionPtr->value = NULL;

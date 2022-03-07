@@ -17,6 +17,7 @@ struct expression *parse_inPredicate(
   expressionPtr->type = isNotIn == TRUE ? EXP_NOTIN : EXP_IN;
   expressionPtr->caseSensitive = FALSE;
   expressionPtr->value = NULL;
+  expressionPtr->isNull = FALSE;
   expressionPtr->unionPtrs.inLeaves.leftPtr = leftPtr;
   expressionPtr->unionPtrs.inLeaves.lastEntryPtr = lastEntryPtr;
   expressionPtr->minColumn = leftPtr->minColumn;
