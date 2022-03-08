@@ -137,12 +137,26 @@ int strCompare(
                   comparison = strNumberCompare((char *)offset1, (char *)offset2);
                 }
                 else if(caseSensitive == 1) {
+                  comparison = entry1->index - entry2->index;
+
                   if(upperCaseFirst && entry1->script == 127) {
-                    comparison = (entry1->index - (entry1->isNotLower) + (entry1->isNotLower == 0 ? 1 : entry1->index == 188 ? 2 : 0)) -
-                      (entry2->index - (entry2->isNotLower) + (entry2->isNotLower == 0 ? 1 : entry2->index == 188 ? 2 : 0));
-                  }
-                  else {
-                    comparison = entry1->index - entry2->index;
+                    comparison -= entry1->isNotLower;
+
+                    if(entry1->isNotLower == 0) {
+                      comparison++;
+                    }
+                    else if(char1 == (long)'i') { /* dotted lower case i */
+                      comparison += 2;
+                    }
+
+                    comparison += entry2->isNotLower;
+
+                    if(entry2->isNotLower == 0) {
+                      comparison--;
+                    }
+                    else if(char2 == (long)'i') { /* dotted lower case i */
+                      comparison -= 2;
+                    }
                   }
                 }
                 else {
@@ -255,12 +269,26 @@ int strCompare(
               comparison = strNumberCompare((char *)offset1, (char *)offset2);
             }
             else if(caseSensitive == 1) {
+              comparison = entry1->index - entry2->index;
+
               if(upperCaseFirst && entry1->script == 127) {
-                comparison = (entry1->index - (entry1->isNotLower) + (entry1->isNotLower == 0 ? 1 : entry1->index == 188 ? 2 : 0)) -
-                  (entry2->index - (entry2->isNotLower) + (entry2->isNotLower == 0 ? 1 : entry2->index == 188 ? 2 : 0));
-              }
-              else {
-                comparison = entry1->index - entry2->index;
+                comparison -= entry1->isNotLower;
+
+                if(entry1->isNotLower == 0) {
+                  comparison++;
+                }
+                else if(char1 == (long)'i') { /* dotted lower case i */
+                  comparison += 2;
+                }
+
+                comparison += entry2->isNotLower;
+
+                if(entry2->isNotLower == 0) {
+                  comparison--;
+                }
+                else if(char2 == (long)'i') { /* dotted lower case i */
+                  comparison -= 2;
+                }
               }
             }
             else {
