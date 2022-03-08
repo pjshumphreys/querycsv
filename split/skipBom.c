@@ -146,12 +146,6 @@ FILE *skipBom(const char *filename, long* offset, int* encoding) {
 
     if(encoding && (*encoding == ENC_DEFAULT || *encoding == ENC_UNKNOWN)) {
       *encoding = ENC_INPUT;
-
-      /* On the c64 build files with an unknown encoding are assumed to
-        be petscii, which has a two byte header */
-      #if ENC_INPUT == ENC_PETSCII
-        internalOffset += 2;
-      #endif
     }
 
     if(offset) {
