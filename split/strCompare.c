@@ -140,7 +140,7 @@ int strCompare(
                   comparison = entry1->index - entry2->index;
 
                   if(upperCaseFirst && entry1->script == 127) {
-                    comparison -= entry1->isNotLower;
+                    comparison -= entry1->isNotLower - entry2->isNotLower;
 
                     if(entry1->isNotLower == 0) {
                       comparison++;
@@ -148,8 +148,6 @@ int strCompare(
                     else if(char1 == (long)'i') { /* dotted lower case i */
                       comparison += 2;
                     }
-
-                    comparison += entry2->isNotLower;
 
                     if(entry2->isNotLower == 0) {
                       comparison--;
@@ -272,7 +270,8 @@ int strCompare(
               comparison = entry1->index - entry2->index;
 
               if(upperCaseFirst && entry1->script == 127) {
-                comparison -= entry1->isNotLower;
+                comparison -= entry1->isNotLower - entry2->isNotLower;
+
 
                 if(entry1->isNotLower == 0) {
                   comparison++;
@@ -280,8 +279,6 @@ int strCompare(
                 else if(char1 == (long)'i') { /* dotted lower case i */
                   comparison += 2;
                 }
-
-                comparison += entry2->isNotLower;
 
                 if(entry2->isNotLower == 0) {
                   comparison--;
