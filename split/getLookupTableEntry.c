@@ -1,4 +1,4 @@
-static struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
+const struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
 
 struct hash4Entry * clause4(unsigned char **offset, int totalBytes2) {
   struct hash4Entry *temp;
@@ -39,8 +39,14 @@ struct hash4Entry *getLookupTableEntry(
 
   MAC_YIELD
 
-  if(compareNumbers && isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
-    return &numberEntry;
+  if((compareNumbers & 1) && isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
+    memcpy(entry, &numberEntry, sizeof(struct hash4Entry));
+
+    if(compareNumbers & 2) {
+      entry->script = 32;
+    }
+
+    return entry;
   }
 
   totalBytes2 = totalBytes+(*lastMatchedBytes);
@@ -67,6 +73,11 @@ struct hash4Entry *getLookupTableEntry(
     *lastMatchedBytes = totalBytes;
 
     entry->script = temp2->script;
+
+    if(compareNumbers & 2 && entry->script == 127) {
+      entry->script = 32;
+    }
+
     entry->index = temp2->index;
     entry->isNotLower = temp2->isNotLower;
 

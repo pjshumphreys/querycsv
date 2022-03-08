@@ -22,6 +22,9 @@ int parse_collate(char* currentLocation) {
     else if(mystrnicmp(result, "kana", 5) == 0) {
       retval |= 16;
     }
+    else if(mystrnicmp(result, "nosymbols", 10) == 0) {
+      retval |= 32;
+    }
 
   } while(1);
 }

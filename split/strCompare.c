@@ -19,6 +19,7 @@ int strCompare(
 ) {
   /*
     caseSensitive is a bitfield that has the following meaning
+    32 - if true then symbols in ascii sort after numbers and letters. otherwise they are sorted before
     16 - if true then interleave hiragana and katakana
     8 - if true then non lower case letters come first
     4 - compare numbers as individual characters
@@ -48,11 +49,11 @@ int strCompare(
 
   /* we specified we want to not treat numbers specially but as individual characters instead */
   if(caseSensitive & 4) {
-    compareNumbers = FALSE;
+    compareNumbers = 0;
     caseSensitive &= ~(4);
   }
   else {
-    compareNumbers = TRUE;
+    compareNumbers = 1;
   }
 
   /* we specified uppercase should come first */
@@ -76,6 +77,13 @@ int strCompare(
   else {
     mergeKana = FALSE;
   }
+
+  /* ascii symbols should come after letters and numbers */
+  if(caseSensitive & 32) {
+    compareNumbers += 2;
+    caseSensitive &= ~(32);
+  }
+
 
   do {  /* we'll quit from this function via other means */
     /* check if we've reached the end of string 2 */
@@ -139,7 +147,7 @@ int strCompare(
                 else if(caseSensitive == 1) {
                   comparison = entry1->index - entry2->index;
 
-                  if(upperCaseFirst && entry1->script == 127) {
+                  if(upperCaseFirst && entry1->script == (compareNumbers & 2 ? 32 : 127)) {
                     comparison -= entry1->isNotLower - entry2->isNotLower;
 
                     if(entry1->isNotLower == 0) {
@@ -269,9 +277,8 @@ int strCompare(
             else if(caseSensitive == 1) {
               comparison = entry1->index - entry2->index;
 
-              if(upperCaseFirst && entry1->script == 127) {
+              if(upperCaseFirst && entry1->script == (compareNumbers & 2 ? 32 : 127)) {
                 comparison -= entry1->isNotLower - entry2->isNotLower;
-
 
                 if(entry1->isNotLower == 0) {
                   comparison++;
