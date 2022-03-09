@@ -147,7 +147,7 @@ int strCompare(
                 else if(caseSensitive == 1) {
                   comparison = entry1->index - entry2->index;
 
-                  if(upperCaseFirst && entry1->script == (compareNumbers & 2 ? 32 : 127)) {
+                  if(upperCaseFirst && entry1->script == (compareNumbers & 2 ? 33 : 127)) {
                     comparison -= entry1->isNotLower - entry2->isNotLower;
 
                     if(entry1->isNotLower == 0) {
@@ -275,7 +275,7 @@ int strCompare(
             else if(caseSensitive == 1) {
               comparison = entry1->index - entry2->index;
 
-              if(upperCaseFirst && entry1->script == (compareNumbers & 2 ? 32 : 127)) {
+              if(upperCaseFirst && entry1->script == (compareNumbers & 2 ? 33 : 127)) {
                 comparison -= entry1->isNotLower - entry2->isNotLower;
 
                 if(entry1->isNotLower == 0) {

@@ -43,7 +43,7 @@ struct hash4Entry *getLookupTableEntry(
     memcpy(entry, &numberEntry, sizeof(struct hash4Entry));
 
     if(compareNumbers & 2) {
-      entry->script = 32;
+      entry->script = 33;
     }
 
     return entry;
@@ -75,7 +75,7 @@ struct hash4Entry *getLookupTableEntry(
     entry->script = temp2->script;
 
     if(compareNumbers & 2 && entry->script == 127) {
-      entry->script = 32;
+      entry->script = 33;
     }
 
     entry->index = temp2->index;
