@@ -140,7 +140,7 @@ int strCompare(
               /* compare the lookup table entries */
 
               if(entry1->script == entry2->script) {
-                if(entry1->index == 0 && entry2->index == 0) {
+                if(entry1->index == 1 && entry2->index == 1) {
                   /* both entries are numbers, so compare them */
                   comparison = strNumberCompare((char *)offset1, (char *)offset2);
                 }
@@ -225,11 +225,11 @@ int strCompare(
         }
         else if(char2 != 0x34F) {
           if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))){
-            return (char1 >= entry2->script) ? 1: -1;
+            return (char1 >= entry2->script) ? 1 : -1;
           }
           /* compare codepoints */
           else if(char1 != char2) {
-            return (char1 > char2) ? 1: -1;
+            return (char1 > char2) ? 1 : -1;
           }
 
           if((combinerResult = consumeCombiningChars(
@@ -268,7 +268,7 @@ int strCompare(
           /* both characters have been found and are in the lookup table. compare the lookup table entries           */
 
           if(entry1->script == entry2->script) {
-            if(entry1->index == 0 && entry2->index == 0) {
+            if(entry1->index == 1 && entry2->index == 1) {
               /* both entries are numbers, so compare them */
               comparison = strNumberCompare((char *)offset1, (char *)offset2);
             }
@@ -323,12 +323,12 @@ int strCompare(
           }
           else {
             /* scripts are ordered */
-            return entry1->script > entry2->script ? 1 : -1;
+            return (entry1->script > entry2->script) ? 1 : -1;
           }
         }
         /* compare the codepoints */
         else {
-          return (entry1->script > char2) ? 1: -1;
+          return (entry1->script > char2) ? 1 : -1;
         }
 
         if((combinerResult = consumeCombiningChars(
@@ -359,11 +359,11 @@ int strCompare(
         /* the first or both characters were not in the lookup table. */
         /* compare the code point then successive combining characters */
         if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
-          return (char1 >= entry2->script) ? 1: -1;
+          return (char1 >= entry2->script) ? 1 : -1;
         }
         /* compare codepoints */
         else if(char1 != char2) {
-          return (char1 > char2) ? 1: -1;
+          return (char1 > char2) ? 1 : -1;
         }
 
         if((combinerResult = consumeCombiningChars(
