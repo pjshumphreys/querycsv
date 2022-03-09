@@ -1,4 +1,4 @@
-const struct hash4Entry numberEntry = { NULL, 127, 0, 0 };
+const struct hash4Entry numberEntry = { NULL, 127, 1, 0 };
 
 struct hash4Entry * clause4(unsigned char **offset, int totalBytes2) {
   struct hash4Entry *temp;
@@ -74,7 +74,7 @@ struct hash4Entry *getLookupTableEntry(
 
     entry->script = temp2->script;
 
-    if(compareNumbers & 2 && entry->script == 127 && entry->script != 700) {
+    if(compareNumbers & 2 && entry->script == 127) {
       entry->script = 32;
     }
 
