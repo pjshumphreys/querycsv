@@ -33,7 +33,6 @@ const functionsList = [
   ['exit', 1, 0x0001, 0x0001, 'farcall2'],
   ['strcmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
   ['stricmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
-  ['strncmp_callee', 1, 0x0001, 0x0001, 'farcall2'],
   ['strlen', 1, 0x0001, 0x0001, 'farcall2'],
   ['strstr_callee', 1, 0x0001, 0x0001, 'farcall2'],
   ['strcat_callee', 1, 0x0001, 0x0001, 'farcall2'],

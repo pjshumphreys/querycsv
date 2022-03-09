@@ -24,7 +24,6 @@ void foobar(char *string, char* format, ...) {
   string = realloc(string, 5);
   strcpy(string, c);
   num = strcmp(c, string);
-  num = strncmp(c, string, 3);
   num = strlen(string);
   string = strstr(string, c);
   strchr(string, ',');

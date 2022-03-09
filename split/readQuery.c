@@ -189,7 +189,11 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   }
 
   if(query->outputFileName == NULL) {
-    query->newLine = "\n";
+    #ifdef __CC65__
+      query->newLine = "\r";
+    #else
+      query->newLine = "\n";
+    #endif
   }
   #if defined(MPW_C) && !defined(RETRO68)
     /* MPW swaps 0x0D and 0x0A bytes when writing files, even if binary mode is specified */

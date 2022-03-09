@@ -51,7 +51,9 @@ struct hash4Entry *getLookupTableEntry(
 
   totalBytes2 = totalBytes+(*lastMatchedBytes);
 
-  while((temp = clause4(offset, totalBytes2))) {
+  temp = clause4(offset, totalBytes2);
+
+  while(temp != NULL) {
     /* the match is so far holding up.  */
 
     /* keep this match for later as it may be the last one we find */
@@ -65,6 +67,7 @@ struct hash4Entry *getLookupTableEntry(
     (offset, str, totalBytes, lastMatchedBytes);
 
     totalBytes2 = totalBytes+(*lastMatchedBytes);
+    temp = clause4(offset, totalBytes2);
   }
 
   /* don't update the value passed to us if we didn't find any match at all */

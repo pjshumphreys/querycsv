@@ -451,7 +451,6 @@ int main(int argc, char * argv[]) {
   strncpy(string, string, 3);
   num = strcmp(string, string);
   num = stricmp(string, string);
-  num = strncmp(string, string, 3);
   num = strnicmp(string, string, 3);
   num = strlen(string);
   string = strstr(string, string);
