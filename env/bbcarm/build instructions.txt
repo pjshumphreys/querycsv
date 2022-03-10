@@ -1,0 +1,30 @@
+mode
+
+(the block of commands below are old instructions from before we found https://github.com/geraldholdsworth/DiscImageManager/releases)
+disc
+dir:0.$
+fadfs
+dir :0.$.querycsv.c
+xfer disc adfs
+fadfs
+dir :0.$.querycsv.h
+xfer disc adfs
+rename softflo softfloat
+rename querycs querrycsv
+rename atarima atarimap
+adfs
+
+(use Disc Image Manager to copy files in c/ except u, v & w to a new ADFS L image)
+(use Disc Image Manager to copy files u,v & w in c/ to a new ADFS L image)
+(use Disc Image Manager to copy all files in h/ to a new ADFS L image)
+
+destroy :0.querycsv.c (type yes to confirm)
+destroy :0.querycsv.h (type yes to confirm)
+copy :4.$.* :0.querycsv.c
+copy :4.$.* :0.querycsv.h
+lib $.archc.library
+dir $.querycsv
+spool output
+cc -super -o querycsv a b c d e f g h i j k l m n o p q r s t u v w 0 1 2 3 4 5
+spool
+copy :0.querycsv.querycsv :4
