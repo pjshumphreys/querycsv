@@ -1,5 +1,3 @@
-const struct hash4Entry numberEntry = { NULL, 127, 1, 0 };
-
 struct hash4Entry * clause4(unsigned char **offset, int totalBytes2) {
   struct hash4Entry *temp;
 
@@ -40,11 +38,11 @@ struct hash4Entry *getLookupTableEntry(
   MAC_YIELD
 
   if((compareNumbers & 1) && isNumberWithGetByteLength(*offset, lastMatchedBytes, firstChar)) {
-    memcpy(entry, &numberEntry, sizeof(struct hash4Entry));
-
-    if(compareNumbers & 2) {
-      entry->script = 33;
-    }
+    /* don't use memcpy do do this as with our compilation approach for cc65 it can only
+    reliably do a copy between heap loactions and not from a constant to the heap */
+    entry->script = ((compareNumbers & 2) ? 33 : 127);
+    entry->index = 1;
+    entry->isNotLower = 0;
 
     return entry;
   }

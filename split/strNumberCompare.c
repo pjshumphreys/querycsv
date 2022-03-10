@@ -7,6 +7,7 @@ int strNumberCompare(char *input1, char *input2) {
   int negate = 1;
   int do1 = TRUE;
   int do2 = TRUE;
+  int temp;
 
   MAC_YIELD
 
@@ -68,7 +69,9 @@ int strNumberCompare(char *input1, char *input2) {
 
           do {
             if(do1) {
-              if(decimalNotFound1 && (*string1 == '.' || *string1 == ',')) {
+              temp = (*string1 == '.' || *string1 == ',');
+
+              if(decimalNotFound1 && temp) {
                 decimalNotFound1 = FALSE;
               }
               else if(*string1 > '9' || *string1 < '0') {
@@ -81,7 +84,9 @@ int strNumberCompare(char *input1, char *input2) {
             }
 
             if(do2) {
-              if(decimalNotFound2 && (*string2 == '.' || *string2 == ',')) {
+              temp = (*string1 == '.' || *string1 == ',');
+
+              if(decimalNotFound2 && temp) {
                 decimalNotFound2 = FALSE;
               }
               else if(*string2 > '9' || *string2 < '0') {
