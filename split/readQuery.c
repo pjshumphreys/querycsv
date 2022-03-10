@@ -200,7 +200,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
     else if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047 || query->params & PRM_UNIX) {
       query->newLine = "\r";
     }
-    else if(query->params & PRM_MAC) {
+    else if(query->outputEncoding == ENC_PETSCII || query->params & PRM_MAC) {
       query->newLine = "\n";
     }
     else {
@@ -210,7 +210,7 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
     else if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047 || query->params & PRM_UNIX) {
       query->newLine = "\n";
     }
-    else if(query->params & PRM_MAC) {
+    else if(query->outputEncoding == ENC_PETSCII || query->params & PRM_MAC) {
       query->newLine = "\r";
     }
     else {

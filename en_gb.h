@@ -4,7 +4,7 @@ recompile the cc65 standard library, so the format specifiers need to be in uppe
   #define S_STRING "%S"
   #define LD_STRING "%LD"
   #define D_STRING "%D"
-  #define TDB_MALLOC_FAILED2 "cOULD NOT ALLOCATE NEEDED MEMORY\n" /* avoid doing another malloc to print the out of memory message */
+  #define TDB_MALLOC_FAILED2 "cOULD NOT ALLOCATE NEEDED MEMORY\r" /* avoid doing another malloc to print the out of memory message */
 #else
   #define S_STRING "%s"
   #define LD_STRING "%ld"

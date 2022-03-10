@@ -511,7 +511,7 @@ Just use long ones for that compiler */
 
   /* Mac style newlines by default */
   #undef PRM_DEFAULT
-  #define PRM_DEFAULT PRM_MAC
+  #define PRM_DEFAULT PRM_BLANK
 
   #include <unistd.h>   /* for chdir */
   #include "cc65iso.h" /* switch back from petscii to ascii */
