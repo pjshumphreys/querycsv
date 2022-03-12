@@ -14,9 +14,10 @@ void logNum(int num) {
 int main(int argc, char **argv) {
   int argc2;
   char ** argv2;
+  char * temp;
+  unsigned int temp3;
 
   #ifdef __CC65__
-    char * temp;
     char temp2 = 0;
 
     temp = petsciiToUtf8(argv[1]);
@@ -105,7 +106,33 @@ int main(int argc, char **argv) {
   }
   else {
     /* something else. print an error message and quit */
-    fputs(TDB_INVALID_COMMAND_LINE, stderr);
+
+    /* get just the file name of the program */
+    temp3 = strlen(argv[0]);
+    temp = argv[0]+temp3-1;
+
+    do {
+      switch(*temp) {
+        case ':':
+        case '\\':
+        case PATH_SEPARATOR:
+          temp++;
+        break;
+
+        default: {
+          if(!(--temp3)) {
+            break;
+          }
+
+          temp--;
+        } continue;
+      }
+
+      break;
+    } while(1);
+
+    /* print the usage message */
+    fprintf(stderr, TDB_INVALID_COMMAND_LINE, temp);
     exit(EXIT_FAILURE);
   }
 

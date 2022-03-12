@@ -25,6 +25,7 @@
 #define FALSE 0
 #define TRUE  1
 #define MYEOF -1
+#define PATH_SEPARATOR '/'
 
 /* sub expression types */
 #define EXP_COLUMN 1
@@ -270,6 +271,9 @@ Just use long ones for that compiler */
 #define QCSV_SHORT short
 
 #ifdef __CC_NORCROFT
+  #undef PATH_SEPARATOR
+  #define PATH_SEPARATOR '.'
+
   #if __LIB_VERSION < 300
     /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
     #undef QCSV_SHORT

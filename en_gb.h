@@ -30,7 +30,7 @@ recompile the cc65 standard library, so the format specifiers need to be in uppe
 #define TDB_MALLOC_FAILED3 TDB_MALLOC_FAILED, 1, 33
 #define TDB_NFD_BROKEN "The unicode NFD conversion code is broken\n"
 #define TDB_UNTITLED_COLUMN "_Column " D_STRING
-#define TDB_INVALID_COMMAND_LINE "No file name specified\nUsage: querycsv [filename | -c query]\nFor more info see https://github.com/pjshumphreys/querycsv/wiki\n"
+#define TDB_INVALID_COMMAND_LINE "No file name specified\nUsage: " S_STRING " [filename | -c query]\nFor more info see https://github.com/pjshumphreys/querycsv/wiki\n"
 #define TDB_INVALID_REALLOC "ReallocMsg called with NULL\n"
 #define TDB_INVALID_UTF8 "Invalid utf-8 bytes stored in memory\n"
 #define TDB_INVALID_COUNT_STAR "Only count(*) is valid\n"
