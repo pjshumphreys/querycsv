@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Name=QueryCSV
+Comment=Query CSV files using a SQL like syntax
+Exec=bash -c "querycsv %f; read -N1 -p 'Press a key to close window...'"
+Icon=querycsv.svg
+Terminal=true
+Type=Application
+Categories=Utility;FileTools;ConsoleOnly

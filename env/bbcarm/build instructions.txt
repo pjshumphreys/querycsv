@@ -18,8 +18,9 @@ adfs
 (use Disc Image Manager to copy files u,v & w in c/ to a new ADFS L image)
 (use Disc Image Manager to copy all files in h/ to a new ADFS L image)
 
-destroy :0.querycsv.c (type yes to confirm)
-destroy :0.querycsv.h (type yes to confirm)
+destroy :0.querycsv.c.* (type yes to confirm)
+destroy :0.querycsv.h.* (type yes to confirm)
+destroy :0.querycsv.o.* (type yes to confirm)
 copy :4.$.* :0.querycsv.c
 copy :4.$.* :0.querycsv.h
 lib $.archc.library
