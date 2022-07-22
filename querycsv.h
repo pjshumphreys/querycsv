@@ -146,6 +146,16 @@ it becomes needed and because it's useful for debugging */
 
 #if defined(__unix__) || defined(__LINUX__)
   #ifdef EMSCRIPTEN
+    #include <setjmp.h>     /* jmp_buf, setjmp, longjmp */
+    #include <errno.h>
+    #include <sys/types.h>
+    #include <sys/stat.h>
+
+    #include <dirent.h>
+    #include <fcntl.h>
+    #include <ftw.h>
+    #include <emscripten.h>
+
     void exit_emcc(int status);
 
     #define main realmain

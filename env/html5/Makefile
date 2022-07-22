@@ -53,18 +53,15 @@ build/worker.min.js: worker.js
 	mkdir -p build
 	java -jar compiler.jar worker.js > build/worker.min.js
 
-output.min.js: extern/jquery-3.1.1.js extern/b64.js extern/jquery.history.js extern/iscroll-5.2.0-2017-01-03.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js helper.js main.js
-	cat extern/jquery-3.1.1.js extern/b64.js extern/jquery.history.js extern/iscroll-5.2.0-2017-01-03.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js helper.js main.js | java -jar compiler.jar > output.min.js
+output.min.js: extern/jquery-3.1.1.js extern/b64.js extern/jquery.history.js extern/iscroll-5.2.0-2017-01-03.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js main.js
+	cat extern/jquery-3.1.1.js extern/b64.js extern/jquery.history.js extern/iscroll-5.2.0-2017-01-03.js extern/picup-2.1.2.js extern/jquery.animate.enhanced-1.11.js extern/_.debounce.js main.js | java -jar compiler.jar > output.min.js
 
 worker.js: emcc.js workermain.js
 	rm -f worker.js
 	cat emcc.js workermain.js >> worker.js
 
-helper.js: prefix.js helper.c postfix.js
-	source ~/emsdk/emsdk_env.sh; emcc -O2 --closure 0 --minify 0 -s WASM=0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s RESERVED_FUNCTION_POINTERS=2 -s "EXPORTED_FUNCTIONS=['_folderExists','_rmrf','_addFile','_getEntries','_malloc','UTF8ToString']" -s "EXTRA_EXPORTED_RUNTIME_METHODS=['addFunction','ccall','UTF8ToString']" helper.c --pre-js prefix.js --post-js postfix.js -o helper.js
-
 emcc.js: prefix.js lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c emcc.c postfix.js
-	source ~/emsdk/emsdk_env.sh; emcc -O2 --closure 0 -s WASM=0 --minify 0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s "EXPORTED_FUNCTIONS=['_wrapmain','_malloc','UTF8ToString']"  -s "EXTRA_EXPORTED_RUNTIME_METHODS=['ccall','print','printErr']" lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c emcc.c --pre-js prefix.js --post-js postfix.js -o emcc.js
+	source ~/emsdk/emsdk_env.sh; emcc -O2 --closure 0 -s WASM=0 --minify 0 -s ASM_JS=2 --memory-init-file 0 -s "NO_EXIT_RUNTIME=1" -s "ASSERTIONS=1" -s RESERVED_FUNCTION_POINTERS=2 -s "EXPORTED_FUNCTIONS=['_folderExists','_rmrf','_addFile','_getEntries','_wrapmain','_malloc','UTF8ToString']" -s "EXTRA_EXPORTED_RUNTIME_METHODS=['addFunction','ccall','UTF8ToString','print','printErr']" lexer.c sql.c hash2.c hash3.c hash4a.c hash4b.c hash4c.c querycsv.c emcc.c --pre-js prefix.js --post-js postfix.js -o emcc.js
 
 build/apple-touch-icon-114x114-precomposed.png: icon.svg
 	mkdir -p build
@@ -111,4 +108,4 @@ build/svcworker.min.js: build/index.html
 .PHONY: clean
 
 clean:
-	rm -rf build/ style.min.css output.min.js worker.js helper.js emcc.js querycsv.tar.gz
+	rm -rf build/ style.min.css output.min.js worker.js emcc.js querycsv.tar.gz
