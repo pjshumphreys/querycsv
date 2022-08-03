@@ -1,0 +1,32 @@
+sort by shiftjis bytes
+
+update index to each row
+
+sort by codepoint
+
+store the index of the midpoint item
+
+iterate downward though the array, similar to bsearch. add 1 to both the left and right indexes then update them. update left or right indexes that dont exist with 0. maybe create.c:createTree code can be repurposed for this
+
+sort by shiftjis bytes again
+
+write array of { shift-jis bytes, codepoint, left index, right index } to a .h file
+
+
+
+looking up the codepoint for shift-jis bytes uses bsearch directly.
+
+looking up the shift-jis bytes for a codepoint:
+  start at the midpoint item index.
+
+  do {
+    If the codepoint is the one being searched for then return its corresponding shift-jis bytes. don't output any leading 0 bytes though
+    If the codepoint is greater than the one being looked for then use the left index next, otherwise use the right index next.
+
+    If the next index to use is 0 then the shift jis bytes to use are the ones for u+fffd (which are 0x0,0x0,0x0,0x3f). break;
+
+    subtract 1 from the next index then continue;
+  } while (1);
+
+
+

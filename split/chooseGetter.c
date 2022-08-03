@@ -28,6 +28,9 @@ void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
     case ENC_UTF32BE:
       return &getCodepointsUtf32Be;
 
+    case ENC_MBCS:
+      return &getCodepointsMbcs;
+
     case ENC_PETSCII:
       return &getCodepointsPetscii;
 

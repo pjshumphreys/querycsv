@@ -16,7 +16,7 @@ int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t *retval);
 int d_sprintf(char **str, char *format, ...);
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 
-#define ENC_PETSCII 15
+#define ENC_PETSCII 16
 #define TRUE 1
 #define FALSE 0
 

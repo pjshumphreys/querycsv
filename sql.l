@@ -81,6 +81,7 @@ UANY    {U2}{U}|{U3}{U}{U}|{U4}{U}{U}{U}
 (?i:THEN)   TOK(THEN)
 (?i:WHEN)   TOK(WHEN)
 (?i:WHERE)    TOK(WHERE)
+(?i:MBCS)    TOK(MBCS)
 
   /* punctuation */
 

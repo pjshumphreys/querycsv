@@ -118,17 +118,18 @@
 #define ENC_UTF16BE 10
 #define ENC_UTF32LE 11
 #define ENC_UTF32BE 12
-#define ENC_CP1047 13
-#define ENC_ATARIST 14
-#define ENC_PETSCII 15  /* Files in the petscii encoding are treated as always having a two byte header/bom, which is set to 0x01, 0x08 for written files */
-#define ENC_BBC 16
-#define ENC_ZX 17
+#define ENC_MBCS 13
+#define ENC_CP1047 14
+#define ENC_ATARIST 15
+#define ENC_PETSCII 16  /* Files in the petscii encoding are treated as always having a two byte header/bom, which is set to 0x01, 0x08 for written files */
+#define ENC_BBC 17
+#define ENC_ZX 18
 /* Tasword 2 file format. Same as the ZX (spectrum) character
  * set but with hard-coded line lengths of 64 characters.
  * Newlines and EOF are stored as graphics characters and space
  * padded as necessary. Files also have a maximum size constraint
  * which will cause the program to abort if exceeded */
-#define ENC_TSW 18
+#define ENC_TSW 19
 
 #define ENC_INPUT ENC_UTF8  /* used when a file is read */
 #define ENC_OUTPUT ENC_UTF8 /* used when a file is written */
@@ -496,6 +497,7 @@ Just use long ones for that compiler */
   /* z88dk doesn't have bsearch, but it does have l_bsearch.
     employ some macro magic to smooth things over. */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
+  #define qsort(a, b, c, d) l_qsort(a, b, d)
 
   void logNum(int num) __z88dk_fastcall;
   void toggleSpinner(int num) __z88dk_fastcall;
@@ -826,6 +828,11 @@ struct codepointToBytes {
   char mac;
 };
 
+struct lookup {
+  unsigned int codepoint;
+  unsigned char bytes[];
+};
+
 #ifndef NOHASH4
 struct hash4aEntry {struct hash4Entry a; };
 struct hash4bEntry {struct hash4Entry b; };
@@ -863,6 +870,27 @@ struct hash2Entry* isInHash2(long codepoint);
     return; \
   } \
   codepoints[0] = (long)(map[c-0x80])
+
+#define getHexNumber(input, result, found, c) result = 0; \
+  found = 0; \
+  do { \
+    c = fgetc(input); \
+    if(c <= '9' && c >= '0') { \
+      result = (result << 4) + (c - '0'); \
+      found = 1; \
+    } \
+    else if(c <= 'F' && c >= 'A') { \
+      result = (result << 4) + (c - 'A') + 10; \
+      found = 1; \
+    } \
+    else if(c <= 'f' && c >= 'a') { \
+      result = (result << 4) + (c - 'a') + 10; \
+      found = 1; \
+    } \
+    else if(c == EOF || found == 1) { \
+      break; \
+    } \
+  } while(1);
 
 #include "gen.h"
 #endif

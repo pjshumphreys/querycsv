@@ -173,6 +173,37 @@ void getBytes(
         (*bytes)[0] = (codepoint >> 24) & 0xFF;
       } break;
 
+      case ENC_MBCS: {
+        unsigned int byteIndex = (unsigned int)codepoint;
+        unsigned int * byteLoc = &byteIndex;
+
+        struct lookup ** result = NULL;
+
+        result = bsearch(
+          &byteLoc,
+          c2b,
+          mbcs_length,
+          sizeof(struct lookup *),
+          sortCodepoints
+        );
+
+        if(result == NULL) {
+          *byteLength = 1;
+          returnByte = 0x3f;  /* ascii question mark */
+          *bytes = &returnByte;
+          return;
+        }
+
+        *byteLength = 0;
+
+        for(byteIndex = 0; byteIndex < mbcs_trailing; byteIndex++) {
+          if(*byteLength || (*result)->bytes[byteIndex] != 0) {
+            (*bytes)[*byteLength] = (*result)->bytes[byteIndex];
+            *byteLength = (*byteLength) + 1;
+          }
+        }
+      } break;
+
       case ENC_CP1047: {
         *byteLength = 1;
 

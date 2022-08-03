@@ -117,6 +117,10 @@ void cleanup_query(struct qryData *query) {
   }
 
   free(query->dateString);
+  free(mbcs_data);
+  free(mbcs_temp);
+  free(c2b);
+  free(b2c);
 
   if(query->outputFileName) {
     if(query->outputEncoding == ENC_TSW) {

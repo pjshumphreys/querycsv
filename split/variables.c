@@ -61,7 +61,16 @@ int i;
 /*the return value from the getBytes functions. bodged to make the c64 build work */
 char returnByte;
 
-/*dedup string literals */
+/* variables for Shift-JIS or Extended Unix Code lookup tables */
+int mbcs_length = 0;
+int mbcs_trailing = 0;
+int mbcs_size = 0;
+void * mbcs_data = NULL;
+struct lookup * mbcs_temp = NULL;
+void * c2b = NULL;
+void * b2c = NULL;
+
+/* dedup string literals */
 const char * const TDB_COULDNT_OPEN_INPUT = TDB_COULDNT_OPEN_INPUT2;
 const char * const TDB_MALLOC_FAILED = TDB_MALLOC_FAILED2;
 

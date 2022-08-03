@@ -52,7 +52,7 @@ typedef void* yyscan_t;
 %token END FROM
 %token GROUP HAVING IN INTO
 %token IS JOIN LEFT LIKE NULLX ON
-%token ORDER PARTITION OVER OPTIONS
+%token ORDER PARTITION OVER OPTIONS MBCS
 %token SELECT SORT
 %token THEN
 %token WHEN WHERE
@@ -150,8 +150,11 @@ command_or_select:
   ;
 
 opt_params:
-  | OPTIONS STRING ';' {
-      queryData->params = parse_params(queryData, $2, queryData->params);
+  | opt_params OPTIONS STRING ';' {
+      queryData->params = parse_params(queryData, $3, queryData->params);
+    }
+  | opt_params MBCS STRING ';' {
+      parse_mbcs($3);
     }
   ;
 

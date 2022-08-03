@@ -82,6 +82,10 @@ int parse_encoding2(char *encoding) {
     return ENC_UTF8;
   }
 
+  else if(mystrnicmp("mbcs", encoding, 8) == 0) {
+    return ENC_MBCS;
+  }
+
   else if(mystrnicmp("petscii", encoding, 8) == 0) {
     return ENC_PETSCII;
   }

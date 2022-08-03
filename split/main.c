@@ -92,6 +92,11 @@ int main(int argc, char **argv) {
     #endif
   #endif
 
+  mbcs_data = NULL;
+  mbcs_temp = NULL;
+  c2b = NULL;
+  b2c = NULL;
+
   /* Identify whether to run a script or display the usage message */
   /*
     The Z88DK compiler (depending on the target runtime) might not call

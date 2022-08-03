@@ -1,0 +1,47 @@
+void getCodepointsMbcs(
+    FILE *stream,
+    long *codepoints,
+    int *arrLength,
+    int *byteLength
+) {
+  int c;
+  int byteIndex = 0;
+  struct lookup ** result = NULL;
+
+  if(stream == NULL) {
+    *arrLength = *byteLength = 0;
+    return;
+  }
+
+  memset(mbcs_temp, 0, mbcs_size);
+
+  *arrLength = *byteLength = 1;
+
+  for(byteIndex = 0; byteIndex < mbcs_size; byteIndex++) {
+    if((c = fgetc(stream)) == EOF) {
+      codepoints[0] = MYEOF;
+      return;
+    }
+
+    mbcs_temp->bytes[mbcs_trailing - 1] = (unsigned char)c;
+
+    result = bsearch(
+      (void*)(&mbcs_temp),
+      b2c,
+      mbcs_length,
+      sizeof(struct lookup *),
+      sortBytes
+    );
+
+    if(result != NULL) {
+      codepoints[0] = (long)((*result)->codepoint);
+      return;
+    }
+
+    *byteLength = *byteLength + 1;
+
+    memmove(mbcs_temp, ((unsigned char *)mbcs_temp) + 1, mbcs_size - 1);
+  }
+
+  codepoints[0] = (long)0xFFFD;
+}
