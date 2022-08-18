@@ -1,10 +1,10 @@
 #ifdef __Z88DK
   int sortCodepoints(const void* a, const void* b) {
-    if(((*(unsigned int *)a)) < ((*(unsigned int *)b))) {
+    if(((*(unsigned QCSV_SHORT *)a)) < ((*(unsigned QCSV_SHORT *)b))) {
       return -1;
     }
 
-    return ((*(unsigned int *)a)) > ((*(unsigned int *)b));
+    return ((*(unsigned QCSV_SHORT **)a)) > ((*(unsigned QCSV_SHORT *)b));
   }
 
   int sortBytes(const void* a, const void* b) {
@@ -25,11 +25,11 @@
   }
 #else
   int sortCodepoints(const void* a, const void* b) {
-    if((*(*(unsigned int **)a)) < (*(*(unsigned int **)b))) {
+    if((*(*(unsigned QCSV_SHORT **)a)) < (*(*(unsigned QCSV_SHORT **)b))) {
       return -1;
     }
 
-    return (*(*(unsigned int **)a)) > (*(*(unsigned int **)b));
+    return (*(*(unsigned QCSV_SHORT **)a)) > (*(*(unsigned QCSV_SHORT **)b));
   }
 
   int sortBytes(const void* a, const void* b) {
@@ -75,7 +75,7 @@ void parse_mbcs(char * name) {
   mbcs_size = 1;
 
   /* open the file */
-  input = fopen(name, "r");
+  input = fopen(name, fopen_read);
 
   if(input == NULL) {
     return;

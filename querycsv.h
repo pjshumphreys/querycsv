@@ -829,7 +829,7 @@ struct codepointToBytes {
 };
 
 struct lookup {
-  unsigned int codepoint;
+  unsigned QCSV_SHORT codepoint;
   unsigned char bytes[];
 };
 

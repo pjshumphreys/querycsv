@@ -436,7 +436,7 @@ function getFunctionSizes () {
   name = 'compareCommon';
   execSync(
     'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
+    "sed -i 's/_compareCodepoints/_" + name + "/g;' build/s/getBytes.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -444,6 +444,50 @@ function getFunctionSizes () {
   currentAddr -= 4;
 
   execSync('rm build/s/compareCodepoints.asm');
+
+  name = 'sortCodepoints';
+  execSync(
+    'cat build/s/sortCodepoints.asm >> build/s/getBytes.asm;' +
+    "sed -i 's/querycsv/querycsv1/g;' build/s/getBytes.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr -= 4;
+
+  name = 'sortCodesParse';
+  execSync(
+    'cat build/s/sortCodepoints.asm >> build/s/parse_mbcs.asm;' +
+    "sed -i 's/_sortCodepoints/_" + name + "/g;' build/s/parse_mbcs.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr -= 4;
+
+  execSync('rm build/s/sortCodepoints.asm');
+
+  name = 'sortBytesParse';
+  execSync(
+    'cat build/s/sortBytes.asm >> build/s/parse_mbcs.asm;' +
+    "sed -i 's/_sortBytes/_" + name + "/g;s/querycsv/querycsv2/g;' build/s/parse_mbcs.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr -= 4;
+
+  name = 'sortBytes';
+  execSync(
+    'cat build/s/sortBytes.asm >> build/s/getCodepointsMbcs.asm;' +
+    "sed -i 's/querycsv/querycsv3/g;' build/s/getCodepointsMbcs.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr -= 4;
+
+  execSync('rm build/s/sortBytes.asm');
 
   /* compile the data immediately above the function jump table */
   execSync('z88dk-z80asm -b -r=49152 build/data.asm');
@@ -810,8 +854,13 @@ function splitUpFunctions (filename, callback, append) {
         );
 
         /* add an entry for each into the mapping table */
-        if (name !== '_compareCodepoints' && name !== 'main') { /* compareCodepoints is a bsearch callback that
-          needs to be in the same page as the function that called bsearch. it doesn't need
+        if (
+          name !== '_compareCodepoints' &&
+          name !== '_sortCodepoints' &&
+          name !== '_sortBytes' &&
+          name !== 'main'
+        ) { /* Filter out bsearch callbacks that
+          need to be in the same page as the function that called bsearch. They don't need
           to be in the jump table. We want the main function to be this first item in the jump table to
           simplify debugging */
           hashMap[name] = functionsList.length;
@@ -996,7 +1045,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   if (pageMode) {
     execSync(
-      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|_logNum\\|_toggleSpinner\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|qsort_sccz80_callee\\|_logNum\\|_toggleSpinner\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
         cwd: path.join(__dirname, 'build', 's')
       }

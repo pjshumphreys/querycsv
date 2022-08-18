@@ -993,9 +993,19 @@ function packPages () {
   /* patch compareCodepoints into the functions that need it (so the table is
   always in the same page) */
   execSync("sed -i 's/jmp     farret/rts/g;s/__compareCodepoints/_compareCodepoints/g;' build/s/_compareCodepoints.s");
-
-  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytes.s;sed -i 's/_compareCodepoints/_compareCommon/g;s/querycsv/querycsv1/g;' build/s/_getBytes.s");
+  execSync("cat build/s/_compareCodepoints.s >> build/s/_getBytes.s;sed -i 's/_compareCodepoints/_compareCommon/g;' build/s/_getBytes.s");
   execSync('rm build/s/_compareCodepoints.s');
+
+  execSync("sed -i 's/jmp     farret/rts/g;s/__sortCodepoints/_sortCodepoints/g;' build/s/_sortCodepoints.s");
+  execSync("cat build/s/_sortCodepoints.s >> build/s/_getBytes.s;cat build/s/_sortCodepoints.s >> build/s/_parse_mbcs.s;"+
+  "sed -i 's/querycsv/querycsv1/g;' build/s/_getBytes.s; sed -i 's/_sortCodepoints/_sortCodesParse/g;' build/s/_parse_mbcs.s");
+  execSync('rm build/s/_sortCodepoints.s');
+
+  execSync("sed -i 's/jmp     farret/rts/g;s/__sortBytes/_sortBytes/g;' build/s/_sortBytes.s");
+  execSync("cat build/s/_sortBytes.s >> build/s/_parse_mbcs.s;cat build/s/_sortBytes.s >> build/s/_getCodepointsMbcs.s;"+
+  "sed -i 's/_sortBytes/_sortBytesParse/g;s/querycsv/querycsv2/g;' build/s/_parse_mbcs.s;sed -i 's/querycsv/querycsv3/g;' build/s/_getCodepointsMbcs.s");
+  execSync('rm build/s/_sortBytes.s');
+
 
   execSync(
     'pushd build/s;' +
@@ -1245,8 +1255,12 @@ function splitUpFunctions (filename, callback, append) {
       );
 
       /* add an entry for each into the mapping table */
-      if (name !== '_compareCodepoints') { /* compareCodepoints is a bsearch callback that
-        needs to be in the same page as the function that called bsearch. it doesn't need
+      if (
+        name !== '_compareCodepoints' &&
+        name !== '_sortCodepoints' &&
+        name !== '_sortBytes'
+      ) { /* Filter out bsearch callbacks that
+        need to be in the same page as the function that called bsearch. They don't need
         to be in the jump table */
         hashMap[name] = functionsList.length;
         functionsList.push([name, 0, 0x0001, 'farcall']);
