@@ -17,7 +17,7 @@ void getCodepointsMbcs(
 
   *arrLength = *byteLength = 1;
 
-  for(byteIndex = 0; byteIndex < mbcs_size; byteIndex++) {
+  for(byteIndex = 0; byteIndex < mbcs_trailing; byteIndex++) {
     if((c = fgetc(stream)) == EOF) {
       codepoints[0] = MYEOF;
       return;

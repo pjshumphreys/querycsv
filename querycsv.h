@@ -871,26 +871,5 @@ struct hash2Entry* isInHash2(long codepoint);
   } \
   codepoints[0] = (long)(map[c-0x80])
 
-#define getHexNumber(input, result, found, c) result = 0; \
-  found = 0; \
-  do { \
-    c = fgetc(input); \
-    if(c <= '9' && c >= '0') { \
-      result = (result << 4) + (c - '0'); \
-      found = 1; \
-    } \
-    else if(c <= 'F' && c >= 'A') { \
-      result = (result << 4) + (c - 'A') + 10; \
-      found = 1; \
-    } \
-    else if(c <= 'f' && c >= 'a') { \
-      result = (result << 4) + (c - 'a') + 10; \
-      found = 1; \
-    } \
-    else if(c == EOF || found == 1) { \
-      break; \
-    } \
-  } while(1);
-
 #include "gen.h"
 #endif
