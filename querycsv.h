@@ -830,7 +830,7 @@ struct codepointToBytes {
 
 struct lookup {
   unsigned QCSV_SHORT codepoint;
-  unsigned char bytes[];
+  unsigned char bytes[1];
 };
 
 #ifndef NOHASH4
