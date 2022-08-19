@@ -117,7 +117,7 @@ void parse_mbcs(char * name) {
         /* read how many trailing bytes there are */
         mbcs_trailing = temp;
 
-        mbcs_size = (((sizeof(unsigned int) + mbcs_trailing) / sizeof(unsigned int)) + 1) * sizeof(unsigned int);
+        mbcs_size = (((sizeof(unsigned QCSV_SHORT) + mbcs_trailing) / sizeof(unsigned QCSV_SHORT)) + 1) * sizeof(unsigned QCSV_SHORT);
 
         reallocMsg((void **)(&mbcs_data), mbcs_length * mbcs_size);
         reallocMsg((void **)(&c2b), mbcs_length * sizeof(struct lookup *));
@@ -133,8 +133,8 @@ void parse_mbcs(char * name) {
         ((struct lookup **)c2b)[currentResult] = (struct lookup *)current;
 
         /* store read number as the unicode codepoint */
-        *((unsigned int *)current) = temp;
-        current += sizeof(unsigned int);
+        *((unsigned QCSV_SHORT *)current) = temp;
+        current += sizeof(unsigned QCSV_SHORT);
       } break;
 
       default: {
