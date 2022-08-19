@@ -1,10 +1,10 @@
 #ifdef __Z88DK
   int sortCodepoints(const void* a, const void* b) {
-    if(((*(unsigned QCSV_SHORT *)a)) < ((*(unsigned QCSV_SHORT *)b))) {
+    if(((*(unsigned int *)a)) < ((*(unsigned int *)b))) {
       return -1;
     }
 
-    return ((*(unsigned QCSV_SHORT **)a)) > ((*(unsigned QCSV_SHORT *)b));
+    return ((*(unsigned int **)a)) > ((*(unsigned int *)b));
   }
 
   int sortBytes(const void* a, const void* b) {
@@ -25,11 +25,11 @@
   }
 #else
   int sortCodepoints(const void* a, const void* b) {
-    if((*(*(unsigned QCSV_SHORT **)a)) < (*(*(unsigned QCSV_SHORT **)b))) {
+    if((*(*(unsigned int **)a)) < (*(*(unsigned int **)b))) {
       return -1;
     }
 
-    return (*(*(unsigned QCSV_SHORT **)a)) > (*(*(unsigned QCSV_SHORT **)b));
+    return (*(*(unsigned int **)a)) > (*(*(unsigned int **)b));
   }
 
   int sortBytes(const void* a, const void* b) {
@@ -55,7 +55,7 @@ void parse_mbcs(char * name) {
   int found;
   int c;
 
-  int temp;
+  unsigned int temp;
   int state = -2;
   int currentResult = 0;
 
@@ -78,7 +78,8 @@ void parse_mbcs(char * name) {
   input = fopen(name, fopen_read);
 
   if(input == NULL) {
-    return;
+    fprintf(stderr, TDB_COULDNT_OPEN_MBCS, name);
+    exit(EXIT_FAILURE);
   }
 
   do {
@@ -117,7 +118,7 @@ void parse_mbcs(char * name) {
         /* read how many trailing bytes there are */
         mbcs_trailing = temp;
 
-        mbcs_size = (((sizeof(unsigned QCSV_SHORT) + mbcs_trailing) / sizeof(unsigned QCSV_SHORT)) + 1) * sizeof(unsigned QCSV_SHORT);
+        mbcs_size = (((sizeof(unsigned int) + mbcs_trailing) / sizeof(unsigned int)) + 1) * sizeof(unsigned int);
 
         reallocMsg((void **)(&mbcs_data), mbcs_length * mbcs_size);
         reallocMsg((void **)(&c2b), mbcs_length * sizeof(struct lookup *));
@@ -133,8 +134,8 @@ void parse_mbcs(char * name) {
         ((struct lookup **)c2b)[currentResult] = (struct lookup *)current;
 
         /* store read number as the unicode codepoint */
-        *((unsigned QCSV_SHORT *)current) = temp;
-        current += sizeof(unsigned QCSV_SHORT);
+        *((unsigned int *)current) = temp;
+        current += sizeof(unsigned int);
       } break;
 
       default: {

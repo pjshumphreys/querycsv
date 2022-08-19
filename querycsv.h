@@ -490,14 +490,25 @@ Just use long ones for that compiler */
   /* classic clib z88dk doesn't have ferror. stub it out */
   #define ferror(...) 0
 
-  /* in z88dk fflush only actually does anything on tcp connections, so we can eliminate the function call */
+  /* in z88dk fflush only actually does anything on tcp connections,
+  so we can eliminate the function call */
   #define fflush(...) 0
   #define mystrnicmp strnicmp
 
   /* z88dk doesn't have bsearch, but it does have l_bsearch.
     employ some macro magic to smooth things over. */
   #define bsearch(a, b, c, d, e) l_bsearch(a, b, c, e)
+
+  /*
+    qsort is in z88dk's stdlib, but the function pointers would
+    need to be different to those used with l_bsearch. So redefine
+    qsort to point to l_qsort instead
+  */
+  #ifdef qsort
+    #undef qsort
+  #endif
   #define qsort(a, b, c, d) l_qsort(a, b, d)
+
 
   void logNum(int num) __z88dk_fastcall;
   void toggleSpinner(int num) __z88dk_fastcall;
@@ -829,7 +840,7 @@ struct codepointToBytes {
 };
 
 struct lookup {
-  unsigned QCSV_SHORT codepoint;
+  unsigned int codepoint;
   unsigned char bytes[1]; /* flexible array member */
 };
 

@@ -43,3 +43,4 @@ recompile the cc65 standard library, so the format specifiers need to be in uppe
 #define TDB_NAME_NAME "Unknown or ambiguous column name (" S_STRING "." S_STRING ")\n"
 #define TDB_FILE_SIZE_EXCEEDED "Output file size limit exceeded\n"
 #define TDB_INVALID_STRSLICE "Invalid strSlice params\n"
+#define TDB_COULDNT_OPEN_MBCS "Couldn't open mbcs lookup file " S_STRING "\n"
