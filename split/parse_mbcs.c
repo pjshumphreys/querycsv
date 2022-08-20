@@ -37,6 +37,8 @@ void parse_mbcs(char * name) {
 
   unsigned char * current;
 
+  MAC_YIELD
+
   /*
     Only one mbcs can be loaded at any one time
     (they're a pain to process beyond conversion to and from unicode).

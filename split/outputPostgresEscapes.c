@@ -3,6 +3,8 @@ void outputPostgresEscapes(char* string, struct qryData *query) {
   char *string3 = NULL;
   size_t strSize = 0;
 
+  MAC_YIELD
+
   while(*string2) {
     switch(*string2) {
       case ',':

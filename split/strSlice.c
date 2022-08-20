@@ -3,6 +3,8 @@ void strSlice(char ** output, char * input, int beginIndex, int endIndex) {
   int currentIndex = 0;
   char * temp;
 
+  MAC_YIELD
+
   if(output == NULL || input == NULL) {
     fputs(TDB_INVALID_STRSLICE, stderr);
     exit(EXIT_FAILURE);

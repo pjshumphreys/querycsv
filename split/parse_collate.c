@@ -2,6 +2,8 @@ int parse_collate(char* currentLocation) {
   int retval = 0;
   char * result = NULL;
 
+  MAC_YIELD
+
   do {
     d_strtok(&result, " ,", &currentLocation);
 
