@@ -1,4 +1,4 @@
-static const unsigned QCSV_SHORT cp850[160] = {
+static const QCSV_SHORT cp850[160] = {
   0x00C7, 0x00FC, 0x00E9, 0x00E2, 0x00E4, 0x00E0, 0x00E5, 0x00E7,
   0x00EA, 0x00EB, 0x00E8, 0x00EF, 0x00EE, 0x00EC, 0x00C4, 0x00C5,
   0x00C9, 0x00E6, 0x00C6, 0x00F4, 0x00F6, 0x00F2, 0x00FB, 0x00F9,
@@ -23,7 +23,7 @@ static const unsigned QCSV_SHORT cp850[160] = {
 
 void getCodepointsCP850(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {

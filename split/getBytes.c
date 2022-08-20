@@ -40,14 +40,14 @@ static const char cp1047LowBytes[256] = {
   };
 
 void getBytes(
-    long codepoint,
+    QCSV_LONG codepoint,
     char **bytes,
     int *byteLength,
     int encoding
 ) {
   void *lookup;
-  unsigned QCSV_SHORT highSurrogate;
-  unsigned QCSV_SHORT lowSurrogate;
+  QCSV_SHORT highSurrogate;
+  QCSV_SHORT lowSurrogate;
 
   MAC_YIELD
 

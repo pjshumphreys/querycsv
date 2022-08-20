@@ -1,4 +1,4 @@
-static const unsigned QCSV_SHORT zx[17] = {
+static const QCSV_SHORT zx[17] = {
   0x00A9, /* copyright symbol */
   0x25A1, /* white square */
   0x259D, /* Quadrant upper right */
@@ -23,7 +23,7 @@ static const unsigned QCSV_SHORT zx[17] = {
 
 void getCodepointsZXCommon(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength,
     int isTsw
@@ -79,7 +79,7 @@ void getCodepointsZXCommon(
       return;
     }
 
-    codepoints[0] = (long)c;
+    codepoints[0] = (QCSV_LONG)c;
     return;
   }
   else if (c < 0x90) {
@@ -92,7 +92,7 @@ void getCodepointsZXCommon(
 
 void getCodepointsZX(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -107,7 +107,7 @@ void getCodepointsZX(
 
 void getCodepointsTSW(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {

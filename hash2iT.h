@@ -1,6 +1,6 @@
 #include "querycsv.h"
 
-extern long codepoints[18];
+extern QCSV_LONG codepoints[18];
 extern struct hash2Entry entry;
 extern struct hash2Entry* retval;
 extern int i;
@@ -8,7 +8,7 @@ extern int i;
 TABLE
 
 int longCompare_NUMBER(const void *a, const void *b) {
-  return (*((long*)a) < *((long*)b)) ? -1 : (*((long*)a) != *((long*)b) ? 1 : 0);
+  return (*((QCSV_LONG*)a) < *((QCSV_LONG*)b)) ? -1 : (*((QCSV_LONG*)a) != *((QCSV_LONG*)b) ? 1 : 0);
 }
 
 void isInHash2_NUMBER(void) {

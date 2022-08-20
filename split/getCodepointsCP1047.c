@@ -1,4 +1,4 @@
-static const unsigned QCSV_SHORT cp1047[256] = {
+static const QCSV_SHORT cp1047[256] = {
   0x0000, 0x0001, 0x0002, 0x0003, 0x0153, 0x0009, 0x2020, 0x007F,
   0x2014, 0x008D, 0x017D, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
   0x0010, 0x0011, 0x0012, 0x0013, 0x009D, 0x000A, 0x0008, 0x2021,
@@ -35,7 +35,7 @@ static const unsigned QCSV_SHORT cp1047[256] = {
 
 void getCodepointsCP1047(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -54,5 +54,5 @@ void getCodepointsCP1047(
     return;
   }
 
-  codepoints[0] = (long)(cp1047[c]);
+  codepoints[0] = (QCSV_LONG)(cp1047[c]);
 }

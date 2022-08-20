@@ -10,9 +10,9 @@ int normaliseAndGet(
   unsigned char * nfdString = NULL;
   size_t nfdLength = offsetInt;
   int i = 0, j;
-  long * codepointBuffer = NULL;
+  QCSV_LONG * codepointBuffer = NULL;
   int bufferLength;
-  long codepoint;
+  QCSV_LONG codepoint;
 
   MAC_YIELD
 
@@ -28,8 +28,8 @@ int normaliseAndGet(
   }
   else {
     bufferLength = entry->length;
-    reallocMsg((void**)&codepointBuffer, bufferLength*sizeof(long));
-    memcpy(codepointBuffer, (void*)(entry->codepoints), bufferLength*sizeof(long));
+    reallocMsg((void**)&codepointBuffer, bufferLength*sizeof(QCSV_LONG));
+    memcpy(codepointBuffer, (void*)(entry->codepoints), bufferLength*sizeof(QCSV_LONG));
     entry = NULL;
     *offset += bytesRead;
   }
@@ -51,7 +51,7 @@ int normaliseAndGet(
         }
 
         bufferLength-=++i;
-        memmove((void*)codepointBuffer, (void*)&codepointBuffer[i], bufferLength*sizeof(long)); /* downward in memory i number of codepoints */
+        memmove((void*)codepointBuffer, (void*)&codepointBuffer[i], bufferLength*sizeof(QCSV_LONG)); /* downward in memory i number of codepoints */
         i = 0;
       }
       else {
@@ -77,8 +77,8 @@ int normaliseAndGet(
 
       /* read 1 byte. no overlong checks needed as a 1 byte code can */
       /* never be overlong, and is never a combining character */
-      reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
-      codepointBuffer[bufferLength++] = (long)(*((*offset)++));
+      reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(QCSV_LONG));
+      codepointBuffer[bufferLength++] = (QCSV_LONG)(*((*offset)++));
 
       continue;
     }
@@ -88,7 +88,7 @@ int normaliseAndGet(
       if(**offset < 0xE0) {
         /* read 2 bytes */
         bytesRead = 2;
-        codepoint = (long)(**offset) << 6;
+        codepoint = (QCSV_LONG)(**offset) << 6;
         (*offset)++;
         codepoint += **offset;
         (*offset)++;
@@ -97,9 +97,9 @@ int normaliseAndGet(
       else if(**offset < 0xF0) {
         /* read 3 bytes */
         bytesRead = 3;
-        codepoint = ((long)(**offset) << 12);
+        codepoint = ((QCSV_LONG)(**offset) << 12);
         (*offset)++;
-        codepoint += ((long)(**offset) << 6);
+        codepoint += ((QCSV_LONG)(**offset) << 6);
         (*offset)++;
         codepoint += **offset;
         (*offset)++;
@@ -108,11 +108,11 @@ int normaliseAndGet(
       else if(**offset < 0xF5) {
         /* read 4 bytes */
         bytesRead = 4;
-        codepoint = ((long)(**offset) << 18);
+        codepoint = ((QCSV_LONG)(**offset) << 18);
         (*offset)++;
-        codepoint += ((long)(**offset) << 12);
+        codepoint += ((QCSV_LONG)(**offset) << 12);
         (*offset)++;
-        codepoint +=  ((long)(**offset) << 6);
+        codepoint +=  ((QCSV_LONG)(**offset) << 6);
         (*offset)++;
         codepoint += **offset;
         (*offset)++;
@@ -128,7 +128,7 @@ int normaliseAndGet(
     }
     else if((entry = isInHash2(codepoint)) == NULL) {
       /* the codepoint we found was not decomposable. just put it in the buffer */
-      reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(long));
+      reallocMsg((void**)&codepointBuffer, (1+bufferLength)*sizeof(QCSV_LONG));
       codepointBuffer[bufferLength] = codepoint;
       bufferLength += 1;
     }
@@ -136,8 +136,8 @@ int normaliseAndGet(
       /* a decomposable codepoint was found in hash 2. */
 
       /* put the whole byte sequence into the buffer */
-      reallocMsg((void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(long));
-      memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(long));
+      reallocMsg((void**)&codepointBuffer, (bufferLength+(entry->length))*sizeof(QCSV_LONG));
+      memcpy(&(codepointBuffer[bufferLength]), (void*)(entry->codepoints), (entry->length)*sizeof(QCSV_LONG));
       bufferLength += entry->length;
       entry = NULL;
     }

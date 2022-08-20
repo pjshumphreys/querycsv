@@ -1,6 +1,6 @@
 void getCodepointsBBC(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -24,5 +24,5 @@ void getCodepointsBBC(
     return;
   }
 
-  codepoints[0] = (long)c;
+  codepoints[0] = (QCSV_LONG)c;
 }

@@ -1,5 +1,5 @@
 void myyyinput(FILE * stream, void* extra, char * buf, int *result, size_t max_size) {
-  long c = 0x0065;
+  QCSV_LONG c = 0x0065;
   size_t n = 0;
   int byteLength;
 

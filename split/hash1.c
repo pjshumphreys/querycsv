@@ -1,5 +1,5 @@
 /*CP1252 mapping table*/
-static const unsigned QCSV_SHORT cp1252[160] = {
+static const QCSV_SHORT cp1252[160] = {
   0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
   0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
   0x0090, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
@@ -22,14 +22,14 @@ static const unsigned QCSV_SHORT cp1252[160] = {
   0x0018, 0x0019, 0x001A, 0x001B, 0x001C, 0x001D, 0x001E, 0x001F
 };
 
-/* returns a number of codepoints, each as a long */
+/* returns a number of codepoints, each as a QCSV_LONG */
 /* invalid bytes or bytes that form an overlong codepoint are treated as
 a set of windows-1252 characters that are then each converted to their coresponding value in unicode */
 /* the number of bytes read in the file is also returned, so you can fseek back to offset after the match later */
 /* due to the nature of utf-8, commas, new lines and double quotes always appear at the end of the array */
 void getCodepointsUTF8(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -50,7 +50,7 @@ void getCodepointsUTF8(
     return;
   }
   else {
-    codepoints[++byteIndex] = (long)c;
+    codepoints[++byteIndex] = (QCSV_LONG)c;
   }
 
   do {  /* not a real loop. We only need it to be
@@ -180,13 +180,13 @@ void getCodepointsUTF8(
 
   for( ; byteIndex > -1; byteIndex--) {
     /* use codepage 1252 conversions */
-    codepoints[byteIndex] = (long)(cp1252[codepoints[byteIndex] - 0x80]);
+    codepoints[byteIndex] = (QCSV_LONG)(cp1252[codepoints[byteIndex] - 0x80]);
   }
 }
 
 void getCodepointsCP1252(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {

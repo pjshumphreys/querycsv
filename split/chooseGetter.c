@@ -1,4 +1,4 @@
-void (*chooseGetter(int encoding))(FILE *, long *, int *, int *) {
+void (*chooseGetter(int encoding))(FILE *, QCSV_LONG *, int *, int *) {
   switch(encoding) {
     case ENC_UNKNOWN:
     case ENC_UTF8:

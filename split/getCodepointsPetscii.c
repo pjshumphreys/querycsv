@@ -1,4 +1,4 @@
-static const unsigned QCSV_SHORT petscii[128] = {
+static const QCSV_SHORT petscii[128] = {
   0x0040, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,
   0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
   0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,
@@ -19,7 +19,7 @@ static const unsigned QCSV_SHORT petscii[128] = {
 
 void getCodepointsPetscii(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -39,14 +39,14 @@ void getCodepointsPetscii(
   }
 
   if(c < 65) {
-    codepoints[0] = (long)c;
+    codepoints[0] = (QCSV_LONG)c;
     return;
   }
 
   if(c > 191) {
-    codepoints[0] = (long)(0xFFFD);
+    codepoints[0] = (QCSV_LONG)(0xFFFD);
     return;
   }
 
-  codepoints[0] = (long)(petscii[c-64]);
+  codepoints[0] = (QCSV_LONG)(petscii[c-64]);
 }

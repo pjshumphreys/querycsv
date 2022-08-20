@@ -186,7 +186,7 @@ function innerRead(err, contents) {
   for(j = 0, len2 = (process.argv.length > 3 ? Math.min(arrays.length, process.argv[3]):arrays.length); j < len2; j++) {
     string = "/*unicode normalization mapping table*/\n\
   #define HASH2SIZE "+arrays[j].length+"\n\n\
-  static const long\n";
+  static const QCSV_LONG\n";
 
     // use fromcodepoint to write to the file in utf-8
     for(i = 0, len = arrays[j].length; i < len; i++) {

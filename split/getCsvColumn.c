@@ -7,7 +7,7 @@ int getCsvColumn(
     int doTrim,
     char * newLine
 ) {
-  long c, c2;
+  QCSV_LONG c, c2;
   int byteLength;
   char *tempString = NULL;
   size_t tempSize;

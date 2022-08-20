@@ -1,5 +1,5 @@
 int getNextCodepoint(struct inputTable* table) {
-  long temp;
+  QCSV_LONG temp;
 
   table->cpIndex++;
 

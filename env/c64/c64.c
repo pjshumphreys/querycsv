@@ -131,18 +131,18 @@ char * petsciiToUtf8(char *input) {
   char * encoded = NULL;
   unsigned char * temp = input;
   size_t tempSize = 0;
-  long c;
+  unsigned long c;
 
   if(*temp) {
     while(*temp) {
       if(*temp < 65) {
-        c = (long)*temp;
+        c = (unsigned long)*temp;
       }
       else if(*temp > 191) {
-        c = (long)(0xFFFD);
+        c = (unsigned long)(0xFFFD);
       }
       else {
-        c = (long)(petscii[(*temp)-64]);
+        c = (unsigned long)(petscii[(*temp)-64]);
       }
 
       strAppendUTF8(c, &encoded, &tempSize);

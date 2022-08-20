@@ -1,7 +1,7 @@
 /* simple round trip encoding that puts high bit set bytes in the private use area */
 void getCodepointsAscii(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -21,9 +21,9 @@ void getCodepointsAscii(
   }
 
   if(c < 0x80) {
-    codepoints[0] = (long)c;
+    codepoints[0] = (QCSV_LONG)c;
     return;
   }
 
-  codepoints[0] = (long)c+0xdf80;
+  codepoints[0] = (QCSV_LONG)c+0xdf80;
 }

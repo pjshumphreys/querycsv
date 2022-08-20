@@ -1,6 +1,6 @@
 void getCodepointsMbcs(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -34,7 +34,7 @@ void getCodepointsMbcs(
     );
 
     if(result != NULL) {
-      codepoints[0] = (long)((*result)->codepoint);
+      codepoints[0] = (QCSV_LONG)((*result)->codepoint);
       return;
     }
 
@@ -43,5 +43,5 @@ void getCodepointsMbcs(
     memmove(mbcs_temp, ((unsigned char *)mbcs_temp) + 1, mbcs_size - 1);
   }
 
-  codepoints[0] = (long)0xFFFD;
+  codepoints[0] = (QCSV_LONG)0xFFFD;
 }

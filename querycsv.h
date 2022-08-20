@@ -15,6 +15,16 @@
 
 #if !defined(FLEXINT_H) && (defined(__Z88DK) || __STDC_VERSION__ >= 199901L)
   #include <stdint.h>
+#else
+  /* Old versions of Norcroft appear to generate incorrect codes with short integers.
+  Just use long ones for that compiler */
+  #define QCSV_SHORT unsigned short
+  #define QCSV_LONG unsigned long
+#endif
+
+#ifndef QCSV_SHORT
+  #define QCSV_SHORT uint16_t
+  #define QCSV_LONG uint32_t
 #endif
 
 /* translatable strings */
@@ -277,10 +287,6 @@ it becomes needed and because it's useful for debugging */
   #define exit exit_mac
 #endif
 
-/* Old versions of Norcroft appear to generate incorrect codes with short integers.
-Just use long ones for that compiler */
-#define QCSV_SHORT short
-
 #ifdef __CC_NORCROFT
   #undef PATH_SEPARATOR
   #define PATH_SEPARATOR '.'
@@ -288,7 +294,7 @@ Just use long ones for that compiler */
   #if __LIB_VERSION < 300
     /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
     #undef QCSV_SHORT
-    #define QCSV_SHORT long
+    #define QCSV_SHORT unsigned long
     #define YYTYPE_UINT16 unsigned int
     #define YYTYPE_INT16 int
 
@@ -803,23 +809,23 @@ struct resultColumnParam {
   struct resultColumnValue *ptr;
 };
 
-struct hash1Entry {
-  int length;
-  const long *codepoints;
-};
+/* hash1 was a mapping of unicode codepoints to windows 1252 bytes. Not used any more */
 
+/* hash2 is a sparse mapping of codepoints to NFD form */
 struct hash2Entry {
-  long codepoint;
+  QCSV_LONG codepoint;
   int length;
-  const long *codepoints;
+  const QCSV_LONG *codepoints;
 };
 
+/*hash3 is the priorities for unicode combining codepoints */
 struct hash3Entry {
-  long codepoint;
+  QCSV_LONG codepoint;
   /* int priority; */
   int order;
 };
 
+/* hash4 maps utf-8 strings to collation sequence numbers */
 struct hash4Entry {
   const char *name;
   int script;
@@ -827,20 +833,23 @@ struct hash4Entry {
   int isNotLower;
 };
 
+/* codepointToByte maps from unicode codepoints to legacy charsets */
 struct codepointToByte {
-  unsigned QCSV_SHORT codepoint;
+  QCSV_SHORT codepoint;
   char byte;
 };
 
+/* codepointToBytes is a special case of codepointToByte for saving some memory */
 struct codepointToBytes {
-  unsigned QCSV_SHORT codepoint;
+  QCSV_SHORT codepoint;
   char cp437;
   char cp850;
   char mac;
 };
 
+/* lookup is a special case of codepointToByte for the mbcs lookups loaded from a file */
 struct lookup {
-  unsigned int codepoint;
+  QCSV_LONG codepoint;
   unsigned char bytes[1]; /* flexible array member */
 };
 
@@ -856,9 +865,9 @@ struct hash4cEntry *in_word_set_c(register const char *str, register unsigned in
 
 #endif
 
-int isCombiningChar(long codepoint);
+int isCombiningChar(QCSV_LONG codepoint);
 
-struct hash2Entry* isInHash2(long codepoint);
+struct hash2Entry* isInHash2(QCSV_LONG codepoint);
 
 /* macro for the benefit of the c64 build */
 #define getCodepoints8Bit(map) int c; \
@@ -874,13 +883,13 @@ struct hash2Entry* isInHash2(long codepoint);
   } \
   if(c < 0x80) { \
     if(c < 0x1f) { \
-      codepoints[0] = (long)(map[c+0x80]); \
+      codepoints[0] = (QCSV_LONG)(map[c+0x80]); \
       return; \
     } \
-    codepoints[0] = (long)c; \
+    codepoints[0] = (QCSV_LONG)c; \
     return; \
   } \
-  codepoints[0] = (long)(map[c-0x80])
+  codepoints[0] = (QCSV_LONG)(map[c-0x80])
 
 #include "gen.h"
 #endif

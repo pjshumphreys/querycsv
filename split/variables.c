@@ -20,7 +20,7 @@
 #endif
 
   /* hash2 helper variables */
-  long codepoints[18];
+  QCSV_LONG codepoints[18];
 
   struct hash2Entry entry = {0x0000, 1, &codepoints};
 
@@ -37,9 +37,9 @@
   char * loc_format;
 #else
   /* hash2 helper variables */
-  long codepoints[18];
+  QCSV_LONG codepoints[18];
 
-  struct hash2Entry entry = {0x0000, 1, (long *)(&codepoints)};
+  struct hash2Entry entry = {0x0000, 1, (QCSV_LONG *)(&codepoints)};
 #endif
 struct hash2Entry * retval;
 

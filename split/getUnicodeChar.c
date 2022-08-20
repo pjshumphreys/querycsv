@@ -1,7 +1,7 @@
 /* this version of getUnicodeChar doesn't check for invalid bytes
   or overlong codepoints, as getCodepoints will have already converted
   them to valid utf-8 bytes within main memory */
-long getUnicodeChar(
+QCSV_LONG getUnicodeChar(
     unsigned char **offset,
     unsigned char **str,
     int plusBytes,
@@ -9,7 +9,7 @@ long getUnicodeChar(
 ) {
   struct hash2Entry* entry = NULL;
   int bytesread = 0;
-  long codepoint;
+  QCSV_LONG codepoint;
   unsigned char *temp = (unsigned char *)((*offset) + plusBytes);
 
   MAC_YIELD
@@ -21,11 +21,11 @@ long getUnicodeChar(
       is never a combining character */
     *bytesMatched = 1;
 
-    return (long)(*temp);
+    return (QCSV_LONG)(*temp);
   }
   else if(*temp < 0xE0) {
     /* read 2 bytes */
-    codepoint = (long)((*(temp) << 6) + *(temp+1)) - 0x3080;
+    codepoint = (QCSV_LONG)((*(temp) << 6) + *(temp+1)) - 0x3080;
 
     /* the codepoint is valid. but is it decomposable? */
     if((entry = isInHash2(codepoint))) {
@@ -40,7 +40,7 @@ long getUnicodeChar(
   }
   else if(*temp < 0xF0) {
     /* read 3 bytes */
-    codepoint = ((long)(*(temp)) << 12) + ((long)(*(temp+1)) << 6) + (*(temp+2)) - 0xE2080;
+    codepoint = ((QCSV_LONG)(*(temp)) << 12) + ((QCSV_LONG)(*(temp+1)) << 6) + (*(temp+2)) - 0xE2080;
 
     /* the codepoint is valid. but is it decomposable? */
     if((entry = isInHash2(codepoint))) {
@@ -55,7 +55,7 @@ long getUnicodeChar(
   }
   else {
     /* read 4 bytes */
-    codepoint = (((long)(*temp)) << 18) + ((long)(*(temp+1)) << 12) + ((long)(*(temp+2)) << 6) + (*(temp+3)) - 0x3C82080;
+    codepoint = (((QCSV_LONG)(*temp)) << 18) + ((QCSV_LONG)(*(temp+1)) << 12) + ((QCSV_LONG)(*(temp+2)) << 6) + (*(temp+3)) - 0x3C82080;
 
     /* the codepoint is valid. but is it decomposable? */
     if((entry = isInHash2(codepoint))) {

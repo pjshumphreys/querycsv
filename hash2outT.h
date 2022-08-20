@@ -1,7 +1,7 @@
 #include "querycsv.h"
 
 DEFINES
-struct hash2Entry* isInHash2(long codepoint) {
+struct hash2Entry* isInHash2(QCSV_LONG codepoint) {
   if(
       codepoint < 0xA0 ||
       (

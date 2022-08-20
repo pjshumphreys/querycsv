@@ -72,12 +72,12 @@ void openDat(void) {
 }
 
 void isInHash2_1(void) {
-  int32_t lookFor = (int32_t)entry.codepoint;
+  uint32_t lookFor = (iunt32_t)entry.codepoint;
 
   unsigned char shortVar;
   unsigned char hasMatch = 0;
   int length;
-  int32_t current = 0;
+  uint32_t current = 0;
 
   if(datafile == NULL) {
     openDat();
@@ -90,17 +90,17 @@ void isInHash2_1(void) {
     /* get the current codepoint */
     printfd("1 %ld ", current);
 
-    fread(&current, sizeof(int32_t), 1, datafile);
+    fread(&current, sizeof(uint32_t), 1, datafile);
 
     printfd("%ld %ld\n", current, lookFor);
 
     if(current == lookFor) {
       /* skip left value */
-      fread(&current, sizeof(int32_t), 1, datafile);
+      fread(&current, sizeof(uint32_t), 1, datafile);
       printfd("2 %ld\n", current);
 
       /* skip right value */
-      fread(&current, sizeof(int32_t), 1, datafile);
+      fread(&current, sizeof(uint32_t), 1, datafile);
       printfd("3 %ld\n", current);
 
       /* read length */
@@ -110,7 +110,7 @@ void isInHash2_1(void) {
       printfd("4 %d\n", entry.length);
 
       for(length = 0; length != entry.length; length++) {
-        fread(&current, sizeof(int32_t), 1, datafile);
+        fread(&current, sizeof(uint32_t), 1, datafile);
 
         printfd("5 %ld\n", current);
         codepoints[length] = current;
@@ -121,7 +121,7 @@ void isInHash2_1(void) {
     }
     else if(current > lookFor) {
       /* read left value */
-      fread(&current, sizeof(int32_t), 1, datafile);
+      fread(&current, sizeof(uint32_t), 1, datafile);
       printfd("6 %ld\n", current);
 
       if(current == -1) {
@@ -134,11 +134,11 @@ void isInHash2_1(void) {
     }
     else {
       /* skip left value */
-      fread(&current, sizeof(int32_t), 1, datafile);
+      fread(&current, sizeof(uint32_t), 1, datafile);
       printfd("7 %ld\n", current);
 
       /* read right value */
-      fread(&current, sizeof(int32_t), 1, datafile);
+      fread(&current, sizeof(uint32_t), 1, datafile);
       printfd("8 %ld\n", current);
 
       if(current == -1) {
@@ -169,7 +169,7 @@ void isInHash2_1(void) {
   }
 }
 
-struct hash2Entry* isInHash2(long codepoint) {
+struct hash2Entry* isInHash2(QCSV_LONG codepoint) {
   if(codepoint < 0xA0) {
     return NULL;
   }

@@ -1,5 +1,5 @@
-long getCurrentCodepoint(struct inputTable* table, int* byteLength) {
-  long retval;
+QCSV_LONG getCurrentCodepoint(struct inputTable* table, int* byteLength) {
+  QCSV_LONG retval;
 
   if(table) {
     if(byteLength) {

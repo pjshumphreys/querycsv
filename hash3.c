@@ -3,10 +3,10 @@
 #include "hash3.h"
 
 int combiningCharCompare(const void *a, const void *b) {
-  return (*((long*)a) < *((long*)b)) ? -1 : (*((long*)a) != *((long*)b) ? 1 : 0);
+  return (*((QCSV_LONG *)a) < *((QCSV_LONG *)b)) ? -1 : (*((QCSV_LONG *)a) != *((QCSV_LONG *)b) ? 1 : 0);
 }
 
-int isCombiningChar(long codepoint) {
+int isCombiningChar(QCSV_LONG codepoint) {
   struct hash3Entry * result;
 
   if(codepoint < 0x300) {

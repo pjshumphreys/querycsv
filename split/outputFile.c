@@ -7,7 +7,7 @@ int outputFile(
   struct inputTable table;
   size_t byteLength = 0;
   long temp = query->CMD_PARAMS & PRM_HEADER ? 128 : 0;
-  long c;
+  QCSV_LONG c;
   int batched = 0;
 
   MAC_YIELD

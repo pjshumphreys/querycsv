@@ -1,6 +1,6 @@
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query) {
   char * buffer = NULL;
-  long codepoint;
+  QCSV_LONG codepoint;
   int i;
   int byteLength;
   int bytesMatched;

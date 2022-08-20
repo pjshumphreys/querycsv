@@ -1,16 +1,19 @@
 #ifdef __Z88DK
   int sortCodepoints(const void* a, const void* b) {
-    if(((*(unsigned int *)a)) < ((*(unsigned int *)b))) {
+    unsigned int c = (*(*(unsigned int **)a));
+    unsigned int d = (*(*(unsigned int **)b));
+
+    if(c < d) {
       return -1;
     }
 
-    return ((*(unsigned int **)a)) > ((*(unsigned int *)b));
+    return (c > d);
   }
 
   int sortBytes(const void* a, const void* b) {
     int i = 0;
-    unsigned char * c = &(((struct lookup*)a)->bytes[0]);
-    unsigned char * d = &(((struct lookup*)b)->bytes[0]);
+    unsigned char * c = &((*(struct lookup**)a)->bytes[0]);
+    unsigned char * d = &((*(struct lookup**)b)->bytes[0]);
 
     for(; i < mbcs_trailing; i++) {
       if(*c != *d) {
@@ -25,11 +28,14 @@
   }
 #else
   int sortCodepoints(const void* a, const void* b) {
-    if((*(*(unsigned int **)a)) < (*(*(unsigned int **)b))) {
+    unsigned int c = (*(*(unsigned int **)a));
+    unsigned int d = (*(*(unsigned int **)b));
+
+    if(c < d) {
       return -1;
     }
 
-    return (*(*(unsigned int **)a)) > (*(*(unsigned int **)b));
+    return (c > d);
   }
 
   int sortBytes(const void* a, const void* b) {
@@ -118,7 +124,7 @@ void parse_mbcs(char * name) {
         /* read how many trailing bytes there are */
         mbcs_trailing = temp;
 
-        mbcs_size = (((sizeof(unsigned int) + mbcs_trailing) / sizeof(unsigned int)) + 1) * sizeof(unsigned int);
+        mbcs_size = (((sizeof(QCSV_LONG) + mbcs_trailing) / sizeof(QCSV_LONG)) + 1) * sizeof(QCSV_LONG);
 
         reallocMsg((void **)(&mbcs_data), mbcs_length * mbcs_size);
         reallocMsg((void **)(&c2b), mbcs_length * sizeof(struct lookup *));
@@ -135,7 +141,7 @@ void parse_mbcs(char * name) {
 
         /* store read number as the unicode codepoint */
         *((unsigned int *)current) = temp;
-        current += sizeof(unsigned int);
+        current += sizeof(QCSV_LONG);
       } break;
 
       default: {
@@ -160,6 +166,8 @@ void parse_mbcs(char * name) {
     }
   } while(1);
 
+  fclose(input);
+
   qsort(
     c2b,
     mbcs_length,
@@ -173,6 +181,4 @@ void parse_mbcs(char * name) {
     sizeof(struct lookup *),
     sortBytes
   );
-
-  fclose(input);
 }

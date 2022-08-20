@@ -28,7 +28,7 @@ int strCompare(
   */
 
   unsigned char *offset1 = *str1, *offset2 = *str2;
-  long char1 = 0, char2 = 0;
+  QCSV_LONG char1 = 0, char2 = 0;
   struct hash4Entry *entry1 = NULL, *entry2 = NULL;
   int firstChar = TRUE;
   int compareNumbers;
@@ -126,11 +126,11 @@ int strCompare(
     /* character 1 has not yet been found */
     else if(char1found == 0) {
       /* read a character from string 1 */
-      char1 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get1))(&offset1, str1, 0, &bytesMatched1);
+      char1 = (*((QCSV_LONG (*)(unsigned char **, unsigned char **, int,  int *))get1))(&offset1, str1, 0, &bytesMatched1);
 
       if(char1 != 0x34F) {
         /* read a character from string 2 */
-        char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset2, str2, 0, &bytesMatched2);
+        char2 = (*((QCSV_LONG (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset2, str2, 0, &bytesMatched2);
 
         if((entry1 = getLookupTableEntry(&entry1Internal, &offset1, str1, &bytesMatched1, get1, firstChar, compareNumbers))) {
           /* the first character is in the lookup table */
@@ -153,14 +153,14 @@ int strCompare(
                     if(entry1->isNotLower == 0) {
                       comparison++;
                     }
-                    else if(char1 == (long)'i') { /* dotted lower case i */
+                    else if(char1 == (QCSV_LONG)'i') { /* dotted lower case i */
                       comparison += 2;
                     }
 
                     if(entry2->isNotLower == 0) {
                       comparison--;
                     }
-                    else if(char2 == (long)'i') { /* dotted lower case i */
+                    else if(char2 == (QCSV_LONG)'i') { /* dotted lower case i */
                       comparison -= 2;
                     }
                   }
@@ -261,7 +261,7 @@ int strCompare(
     /* character 1 has been found and is in the lookup table */
     else if(char1found == 1) {
       /* read a character from string 2 */
-      char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset1, str1, 0, &bytesMatched2);
+      char2 = (*((QCSV_LONG (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset1, str1, 0, &bytesMatched2);
 
       if(char2 != 0x34F) {
         if((entry2 = getLookupTableEntry(&entry2Internal, &offset2, str2, &bytesMatched2, get2, firstChar, compareNumbers))) {
@@ -281,14 +281,14 @@ int strCompare(
                 if(entry1->isNotLower == 0) {
                   comparison++;
                 }
-                else if(char1 == (long)'i') { /* dotted lower case i */
+                else if(char1 == (QCSV_LONG)'i') { /* dotted lower case i */
                   comparison += 2;
                 }
 
                 if(entry2->isNotLower == 0) {
                   comparison--;
                 }
-                else if(char2 == (long)'i') { /* dotted lower case i */
+                else if(char2 == (QCSV_LONG)'i') { /* dotted lower case i */
                   comparison -= 2;
                 }
               }
@@ -353,7 +353,7 @@ int strCompare(
 
     /* character 1 has been found but was not in the lookup table */
     else {
-      char2 = (*((long (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset2, str2, 0, &bytesMatched2);
+      char2 = (*((QCSV_LONG (*)(unsigned char **, unsigned char **, int,  int *))get2))(&offset2, str2, 0, &bytesMatched2);
 
       if(char2 != 0x34F) {
         /* the first or both characters were not in the lookup table. */

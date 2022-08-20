@@ -1,4 +1,4 @@
-int strAppendUTF8(long codepoint, unsigned char **nfdString, size_t *retval) {
+int strAppendUTF8(QCSV_LONG codepoint, unsigned char **nfdString, size_t *retval) {
   size_t nfdLength = 0;
 
   MAC_YIELD

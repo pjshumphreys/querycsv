@@ -1,6 +1,6 @@
 void getCodepointsUtf32Le(
     FILE *stream,
-    long *codepoints,
+    QCSV_LONG *codepoints,
     int *arrLength,
     int *byteLength
 ) {
@@ -36,5 +36,5 @@ void getCodepointsUtf32Le(
     return;
   }
 
-  codepoints[0] = (((long)c)) + (((long)c2) << 8) + (((long)c3) << 16) + (((long)c4) << 24);
+  codepoints[0] = (((QCSV_LONG)c)) + (((QCSV_LONG)c2) << 8) + (((QCSV_LONG)c3) << 16) + (((QCSV_LONG)c4) << 24);
 }
