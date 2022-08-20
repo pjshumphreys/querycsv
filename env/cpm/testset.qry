@@ -1,0 +1,4 @@
+mbcs 'testset.txt';
+options 'u';
+output 'chars.txt' encoding 'mbcs'
+into 'output.txt' encoding 'utf-8'

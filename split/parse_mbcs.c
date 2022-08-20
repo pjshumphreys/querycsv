@@ -1,60 +1,30 @@
-#ifdef __Z88DK
-  int sortCodepoints(const void* a, const void* b) {
-    unsigned int c = (*(*(unsigned int **)a));
-    unsigned int d = (*(*(unsigned int **)b));
+int sortCodepoints(const void* a, const void* b) __z88dk_params_offset(-4) {
+  QCSV_LONG c = (*(*(QCSV_LONG **)a));
+  QCSV_LONG d = (*(*(QCSV_LONG **)b));
 
-    if(c < d) {
-      return -1;
-    }
-
-    return (c > d);
+  if(c < d) {
+    return -1;
   }
 
-  int sortBytes(const void* a, const void* b) {
-    int i = 0;
-    unsigned char * c = &((*(struct lookup**)a)->bytes[0]);
-    unsigned char * d = &((*(struct lookup**)b)->bytes[0]);
+  return (c > d);
+}
 
-    for(; i < mbcs_trailing; i++) {
-      if(*c != *d) {
-        return *c < *d ? -1 : 1;
-      }
+int sortBytes(const void* a, const void* b) __z88dk_params_offset(-4) {
+  int i = 0;
+  unsigned char * c = &((*(struct lookup**)a)->bytes[0]);
+  unsigned char * d = &((*(struct lookup**)b)->bytes[0]);
 
-      c++;
-      d++;
+  for(; i < mbcs_trailing; i++) {
+    if(*c != *d) {
+      return *c < *d ? -1 : 1;
     }
 
-    return 0;
-  }
-#else
-  int sortCodepoints(const void* a, const void* b) {
-    unsigned int c = (*(*(unsigned int **)a));
-    unsigned int d = (*(*(unsigned int **)b));
-
-    if(c < d) {
-      return -1;
-    }
-
-    return (c > d);
+    c++;
+    d++;
   }
 
-  int sortBytes(const void* a, const void* b) {
-    int i = 0;
-    unsigned char * c = &((*(struct lookup**)a)->bytes[0]);
-    unsigned char * d = &((*(struct lookup**)b)->bytes[0]);
-
-    for(; i < mbcs_trailing; i++) {
-      if(*c != *d) {
-        return *c < *d ? -1 : 1;
-      }
-
-      c++;
-      d++;
-    }
-
-    return 0;
-  }
-#endif
+  return 0;
+}
 
 void parse_mbcs(char * name) {
   FILE * input;

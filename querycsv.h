@@ -533,6 +533,9 @@ it becomes needed and because it's useful for debugging */
     to sprintf elsewhere to do the same thing */
   #undef myltoa
   #define myltoa(x, y) ltoa((y), (x), 10)
+#else
+  /* the functions used with l_sort and l_bsearch shouldn't have offsets. Filter out __z88dk_params_offset for other compilers  */
+  #define __z88dk_params_offset(VV)
 #endif
 
 /* ugly hacks to raise the game of cc65 */
