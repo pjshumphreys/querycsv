@@ -19,12 +19,12 @@
   /* Old versions of Norcroft appear to generate incorrect codes with short integers.
   Just use long ones for that compiler */
   #define QCSV_SHORT unsigned short
-  #define QCSV_LONG unsigned long
+  #define QCSV_LONG long
 #endif
 
 #ifndef QCSV_SHORT
   #define QCSV_SHORT uint16_t
-  #define QCSV_LONG uint32_t
+  #define QCSV_LONG int32_t
 #endif
 
 /* translatable strings */
@@ -294,7 +294,7 @@ it becomes needed and because it's useful for debugging */
   #if __LIB_VERSION < 300
     /* doesn't do well with 16 bit data types, so use the 32 bit ones all the time */
     #undef QCSV_SHORT
-    #define QCSV_SHORT unsigned long
+    #define QCSV_SHORT long
     #define YYTYPE_UINT16 unsigned int
     #define YYTYPE_INT16 int
 
@@ -458,6 +458,7 @@ it becomes needed and because it's useful for debugging */
     #define ENC_OUTPUT ENC_ASCII
     #define ENC_PRINT ENC_ASCII
 
+    void logNum(int num) __z88dk_fastcall;
     void macYield(void);
     #undef MAC_YIELD
     #define MAC_YIELD macYield();

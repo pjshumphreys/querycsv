@@ -48,6 +48,7 @@ const functionsList = [
   ['fread', 1, 0x0001, 0x0001, 'farcall2'],
   ['_fwrite_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['_macYield', 1, 0x0001, 0x0001, 'farcall2'],
+//  ['_logNum', 1, 0x0001, 0x0001, 'farcall2'],
   ['_fprintf_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['_fputs_z80', 1, 0x0001, 0x0001, 'farcall2'],
   ['fputs_callee', 1, 0x0001, 0x0001, 'farcall2'],
@@ -389,7 +390,7 @@ function addROData () {
   execSync('z88dk-z80asm -b build/rodata.asm');
 
   rodataSize = fs.statSync('build/rodata.bin').size;
-  pageSize = /*16644*/ 16644 /*16383*/ - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
+  pageSize = /*16644*/ /*16644*/ 16383 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
@@ -708,7 +709,7 @@ function compileLibC (pages) {
 
   // build the asm includes
   ['fcb', 'msx2'].forEach((name, index) => {
-    execSync('cp libc.c pager.asm Makefile build/' + name + '/');
+    execSync('cp libc.c pager.asm serialLnBC.asm Makefile build/' + name + '/');
 
     fs.writeFileSync('build/' + name + '/defines.inc',
       Object.keys(defines).map(item => (/^_+([^_]+)?(_head|_tail|_size)$/).test(item)
@@ -1095,7 +1096,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   if (pageMode) {
     execSync(
-      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|qsort_sccz80_callee\\|_logNum\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
+      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
         cwd: path.join(__dirname, 'build', 's')
       }

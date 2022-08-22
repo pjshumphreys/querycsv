@@ -27,7 +27,7 @@ void getCodepointsMbcs(
 
     result = bsearch(
       (void*)(&mbcs_temp),
-      b2c,
+      (void*)b2c,
       mbcs_length,
       sizeof(struct lookup *),
       sortBytes

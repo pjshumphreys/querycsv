@@ -2,26 +2,23 @@ int sortCodepoints(const void* a, const void* b) __z88dk_params_offset(-4) {
   QCSV_LONG c = (*(*(QCSV_LONG **)a));
   QCSV_LONG d = (*(*(QCSV_LONG **)b));
 
-  if(c < d) {
-    return -1;
-  }
-
-  return (c > d);
+  return ((c < d) ? -1 : (c > d));
 }
 
 int sortBytes(const void* a, const void* b) __z88dk_params_offset(-4) {
-  int i = 0;
-  unsigned char * c = &((*(struct lookup**)a)->bytes[0]);
-  unsigned char * d = &((*(struct lookup**)b)->bytes[0]);
+  unsigned char * c = ((unsigned char *)(*(struct lookup**)a)) + sizeof(QCSV_LONG);
+  unsigned char * d = ((unsigned char *)(*(struct lookup**)b)) + sizeof(QCSV_LONG);
+  char e = mbcs_trailing;
 
-  for(; i < mbcs_trailing; i++) {
-    if(*c != *d) {
-      return *c < *d ? -1 : 1;
+  do {
+    if((*c) != (*d)) {
+      return (*c) < (*d) ? -1 : 1;
     }
 
     c++;
     d++;
-  }
+
+  } while (--e);
 
   return 0;
 }
@@ -36,6 +33,7 @@ void parse_mbcs(char * name) {
   int currentResult = 0;
 
   unsigned char * current;
+  /* QCSV_LONG temp2; */
 
   MAC_YIELD
 
@@ -153,4 +151,14 @@ void parse_mbcs(char * name) {
     sizeof(struct lookup *),
     sortBytes
   );
+
+  /*current = (unsigned char *)b2c;
+
+  for(c = 0; c < mbcs_length; c++) {
+    temp2 = ((*(*(struct lookup **)current)).codepoint) & 0x7fff;
+    found = temp2;
+
+    fprintf(stdout, "%d\n", found);
+    current = current + sizeof(unsigned char *);
+  }*/
 }

@@ -174,14 +174,13 @@ void getBytes(
       } break;
 
       case ENC_MBCS: {
-        unsigned int byteIndex = (unsigned int)codepoint;
-        unsigned int * byteLoc = &byteIndex;
-
+        QCSV_LONG * codeLoc = &codepoint;
         struct lookup ** result = NULL;
+        int byteIndex;
 
         result = bsearch(
-          &byteLoc,
-          c2b,
+          (void *)&codeLoc,
+          (void *)c2b,
           mbcs_length,
           sizeof(struct lookup *),
           sortCodepoints
