@@ -5,7 +5,7 @@ void getCodepointsMbcs(
     int *byteLength
 ) {
   int c;
-  int byteIndex = 0;
+  char byteIndex = mbcs_trailing;
   struct lookup ** result = NULL;
 
   if(stream == NULL) {
@@ -17,7 +17,7 @@ void getCodepointsMbcs(
 
   *arrLength = *byteLength = 1;
 
-  for(byteIndex = 0; byteIndex < mbcs_trailing; byteIndex++) {
+  do {
     if((c = fgetc(stream)) == EOF) {
       codepoints[0] = MYEOF;
       return;
@@ -41,7 +41,7 @@ void getCodepointsMbcs(
     *byteLength = *byteLength + 1;
 
     memmove(mbcs_temp, ((unsigned char *)mbcs_temp) + 1, mbcs_size - 1);
-  }
+  } while(--byteIndex);
 
   codepoints[0] = (QCSV_LONG)0xFFFD;
 }
