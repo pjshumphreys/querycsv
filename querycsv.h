@@ -657,7 +657,7 @@ struct inputTable {
   char *fileName;
   FILE *fileStream;
   int fileEncoding;
-  long codepoints[4];
+  QCSV_LONG codepoints[4];
   int cpIndex;
   int cpByteLength;
   int arrLength;
@@ -765,7 +765,7 @@ struct qryData {
   char *inputFileName;
   FILE *inputFileStream;
   int inputEncoding;
-  long codepoints[4];
+  QCSV_LONG codepoints[4];
   int cpIndex;
   int cpByteLength;
   int arrLength;

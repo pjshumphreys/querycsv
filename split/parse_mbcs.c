@@ -28,7 +28,7 @@ void parse_mbcs(char * name) {
   int found;
   int c;
 
-  unsigned int temp;
+  QCSV_LONG temp;
   int state = -2;
   int currentResult = 0;
 
@@ -110,7 +110,7 @@ void parse_mbcs(char * name) {
         ((struct lookup **)c2b)[currentResult] = (struct lookup *)current;
 
         /* store read number as the unicode codepoint */
-        *((unsigned int *)current) = temp;
+        *((QCSV_LONG *)current) = temp;
         current += sizeof(QCSV_LONG);
       } break;
 

@@ -1,0 +1,4 @@
+mbcs 'test41a.txt';
+options 'u';
+output 'test41b.txt' encoding 'mbcs'
+into 'test41c.txt' encoding 'utf-8'

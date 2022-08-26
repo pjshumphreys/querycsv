@@ -1,4 +1,4 @@
-int normaliseAndGet(
+QCSV_LONG normaliseAndGet(
     unsigned char **offset,
     unsigned char **str,
     int plusBytes,
