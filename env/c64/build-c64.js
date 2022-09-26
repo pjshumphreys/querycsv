@@ -1003,7 +1003,7 @@ function packPages () {
 
   execSync("sed -i 's/jmp     farret/rts/g;s/__sortBytes/_sortBytes/g;' build/s/_sortBytes.s");
   execSync("cat build/s/_sortBytes.s >> build/s/_parse_mbcs.s;cat build/s/_sortBytes.s >> build/s/_getCodepointsMbcs.s;"+
-  "sed -i 's/_sortBytes/_sortBytesParse/g;s/querycsv/querycsv2/g;' build/s/_parse_mbcs.s;sed -i 's/querycsv/querycsv3/g;' build/s/_getCodepointsMbcs.s");
+  "sed -i 's/_sortBytes/_sortBytesParse/g;s/querycsv\([^\)]\)/querycsv2\1/g;' build/s/_parse_mbcs.s;sed -i 's/querycsv/querycsv3/g;' build/s/_getCodepointsMbcs.s");
   execSync('rm build/s/_sortBytes.s');
 
 

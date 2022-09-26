@@ -197,24 +197,52 @@ int readQuery(char *origFileName, struct qryData *query, int queryType) {
   }
   #if defined(MPW_C) && !defined(RETRO68)
     /* MPW swaps 0x0D and 0x0A bytes when writing files, even if binary mode is specified */
-    else if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047 || query->params & PRM_UNIX) {
-      query->newLine = "\r";
-    }
-    else if(query->outputEncoding == ENC_PETSCII || query->params & PRM_MAC) {
-      query->newLine = "\n";
-    }
-    else {
-      query->newLine = "\n\r";
+    else switch(query->outputEncoding) {
+      case ENC_CP1047: {
+        query->newLine = "\r";
+      } break;
+
+      case ENC_TSW:
+      case ENC_ZX:
+      case ENC_PETSCII: {
+        query->newLine = "\n";
+      } break;
+
+      default: {
+        if(query->params & PRM_UNIX) {
+          query->newLine = "\r";
+        }
+        else if(query->params & PRM_MAC) {
+          query->newLine = "\n";
+        }
+        else {
+          query->newLine = "\n\r";
+        }
+      } break;
     }
   #else
-    else if(query->outputEncoding == ENC_TSW || query->outputEncoding == ENC_CP1047 || query->params & PRM_UNIX) {
-      query->newLine = "\n";
-    }
-    else if(query->outputEncoding == ENC_PETSCII || query->params & PRM_MAC) {
-      query->newLine = "\r";
-    }
-    else {
-      query->newLine = "\r\n";
+    else switch(query->outputEncoding) {
+      case ENC_CP1047: {
+        query->newLine = "\n";
+      } break;
+
+      case ENC_TSW:
+      case ENC_ZX:
+      case ENC_PETSCII: {
+        query->newLine = "\r";
+      } break;
+
+      default: {
+        if(query->params & PRM_UNIX) {
+          query->newLine = "\n";
+        }
+        else if(query->params & PRM_MAC) {
+          query->newLine = "\r";
+        }
+        else {
+          query->newLine = "\r\n";
+        }
+      } break;
     }
   #endif
 

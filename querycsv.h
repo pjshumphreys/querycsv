@@ -446,9 +446,9 @@ it becomes needed and because it's useful for debugging */
     #undef EXIT_FAILURE
     #define EXIT_FAILURE 9
 
-    #define ENC_INPUT ENC_TSW
-    #define ENC_OUTPUT ENC_TSW
-    #define ENC_PRINT ENC_TSW
+    #define ENC_INPUT ENC_ZX
+    #define ENC_OUTPUT ENC_ZX
+    #define ENC_PRINT ENC_ZX
   #else
     #include <cpm.h>  /* bdos function */
     #include <fcntl.h>    /* chdir and getwd functions */
