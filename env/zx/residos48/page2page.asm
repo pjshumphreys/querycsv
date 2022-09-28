@@ -13,6 +13,7 @@ mypager2:
   ret ; just return until the proper paging code is installed into this location
   defs 31, 0
 
+page2page:
 loadFromDisk2:
   ld a, (hl)
   push de

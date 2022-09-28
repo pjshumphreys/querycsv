@@ -22,9 +22,9 @@ atexit3:
 
 ; copy all the data from this page to elsewhere in the memory map
 copydata:
-  ld hl, page2page ; hl = source address for ldir
+  ld hl, first ; hl = source address for ldir
   ld de, farcall ; de = destination address for ldir
-  ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
+  ld bc, firstEnd-first ; bc = number of bytes to copy for ldir
 
   di
   ldir
@@ -305,7 +305,7 @@ skipMoveBack:
   push bc ; reset the stack after we exit
   ret
 
-page2page:
+first:
   binary "pager.bin"
   binary "page2page.bin"
-page2pageend:
+firstEnd:

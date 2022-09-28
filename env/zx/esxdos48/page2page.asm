@@ -29,7 +29,7 @@ divmmcExit:
 
 ;---------------------------------------------------------------------------------------------------------
 ;loadFromDisk2 - loads virtual pages into low banks during program startup so that they can be quickly retrieved later
-
+page2page:
 loadFromDisk2: ;; 5 pages can be preloaded into low banks. unrolled for simplicity
   di
   call loadFromDisk3 ;4

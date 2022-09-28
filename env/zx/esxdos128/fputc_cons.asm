@@ -21,7 +21,7 @@ include "../common/equs.inc"
 ;
 ; Entry: a= char to print
 ;
-org 0xec20
+org 0xe440
 
 ; fputc_cons:
   ld hl, 4
@@ -83,6 +83,38 @@ handle_control:
   ld d, (hl)
   ld hl, (chrloc) ;most of them will need the position
   push de
+  ret
+
+if ASMPC % 2 != 0
+  defb 0
+endif
+
+SECTION second
+org 0xf700
+
+; Clear screen and move to home
+cls:
+  ld hl, 0
+  ld (chrloc), hl
+  ld hl, 49152;16384
+  ld de, 49153;16385
+  ld bc, 6144
+  ld (hl), l
+  ldir
+  ld a, (__zx_console_attr)
+  ld (hl), a
+  ld bc, 767
+  ldir
+  ld a, (bankmBackup)  ; system variable that holds current switch state
+  or 8
+  ld (bankmBackup), a  ; must keep system variable up to date (very important)
+  di
+  ld a, (bankm)  ; system variable that holds current switch state
+  or 8
+  ld (bankm), a  ; must keep system variable up to date (very important)
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
+  out (c), a
+  ei
   ret
 
 ; 32 column print routine..quick 'n' dirty..we take
@@ -183,40 +215,6 @@ just_calculate:
   ld h, a
   ret
 
-
-; Ooops..ain't written this yet!
-; We should scroll the screen up one character here
-; Blanking the bottom row..
-scrollup:
-  push hl
-  call generic_console_scrollup
-  pop hl
-  ret
-
-;Move to new line
-
-cr:
-  ld a, h
-  cp 23
-  jr nz, cr_1
-  ld a, (control_flags)
-  bit 1, a
-  call z, scrollup
-  ld h, 22
-
-cr_1:
-  inc h
-  ld l, 0
-  ld (chrloc), hl
-  ret
-
-if ASMPC % 2 != 0
-  defb 0
-endif
-
-SECTION second
-org 0xf511
-
 ;get the attribute value at 0xd81f
 ld (0xd81f), a
 ret
@@ -225,89 +223,11 @@ ret
 ld a, (0xd81f)
 ret
 
-; Clear screen and move to home
-cls:
-  ld hl, 0
-  ld (chrloc), hl
-  ld hl, 49152;16384
-  ld de, 49153;16385
-  ld bc, 6144
-  ld (hl), l
-  ldir
-  ld a, (__zx_console_attr)
-  ld (hl), a
-  ld bc, 767
-  ldir
-  ld a, (bankmBackup)  ; system variable that holds current switch state
-  or 8
-  ld (bankmBackup), a  ; must keep system variable up to date (very important)
-  di
-  ld a, (bankm)  ; system variable that holds current switch state
-  or 8
-  ld (bankm), a  ; must keep system variable up to date (very important)
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-  out (c), a
-  ei
-  ret
-
-; This nastily inefficient table is the code table for the routines
-; Done this way for future! Expansion
-
-code_table:
-  defw noop ; 0 - NUL
-  defw noop ; 1 - SOH
-  defw noop ; 2
-  defw setudg ; 3
-  defw setvscroll ; 4
-  defw noop ; 5
-  defw noop ; 6
-  defw beep ; 7 - BEL
-  defw left ; 8 - BS
-  defw right ; 9 - HT
-  defw cr ;13 - CR (+NL)
-  defw up ;11 - UP
-  defw noop ;12
-  defw down ;10 - LF
-  defw noop ;14
-  defw noop ;15
-  defw setink ;16 - ink
-  defw setpaper ;17 - paper
-  defw setflash ;18 - flash
-  defw setbright ;19 - bright
-  defw setinverse ;20 - inverse
-  defw noop ;21 - over
-  defw setposn ;22
-  defw noop ;23
-  defw noop ;24
-  defw noop ;25
-  defw noop ;26
-  defw noop ;27
-  defw noop ;28
-  defw noop ;29
-  defw noop ;30
-  defw noop ;31
-
 ; And now the magic routines
 
 ; No operation
 
 noop:
-  ret
-
-; Move print position left
-left:
-  ld a, l
-  and a
-  jr nz, doleft
-  ld l, 31
-  jr up
-
-doleft:
-  ld a, (deltax)
-  neg
-  add l
-  ld l, a
-  ld (chrloc), hl
   ret
 
 ;Move print position right
@@ -318,15 +238,6 @@ right:
   ld a, (deltax)
   add l
   ld l, a
-  ld (chrloc), hl
-  ret
-
-;Move print position up
-up:
-  ld a, h
-  and a
-  ret z
-  dec h
   ld (chrloc), hl
   ret
 
@@ -584,9 +495,8 @@ if ASMPC % 2 != 0
   defb 0
 endif
 
-
   SECTION third
-  org 0xe438
+  org 0xfa00
 
 zx_rowtab:
   defw 0xC000
@@ -781,3 +691,95 @@ zx_rowtab:
   defw 0xD5E0
   defw 0xD6E0
   defw 0xD7E0
+
+; This nastily inefficient table is the code table for the routines
+; Done this way for future! Expansion
+
+code_table:
+  defw noop ; 0 - NUL
+  defw noop ; 1 - SOH
+  defw noop ; 2
+  defw setudg ; 3
+  defw setvscroll ; 4
+  defw noop ; 5
+  defw noop ; 6
+  defw beep ; 7 - BEL
+  defw left ; 8 - BS
+  defw right ; 9 - HT
+  defw cr ;13 - CR (+NL)
+  defw up ;11 - UP
+  defw noop ;12
+  defw down ;10 - LF
+  defw noop ;14
+  defw noop ;15
+  defw setink ;16 - ink
+  defw setpaper ;17 - paper
+  defw setflash ;18 - flash
+  defw setbright ;19 - bright
+  defw setinverse ;20 - inverse
+  defw noop ;21 - over
+  defw setposn ;22
+  defw noop ;23
+  defw noop ;24
+  defw noop ;25
+  defw noop ;26
+  defw noop ;27
+  defw noop ;28
+  defw noop ;29
+  defw noop ;30
+  defw noop ;31
+
+; Ooops..ain't written this yet!
+; We should scroll the screen up one character here
+; Blanking the bottom row..
+scrollup:
+  push hl
+  call generic_console_scrollup
+  pop hl
+  ret
+
+;Move to new line
+
+cr:
+  ld a, h
+  cp 23
+  jr nz, cr_1
+  ld a, (control_flags)
+  bit 1, a
+  call z, scrollup
+  ld h, 22
+
+cr_1:
+  inc h
+  ld l, 0
+  ld (chrloc), hl
+  ret
+
+; Move print position left
+left:
+  ld a, l
+  and a
+  jr nz, doleft
+  ld l, 31
+  jr up
+
+doleft:
+  ld a, (deltax)
+  neg
+  add l
+  ld l, a
+  ld (chrloc), hl
+  ret
+
+;Move print position up
+up:
+  ld a, h
+  and a
+  ret z
+  dec h
+  ld (chrloc), hl
+  ret
+
+if ASMPC % 2 != 0
+  defb 0
+endif

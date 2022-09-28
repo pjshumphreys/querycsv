@@ -33,20 +33,20 @@ querycsv.bin: querycsv2.bin querycsv.asm
 	z88dk-z80asm -b querycsv.asm
 
 querycsv.bas: querycsv.bin
-	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "\\{0xBE}23635+256*\\{0xBE}23636+51"\n30 REM' > querycsv.bas
+	printf '10 CLEAR VAL "46287"\n20 RANDOMIZE USR VAL "\\{0xBE}23635+256*\\{0xBE}23636+51"\n30 REM' > querycsv.bas
 	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\\\{0x\1\}/g" >> querycsv.bas
 
 archiver: archiver.c
 	gcc -o archiver archiver.c
 
 residos.tap: unarchiver.c
-	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC2 -o residos -create-app unarchiver.c
+	zcc +zx -DRESIDOS -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC -o residos -create-app unarchiver.c
 
 plus3dos.tap: unarchiver.c
-	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC2 -o plus3dos -create-app unarchiver.c
+	zcc +zx -O0 -lp3 -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC -o plus3dos -create-app unarchiver.c
 
 esxdos.tap: unarchiver.c
-	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC2 -o esxdos -create-app unarchiver.c
+	zcc +zx -lesxdos -pragma-define:CRT_ON_EXIT=0x10002 -pragma-redirect:fputc_cons=fputc_cons_rom_rst -DAMALLOC -o esxdos -create-app unarchiver.c
 
 clean:
 	rm -f querycsv.bas querycsv querycsv.tap residos.tap plus3dos.tap esxdos.tap archiver *.bin *.o *.inc *.map

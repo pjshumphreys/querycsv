@@ -295,8 +295,8 @@ loadBasic:
 ;---------------------------------
 
 newProg:
-  ;10 CLEAR VAL "46000":PRINT"Filename?":INPUT LINE a$:RANDOMIZE USR VAL "49152"
-  defb $00, $0a, $27, $00, $fd, $b0, $22, $34, $36, $30, $30, $30, $22, $3a
+  ;10 CLEAR VAL "46287":PRINT"Filename?":INPUT LINE a$:RANDOMIZE USR VAL "49152"
+  defb $00, $0a, $27, $00, $fd, $b0, $22, $34, $36, $32, $38, $37, $22, $3a
   defb $f5, $22, "Filename?", $22, $3a
   defb $ee, $ca, $61, $24, $3a
   defb $f9, $c0, $b0, $22, $34, $39, $31, $35, $32, $22, $0d, $ff, $0d, $80

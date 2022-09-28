@@ -245,11 +245,11 @@ atexit:
 _myexit:
   ret ; just return for now. This jump table entry will get changed later.
   defw jp_rom3
-  defw 0xe60e  ; atexit location in page 7.
+  defw 0xe4c0  ; atexit location in page 7.
 
 fputc_cons:
   jp exit ; just return for now. This jump table entry will get changed later.
-  defw 0xec20  ; fputc_cons location in page 7. making space to use call call_rom3 later
+  defw 0xe440  ; fputc_cons location in page 7. making space to use call call_rom3 later
 
 dosload:
   jp exit ; just return for now. This jump table entry will get changed later.

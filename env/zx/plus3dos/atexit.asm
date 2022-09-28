@@ -4,7 +4,7 @@ ERR_NR equ 0x5c3a
 
 RESI_DEALLOC equ 0x0328
 
-org 0xe60e
+org 0xe4c0
   dec l
 
   push hl
@@ -27,10 +27,10 @@ org 0xe60e
   di
   ldir
 
-  ; reload virtual page 3 back into high bank 0 so we can easily run the program again
+  ; reload virtual page 1 back into high bank 0 so we can easily run the program again
   xor a ; load into page 0
   ld (destinationHighBank), a
-  ld a, 3 ; load virtual page 3
+  ld a, 1 ; load virtual page 1
   call dosload
 
   ;switch back to interrupt mode 0

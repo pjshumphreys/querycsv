@@ -2,7 +2,7 @@ include "pager.map"
 
 ERR_NR equ 0x5c3a
 
-org 0xe60e
+org 0xe4c0
   dec l
 
   push hl

@@ -15,9 +15,9 @@ ERR_NR equ 0x5c3a   ; BASIC system variables
 
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
-  ld hl, page2page ; hl = source address for ldir
+  ld hl, fifth ; hl = source address for ldir
   ld de, farcall ; de = destination address for ldir
-  ld bc, page2pageend-page2page ; bc = number of bytes to copy for ldir
+  ld bc, fifthEnd-fifth ; bc = number of bytes to copy for ldir
 
   di
   ldir
@@ -37,7 +37,7 @@ ERR_NR equ 0x5c3a   ; BASIC system variables
   ld b, [[firstEnd - first] % 512] / 2
   ld c, [[firstEnd - first] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xec20 - first + firstEnd - 1
+  ld hl, 0xe440 - first + firstEnd - 1
   ld (hlBackup), hl
   ld hl, first
 
@@ -54,7 +54,7 @@ Loop:
   ld (bankmBackup), a ; jump back to page 0
   ld bc, (bcBackup) ; restore bc
   ld hl, (hlBackup) ; restore hl
-  jp 0xbd00
+  jp page2page
 jumpback:
   pop af
   dec a
@@ -73,7 +73,7 @@ secondcopy:
   ld b, [[secondEnd - second] % 512] / 2
   ld c, [[secondEnd - second] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xf511 - second + secondEnd - 1
+  ld hl, 0xf700 - second + secondEnd - 1
   ld (hlBackup), hl
   ld hl, second
   jr Loop
@@ -82,7 +82,7 @@ thirdcopy:
   ld b, [[thirdEnd - third] % 512] / 2
   ld c, [[thirdEnd - third] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xe438 - third + thirdEnd - 1
+  ld hl, 0xfa00 - third + thirdEnd - 1
   ld (hlBackup), hl
   ld hl, third
   jr Loop
@@ -91,7 +91,7 @@ fourthcopy:
   ld b, [[fourthEnd - fourth] % 512] / 2
   ld c, [[fourthEnd - fourth] / 512] + 1
   ld (bcBackup), bc
-  ld hl, 0xe60e - fourth + fourthEnd - 1
+  ld hl, 0xe4c0 - fourth + fourthEnd - 1
   ld (hlBackup), hl
   ld hl, fourth
   jr Loop
@@ -215,7 +215,7 @@ intSetup:
   push de
   push hl
   call call_rom3
-  defw 0xf519
+  defw 0xf700 ; cls
   pop hl
   pop de
   pop bc
@@ -256,7 +256,7 @@ fourth:
   binary "atexit.bin"
 fourthEnd:
 
-page2page:
+fifth:
   binary "pager.bin"
   binary "page2page.bin"
-page2pageend:
+fifthEnd:

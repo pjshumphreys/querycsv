@@ -12,6 +12,7 @@ mypager2:
 ;--------------------------------------------------------
 ; page2page - copy data pointed to by the stack pointer into a location that ends at the value pointed to by hl.
 ; The amount of bytes to copy is specified indirectly via the value in the bc register
+page2page:
   di
   push af
   ld a, (bankm)   ; get the current bankm state
