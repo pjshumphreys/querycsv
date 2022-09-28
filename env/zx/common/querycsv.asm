@@ -37,58 +37,43 @@ ld (0xc006), a ; memoryType
 jp 0xc003
 
 checkmem:
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-
   di
   ld a, (bankm)  ; system variable that holds current switch state
   or 23
+  res 4, a  ; move right to left in horizontal ROM switch (3 to 2)
   ld (bankm), a  ; must keep system variable up to date (very important)
+  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
   out (c), a
-  ei
 
   ld a, (0xc000)
   cp 0xc3
   jr z, noram
-
-  ; copy the character set up into page 7 so we can print using page 7 and use page 5 for data
-  ld hl, 0x3d00  ; Pointer to the source
-  ld de, 0xe800  ; Pointer to the destination
-  ld bc, 0x2ff  ; Number of bytes to move
-  di
-  ldir
-  ei
-
-  ld bc, port1  ; the horizontal ROM switch/RAM switch I/O address
-
-  di
-  ld a, (bankm)  ; system variable that holds current switch state
-  res 4, a  ; move right to left in horizontal ROM switch (3 to 2)
-  ld (bankm), a  ; must keep system variable up to date (very important)
-  out (c), a
 
   ld a, (0x0008)
   cp 0x50  ; 'P' of 'PLUS3DOS'
 
   ld a, (bankm)  ; get current switch state
   set 4, a  ; move left to right (ROM 2 to ROM 3)
-  jr z, plus3
+  jr nz, noplus3
+
   and 0xf8  ; also want RAM page 0
   ld (bankm), a  ; update the system variable (very important)
   out (c), a
   ei
-  ld a, 1  ; 128k, but no plus3 dos
+  ld a, 2  ; 128k, but no plus3 dos
+  ret
+
+noplus3:
+  and 0xf8  ; also want RAM page 0
+  ld (bankm), a  ; update the system variable (very important)
+  out (c), a
+  ei
+  ld a, 1  ; 128k with plus3dos
   ret
 
 noram:
-  ld a, 0  ; 48k only
-  ret
-
-plus3:
-  and 0xf8  ; also want RAM page 0
-  ld (bankm), a  ; update the system variable (very important)
-  out (c), a
   ei
-  ld a, 2  ; 128k with plus3dos
+  ld a, 0  ; 48k only
   ret
 
 dataStart:

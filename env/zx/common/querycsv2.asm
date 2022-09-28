@@ -153,9 +153,6 @@ resicont:
   sbc hl, de
   jr c, plus3check
 
-  ld a, 0xff
-  ld (ERR_NR), a    ; clear er
-
   ; this will now succeed so we can update the basic program
   call reenter
 
@@ -210,9 +207,6 @@ resigot128:
 ; plus3check
 
 plus3check:
-  ld a, 0xff
-  ld (ERR_NR), a  ; clear error
-
   ; is plus3dos present?
   ld a, (memoryType)
   cp 2
@@ -270,25 +264,11 @@ reenter:
   ld de, newProg
 
 loadBasic:
-  ;set NEWPPC to $000a (line 10)
-  ld hl, $000a
-  ld (NEWPPC), hl
-
-  ;set NSPPC to 0 (first statement on line 10)
-  push af
-  ld a, 0
-  ld (NSPPC), a
-  pop af
-
   ;set VARS to prog + (newProgEnd-newProg)
   ld hl, (PROG)
   add hl, bc
+  dec hl
   ld (VARS), hl
-
-  ;set NXTLIN to prog + (newProgEnd-newProg) - 2
-  dec hl
-  dec hl
-  ld (NXTLIN), hl
 
   ;copy the new program
   ld hl, (PROG)
@@ -296,6 +276,20 @@ loadBasic:
   di
   ldir
   ei
+
+  ;set NEWPPC to $000a (line 10)
+  ld hl, $000a
+  ld (NEWPPC), hl
+
+  push af
+    ;set NSPPC to 0 (first statement on line 10)
+    ld a, 0
+    ld (NSPPC), a
+
+    ; clear error code
+    ld a, 0xff
+    ld (ERR_NR), a
+  pop af
   ret
 
 ;---------------------------------
