@@ -2,6 +2,7 @@
 #include "en_gb.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 extern const unsigned short petscii[128];

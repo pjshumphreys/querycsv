@@ -26,6 +26,6 @@ copy :4.$.* :0.querycsv.h
 lib $.archc.library
 dir $.querycsv
 spool output
-cc -super -o querycsv a b c d e f g h i j k l m n o p q r s t u v w 0 1 2 3 4 5
+cc -super -o querycsv a b c d e f g h i j k l m n o p q r s t u v w x 0 1 2 3 4 5
 spool
 copy :0.querycsv.querycsv :4

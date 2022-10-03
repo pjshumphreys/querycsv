@@ -37,3 +37,7 @@ yytype_int8 yyr1a(int offset) {
 yytype_int8 yydefact2(int offset) {
   return yydefact[offset];
 }
+
+yytype_int16 yytable2(int offset) {
+  return yytable[offset];
+}

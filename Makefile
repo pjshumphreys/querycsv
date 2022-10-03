@@ -68,7 +68,7 @@ hash2: hash2.c
 	mkdir -p env/bbcarm/h
 	mkdir -p env/bbcarm/o
 	mkdir -p hash2
-	cd hash2 && node ../generate_hash2.js 398 && echo ../env/powermac ../env/bbcarm/c ../env/c64 | xargs -n 1 cp *.c
+	cd hash2 && node ../generate_hash2.js 377 && echo ../env/powermac ../env/bbcarm/c ../env/c64 | xargs -n 1 cp *.c
 
 dat/create: hash2.c dat/create.c gen.h en_gb.h querycsv.h split/variables.c dat/externs.c
 	cd dat && $(CC) create.c externs.c -o create

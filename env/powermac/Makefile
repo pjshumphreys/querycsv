@@ -37,6 +37,7 @@ SrcFiles        =  ¶
 					hash2in12.c ¶
 					hash2in13.c ¶
 					hash2in14.c ¶
+					hash2in15.c ¶
 					hash3.c ¶
 					hash4a.c ¶
 					hash4b.c ¶
@@ -73,6 +74,7 @@ ObjFiles-PPC    =  ¶
 					"{ObjDir}hash2in12.c.x" ¶
 					"{ObjDir}hash2in13.c.x" ¶
 					"{ObjDir}hash2in14.c.x" ¶
+					"{ObjDir}hash2in15.c.x" ¶
 					"{ObjDir}hash3.c.x" ¶
 					"{ObjDir}hash4a.c.x" ¶
 					"{ObjDir}hash4b.c.x" ¶

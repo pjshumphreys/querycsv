@@ -9,7 +9,11 @@ let i;
 const files = [];
 const hasProp = (obj, prop) => Object.hasOwnProperty.call(obj, prop);
 
-let hash2ChunkCount;
+let hash2ChunkCount = 0;
+
+while(fs.existsSync('./hash2in' + hash2ChunkCount + '.c')) {
+  hash2ChunkCount++;
+}
 
 let remainder = 16384;
 
@@ -272,8 +276,6 @@ function compileFloatLib () {
       this.push(v);
     }, functionsList);
 
-    hash2ChunkCount = 15;
-
     for (i = 0; i < hash2ChunkCount; i++) {
       /*
       put an entry in the functions list for each file.
@@ -386,6 +388,7 @@ function compileParser () {
       's/YY_INITIAL_VALUE (static YYSTYPE yyval_default;)//g;' +
       's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
       's/yydefact\\[\\(.[^]]*\\)\\]/yydefact2(\\1)/g;' +
+      's/yytable\\[\\(.[^]]*\\)\\]/yytable2(\\1)/g;' +
       's/yyr1\\[\\(.[^]]*\\)\\]/yyr1a(\\1)/g;' +
       's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_OESTABLISH/g;' +
       's/%s/%S/g;' +
@@ -393,7 +396,7 @@ function compileParser () {
       's/%lu/%LU/g;' +
       's/\'s\'/\'S\'/g;' +
       's/YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);/static YYSTYPE yylval;/g;' +
-      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);yytype_int8 yydefact2(int offset);yytype_int8 yyr1a(int offset);static const yytype_int16 yypact[]/g;' +
+      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);yytype_int8 yydefact2(int offset);yytype_int8 yyr1a(int offset);yytype_int16 yytable2(int offset);static const yytype_int16 yypact[]/g;' +
       '" sql.c > build/sql2.h');
 
   execSync(
@@ -498,14 +501,14 @@ function compileHash2 () {
 
   console.log('compileHash2');
 
-  for (i = 0; fs.existsSync('./hash2in' + i + '.c'); i++) {
+  for (i = 0; i < hash2ChunkCount; i++) {
     execSync(
       'cl65 -T -t c64 ' +
         '-o build/obj2/hash2in' + i + '.bin ' +
         '-Ln build/obj2/hash2in' + i + '.lbl ' +
         '-C rodata-page.cfg ' +
-        'hash2in' + i + '.c build/labels.s;' +
-        'rm *.o'
+        'hash2in' + i + '.c build/labels.s'
+        //+ ';rm *.o'
     );
 
     /*
@@ -540,8 +543,8 @@ function compileHash3And4 () {
       '-o build/obj2/hash3.bin ' +
       '-Ln build/obj2/hash3.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash3.c build/labels.s;' +
-      'rm *.o'
+      'hash3.c build/labels.s'
+      //+ ';rm *.o'
   );
 
   functionsList[hashMap._isCombiningChar][2] = parseInt(execSync(
@@ -570,8 +573,9 @@ function compileHash3And4 () {
       '-o build/obj2/hash4a.bin ' +
       '-Ln build/obj2/hash4a.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4a.c build/labels.s;' +
-      'rm *.o');
+      'hash4a.c build/labels.s'
+      //+ ';rm *.o'
+      );
 
   functionsList[hashMap._in_word_set_a][2] = parseInt(execSync(
     'sh -c "(echo -n \\"ibase=16;scale=16;\\" && (grep _in_word_set_a' +
@@ -599,8 +603,8 @@ function compileHash3And4 () {
       '-o build/obj2/hash4b.bin ' +
       '-Ln build/obj2/hash4b.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4b.c build/labels.s;' +
-      'rm *.o'
+      'hash4b.c build/labels.s'
+      //+ ';rm *.o'
   );
 
   functionsList[hashMap._in_word_set_b][2] = parseInt(execSync(
@@ -629,8 +633,8 @@ function compileHash3And4 () {
       '-o build/obj2/hash4c.bin ' +
       '-Ln build/obj2/hash4c.lbl ' +
       '-C rodata-page.cfg ' +
-      'hash4c.c build/labels.s;' +
-      'rm *.o'
+      'hash4c.c build/labels.s'
+      //+ ';rm *.o'
   );
 
   functionsList[hashMap._in_word_set_c][2] = parseInt(execSync(
@@ -1019,8 +1023,8 @@ function packPages () {
         'cl65 -T -t c64 ' +
         "-o ../obj/'{}'.bin " +
         '-C ../../function.cfg ' +
-        "-Ln ../g/'{}'.lbl ../g/'{}'.s;" +
-        "rm ../g/'{}'.o;" +
+        "-Ln ../g/'{}'.lbl ../g/'{}'.s" +
+        //";rm ../g/'{}'.o;" +
       "';" +
     'popd'
   );
@@ -1279,10 +1283,10 @@ function splitUpFunctions (filename, callback, append) {
 
           activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
         } else {
-          writePause(activeStream, '.export ' + name.toLowerCase() + filename + '\n');
+          writePause(activeStream, '.export _' + name.toLowerCase() + filename + '\n');
         }
 
-        writePause(activeStream, line.replace(name, name.toLowerCase() + filename) + '\n');
+        writePause(activeStream, line.replace(name, '_'+ name.toLowerCase() + filename) + '\n');
       }
     } else if (rodataType && /^[_a-z0-9A-Z]+\s*:/.test(line)) {
       if (activeStream) {
@@ -1335,7 +1339,7 @@ function splitUpFunctions (filename, callback, append) {
       writePause(
         activeStream,
         line
-          .replace(/L[0-9A-F]{4}/g, match => match.toLowerCase() + filename) +
+          .replace(/[LMS][0-9A-F]{4}/g, match => '_' + match.toLowerCase() + filename) +
             '\n'
       );
     }
