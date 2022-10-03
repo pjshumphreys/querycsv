@@ -77,7 +77,7 @@ argName:
   defw 0x0000
 
 defaultDrive: ; the default drive letter used by esxdos
-  defb 0
+  defb 0x2a ; current drive
 
 bcBackup:
   defw 0

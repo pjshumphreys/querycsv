@@ -33,7 +33,7 @@ querycsv.bin: querycsv2.bin querycsv.asm
 	z88dk-z80asm -b querycsv.asm
 
 querycsv.bas: querycsv.bin
-	printf '10 CLEAR VAL "46287"\n20 RANDOMIZE USR VAL "\\{0xBE}23635+256*\\{0xBE}23636+51"\n30 REM' > querycsv.bas
+	printf '10 CLEAR VAL "46000"\n20 RANDOMIZE USR VAL "\\{0xBE}23635+256*\\{0xBE}23636+51"\n30 REM' > querycsv.bas
 	xxd -ps -u -c 100000 querycsv.bin | sed -e "s/\(..\)/\\\{0x\1\}/g" >> querycsv.bas
 
 archiver: archiver.c

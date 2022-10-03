@@ -18,8 +18,8 @@ const int main_origins[6] = {
   16384,  /* plus3dos */
   0,      /* residos48 */
   0,      /* residos128 */
-  8192,   /* esxdos48 */
-  8192    /* esxdos128 */
+  23296,   /* esxdos48 */
+  16384    /* esxdos128 */
 };
 
 const int main_sizes[6] = {
@@ -27,8 +27,8 @@ const int main_sizes[6] = {
   6911, /* page 5 isn't used as we'll be switched to the second screen during runtime */
   16384,
   23295,  /* 16384 + 6911 */
-  8192,
-  15103 /* 8192 + 6911 */
+  256,
+  7167 /* 8192 + 6911 */
 };
 
 extern int stkend;
@@ -363,6 +363,6 @@ void setupZ80(int * argc, char *** argv) {
 
   if((*argv)[1] != NULL) {
     start = stkend + 1;
-    sbrk_z80(start, 44032 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
+    sbrk_z80(start, 42000 /* 0xc000 - 5kb */ - start); /* free ram from the end of the a$ variable up to the paging code minus about 2 kb for stack space */
   }
 }

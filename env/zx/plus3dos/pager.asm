@@ -83,7 +83,11 @@ farcall:
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
+
+serialLnHL:
   ret
+
+;INCLUDE "../common/serialLnBC.asm"
 
 INCLUDE "../common/spinner.asm"
 
@@ -144,8 +148,6 @@ farcall2:
   ld de, (deBackup)
   ld bc, (bcBackup)
   ld hl, (hlBackup)
-
-serialLnHL:
   ret
 
 ;---------------------------------------------------
