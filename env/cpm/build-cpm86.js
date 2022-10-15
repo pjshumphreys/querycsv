@@ -1,12 +1,6 @@
 /*
-  we'll need to generate the loaders and c library pages 2 times
-
-  CP/M & MSXDOS 1
-  MSXDOS 2
-
-all other pages should be sharable
-
--O0 --c-code-in-asm
+  This builds ofr cp/m-86 by first building for cp/m using z88dk and -clib=8080, then decompiling the binaries,
+  converting them from 8080 assembly to 8086 assembly with 8088ify then recompiling with NASM
 */
 
 const childProcess = require('child_process');
@@ -123,20 +117,19 @@ function start () {
 
   /* create the necessary folders */
   execSync(
-    'mkdir -p build;' +
-    'mkdir -p build/bin;' +
-    'mkdir -p build/s;' +
-    'mkdir -p build/g;' +
-    'mkdir -p build/h;' +
-    'mkdir -p build/ro;' +
-    'mkdir -p build/obj;' +
-    'mkdir -p build/obj2;' +
-    'mkdir -p build/fcb;' +
-    'mkdir -p build/msx2;' +
-    'mkdir -p output;' +
-    'rm -f build/rodata2.asm;' +
-    'rm -f build/data.asm;' +
-    'touch build/data.asm'
+    'mkdir -p build86;' +
+    'mkdir -p build86/bin;' +
+    'mkdir -p build86/s;' +
+    'mkdir -p build86/g;' +
+    'mkdir -p build86/h;' +
+    'mkdir -p build86/ro;' +
+    'mkdir -p build86/obj;' +
+    'mkdir -p build86/obj2;' +
+    'mkdir -p build86/fcb;' +
+    'mkdir -p output86;' +
+    'rm -f build86/rodata2.asm;' +
+    'rm -f build86/data.asm;' +
+    'touch build86/data.asm'
   );
 
   /* generate the large static arrays in the format z88dk needs */
@@ -178,17 +171,17 @@ function compileLexer () {
         'yy_chk2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;' +
       's/yy_accept\\[yy_current_state\\]/' +
         'yy_accept2\\(yy_current_state\\)/g;' +
-      '" lexer.c > build/lexer2.h'
+      '" lexer.c > build86/lexer2.h'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build/lexer3.c && ' +
-      '../../makeheaders -h build/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/lexer3.h'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build86/lexer3.c && ' +
+      '../../makeheaders -h build86/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build86/lexer3.h'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/lexer3.c -S -o build/lexer.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build/lexer.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/lexer3.c -S -o build86/lexer.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build86/lexer.asm'
   );
 
   splitUpFunctions('lexer', compileParser);
@@ -216,23 +209,23 @@ function compileParser () {
       's/static const yytype_int16 yypact\\[\\]/' +
         'yytype_int16 yypact2(int offset);' +
         'static const yytype_int16 yypact[]/g;' +
-    '" sql.c > build/sql2.h'
+    '" sql.c > build86/sql2.h'
   );
 
   execSync(
     'sed -i -r "' +
       's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;' +
-      '" build/sql2.h'
+      '" build86/sql2.h'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build/sql3.c && ' +
-      '../../makeheaders -h build/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build/sql3.h'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build86/sql3.c && ' +
+      '../../makeheaders -h build86/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build86/sql3.h'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build/sql.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build/sql.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build86/sql.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build86/sql.asm'
   );
 
   splitUpFunctions('sql', compileLibC2, true);
@@ -242,8 +235,8 @@ function compileLibC2 () {
   console.log('compileLibC2');
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build/libc2.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0libc2/g" build/libc2.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build86/libc2.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0libc2/g" build86/libc2.asm'
   );
 
   splitUpFunctions('libc2', compileQueryCSV, true);
@@ -253,8 +246,8 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build/querycsv.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build/querycsv.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build86/querycsv.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build86/querycsv.asm'
   );
 
   splitUpFunctions('querycsv', compileHash2, true);
@@ -264,8 +257,8 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build/hash2.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build/hash2.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build86/hash2.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build86/hash2.asm'
   );
 
   splitUpFunctions('hash2', compileHash3, true);
@@ -275,8 +268,8 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build/hash3.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build/hash3.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build86/hash3.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build86/hash3.asm'
   );
 
   splitUpFunctions('hash3', compileHash4a, true);
@@ -301,12 +294,12 @@ function compileHash4a () {
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
           'return (struct hash4EntryA *)\\&hash4export;\\n' +
         '}/gi;' +
-    '" hash4a.c > build/hash4a.c'
+    '" hash4a.c > build86/hash4a.c'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4a.c -S -o build/hash4a.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build/hash4a.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/hash4a.c -S -o build86/hash4a.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build86/hash4a.asm'
   );
 
   splitUpFunctions('hash4a', compileHash4b, true);
@@ -331,12 +324,12 @@ function compileHash4b () {
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
           'return (struct hash4EntryB *)\\&hash4export;\\n' +
         '}/gi;' +
-    '" hash4b.c > build/hash4b.c'
+    '" hash4b.c > build86/hash4b.c'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4b.c -S -o build/hash4b.asm;' +
-      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build/hash4b.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/hash4b.c -S -o build86/hash4b.asm;' +
+      'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build86/hash4b.asm'
   );
 
   splitUpFunctions('hash4b', compileHash4c, true);
@@ -361,12 +354,12 @@ function compileHash4c () {
           'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
           'return (struct hash4EntryC *)\\&hash4export;\\n' +
         '}/gi;' +
-    '" hash4c.c > build/hash4c.c'
+    '" hash4c.c > build86/hash4c.c'
   );
 
   execSync(
-    'zcc +cpm -O0 --c-code-in-asm -Cc-params-offset=6 -D__DISABLE_BUILTIN -U__STDC_VERSION__ build/hash4c.c -S -o build/hash4c.asm;' +
-    'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build/hash4c.asm'
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/hash4c.c -S -o build86/hash4c.asm;' +
+    'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build86/hash4c.asm'
   );
 
   splitUpFunctions('hash4c', addROData, true);
@@ -380,51 +373,51 @@ function addROData () {
 
   /* build the global data but exclude the hash4 strings */
   execSync(
-    'mv build/ro/i_1hash4*.asm build/ && ' +
-    'cat build/ro/i_1*.asm >> build/rodata.asm && ' +
-    'echo "  SECTION code_compiler" >> build/rodata.asm && ' +
-    'rm build/ro/i_1*.asm && ' +
-    'mv build/i_1hash4*.asm build/ro/'
+    'mv build86/ro/i_1hash4*.asm build86/ && ' +
+    'cat build86/ro/i_1*.asm >> build86/rodata.asm && ' +
+    'echo "  SECTION code_compiler" >> build86/rodata.asm && ' +
+    'rm build86/ro/i_1*.asm && ' +
+    'mv build86/i_1hash4*.asm build86/ro/'
   );
 
-  execSync('z88dk-z80asm -b build/rodata.asm');
+  execSync('z88dk-z80asm -b build86/rodata.asm');
 
-  rodataSize = fs.statSync('build/rodata.bin').size;
+  rodataSize = fs.statSync('build86/rodata.bin').size;
   pageSize = /*16644*/ /*16644*/ 16383 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
-  execSync(`z88dk-z80asm -b -m -r=${32768 - rodataSize} build/rodata.asm`);
+  execSync(`z88dk-z80asm -b -m -r=${32768 - rodataSize} build86/rodata.asm`);
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
-    .readFileSync('build/rodata.map', 'utf8')
+    .readFileSync('build86/rodata.map', 'utf8')
     .replace(/(i_1[a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, two, three, ...arr) => {
       const text = 'IFNDEF ' + two + '\n' +
             two + ' = $' + three + '\n' +
           'ENDIF\n';
       fs.writeFileSync(
-          `build/ro/${two}.asm`,
+          `build86/ro/${two}.asm`,
           text,
           'utf8'
       );
 
-      fs.appendFileSync('build/rodata2.asm', text);
+      fs.appendFileSync('build86/rodata2.asm', text);
     });
 
   /* de-duplicate the global variables */
   execSync(
-    'sort build/globals.asm | uniq > build/globals2.asm && ' +
-    'rm build/globals.asm && ' +
-    'mv build/globals2.asm build/globals.asm'
+    'sort build86/globals.asm | uniq > build86/globals2.asm && ' +
+    'rm build86/globals.asm && ' +
+    'mv build86/globals2.asm build86/globals.asm'
   );
 
   var list = [];
-  var walker = walk.walk('./build/s', {});
+  var walker = walk.walk('./build86/s', {});
 
   walker.on('file', (root, fileStats, next) => {
     list.push(
-      [fileStats.name, fs.readFileSync('build/s/' + fileStats.name, { encoding: 'utf8' })]
+      [fileStats.name, fs.readFileSync('build86/s/' + fileStats.name, { encoding: 'utf8' })]
     );
 
     next();
@@ -449,20 +442,20 @@ function getFunctionSizes () {
   always in the same page) */
   name = 'compareCommon';
   execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
+    'cat build86/s/compareCodepoints.asm >> build86/s/getBytes.asm;' +
+    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build86/s/getBytes.asm"
   );
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
-  execSync('rm build/s/compareCodepoints.asm');
+  execSync('rm build86/s/compareCodepoints.asm');
 
   name = 'sortCodepoints';
   execSync(
-    'cat build/s/sortCodepoints.asm >> build/s/getBytes.asm;' +
-    "sed -i 's/querycsv/querycsv1/g;' build/s/getBytes.asm"
+    'cat build86/s/sortCodepoints.asm >> build86/s/getBytes.asm;' +
+    "sed -i 's/querycsv/querycsv1/g;' build86/s/getBytes.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -471,20 +464,20 @@ function getFunctionSizes () {
 
   name = 'sortCodesParse';
   execSync(
-    'cat build/s/sortCodepoints.asm >> build/s/parse_mbcs.asm;' +
-    "sed -i 's/_sortCodepoints/_" + name + "/g;' build/s/parse_mbcs.asm"
+    'cat build86/s/sortCodepoints.asm >> build86/s/parse_mbcs.asm;' +
+    "sed -i 's/_sortCodepoints/_" + name + "/g;' build86/s/parse_mbcs.asm"
   );
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
-  execSync('rm build/s/sortCodepoints.asm');
+  execSync('rm build86/s/sortCodepoints.asm');
 
   name = 'sortBytesParse';
   execSync(
-    'cat build/s/sortBytes.asm >> build/s/parse_mbcs.asm;' +
-    "sed -i 's/_sortBytes/_" + name + "/g;s/querycsv/querycsv2/g;' build/s/parse_mbcs.asm"
+    'cat build86/s/sortBytes.asm >> build86/s/parse_mbcs.asm;' +
+    "sed -i 's/_sortBytes/_" + name + "/g;s/querycsv/querycsv2/g;' build86/s/parse_mbcs.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -493,24 +486,24 @@ function getFunctionSizes () {
 
   name = 'sortBytes';
   execSync(
-    'cat build/s/sortBytes.asm >> build/s/getCodepointsMbcs.asm;' +
-    "sed -i 's/querycsv/querycsv3/g;' build/s/getCodepointsMbcs.asm"
+    'cat build86/s/sortBytes.asm >> build86/s/getCodepointsMbcs.asm;' +
+    "sed -i 's/querycsv/querycsv3/g;' build86/s/getCodepointsMbcs.asm"
   );
 
   hashMap[name] = functionsList.length;
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
-  execSync('rm build/s/sortBytes.asm');
+  execSync('rm build86/s/sortBytes.asm');
 
   /* compile the data immediately above the function jump table */
-  execSync('z88dk-z80asm -b -r=49152 build/data.asm');
+  execSync('z88dk-z80asm -b -r=49152 build86/data.asm');
 
   spawnSync(
     'sh',
     [
       '-c',
-      "z88dk-z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + currentAddr + "}'` build/data.asm"
+      "z88dk-z80asm -m -b -r=`ls -nl build86/data.bin | awk '{print " + currentAddr + "}'` build86/data.asm"
     ],
     {
       stdio: 'inherit'
@@ -518,14 +511,14 @@ function getFunctionSizes () {
   );
 
   fs
-    .readFileSync('build/data.map', 'utf8')
+    .readFileSync('build86/data.map', 'utf8')
     .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
       defines[two] = three;
     });
 
   const list = [];
 
-  const walker = walk.walk('./build/s', {});
+  const walker = walk.walk('./build86/s', {});
 
   walker.on('file', (root, fileStats, next) => {
     if (/\.asm$/.test(fileStats.name)) {
@@ -546,10 +539,10 @@ function getFunctionSizes () {
         .reduce((obj, elem) => {
           elem.children = elem.children
             .map(elem => elem.replace(/^_/, ''))
-            .filter(name => fs.existsSync(path.join(__dirname, 'build', 'obj', name + '.bin')));
+            .filter(name => fs.existsSync(path.join(__dirname, 'build86', 'obj', name + '.bin')));
 
           try {
-            elem.size = fs.statSync(path.join(__dirname, 'build', 'obj', elem.name + '.bin')).size;
+            elem.size = fs.statSync(path.join(__dirname, 'build86', 'obj', elem.name + '.bin')).size;
           } catch (e) {}
 
           obj[elem.name] = elem;
@@ -664,10 +657,10 @@ function compilePages (pages) {
   console.log('compilePages');
 
   pages.forEach((elem, index) => {
-    addDefines('page' + (index + 3), elem.map(elem2 => elem2.name), 'h', true);
+    addDefines('qrycsv' + (index + 1), elem.map(elem2 => elem2.name), 'h', true);
 
     fs
-      .readFileSync('build/obj2/page' + (index + 3) + '.map', 'utf8')
+      .readFileSync('build86/obj2/qrycsv' + (index + 1) + '.map', 'utf8')
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         // console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
         two = two.replace(/^_/, '');
@@ -675,25 +668,25 @@ function compilePages (pages) {
 
         if (hasProp(hashMap, two) && item !== functionsList[hashMap[two]][2]) {
           functionsList[hashMap[two]][3] = item;
-          functionsList[hashMap[two]][1] = index + 3;
+          functionsList[hashMap[two]][1] = index + 1;
         }
       });
 
-    if (fs.statSync('build/obj2/page' + (index + 3) + '_code_compiler.bin').size > (16384 - rodataSize)) {
-      console.log('page ' + (index + 3) + ' is too big');
+    if (fs.statSync('build86/obj2/qrycsv' + (index + 1) + '_code_compiler.bin').size > (16384 - rodataSize)) {
+      console.log('page ' + (index + 1) + ' is too big');
       process.exit(-1);
     }
 
-    execSync('dd if=/dev/zero bs=1 count=16384 of=build/obj2/qrycsv' + (('00' + (index + 3)).substr(-2)) + '.ovl');
+    execSync('dd if=/dev/zero bs=1 count=16384 of=build86/obj2/qrycsv' + (('00' + (index + 1)).substr(-2)) + '.ovl');
 
-    execSync('dd if=build/obj2/page' + (index + 3) + '_code_compiler.bin of=build/obj2/qrycsv' +
-    (('00' + (index + 3)).substr(-2)) + '.ovl conv=notrunc');
+    execSync('dd if=build86/obj2/qrycsv' + (index + 1) + '_code_compiler.bin of=build86/obj2/qrycsv' +
+    (('00' + (index + 1)).substr(-2)) + '.ovl conv=notrunc');
 
-    execSync('dd if=build/rodata.bin of=build/obj2/qrycsv' +
-    (('00' + (index + 3)).substr(-2)) + '.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+    execSync('dd if=build86/rodata.bin of=build86/obj2/qrycsv' +
+    (('00' + (index + 1)).substr(-2)) + '.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
   });
 
-  execSync('rm build/obj2/*.bin');
+  execSync('rm build86/obj2/*.bin');
 }
 
 function compileLibC (pages) {
@@ -701,32 +694,32 @@ function compileLibC (pages) {
 
   let foo = ''; let i, j;
 
-  for (i = 0, j = pages.length + 2; i < j; i++) {
+  for (i = 0, j = pages.length + 1; i < j; i++) {
     foo += 'defb 0b11111111 ; ' + (i + 1) + '\n';
   }
 
   // build the asm includes
-  ['fcb', 'msx2'].forEach((name, index) => {
-    execSync('cp libc.c pager.asm serialLnBC.asm Makefile build/' + name + '/');
+  ['fcb'].forEach((name, index) => {
+    execSync('cp libc.c pager.asm serialLnBC.asm Makefile build86/' + name + '/');
 
-    fs.writeFileSync('build/' + name + '/defines.inc',
+    fs.writeFileSync('build86/' + name + '/defines.inc',
       Object.keys(defines).map(item => (/^_+([^_]+)?(_head|_tail|_size)$/).test(item)
         ? ''
         : '  PUBLIC ' + item + '\n  ' + item + ' equ 0x' + ('0000' + defines[item].toString(16)).substr(-4).toUpperCase()
       ).join('\n')
     );
 
-    fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
+    fs.writeFileSync('build86/' + name + '/lookupTable.inc', functionsList.map(item =>
        (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
-    fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
+    fs.writeFileSync('build86/' + name + '/functions.inc', functionsList.map(item =>
       (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
       '  call ' + item[4] + '  ;' + item[0] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
     ).join('\n'));
 
-    fs.writeFileSync('build/' + name + '/pages.inc', foo);
+    fs.writeFileSync('build86/' + name + '/pages.inc', foo);
   });
 
   compileLibC3(true);
@@ -737,13 +730,13 @@ function compileLibC (pages) {
 }
 
 function compileLibC3(fixDefines) {
-  ['fcb', 'msx2'].forEach((name, index) => {
+  ['fcb'].forEach((name, index) => {
     spawnSync(
       'make',
-      ['qrycsv0' + (index + 1) + '.ovl'],
+      ['qrycsv1a.ovl'],
       {
         stdio: 'inherit',
-        cwd: path.resolve(__dirname, 'build', name)
+        cwd: path.resolve(__dirname, 'build86', name)
       });
 
     if(fixDefines) {
@@ -754,28 +747,28 @@ function compileLibC3(fixDefines) {
         the padding needed.
       */
       fs
-        .readFileSync('build/' + name + '/qrycsv0' + (index + 1) + '.map', 'utf8')
+        .readFileSync('build86/' + name + '/qrycsv1a.map', 'utf8')
         .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
           const four = two.replace(/^_/, '');
 
           if(four === 'funcstart') {
-            execSync(`sed -i '1s/^/defs ${startOffset - parseInt(three, 16)}, 0\\n/' build/${name}/defines.inc`);
+            execSync(`sed -i '1s/^/defs ${startOffset - parseInt(three, 16)}, 0\\n/' build86/${name}/defines.inc`);
           }
         });
     }
 
-    execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
+    execSync('rm -f build86/' + name + '/qrycsv1a.ovl');
 
     spawnSync(
       'make',
-      ['qrycsv0' + (index + 1) + '.ovl'],
+      ['qrycsv1a.ovl'],
       {
         stdio: 'inherit',
-        cwd: path.resolve(__dirname, 'build', name)
+        cwd: path.resolve(__dirname, 'build86', name)
       });
 
     fs
-      .readFileSync('build/' + name + '/qrycsv0' + (index + 1) + '.map', 'utf8')
+      .readFileSync('build86/' + name + '/qrycsv1a.map', 'utf8')
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         const four = two.replace(/^_/, '');
 
@@ -791,31 +784,30 @@ function compileLibC3(fixDefines) {
         }
       });
 
-    fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
+    fs.writeFileSync('build86/' + name + '/lookupTable.inc', functionsList.map(item =>
        (item[1] === 1 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
-    fs.writeFileSync('build/' + name + '/functions.inc', functionsList.map(item =>
+    fs.writeFileSync('build86/' + name + '/functions.inc', functionsList.map(item =>
       (item[0] === 'main' ? '  PUBLIC _main\n_main:\n' : '') +
       '  call ' + item[4] + '\n  defb ' + (item[1] === 1 ? index + 1 : item[1])
     ).join('\n'));
 
-    execSync('rm -f build/' + name + '/qrycsv0' + (index + 1) + '.ovl');
+    execSync('rm -f build86/' + name + '/qrycsv1a.ovl');
 
     spawnSync(
       'make',
-      ['qrycsv0' + (index + 1) + '.ovl'],
+      ['qrycsv1a.ovl'],
       {
         stdio: 'inherit',
-        cwd: path.resolve(__dirname, 'build', name)
+        cwd: path.resolve(__dirname, 'build86', name)
       });
 
     if(!fixDefines) {
-      execSync('dd if=/dev/zero bs=1 count=16128 of=build/obj2/qrycsv0' + (index + 1) + '.ovl');
+      execSync('dd if=/dev/zero bs=1 count=16128 of=build86/obj2/qrycsv1a.ovl');
 
-      execSync('dd if=build/' + name + '/qrycsv0' + (index + 1) + '.ovl of=build/obj2/qrycsv0' +
-        + (index + 1) + '.ovl conv=notrunc');
+      execSync('dd if=build86/' + name + '/qrycsv1a.ovl of=build86/obj2/qrycsv1a.ovl conv=notrunc;cp build86/fcb/*.map build86/obj2/');
     }
 
     //functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
@@ -838,14 +830,14 @@ function splitUpFunctions (filename, callback, append) {
   let j;
 
   const lineReader = readline.createInterface({
-    input: fs.createReadStream('build/' + filename + '.asm')
+    input: fs.createReadStream('build86/' + filename + '.asm')
   });
 
-  const data = fs.createWriteStream('build/data.asm', {
+  const data = fs.createWriteStream('build86/data.asm', {
     flags: 'a'
   });
 
-  const globals = fs.createWriteStream('build/globals.asm', {
+  const globals = fs.createWriteStream('build86/globals.asm', {
     flags: append ? 'a' : 'w'
   });
 
@@ -858,7 +850,7 @@ function splitUpFunctions (filename, callback, append) {
 
   const rodataOutputStreams = [];
 
-  const code = fs.createWriteStream('build/' + filename + '_code.asm');
+  const code = fs.createWriteStream('build86/' + filename + '_code.asm');
 
   const functionOutputStreams = [];
   let activeStream = code;
@@ -894,7 +886,7 @@ function splitUpFunctions (filename, callback, append) {
 
         activeStream = functionOutputStreams[functionOutputStreams.length - 1];
       } else {
-        functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
+        functionOutputStreams.push(fs.createWriteStream('build86/s/' + name + '.asm'));
 
         activeStream = functionOutputStreams[functionOutputStreams.length - 1];
 
@@ -937,7 +929,7 @@ function splitUpFunctions (filename, callback, append) {
             rodataLabels.push([name, false, new RegExp('(\\b' + name.replace(matchOperatorsRe, '\\$&') + '\\b)', 'm')]);
 
             if (!hasProp(byteMaps, name2)) {
-              rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name2 + '.asm'));
+              rodataOutputStreams.push(fs.createWriteStream('build86/ro/' + name2 + '.asm'));
 
               byteMaps[name2] = rodataOutputStreams.length - 1;
               activeStream = rodataOutputStreams[byteMaps[name2]];
@@ -954,7 +946,7 @@ function splitUpFunctions (filename, callback, append) {
         if (rodataType === 1 || rodataType === 3) {
           rodataType = 3;
 
-          rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name + (name === 'i_1' ? '' : '') + '.asm'));
+          rodataOutputStreams.push(fs.createWriteStream('build86/ro/' + name + (name === 'i_1' ? '' : '') + '.asm'));
 
           /* add to the list of rodata regexes used to add the appropriate rodata to each function */
           rodataLabels.push([
@@ -1055,11 +1047,11 @@ function updateName (elem) {
 
   if (hasMatches) {
     execSync(
-      'echo "\tSECTION rodata_compiler" >> build/s/' + elem[0] + ' && ' +
+      'echo "\tSECTION rodata_compiler" >> build86/s/' + elem[0] + ' && ' +
         'cat ' +
-          shellEscape(rodataLabels.filter(label => label[1]).map(label => 'build/ro/' + label[0] + '.asm')) +
-          ' >> build/s/' + elem[0] + ' && ' +
-        'echo "\tSECTION code_compiler" >> build/s/' + elem[0]
+          shellEscape(rodataLabels.filter(label => label[1]).map(label => 'build86/ro/' + label[0] + '.asm')) +
+          ' >> build86/s/' + elem[0] + ' && ' +
+        'echo "\tSECTION code_compiler" >> build86/s/' + elem[0]
     );
   }
 
@@ -1088,7 +1080,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
       'printf " INCLUDE \\"' + filename + '2.inc\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
       'printf " INCLUDE \\"' + filename + '.inc\\"\n" >> ../' + folderName + '/' + filename + '.asm',
     {
-      cwd: path.join(__dirname, 'build', 's')
+      cwd: path.join(__dirname, 'build86', 's')
     }
   );
 
@@ -1096,7 +1088,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
     execSync(
       'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
       {
-        cwd: path.join(__dirname, 'build', 's')
+        cwd: path.join(__dirname, 'build86', 's')
       }
     );
   }
@@ -1106,11 +1098,11 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
     try {
       execSync(
-        'zcc +cpm ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
+        'zcc +cpm -clib=8080 ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
+          ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {
-          cwd: path.join(__dirname, 'build', 's'),
+          cwd: path.join(__dirname, 'build86', 's'),
           stdio: 'pipe'
         }
       );
@@ -1126,7 +1118,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
           'printf "\\\n" > ../' + folderName + '/' + filename + '.inc;' +
           'printf "\\\n" > ../' + folderName + '/' + filename + '2.inc;',
         {
-          cwd: path.join(__dirname, 'build', 's')
+          cwd: path.join(__dirname, 'build86', 's')
         }
       );
 
@@ -1144,14 +1136,14 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
                 '\n" >> ../' + folderName + '/' + filename + '.inc',
             {
-              cwd: path.join(__dirname, 'build', 's')
+              cwd: path.join(__dirname, 'build86', 's')
             }
           );
         } else {
           execSync(
             'printf "  EXTERN ' + elem + '\n" >> ../' + folderName + '/' + filename + '2.inc',
             {
-              cwd: path.join(__dirname, 'build', 's')
+              cwd: path.join(__dirname, 'build86', 's')
             }
           );
         }

@@ -52,6 +52,9 @@ void macYield(void) __z88dk_fastcall {
   }
 }
 
+extern int tryAllocate(void) __z88dk_fastcall;
+extern void putP1(int pageNumber) __z88dk_fastcall;
+
 void dosload(int pageNumber) __z88dk_fastcall {
   const char * filename = "qrycsv00.ovl";
 
@@ -59,27 +62,10 @@ void dosload(int pageNumber) __z88dk_fastcall {
 
   if(hasMapper) {
     if(loadPageStatus == 0xff) {
-      /* no ram block has been allocated to this segment. try to allocate one now */
-      regs.Bytes.A = 0;   /* allocate user segment */
-      regs.Bytes.B = 0;   /* allocate from primary mapper */
-      AsmCall(mapperJumpTable + ALL_SEG, &regs, REGS_MAIN, REGS_AF);
-      regs.Bytes.B = 0;
-
-      if(regs.Flags.C) {
-        /* allocation failed. Switch to the default bank to load the code into that */
-        regs.Bytes.A = defaultBank;
-      }
-      else {
-        /* allocation suceeded. switch to the bank number that was returned */
-        loadPageStatus = regs.Bytes.A;
-      }
-
-      AsmCall(mapperJumpTable + PUT_P1, &regs, REGS_AF, REGS_NONE);
+      putP1(tryAllocate());
     }
     else {
-      /* a ram block has already been allocated to this segment. just switch to it and don't load anything */
-      regs.Bytes.A = loadPageStatus;
-      AsmCall(mapperJumpTable + PUT_P1, &regs, REGS_AF, REGS_NONE);
+      putP1(loadPageStatus);
       return;
     }
   }
@@ -177,6 +163,8 @@ void free_z80(void *addr) {
 
 void atexit_z80(void) {
   free_z80(origWd);
+
+  fputc('\r', stdout);
 
   #ifdef CPM
     static int temp;
@@ -492,10 +480,11 @@ void b(void) {
   static FILE* test;
   static int num;
   static unsigned long num2;
+  static long num3;
 
   num = atol(string);
   ftoa(string, num, d);
-  ltoa(num2, string, num);
+  sprintf(string, "%ld", num3);
 
   abs(num);
   strncpy(string, string, 3);

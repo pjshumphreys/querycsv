@@ -113,8 +113,8 @@ int main(int argc, char **argv) {
     /* something else. print an error message and quit */
 
     /* get just the file name of the program */
-    temp3 = strlen(argv[0]);
-    temp = argv[0]+temp3-1;
+    temp3 = strlen(argv2[0]);
+    temp = argv2[0]+temp3-1;
 
     do {
       switch(*temp) {

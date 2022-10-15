@@ -1,4 +1,4 @@
-all: querycsv.com output
+all: querycsv.com output output86
 
 querycsv.com: launcher2.bin launcher.c launcher2.map
 	printf "PUBLIC _chooseCLib\n_chooseCLib:\nBINARY \"launcher2.bin\"\nPUBLIC _newStack\n" > launcher2.asm
@@ -11,6 +11,10 @@ launcher2.bin: launcher2.com
 
 launcher2.com: launcher2.c
 	zcc +cpm -lm -pragma-define:CRT_ORG_CODE=16384 -m -o launcher2.com launcher2.c
+
+qrycsv1a.ovl: pager.asm libc.c
+	zcc +cpm -clib=8080 --math-mbf32_8080 -m -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=5 -o qrycsv1a.ovl pager.asm libc.c
+#	zcc +cpm -clib=8080 --math-mbf32_8080 -S -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=5 --c-code-in-asm -o qrycsv1a.asm pager.asm libc.c
 
 qrycsv01.ovl: pager.asm libc.c
 	zcc +cpm -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -o qrycsv01.ovl pager.asm libc.c
@@ -25,5 +29,11 @@ output: querycsv.com pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js
 	cp qrycsv00.bin ./output/qrycsv00.ovl
 	cp querycsv.com build/obj2/*.ovl ./output
 
+output86: querycsv.com pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm86.js
+	node ./build-cpm86.js
+	cp qrycsv00.bin ./output86/qrycsv00.ovl
+	cp build86/obj2/*.ovl ./output86
+	mv ./output86/qrycsv1a.ovl ./output86/querycsv.com
+
 clean:
-	rm -rf build output zcc_opt.def launcher2.bin launcher2.com launcher2.asm querycsv.com *.map *.sym *.ovl
+	rm -rf build output build86 output86 zcc_opt.def launcher2.bin launcher2.com launcher2.asm querycsv.com *.map *.sym *.ovl

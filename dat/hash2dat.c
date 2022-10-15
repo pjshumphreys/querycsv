@@ -28,7 +28,7 @@ void isInHash2_0(void) {
   retval = &entry;
 }
 
-FILE* datafile;
+FILE* datafile = NULL;
 
 void openDat(void) {
   static const char * const datName = "qrycsv00.ovl";

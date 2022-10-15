@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  fprintf(fp, "\n};");
+  fprintf(fp, "\n};\n");
 
   fclose(fp);
 

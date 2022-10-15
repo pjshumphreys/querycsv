@@ -530,10 +530,7 @@ it becomes needed and because it's useful for debugging */
     fprintf_z80(NULL, __VA_ARGS__)
 
   /* z88dk's varargs never works properly for longs in user written functions,
-    but it does have a non standardized ltoa function which works. Use a macro
-    to sprintf elsewhere to do the same thing */
-  #undef myltoa
-  #define myltoa(x, y) ltoa((y), (x), 10)
+    but calling sprintf separately for just the long int should still work */
 #else
   /* the functions used with l_sort and l_bsearch shouldn't have offsets. Filter out __z88dk_params_offset for other compilers  */
   #define __z88dk_params_offset(VV)

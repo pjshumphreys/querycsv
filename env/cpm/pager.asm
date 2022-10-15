@@ -14,6 +14,8 @@ datastart:
   BINARY "../data.bin"
 
 PUBLIC _logNum
+PUBLIC _tryAllocate
+PUBLIC _putP1
 PUBLIC _hasMapper
 PUBLIC _defaultBank
 PUBLIC _mapperJumpTable
@@ -31,19 +33,26 @@ HOKVLD equ 0xFB20
 
 farcall:
   ; backup registers
+  push de
+  push bc
   ld (hlBackup), hl
-  ld (bcBackup), bc
-  ld (deBackup), de
+  pop hl
+  ld (bcBackup), hl
+  pop hl
+  ld (deBackup), hl
 
-  pop hl ; (hl) contains virtual page number to use
+  pop bc ; (hl) contains virtual page number to use
+
+  ;push the virtual page to return to onto the stack
+  ld hl, (currentVirtualPage)
+  push hl
+
+  push bc
+  pop hl
   ld e, (hl)
   ;ld c, (hl)
   ;ld b, 0
   ;call serialLnBC
-
-  ;push the virtual page to return to onto the stack
-  ld bc, (currentVirtualPage)
-  push bc
 
   ;push the far return loader onto the stack so we'll return to it rather than the original caller
   ld bc, farRet
@@ -56,8 +65,13 @@ farcall:
   sbc hl, bc
 
   ;shift right to divide by 2 (for groups of 2 rather than 4)
-  srl h
-  rr l
+  xor a
+  ld a,h
+  rra
+  ld h,a
+  ld a,l
+  rra
+  ld l,a
 
   ld bc, lookupTable
   add hl, bc
@@ -83,16 +97,24 @@ farcall:
   pop af
 
   ;restore all registers and jump to the function we want via ret
-  ld de, (deBackup)
-  ld bc, (bcBackup)
+  ld hl, (deBackup)
+  push hl
+  ld hl, (bcBackup)
+  push hl
   ld hl, (hlBackup)
+  pop bc
+  pop de
   ret
 
 farcall2:
   ; backup registers
+  push de
+  push bc
   ld (hlBackup), hl
-  ld (bcBackup), bc
-  ld (deBackup), de
+  pop hl
+  ld (bcBackup), hl
+  pop hl
+  ld (deBackup), hl
 
   pop hl ; (hl) contains virtual page number to use
   ;ld c, (hl)
@@ -106,8 +128,13 @@ farcall2:
   sbc hl, bc
 
   ;shift right to divide by 2 (for groups of 2 rather than 4)
-  srl h
-  rr l
+  xor a
+  ld a,h
+  rra
+  ld h,a
+  ld a,l
+  rra
+  ld l,a
 
   ld bc, lookupTable
   add hl, bc
@@ -120,9 +147,13 @@ farcall2:
   push bc ; store the address of the function to call on the stack for later
 
   ;restore all registers and jump to the function we want via ret
-  ld de, (deBackup)
-  ld bc, (bcBackup)
+  ld hl, (deBackup)
+  push hl
+  ld hl, (bcBackup)
+  push hl
   ld hl, (hlBackup)
+  pop bc
+  pop de
 _logNum:
   ret
 
@@ -170,9 +201,13 @@ found:
 
 farRet:
   ; backup registers
+  push de
+  push bc
   ld (hlBackup), hl
-  ld (bcBackup), bc
-  ld (deBackup), de
+  pop hl
+  ld (bcBackup), hl
+  pop hl
+  ld (deBackup), hl
 
   pop de  ; get the virtual page number to return to from the stack
 
@@ -187,9 +222,13 @@ farRet:
   call changePage
   pop af
 
-  ld de, (deBackup)
-  ld bc, (bcBackup)
+  ld hl, (deBackup)
+  push hl
+  ld hl, (bcBackup)
+  push hl
   ld hl, (hlBackup)
+  pop bc
+  pop de
   ret
 
 ;-----------------------------------------
@@ -204,6 +243,7 @@ _initMapper: ; detect if a msx2 compatible mem mapper is present
   ; test for whether this code is running on an MSX computer by calling MSX_DOSVER
   ld a, 1
   ld c, 0x6f
+  ld de, writeBlkEmpty
   call 0x0005
   or a
   jr nz, noMapper
@@ -214,8 +254,8 @@ _initMapper: ; detect if a msx2 compatible mem mapper is present
 
   ; test for presence of extended bios
   ld a, (HOKVLD)
-  bit 0, a
-  jr z, noMapper  ; no extended bios
+  rra
+  jr nc, noMapper  ; no extended bios
 
   ; call GET_VARTAB to test for msx2 mapper support
   xor a
@@ -242,6 +282,34 @@ _initMapper: ; detect if a msx2 compatible mem mapper is present
 
 noMapper:
   ret
+
+writeBlkEmpty:
+  dw 0
+  dw 0
+
+_tryAllocate:
+  xor a
+  ld b,a
+  ld hl,(_mapperJumpTable)
+  ;ld de, 0   ; ALL_SEG
+  ;add hl, de
+  call l_jphl
+  ld h,0
+  jp nc,success
+  ld a,(_defaultBank)
+  ld l,a
+  ret
+success:
+  ld (_loadPageStatus),a
+  ld l,a
+  ret
+
+_putP1:
+  ld a,l
+  ld hl,(_mapperJumpTable)
+  ld de,0x1e   ; PUT_P1
+  add hl,de
+  jp l_jphl  ; put the default bank back onto page 1 (0x4000 - 0x7fff)
 
 _cleanup_z80:
   ld a, (_hasMapper)

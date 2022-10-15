@@ -344,14 +344,16 @@ void setupZ80(int * argc, char *** argv) {
   /* initialise variables needed by z88dk's libc */
 
   __asm
-    	; Setup std* streams
+      ; Setup std* streams
       ld      hl,__sgoioblk+2
       ld      (hl),19 ;stdin
       ld      hl,__sgoioblk+12
       ld      (hl),21 ;stdout
       ld      hl,__sgoioblk+22
       ld      (hl),21 ;stderr
-      ld      (_st_setupZ80_sp), sp
+      ld      hl,0
+      add     hl,sp
+      ld      (_st_setupZ80_sp),hl
   __endasm;
 
   initMapper();
