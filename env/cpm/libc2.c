@@ -356,15 +356,19 @@ void setupZ80(int * argc, char *** argv) {
       ld      (_st_setupZ80_sp),hl
   __endasm;
 
-  initMapper();
+  #ifndef __8080__
+    initMapper();
+  #endif
 
   /* initialise the heap so malloc and free will work */
   mallinit_z80();
 
   /* the msx2 variant has a bit more free memory that we can use for heap data */
-  if(versionMajor == 2) {
-    sbrk_z80(0x2c00, 0x3fff - 0x2c00);
-  }
+  #ifndef __8080__
+    if(versionMajor == 2) {
+      sbrk_z80(0x2c00, 0x3fff - 0x2c00);
+    }
+  #endif
 
   sp = sp - 2000 - 0x8000;  /* reserve 2kb for stack */
 

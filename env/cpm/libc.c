@@ -1,5 +1,7 @@
 /* fake program to get the necessary libc functions into 1 memory page */
-#pragma output noprotectmsdos
+#ifndef __8080__
+  #pragma output noprotectmsdos
+#endif
 
 /* not really nofileio, but we want to locate __sgoiblk ourselves to make
 it the same value for both the fcb and msx2 variants */
@@ -25,18 +27,11 @@ it the same value for both the fcb and msx2 variants */
 #define PUT_P3  0x2a  /* No effect */
 #define GET_P3  0x2d  /* Get the segment number of bank 3 (C000h~FFFFh) */
 
-extern char hasMapper;
-extern unsigned char loadPageStatus;
-extern unsigned char defaultBank;
-extern int mapperJumpTable;
 extern int newline;
 extern int currentWaitCursor;
 extern int cursorOutput;
 extern int startOfLine;
 extern char *origWd;
-extern Z80_registers regs;
-
-void cleanup_z80(void);
 
 void macYield(void) __z88dk_fastcall {
   const char * spinner = "...ooOOoo";
@@ -52,23 +47,32 @@ void macYield(void) __z88dk_fastcall {
   }
 }
 
-extern int tryAllocate(void) __z88dk_fastcall;
-extern void putP1(int pageNumber) __z88dk_fastcall;
+#ifndef __8080__
+  extern unsigned char defaultBank;
+  extern unsigned char loadPageStatus;
+  extern int mapperJumpTable;
+  extern int tryAllocate(void) __z88dk_fastcall;
+  extern void putP1(int pageNumber) __z88dk_fastcall;
+  void cleanup_z80(void);
+  extern char hasMapper;
+#endif
 
 void dosload(int pageNumber) __z88dk_fastcall {
   const char * filename = "qrycsv00.ovl";
 
   static int temp;
 
-  if(hasMapper) {
-    if(loadPageStatus == 0xff) {
-      putP1(tryAllocate());
+  #ifndef __8080__
+    if(hasMapper) {
+      if(loadPageStatus == 0xff) {
+        putP1(tryAllocate());
+      }
+      else {
+        putP1(loadPageStatus);
+        return;
+      }
     }
-    else {
-      putP1(loadPageStatus);
-      return;
-    }
-  }
+  #endif
 
   sprintf(filename + 6, "%02d", pageNumber);
   filename[8] = '.';
@@ -180,7 +184,9 @@ void atexit_z80(void) {
     }
   #endif
 
-  cleanup_z80();
+  #ifndef __8080__
+    cleanup_z80();
+  #endif
 }
 
 size_t fwrite_z80(const void * ptr, size_t size, size_t count, FILE * stream) {
@@ -512,5 +518,5 @@ void b(void) {
   fflush(stdout);
   isspace(num);
   isdigit(num);
-  atexit(cleanup_z80);
+  atexit(atexit_z80);
 }

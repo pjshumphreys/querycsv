@@ -12,9 +12,9 @@ launcher2.bin: launcher2.com
 launcher2.com: launcher2.c
 	zcc +cpm -lm -pragma-define:CRT_ORG_CODE=16384 -m -o launcher2.com launcher2.c
 
-qrycsv1a.ovl: pager.asm libc.c
-	zcc +cpm -clib=8080 --math-mbf32_8080 -m -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=5 -o qrycsv1a.ovl pager.asm libc.c
-#	zcc +cpm -clib=8080 --math-mbf32_8080 -S -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=5 --c-code-in-asm -o qrycsv1a.asm pager.asm libc.c
+qrycsv1a.ovl: pager86.asm libc.c
+	zcc +cpm -clib=8080 --math-mbf32_8080 -m -D__8080__ -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -o qrycsv1a.ovl pager86.asm libc.c
+#	zcc +cpm -clib=8080 --math-mbf32_8080 -S -D__8080__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 --c-code-in-asm -o qrycsv1a.asm pager86.asm libc.c
 
 qrycsv01.ovl: pager.asm libc.c
 	zcc +cpm -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -o qrycsv01.ovl pager.asm libc.c

@@ -1,513 +1,511 @@
-const fs = require('fs');
-
 const replacements = [
   [
     " MOV A,A",
-    " ld      a,a"
+    " ld[ ]+a,[ ]?a"
   ],
   [
     " MOV A,B",
-    " ld      a,b"
+    " ld[ ]+a,[ ]?b"
   ],
   [
     " MOV A,C",
-    " ld      a,c"
+    " ld[ ]+a,[ ]?c"
   ],
   [
     " MOV A,D",
-    " ld      a,d"
+    " ld[ ]+a,[ ]?d"
   ],
   [
     " MOV A,E",
-    " ld      a,e"
+    " ld[ ]+a,[ ]?e"
   ],
   [
     " MOV A,H",
-    " ld      a,h"
+    " ld[ ]+a,[ ]?h"
   ],
   [
     " MOV A,L",
-    " ld      a,l"
+    " ld[ ]+a,[ ]?l"
   ],
   [
     " MOV A,M",
-    " ld      a,\\(hl\\)"
+    " ld[ ]+a,[ ]?\\(hl\\)"
   ],
   [
     " LDAX B",
-    " ld      a,\\(bc\\)"
+    " ld[ ]+a,[ ]?\\(bc\\)"
   ],
   [
     " LDAX D",
-    " ld      a,\\(de\\)"
+    " ld[ ]+a,[ ]?\\(de\\)"
   ],
   [
     " LDA $1",
-    " ld      a,\\(([^)]+)\\)"
+    " ld[ ]+a,[ ]?\\(([^)]+)\\)"
   ],
   [
     " MOV B,A",
-    " ld      b,a"
+    " ld[ ]+b,[ ]?a"
   ],
   [
     " MOV B,B",
-    " ld      b,b"
+    " ld[ ]+b,[ ]?b"
   ],
   [
     " MOV B,C",
-    " ld      b,c"
+    " ld[ ]+b,[ ]?c"
   ],
   [
     " MOV B,D",
-    " ld      b,d"
+    " ld[ ]+b,[ ]?d"
   ],
   [
     " MOV B,E",
-    " ld      b,e"
+    " ld[ ]+b,[ ]?e"
   ],
   [
     " MOV B,H",
-    " ld      b,h"
+    " ld[ ]+b,[ ]?h"
   ],
   [
     " MOV B,L",
-    " ld      b,l"
+    " ld[ ]+b,[ ]?l"
   ],
   [
     " MOV B,M",
-    " ld      b,\\(hl\\)"
+    " ld[ ]+b,[ ]?\\(hl\\)"
   ],
   [
     " MOV C,A",
-    " ld      c,a"
+    " ld[ ]+c,[ ]?a"
   ],
   [
     " MOV C,B",
-    " ld      c,b"
+    " ld[ ]+c,[ ]?b"
   ],
   [
     " MOV C,C",
-    " ld      c,c"
+    " ld[ ]+c,[ ]?c"
   ],
   [
     " MOV C,D",
-    " ld      c,d"
+    " ld[ ]+c,[ ]?d"
   ],
   [
     " MOV C,E",
-    " ld      c,e"
+    " ld[ ]+c,[ ]?e"
   ],
   [
     " MOV C,H",
-    " ld      c,h"
+    " ld[ ]+c,[ ]?h"
   ],
   [
     " MOV C,L",
-    " ld      c,l"
+    " ld[ ]+c,[ ]?l"
   ],
   [
     " MOV C,M",
-    " ld      c,\\(hl\\)"
+    " ld[ ]+c,[ ]?\\(hl\\)"
   ],
   [
     " MOV D,A",
-    " ld      d,a"
+    " ld[ ]+d,[ ]?a"
   ],
   [
     " MOV D,B",
-    " ld      d,b"
+    " ld[ ]+d,[ ]?b"
   ],
   [
     " MOV D,C",
-    " ld      d,c"
+    " ld[ ]+d,[ ]?c"
   ],
   [
     " MOV D,D",
-    " ld      d,d"
+    " ld[ ]+d,[ ]?d"
   ],
   [
     " MOV D,E",
-    " ld      d,e"
+    " ld[ ]+d,[ ]?e"
   ],
   [
     " MOV D,H",
-    " ld      d,h"
+    " ld[ ]+d,[ ]?h"
   ],
   [
     " MOV D,L",
-    " ld      d,l"
+    " ld[ ]+d,[ ]?l"
   ],
   [
     " MOV D,M",
-    " ld      d,\\(hl\\)"
+    " ld[ ]+d,[ ]?\\(hl\\)"
   ],
   [
     " MOV E,A",
-    " ld      e,a"
+    " ld[ ]+e,[ ]?a"
   ],
   [
     " MOV E,B",
-    " ld      e,b"
+    " ld[ ]+e,[ ]?b"
   ],
   [
     " MOV E,C",
-    " ld      e,c"
+    " ld[ ]+e,[ ]?c"
   ],
   [
     " MOV E,D",
-    " ld      e,d"
+    " ld[ ]+e,[ ]?d"
   ],
   [
     " MOV E,E",
-    " ld      e,e"
+    " ld[ ]+e,[ ]?e"
   ],
   [
     " MOV E,H",
-    " ld      e,h"
+    " ld[ ]+e,[ ]?h"
   ],
   [
     " MOV E,L",
-    " ld      e,l"
+    " ld[ ]+e,[ ]?l"
   ],
   [
     " MOV E,M",
-    " ld      e,\\(hl\\)"
+    " ld[ ]+e,[ ]?\\(hl\\)"
   ],
   [
     " MOV H,A",
-    " ld      h,a"
+    " ld[ ]+h,[ ]?a"
   ],
   [
     " MOV H,B",
-    " ld      h,b"
+    " ld[ ]+h,[ ]?b"
   ],
   [
     " MOV H,C",
-    " ld      h,c"
+    " ld[ ]+h,[ ]?c"
   ],
   [
     " MOV H,D",
-    " ld      h,d"
+    " ld[ ]+h,[ ]?d"
   ],
   [
     " MOV H,E",
-    " ld      h,e"
+    " ld[ ]+h,[ ]?e"
   ],
   [
     " MOV H,H",
-    " ld      h,h"
+    " ld[ ]+h,[ ]?h"
   ],
   [
     " MOV H,L",
-    " ld      h,l"
+    " ld[ ]+h,[ ]?l"
   ],
   [
     " MOV H,M",
-    " ld      h,\\(hl\\)"
+    " ld[ ]+h,[ ]?\\(hl\\)"
   ],
   [
     " MOV L,A",
-    " ld      l,a"
+    " ld[ ]+l,[ ]?a"
   ],
   [
     " MOV L,B",
-    " ld      l,b"
+    " ld[ ]+l,[ ]?b"
   ],
   [
     " MOV L,C",
-    " ld      l,c"
+    " ld[ ]+l,[ ]?c"
   ],
   [
     " MOV L,D",
-    " ld      l,d"
+    " ld[ ]+l,[ ]?d"
   ],
   [
     " MOV L,E",
-    " ld      l,e"
+    " ld[ ]+l,[ ]?e"
   ],
   [
     " MOV L,H",
-    " ld      l,h"
+    " ld[ ]+l,[ ]?h"
   ],
   [
     " MOV L,L",
-    " ld      l,l"
+    " ld[ ]+l,[ ]?l"
   ],
   [
     " MOV L,M",
-    " ld      l,\\(hl\\)"
+    " ld[ ]+l,[ ]?\\(hl\\)"
   ],
   [
     " MOV M,A",
-    " ld      \\(hl\\),a"
+    " ld[ ]+\\(hl\\),[ ]?a"
   ],
   [
     " MOV M,B",
-    " ld      \\(hl\\),b"
+    " ld[ ]+\\(hl\\),[ ]?b"
   ],
   [
     " MOV M,C",
-    " ld      \\(hl\\),c"
+    " ld[ ]+\\(hl\\),[ ]?c"
   ],
   [
     " MOV M,D",
-    " ld      \\(hl\\),d"
+    " ld[ ]+\\(hl\\),[ ]?d"
   ],
   [
     " MOV M,E",
-    " ld      \\(hl\\),e"
+    " ld[ ]+\\(hl\\),[ ]?e"
   ],
   [
     " MOV M,H",
-    " ld      \\(hl\\),h"
+    " ld[ ]+\\(hl\\),[ ]?h"
   ],
   [
     " MOV M,L",
-    " ld      \\(hl\\),l"
+    " ld[ ]+\\(hl\\),[ ]?l"
   ],
   [
     " MVI A,$1",
-    " ld      a,([^ ;()]+)"
+    " ld[ ]+a,[ ]?([^ ;()]+)"
   ],
   [
     " MVI B,$1",
-    " ld      b,([^ ;()]+)"
+    " ld[ ]+b,[ ]?([^ ;()]+)"
   ],
   [
     " MVI C,$1",
-    " ld      c,([^ ;()]+)"
+    " ld[ ]+c,[ ]?([^ ;()]+)"
   ],
   [
     " MVI D,$1",
-    " ld      d,([^ ;()]+)"
+    " ld[ ]+d,[ ]?([^ ;()]+)"
   ],
   [
     " MVI E,$1",
-    " ld      e,([^ ;()]+)"
+    " ld[ ]+e,[ ]?([^ ;()]+)"
   ],
   [
     " MVI H,$1",
-    " ld      h,([^ ;()]+)"
+    " ld[ ]+h,[ ]?([^ ;()]+)"
   ],
   [
     " MVI L,$1",
-    " ld      l,([^ ;()]+)"
+    " ld[ ]+l,[ ]?([^ ;()]+)"
   ],
   [
     " MVI M,$1",
-    " ld      \\(hl\\),([^ ;()]+)"
+    " ld[ ]+hl\\),[ ]?([^ ;()]+)"
   ],
   [
     " STAX B",
-    " ld      \\(bc\\),a"
+    " ld[ ]+\\(bc\\),[ ]?a"
   ],
   [
     " STAX D",
-    " ld      \\(de\\),a"
+    " ld[ ]+\\(de\\),[ ]?a"
   ],
   [
     " STA $1",
-    " ld      \\(([^)]+)\\),a"
+    " ld[ ]+\\(([^)]+)\\),[ ]?a"
   ],
   [
     " LXI B,$1",
-    " ld      bc,([^ ;()]+)"
+    " ld[ ]+bc,[ ]?([^ ;()]+)"
   ],
   [
     " LXI D,$1",
-    " ld      de,([^ ;()]+)"
+    " ld[ ]+de,[ ]?([^ ;()]+)"
   ],
   [
     " LXI H,$1",
-    " ld      hl,([^ ();]+)"
-  ],
-  [
-    " LXI SP,$1",
-    " ld      sp,([^ ();]+)"
+    " ld[ ]+hl,[ ]?([^ ();]+)"
   ],
   [
     " LHLD $1",
-    " ld      hl,\\(([^)]+)\\)"
+    " ld[ ]+hl,[ ]?\\(([^)]+)\\)"
   ],
   [
     " SHLD $1",
-    " ld      \\(([^)]+)\\),hl"
+    " ld[ ]+\\(([^)]+)\\),[ ]?hl"
   ],
   [
     " SPHL",
-    " ld      sp,hl"
+    " ld[ ]+sp,[ ]?hl"
+  ],
+  [
+    " LXI SP,$1",
+    " ld[ ]+sp,[ ]?([^ ;()]+)"
   ],
   [
     " XCHG",
-    " ex      de,hl"
+    " ex[ ]+de,[ ]?hl"
   ],
   [
     " XTHL",
-    " ex      \\(sp\\),hl"
+    " ex[ ]+\\(sp\\),[ ]?hl"
   ],
   [
     " ADD A ",
-    " add     a "
+    " add[ ]+a "
   ],
   [
     " ADD B ",
-    " add     b "
+    " add[ ]+b "
   ],
   [
     " ADD C ",
-    " add     c "
+    " add[ ]+c "
   ],
   [
     " ADD D ",
-    " add     d "
+    " add[ ]+d "
   ],
   [
     " ADD E ",
-    " add     e "
+    " add[ ]+e "
   ],
   [
     " ADD H ",
-    " add     h "
+    " add[ ]+h "
   ],
   [
     " ADD L ",
-    " add     l "
+    " add[ ]+l "
   ],
   [
     " ADD M ",
-    " add     \\(hl\\) "
+    " add[ ]+\\(hl\\) "
   ],
   [
     " ADI $1 ",
-    " add     ([^ ;,()]+) "
+    " add[ ]+([^ ;,()]+) "
   ],
   [
     " ADC A ",
-    " adc     a "
+    " adc[ ]+a "
   ],
   [
     " ADC B ",
-    " adc     b "
+    " adc[ ]+b "
   ],
   [
     " ADC C ",
-    " adc     c "
+    " adc[ ]+c "
   ],
   [
     " ADC D ",
-    " adc     d "
+    " adc[ ]+d "
   ],
   [
     " ADC E ",
-    " adc     e "
+    " adc[ ]+e "
   ],
   [
     " ADC H ",
-    " adc     h "
+    " adc[ ]+h "
   ],
   [
     " ADC L ",
-    " adc     l "
+    " adc[ ]+l "
   ],
   [
     " ADC M ",
-    " adc     \\(hl\\) "
+    " adc[ ]+\\(hl\\) "
   ],
   [
     " ACI $1 ",
-    " adc     ([^ ;,()]+) "
+    " adc[ ]+([^ ;,()]+) "
   ],
   [
     " SUB A ",
-    " sub     a "
+    " sub[ ]+a "
   ],
   [
     " SUB B ",
-    " sub     b "
+    " sub[ ]+b "
   ],
   [
     " SUB C ",
-    " sub     c "
+    " sub[ ]+c "
   ],
   [
     " SUB D ",
-    " sub     d "
+    " sub[ ]+d "
   ],
   [
     " SUB E ",
-    " sub     e "
+    " sub[ ]+e "
   ],
   [
     " SUB H ",
-    " sub     h "
+    " sub[ ]+h "
   ],
   [
     " SUB L ",
-    " sub     l "
+    " sub[ ]+l "
   ],
   [
     " SUB M ",
-    " sub     \\(hl\\) "
+    " sub[ ]+\\(hl\\) "
   ],
   [
     " SUI $1 ",
-    " sub     ([^ ;()]+) "
+    " sub[ ]+([^ ;()]+) "
   ],
   [
     " SBB A ",
-    " sbc     a "
+    " sbc[ ]+a "
   ],
   [
     " SBB B ",
-    " sbc     b "
+    " sbc[ ]+b "
   ],
   [
     " SBB C ",
-    " sbc     c "
+    " sbc[ ]+c "
   ],
   [
     " SBB D ",
-    " sbc     d "
+    " sbc[ ]+d "
   ],
   [
     " SBB E ",
-    " sbc     e "
+    " sbc[ ]+e "
   ],
   [
     " SBB H ",
-    " sbc     h "
+    " sbc[ ]+h "
   ],
   [
     " SBB L ",
-    " sbc     l "
+    " sbc[ ]+l "
+  ],
+  [
+    " SBI $1 ",
+    " sbc[ ]+([^ ;()]+) "
   ],
   [
     " SBB M ",
-    " sbc     \\(hl\\) "
-  ],
-  [
-    " SBI $$$1 ",
-    " sbc     (\\$[^ ;,()]+) "
+    " sbc[ ]+\\(hl\\) "
   ],
   [
     " DAD B",
-    " add     hl,bc"
+    " add[ ]+hl,[ ]?bc"
   ],
   [
     " DAD D",
-    " add     hl,de"
+    " add[ ]+hl,[ ]?de"
   ],
   [
     " DAD H",
-    " add     hl,hl"
+    " add[ ]+hl,[ ]?hl"
   ],
   [
     " DAD SP",
-    " add     hl,sp"
+    " add[ ]+hl,[ ]?sp"
   ],
   [
     " DI",
-    " di"
+    " di([ ]|$)"
   ],
   [
     " EI",
@@ -523,99 +521,99 @@ const replacements = [
   ],
   [
     " INR A ",
-    " inc     a "
+    " inc[ ]+a "
   ],
   [
     " INR B ",
-    " inc     b "
+    " inc[ ]+b "
   ],
   [
     " INR C ",
-    " inc     c "
+    " inc[ ]+c "
   ],
   [
     " INR D ",
-    " inc     d "
+    " inc[ ]+d "
   ],
   [
     " INR E ",
-    " inc     e "
+    " inc[ ]+e "
   ],
   [
     " INR H ",
-    " inc     h "
+    " inc[ ]+h "
   ],
   [
     " INR L ",
-    " inc     l "
+    " inc[ ]+l "
   ],
   [
     " INR M ",
-    " inc     \\(hl\\) "
+    " inc[ ]+\\(hl\\) "
   ],
   [
     " DCR A ",
-    " dec     a "
+    " dec[ ]+a "
   ],
   [
     " DCR B ",
-    " dec     b "
+    " dec[ ]+b "
   ],
   [
     " DCR C ",
-    " dec     c "
+    " dec[ ]+c "
   ],
   [
     " DCR D ",
-    " dec     d "
+    " dec[ ]+d "
   ],
   [
     " DCR E ",
-    " dec     e "
+    " dec[ ]+e "
   ],
   [
     " DCR H ",
-    " dec     h "
+    " dec[ ]+h "
   ],
   [
     " DCR L ",
-    " dec     l "
+    " dec[ ]+l "
   ],
   [
     " DCR M ",
-    " dec     \\(hl\\) "
+    " dec[ ]+\\(hl\\) "
   ],
   [
     " INX B",
-    " inc     bc"
+    " inc[ ]+bc"
   ],
   [
     " INX D",
-    " inc     de"
+    " inc[ ]+de"
   ],
   [
     " INX H",
-    " inc     hl"
+    " inc[ ]+hl"
   ],
   [
     " INX SP",
-    " inc     sp"
+    " inc[ ]+sp"
   ],
   [
     " DCX B",
-    " dec     bc"
+    " dec[ ]+bc"
   ],
   [
     " DCX D",
-    " dec     de"
+    " dec[ ]+de"
   ],
   [
     " DCX H",
-    " dec     hl"
+    " dec[ ]+hl"
   ],
   [
     " DCX SP",
-    " dec     sp"
+    " dec[ ]+sp"
   ],
   [
     " DAA",
@@ -651,359 +649,540 @@ const replacements = [
   ],
   [
     " ANA A",
-    " and     a"
+    " and[ ]+a"
   ],
   [
     " ANA B",
-    " and     b"
+    " and[ ]+b"
   ],
   [
     " ANA C",
-    " and     c"
+    " and[ ]+c"
   ],
   [
     " ANA D",
-    " and     d"
+    " and[ ]+d"
   ],
   [
     " ANA E",
-    " and     e"
+    " and[ ]+e"
   ],
   [
     " ANA H",
-    " and     h"
+    " and[ ]+h"
   ],
   [
     " ANA L",
-    " and     l"
+    " and[ ]+l"
   ],
   [
     " ANA M",
-    " and     \\(hl\\)"
+    " and[ ]+\\(hl\\)"
   ],
   [
     " ANI $1",
-    " and     ([^ ;()]+)"
+    " and[ ]+([^ ;()]+)"
   ],
   [
     " XRA A",
-    " xor     a"
+    " xor[ ]+a"
   ],
   [
     " XRA B",
-    " xor     b"
+    " xor[ ]+b"
   ],
   [
     " XRA C",
-    " xor     c"
+    " xor[ ]+c"
   ],
   [
     " XRA D",
-    " xor     d"
+    " xor[ ]+d"
   ],
   [
     " XRA E",
-    " xor     e"
+    " xor[ ]+e"
   ],
   [
     " XRA H",
-    " xor     h"
+    " xor[ ]+h"
   ],
   [
     " XRA L",
-    " xor     l"
+    " xor[ ]+l"
   ],
   [
     " XRA M",
-    " xor     \\(hl\\)"
+    " xor[ ]+\\(hl\\)"
   ],
   [
     " XRI $1",
-    " xor     ([^ ;()]+)"
+    " xor[ ]+([^ ;()]+)"
   ],
   [
     " ORA A",
-    " or      a"
+    " or[ ]+a"
   ],
   [
     " ORA B",
-    " or      b"
+    " or[ ]+b"
   ],
   [
     " ORA C",
-    " or      c"
+    " or[ ]+c"
   ],
   [
     " ORA D",
-    " or      d"
+    " or[ ]+d"
   ],
   [
     " ORA E",
-    " or      e"
+    " or[ ]+e"
   ],
   [
     " ORA H",
-    " or      h"
+    " or[ ]+h"
   ],
   [
     " ORA L",
-    " or      l"
+    " or[ ]+l"
   ],
   [
     " ORA M",
-    " or      \\(hl\\)"
+    " or[ ]+\\(hl\\)"
   ],
   [
     " ORI $1",
-    " or      ([^ ;()]+)"
+    " or[ ]+([^ ;()]+)"
   ],
   [
     " CMP A",
-    " cp      a"
+    " cp[ ]+a"
   ],
   [
     " CMP B",
-    " cp      b"
+    " cp[ ]+b"
   ],
   [
     " CMP C",
-    " cp      c"
+    " cp[ ]+c"
   ],
   [
     " CMP D",
-    " cp      d"
+    " cp[ ]+d"
   ],
   [
     " CMP E",
-    " cp      e"
+    " cp[ ]+e"
   ],
   [
     " CMP H",
-    " cp      h"
+    " cp[ ]+h"
   ],
   [
     " CMP L",
-    " cp      l"
+    " cp[ ]+l"
   ],
   [
     " CMP M",
-    " cp      \\(hl\\)"
+    " cp[ ]+\\(hl\\)"
   ],
   [
     " CPI $1",
-    " cp      ([^ ;()]+)"
+    " cp[ ]+([^ ;()]+)"
   ],
   [
     " JMP $1",
-    " jp[ ]+([^,;]+;)"
+    " jp[ ]+([^,;()]+;)"
   ],
   [
     " JNZ $1",
-    " jp      nz,([^ ;()]+)"
+    " jp[ ]+nz,[ ]?([^ ;()]+)"
   ],
   [
     " JZ $1",
-    " jp      z,([^ ;()]+)"
+    " jp[ ]+z,[ ]?([^ ;()]+)"
   ],
   [
     " JNC $1",
-    " jp      nc,([^ ;()]+)"
+    " jp[ ]+nc,[ ]?([^ ;()]+)"
   ],
   [
     " JC $1",
-    " jp      c,([^ ;()]+)"
+    " jp[ ]+c,[ ]?([^ ;()]+)"
   ],
   [
     " JPO $1",
-    " jp      po,([^ ;()]+)"
+    " jp[ ]+po,[ ]?([^ ;()]+)"
   ],
   [
     " JPE $1",
-    " jp      pe,([^ ;()]+)"
+    " jp[ ]+pe,[ ]?([^ ;()]+)"
   ],
   [
     " JP $1",
-    " jp      p,([^ ;()]+)"
+    " jp[ ]+p,[ ]?([^ ;()]+)"
   ],
   [
     " JM $1",
-    " jp      m,([^ ;()]+)"
+    " jp[ ]+m,[ ]?([^ ;()]+)"
   ],
   [
     " PCHL",
-    " jp      \\(hl\\)"
+    " jp[ ]+\\(hl\\)"
   ],
   [
     " CALL $1",
-    " call[ ]+([^, ;]+[ ;])"
+    " call[ ]+(([^, ;]+);?)"
   ],
   [
     " CNZ $1",
-    " call    nz,([^ ;()]+)"
+    " call[ ]+nz,[ ]?([^ ;()]+)"
   ],
   [
     " CZ $1",
-    " call    z,([^ ;()]+)"
+    " call[ ]+z,[ ]?([^ ;()]+)"
   ],
   [
     " CNC $1",
-    " call    nc,([^ ;()]+)"
+    " call[ ]+nc,[ ]?([^ ;()]+)"
   ],
   [
     " CC $1",
-    " call    c,([^ ;()]+)"
+    " call[ ]+c,[ ]?([^ ;()]+)"
   ],
   [
     " CPO $1",
-    " call    po,([^ ;()]+)"
+    " call[ ]+po,[ ]?([^ ;()]+)"
   ],
   [
     " CPE $1",
-    " call    pe,([^ ;()]+)"
+    " call[ ]+pe,[ ]?([^ ;()]+)"
   ],
   [
     " CP $1",
-    " call    p,([^ ;()]+)"
+    " call[ ]+p,[ ]?([^ ;()]+)"
   ],
   [
     " CM $1",
-    " call    m,([^ ;()]+)"
+    " call[ ]+m,[ ]?([^ ;()]+)"
   ],
   [
     " RET$1",
-    " ret([ ]+;)"
+    " ret([ ]+;?)"
+  ],
+  [
+    " RET",
+    " ret$"
   ],
   [
     " RNZ",
-    " ret     nz"
+    " ret[ ]+nz"
   ],
   [
     " RZ",
-    " ret     z"
+    " ret[ ]+z"
   ],
   [
     " RNC",
-    " ret     nc"
+    " ret[ ]+nc"
   ],
   [
     " RC",
-    " ret     c"
+    " ret[ ]+c"
   ],
   [
     " RPO",
-    " ret     po"
+    " ret[ ]+po"
   ],
   [
     " RPE",
-    " ret     pe"
+    " ret[ ]+pe"
   ],
   [
     " RP",
-    " ret     p"
+    " ret[ ]+p"
   ],
   [
     " RM",
-    " ret     m"
+    " ret[ ]+m"
   ],
   [
     " RST 0",
-    " rst     0"
+    " rst[ ]+0"
   ],
   [
     " RST 1",
-    " rst     8"
+    " rst[ ]+8"
   ],
   [
     " RST 2",
-    " rst     \\$10"
+    " rst[ ]+\\$10"
   ],
   [
     " RST 3",
-    " rst     \\$18"
+    " rst[ ]+\\$18"
   ],
   [
     " RST 4",
-    " rst     \\$20"
+    " rst[ ]+\\$20"
   ],
   [
     " RST 5",
-    " rst     \\$28"
+    " rst[ ]+\\$28"
   ],
   [
     " RST 6",
-    " rst     \\$30"
+    " rst[ ]+\\$30"
   ],
   [
     " RST 7",
-    " rst     \\$38"
+    " rst[ ]+\\$38"
+  ],
+  [
+    " DB",
+    " defb"
+  ],
+  [
+    " DW",
+    " defw"
   ],
   [
     " PUSH B",
-    " push    bc"
+    " push[ ]+bc"
   ],
   [
     " PUSH D",
-    " push    de"
+    " push[ ]+de"
   ],
   [
     " PUSH H",
-    " push    hl"
+    " push[ ]+hl"
   ],
   [
     " PUSH PSW",
-    " push    af"
+    " push[ ]+af"
   ],
   [
     " POP B",
-    " pop     bc"
+    " pop[ ]+bc"
   ],
   [
     " POP D",
-    " pop     de"
+    " pop[ ]+de"
   ],
   [
     " POP H",
-    " pop     hl"
+    " pop[ ]+hl"
   ],
   [
     " POP PSW",
-    " pop     af"
+    " pop[ ]+af"
   ],
   [
     " IN $1",
-    " in      a,\\(([^)]+)\\)"
+    " in[ ]+ a,[ ]?\\(([^)]+)\\)"
   ],
   [
     " OUT $1",
-    " out     \\(([^)]+)\\),a"
+    " out[ ]+\\(([^)]+)\\),[ ]?a"
   ]
 ];
 
-function replaceBulk( str, findArray, replaceArray) {
+const replaceBulk = (str, replacements) => {
+  const findArray = replacements.map(item => item[1]);
   const findArray2 = findArray.map(item => new RegExp(`^${item}$`));
-  let regex = [];
-  let map = {}; 
+  const replaceArray = replacements.map(item => item[0]);
 
-  str = str.replace(
+  return str.replace(
     new RegExp(findArray.join('|'), 'g'),
     matched => {
-      const index = findArray2.findIndex(item => matched.match(item));
-      //console.log(index);
+      
+      const index = findArray2.findIndex(item => item.test(matched));
 
       if(index != -1) {
-        const text = matched.replace(findArray2[index], replaceArray[index]);
-        //console.log(matched, findArray[index], replaceArray[index], text);
-        return text;
+        return matched.replace(findArray2[index], replaceArray[index]);
       }
 
       return matched;
     }
   );
-  return str;
+}
+const fs = require('fs');
+const readline = require('readline');
+
+const makeCodeIntoData = (inputName, sectionLabels) => new Promise((resolve, reject) => {
+  let active = false;
+  let result = '';
+  const labelRegex = /^[.]?([^:]+):$/;
+  const bytesRegex = /;\[[0-9a-f]+\] (.+)/;
+
+
+  const lineReader = readline.createInterface({
+    input: fs.createReadStream(inputName)
+  });
+  
+  lineReader.on('line', line => {
+    line = line.replace('$', '0x');
+    const labelMatch = line.match(labelRegex);
+
+    if(labelMatch && labelMatch.length === 2) {
+      if(sectionLabels.hasOwnProperty(labelMatch[1])) {
+        switch(sectionLabels[labelMatch[1]]) {
+          case 0:
+            active = false;
+          break;
+
+          case 1:
+            active = true;
+          break;
+        }
+      }
+      
+      result += (line + '\n');
+      return;
+    }
+
+    if(active) {
+      const bytesMatch = line.match(bytesRegex);
+
+      if(bytesMatch) {
+        result += ('                    defb    0x' + (bytesMatch[1].replaceAll(' ', ', 0x')) + ' ' + bytesMatch[0] + ' \n');
+        return;
+      }
+    }
+
+    result += (line + '\n');
+  });
+
+  lineReader.on('close', () => {
+    resolve(result);
+  });
+});
+
+if(process.argv.length < 4 || process.argv.length > 5) {
+[
+  [
+    './qrycsv1a.asm',
+    './qrycsv1a.s',
+    {
+      __printf_format_table: 1,
+      funcstart: 1,
+      datastart: 1,
+      farcall: 0,
+      hlBackup: 1,
+      lookupTableEnd: 0,
+      flags: 1,
+      no_flag: 0,
+      LOGTAB: 1,
+      LOG: 0,
+      EXPTAB: 1,
+      SUMSER: 0,
+      RNDTAB: 1,
+      COS: 0
+    }
+  ],
+  [
+    './qrycsv01.asm',
+    './qrycsv01.s',
+    {
+    }
+  ],
+  [
+    './qrycsv02.asm',
+    './qrycsv02.s',
+    {
+    }
+  ],
+  [
+    './qrycsv03.asm',
+    './qrycsv03.s',
+    {
+    }
+  ],
+  [
+    './qrycsv04.asm',
+    './qrycsv04.s',
+    {
+    }
+  ],
+  [
+    './qrycsv05.asm',
+    './qrycsv05.s',
+    {
+    }
+  ],
+  [
+    './qrycsv06.asm',
+    './qrycsv06.s',
+    {
+    }
+  ],
+  [
+    './qrycsv07.asm',
+    './qrycsv07.s',
+    {
+    }
+  ],
+  [
+    './qrycsv08.asm',
+    './qrycsv08.s',
+    {
+    }
+  ],
+  [
+    './qrycsv09.asm',
+    './qrycsv09.s',
+    {
+    }
+  ],
+  [
+    './qrycsv10.asm',
+    './qrycsv10.s',
+    {
+    }
+  ],
+  [
+    './qrycsv11.asm',
+    './qrycsv11.s',
+    {
+    }
+  ],
+  [
+    './qrycsv12.asm',
+    './qrycsv12.s',
+    {
+    }
+  ],
+  [
+    './qrycsv13.asm',
+    './qrycsv13.s',
+    {
+    }
+  ],
+  [
+    './qrycsv14.asm',
+    './qrycsv14.s',
+    {
+    }
+  ],
+  [
+    './qrycsv15.asm',
+    './qrycsv15.s',
+    {
+    }
+  ],
+  [
+    './qrycsv16.asm',
+    './qrycsv16.s',
+    {
+    }
+  ],
+].forEach(async item => fs.writeFileSync(item[1], replaceBulk(await makeCodeIntoData(item[0], item[2]), replacements), 'utf-8'));
+}
+else {
+  (async () => {    
+    fs.writeFileSync(process.argv[3], replaceBulk(await makeCodeIntoData(process.argv[2], process.argv.length === 5 ? JSON.parse(process.argv[4]) : {}), replacements), 'utf-8');
+  })();
 }
 
-
-const file = fs.readFileSync('qrycsv1a.asm', 'utf-8');
-const replaced = replaceBulk(file, replacements.map(item => item[1]), replacements.map(item => item[0]));
-
-console.log(replaced);

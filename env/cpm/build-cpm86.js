@@ -175,12 +175,12 @@ function compileLexer () {
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ lexer2.c -E -o build86/lexer3.c && ' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ lexer2.c -E -o build86/lexer3.c && ' +
       '../../makeheaders -h build86/lexer3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build86/lexer3.h'
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/lexer3.c -S -o build86/lexer.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ build86/lexer3.c -S -o build86/lexer.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0lexer/g" build86/lexer.asm'
   );
 
@@ -219,12 +219,12 @@ function compileParser () {
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -E -o build86/sql3.c && ' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ sql2.c -E -o build86/sql3.c && ' +
       '../../makeheaders -h build86/sql3.c | grep -v __LIB__ | grep -v extern | grep -v \\#define | sort | uniq > build86/sql3.h'
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ sql2.c -S -o build86/sql.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ sql2.c -S -o build86/sql.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0sql/g" build86/sql.asm'
   );
 
@@ -235,7 +235,7 @@ function compileLibC2 () {
   console.log('compileLibC2');
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ libc2.c -S -o build86/libc2.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ libc2.c -S -o build86/libc2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0libc2/g" build86/libc2.asm'
   );
 
@@ -246,7 +246,7 @@ function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ querycsv.c -S -o build86/querycsv.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ querycsv.c -S -o build86/querycsv.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0querycsv/g" build86/querycsv.asm'
   );
 
@@ -257,7 +257,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash2dat.c -S -o build86/hash2.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ hash2dat.c -S -o build86/hash2.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash2/g" build86/hash2.asm'
   );
 
@@ -268,7 +268,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ hash3.c -S -o build86/hash3.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ hash3.c -S -o build86/hash3.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0ghash3/g" build86/hash3.asm'
   );
 
@@ -298,7 +298,7 @@ function compileHash4a () {
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/hash4a.c -S -o build86/hash4a.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ build86/hash4a.c -S -o build86/hash4a.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4a/g" build86/hash4a.asm'
   );
 
@@ -328,7 +328,7 @@ function compileHash4b () {
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/hash4b.c -S -o build86/hash4b.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ build86/hash4b.c -S -o build86/hash4b.asm;' +
       'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4b/g" build86/hash4b.asm'
   );
 
@@ -358,7 +358,7 @@ function compileHash4c () {
   );
 
   execSync(
-    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__ build86/hash4c.c -S -o build86/hash4c.asm;' +
+    'zcc +cpm -clib=8080 -O0 --c-code-in-asm -Cc-params-offset=6 -U__STDC_VERSION__ build86/hash4c.c -S -o build86/hash4c.asm;' +
     'sed -i -E "s/\\bi_[0-9]+(_i_[0-9]+)?\\b/\\0hash4c/g" build86/hash4c.asm'
   );
 
@@ -700,7 +700,7 @@ function compileLibC (pages) {
 
   // build the asm includes
   ['fcb'].forEach((name, index) => {
-    execSync('cp libc.c pager.asm serialLnBC.asm Makefile build86/' + name + '/');
+    execSync('cp libc.c pager86.asm serialLnBC.asm Makefile build86/' + name + '/');
 
     fs.writeFileSync('build86/' + name + '/defines.inc',
       Object.keys(defines).map(item => (/^_+([^_]+)?(_head|_tail|_size)$/).test(item)
@@ -1099,7 +1099,7 @@ function addDefines (filename, filenames, folderName, pageMode) {
     try {
       execSync(
         'zcc +cpm -clib=8080 ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -U__DISABLE_BUILTIN -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
+          ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -U__STDC_VERSION__' +
           ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
         {
           cwd: path.join(__dirname, 'build86', 's'),

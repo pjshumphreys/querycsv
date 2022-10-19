@@ -32,11 +32,6 @@ char* devNull;
   FILE* datafile;
 #endif
 
-void openDat(void) {}
-
-void setupDos(void) {}
-
-
 void atexit_dos(void) {
   _chdrive(origDrive);
 
@@ -220,7 +215,7 @@ void b(void) {
   fflush(stdout);
   isspace(num);
   isdigit(num);
-  atexit(b);
+  atexit(atexit_dos);
   putenv(getenv("TZ"));
   int86(0x21, &regs, &regs);
   tzset();

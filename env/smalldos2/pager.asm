@@ -2,7 +2,7 @@
 		PUBLIC main2_
 		PUBLIC _pageNumber
 		PUBLIC funcstart_
-;  INCLUDE <Exports.inc>
+    ;INCLUDE "defines.inc"
 		EXTRN	dosload_:BYTE
 		EXTRN	b_:BYTE
 		EXTRN	fputc_:BYTE
@@ -38,6 +38,9 @@ DGROUP		GROUP	CONST,CONST2,_DATA,_BSS
 _TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
 		ASSUME CS:_TEXT, DS:DGROUP, ES:_TEXT, SS:DGROUP
 
+overlayPlaceHolder:
+	BYTE  16384  DUP (0) ;must be a multiple of 4 bytes
+
 main2_:
    push ax
    mov Word Ptr ax,cs
@@ -45,7 +48,7 @@ main2_:
    pop ax
 
 funcstart_:  ; the array of call xxxx instructions and page numbers
-;  INCLUDE <functions.inc>
+  ;INCLUDE <functions.inc>
 	call Near Ptr farcall
 	db 1
   call Near Ptr b_
@@ -180,8 +183,6 @@ abort:
   mov ah, 0x4c     ; "terminate program" sub-function
   int 0x21         ; call dos services
 
-;INCLUDE <serialLnBC.asm>
-
 ;------------------------------------------------------
 
 changePage: ; is the virtual page currently in a ram page?
@@ -264,9 +265,6 @@ farRet:
   pop cx
   pop dx
   ret
-
-overlayPlaceHolder:
-	dw 0
 
 _TEXT		ENDS
 CONST		SEGMENT	WORD PUBLIC USE16 'DATA'
