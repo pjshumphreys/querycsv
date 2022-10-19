@@ -24,6 +24,8 @@ PUBLIC _initMapper
 PUBLIC _cleanup_z80
 PUBLIC __sgoioblk
 PUBLIC __sgoioblk_end
+PUBLIC farcall
+PUBLIC farcall2
 EXTERN _versionMajor
 
 EXTBIOS equ 0xFFCA
@@ -61,8 +63,8 @@ farcall:
   push af
   ;calculate which value in the jump table to use
   or a ; clear carry bit
-  ld bc, funcstart+3
-  sbc hl, bc
+  ld bc, -(funcstart+3)
+  add hl, bc
 
   ;shift right to divide by 2 (for groups of 2 rather than 4)
   xor a
@@ -79,18 +81,20 @@ farcall:
   inc hl
   ld b, (hl)
   ;call serialLnBC
-  pop af
+  ld a, e
+  pop de
 
   push bc ; store the address of the function to call on the stack for later
 
   ;change to the appropriate page
-  push af
+  push de
 
+  ld e, a
   ld a, (currentVirtualPage)
-  push af
+  ld d, a
   ld a, e
   ld (currentVirtualPage), a
-  pop af
+  ld a, d
 
   ; a = current, e = desired
   call changePage
@@ -124,8 +128,8 @@ farcall2:
   push af
   ;calculate which value in the jump table to use
   or a ; clear carry bit
-  ld bc, funcstart+3
-  sbc hl, bc
+  ld bc, -(funcstart+3)
+  add hl, bc
 
   ;shift right to divide by 2 (for groups of 2 rather than 4)
   xor a
