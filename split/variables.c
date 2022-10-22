@@ -37,11 +37,11 @@
   char * loc_format;
 #else
   /* hash2 helper variables */
-  QCSV_LONG codepoints[18];
+  QCSV_LONG codepoints[18] = {0};
 
   struct hash2Entry entry = {0x0000, 1, (QCSV_LONG *)(&codepoints)};
 #endif
-struct hash2Entry * retval;
+struct hash2Entry * retval = NULL;
 
 /* hash4 helper varables */
 struct hash4Entry hash4export = { NULL, 0, 0, 0 };
@@ -51,15 +51,15 @@ struct hash4Entry entry2Internal = { NULL, 0, 0, 0 };
 char * devNull = NULL;
 
 #if defined(MICROSOFT) && !defined(WINDOWS)
-  int origDrive;
+  int origDrive = 0;
   char * origWd = NULL;
 #endif
 
 /* hash1 helper variables */
-int i;
+int i = 0;
 
 /*the return value from the getBytes functions. bodged to make the c64 build work */
-char returnByte;
+char returnByte = 0;
 
 /* variables for Shift-JIS or Extended Unix Code lookup tables */
 int mbcs_length = 0;

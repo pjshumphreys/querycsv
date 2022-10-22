@@ -20,9 +20,6 @@
 extern char * devNull;
 extern int origDrive;
 extern char * origWd;
-#ifdef DOS_DAT
-  extern FILE * datafile;
-#endif
 int strAppend(char c, char **value, size_t *strSize);
 
 char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
@@ -182,3 +179,21 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 
   return retval;
 }
+
+/* include the rest of the code here so we can build just 1 .obj file that twe can then disassmble and cut up */
+#ifndef __TURBOC__
+#define NOHASH4
+#include "querycsv.h"
+#include "hash4a.c"
+#include "hash4b.c"
+#include "hash4c.c"
+#define YY_BUFFER_NEW 0
+#define YY_BUFFER_NORMAL 1
+#define YY_BUFFER_EOF_PENDING 2
+#include "sql.c"
+#include "lexer.c"
+#include "hash2.c"
+#include "hash3.c"
+#include "ansimap.h"
+#include "querycsv.c"
+#endif
