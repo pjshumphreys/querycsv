@@ -832,10 +832,6 @@ const replacements = [
     " jp[ ]+\\(hl\\)"
   ],
   [
-    " CALL $1",
-    " call[ ]+(([^, ;]+);?)"
-  ],
-  [
     " CNZ $1",
     " call[ ]+nz,[ ]?([^ ;()]+)"
   ],
@@ -866,6 +862,10 @@ const replacements = [
   [
     " CM $1",
     " call[ ]+m,[ ]?([^ ;()]+)"
+  ],
+  [
+    " CALL $1",
+    " call[ ]+(([^, ;]+);?)"
   ],
   [
     " RET$1",
@@ -997,7 +997,7 @@ const replaceBulk = (str, replacements) => {
   return str.replace(
     new RegExp(findArray.join('|'), 'g'),
     matched => {
-      
+
       const index = findArray2.findIndex(item => item.test(matched));
 
       if(index != -1) {
@@ -1021,7 +1021,7 @@ const makeCodeIntoData = (inputName, sectionLabels) => new Promise((resolve, rej
   const lineReader = readline.createInterface({
     input: fs.createReadStream(inputName)
   });
-  
+
   lineReader.on('line', line => {
     line = line.replace('$', '0x');
     const labelMatch = line.match(labelRegex);
@@ -1038,7 +1038,7 @@ const makeCodeIntoData = (inputName, sectionLabels) => new Promise((resolve, rej
           break;
         }
       }
-      
+
       result += (line + '\n');
       return;
     }
@@ -1060,129 +1060,7 @@ const makeCodeIntoData = (inputName, sectionLabels) => new Promise((resolve, rej
   });
 });
 
-if(process.argv.length < 4 || process.argv.length > 5) {
-[
-  [
-    './qrycsv1a.asm',
-    './qrycsv1a.s',
-    {
-      __printf_format_table: 1,
-      funcstart: 1,
-      datastart: 1,
-      farcall: 0,
-      hlBackup: 1,
-      lookupTableEnd: 0,
-      flags: 1,
-      no_flag: 0,
-      LOGTAB: 1,
-      LOG: 0,
-      EXPTAB: 1,
-      SUMSER: 0,
-      RNDTAB: 1,
-      COS: 0
-    }
-  ],
-  [
-    './qrycsv01.asm',
-    './qrycsv01.s',
-    {
-    }
-  ],
-  [
-    './qrycsv02.asm',
-    './qrycsv02.s',
-    {
-    }
-  ],
-  [
-    './qrycsv03.asm',
-    './qrycsv03.s',
-    {
-    }
-  ],
-  [
-    './qrycsv04.asm',
-    './qrycsv04.s',
-    {
-    }
-  ],
-  [
-    './qrycsv05.asm',
-    './qrycsv05.s',
-    {
-    }
-  ],
-  [
-    './qrycsv06.asm',
-    './qrycsv06.s',
-    {
-    }
-  ],
-  [
-    './qrycsv07.asm',
-    './qrycsv07.s',
-    {
-    }
-  ],
-  [
-    './qrycsv08.asm',
-    './qrycsv08.s',
-    {
-    }
-  ],
-  [
-    './qrycsv09.asm',
-    './qrycsv09.s',
-    {
-    }
-  ],
-  [
-    './qrycsv10.asm',
-    './qrycsv10.s',
-    {
-    }
-  ],
-  [
-    './qrycsv11.asm',
-    './qrycsv11.s',
-    {
-    }
-  ],
-  [
-    './qrycsv12.asm',
-    './qrycsv12.s',
-    {
-    }
-  ],
-  [
-    './qrycsv13.asm',
-    './qrycsv13.s',
-    {
-    }
-  ],
-  [
-    './qrycsv14.asm',
-    './qrycsv14.s',
-    {
-    }
-  ],
-  [
-    './qrycsv15.asm',
-    './qrycsv15.s',
-    {
-    }
-  ],
-  [
-    './qrycsv16.asm',
-    './qrycsv16.s',
-    {
-    }
-  ],
-].forEach(async item => fs.writeFileSync(item[1], replaceBulk(await makeCodeIntoData(item[0], item[2]), replacements), 'utf-8'));
-}
-else {
-  (async () => {    
-    fs.writeFileSync(process.argv[3], replaceBulk(await makeCodeIntoData(process.argv[2], process.argv.length === 5 ? JSON.parse(process.argv[4]) : {}), replacements), 'utf-8');
-  })();
-}
+(async () => {
+  fs.writeFileSync(process.argv[3], replaceBulk(await makeCodeIntoData(process.argv[2], process.argv.length === 5 ? JSON.parse(process.argv[4]) : {}), replacements), 'utf-8');
+})();
 
