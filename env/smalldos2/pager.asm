@@ -2,8 +2,8 @@
 		PUBLIC main2_
 		PUBLIC _pageNumber
 		PUBLIC funcstart_
+		PUBLIC dosload_
     ;INCLUDE "defines.inc"
-		EXTRN	dosload_:BYTE
 		EXTRN	b_:BYTE
 		EXTRN	fputc_:BYTE
 		EXTRN	sprintf_:BYTE
@@ -38,8 +38,10 @@ DGROUP		GROUP	CONST,CONST2,_DATA,_BSS
 _TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
 		ASSUME CS:_TEXT, DS:DGROUP, ES:_TEXT, SS:DGROUP
 
-overlayPlaceHolder:
-	BYTE  16384  DUP (0) ;must be a multiple of 4 bytes
+first_:
+  org 0xf0
+dosload_:
+  include dosload.inc
 
 main2_:
    push ax
@@ -199,7 +201,17 @@ L@1:
   mov bh, 0
   mov bl, dl
   mov Word Ptr [_pageNumber], bx
-  call Near Ptr dosload_
+
+  push ds
+  mov ax,cs
+  mov ds,ax
+  call faq_masm
+  pop ds
+  ret
+
+faq_masm:
+  mov ax, 0x100 ; dosload_ address
+  push ax
   ret
 
 ;---------------------------------------------------
@@ -306,7 +318,7 @@ internalSp:
 
 currentVirtualPage: ; which virtual page currently is loaded into the memory at 0xc000-0xffff
   db 0
- 
+
 ;----------------------------------------------
 
 lookupTable:

@@ -32,6 +32,8 @@ char* devNull;
   FILE* datafile;
 #endif
 
+typedef void (*Func)();
+
 void atexit_dos(void) {
   _chdrive(origDrive);
 
@@ -154,24 +156,6 @@ void macYield(void) {
 
 extern short int pageNumber;
 
-void dosload(void) {
-  char * filename = "qrycsv00.ovl";
-
-  static int temp;
-
-  sprintf(filename + 6, "%02d", pageNumber);
-  filename[8] = '.';
-
-  if((temp = open(filename, O_RDONLY, 0)) == -1) {
-    fputs("Couldn't find ", stderr);
-    fputs(filename, stderr);
-    exit(EXIT_FAILURE);
-  }
-
-  read(temp, (void *)16384, 16384);
-  close(temp);
-}
-
 int main(int argc, char** argv) {
   return main2(argc, argv);
 }
@@ -185,6 +169,7 @@ void b(void) {
   static unsigned long num2;
   static long num3;
   union REGS regs;
+  time_t now;
 
   num = atol(string);
   sprintf(string, "%g %ld", d, num3);
@@ -221,4 +206,6 @@ void b(void) {
   tzset();
   origDrive = _getdrive();
   origWd = getcwd(NULL, PATH_MAX + 1);
+  localtime(&now);
+  gmtime(&now);
 }
