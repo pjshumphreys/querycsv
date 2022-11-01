@@ -1,55 +1,16 @@
 .8087
+		PUBLIC farcall
+		PUBLIC farRet
+		PUBLIC codeBlock
 		PUBLIC main2_
-		PUBLIC _pageNumber
-		PUBLIC funcstart_
-		PUBLIC dosload_
-    ;INCLUDE "defines.inc"
+		PUBLIC _buffer
 		EXTRN	b_:BYTE
-		EXTRN	fputc_:BYTE
-		EXTRN	sprintf_:BYTE
-		EXTRN	open_:BYTE
-		EXTRN	fputs_:BYTE
-		EXTRN	exit_:BYTE
-		EXTRN	read_:BYTE
-		EXTRN	close_:BYTE
-		EXTRN	atol_:BYTE
-		EXTRN	abs_:BYTE
-		EXTRN	strncpy_:BYTE
-		EXTRN	strcmp_:BYTE
-		EXTRN	stricmp_:BYTE
-		EXTRN	strnicmp_:BYTE
-		EXTRN	strstr_:BYTE
-		EXTRN	strrchr_:BYTE
-		EXTRN	vsnprintf_:BYTE
-		EXTRN	memset_:BYTE
-		EXTRN	strcat_:BYTE
-		EXTRN	strncat_:BYTE
-		EXTRN	memcpy_:BYTE
-		EXTRN	memmove_:BYTE
-		EXTRN	fwrite_:BYTE
-		EXTRN	fseek_:BYTE
-		EXTRN	fclose_:BYTE
-		EXTRN	fread_:BYTE
-		EXTRN	fgetc_:BYTE
-		EXTRN	ungetc_:BYTE
-		EXTRN	fflush_:BYTE
-		EXTRN	atexit_:BYTE
 DGROUP		GROUP	CONST,CONST2,_DATA,_BSS
 _TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
 		ASSUME CS:_TEXT, DS:DGROUP, ES:_TEXT, SS:DGROUP
 
-first_:
-  org 0xf0
-dosload_:
-  include dosload.inc
-
+funcstart:  ; the array of call xxxx instructions and page numbers
 main2_:
-   push ax
-   mov Word Ptr ax,cs
-   mov Word Ptr es,ax
-   pop ax
-
-funcstart_:  ; the array of call xxxx instructions and page numbers
   ;INCLUDE <functions.inc>
 	call Near Ptr farcall
 	db 1
@@ -105,7 +66,7 @@ skip:
 
   ;calculate which value in the jump table to use
   or  al, al  ; clear carry bit
-  mov cx, funcstart_+3
+  mov cx, funcstart+3
   lahf
   sub bx, cx
   rcr si, 1
@@ -277,8 +238,15 @@ farRet:
   pop cx
   pop dx
   ret
+  
 
 _TEXT		ENDS
+_NULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
+_buffer:
+  db 16401 DUP(0) ; 16384 + 16 + 1 so we can definately start the overlays code from cs:c000 somehow, the same bytes can be fudged to appear at ds:0000 (within a few bytes) somehow also
+_NULL ENDS
+_AFTERNULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
+_AFTERNULL ENDS
 CONST		SEGMENT	WORD PUBLIC USE16 'DATA'
 CONST		ENDS
 CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'

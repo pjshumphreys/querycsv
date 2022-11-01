@@ -1,9 +1,9 @@
 /*
+wasm -0 pager.asm
+wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c
 
 wcl -mt -0 -os -s -fm dosload.c
 hexdump -v -e '8/1 "0x%02X, "' -e '"\n"' ./dosload.com | sed -e 's/^/db /g;s/, 0x  //g;s/, /,/g;s/,$//g' >dosload.inc
-wasm -0 pager.asm
-wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c
 */
 
 const childProcess = require('child_process');
@@ -48,6 +48,8 @@ const functionsList = [
 //  ['_logNum', 1, 0x0001, 0x0001, 'farcall'],
   ['fprintf_dos_', 1, 0x0001, 0x0001, 'farcall'],
   ['fputs_dos_', 1, 0x0001, 0x0001, 'farcall'],
+  ['getenv_', 1, 0x0001, 0x0001, 'farcall'],
+  ['putenv_', 1, 0x0001, 0x0001, 'farcall'],
   ['fputs_', 1, 0x0001, 0x0001, 'farcall'],
   ['malloc_', 1, 0x0001, 0x0001, 'farcall'],
   ['free_', 1, 0x0001, 0x0001, 'farcall'],
@@ -63,6 +65,15 @@ const functionsList = [
   ['atol_', 1, 0x0001, 0x0001, 'farcall'],
   ['ltoa_', 1, 0x0001, 0x0001, 'farcall']
 ];
+
+const env = process.env;
+
+
+const os = require("os");
+
+env['WATCOM'] = path.resolve(os.homedir(), '.wine/drive_c/WATCOM');
+env['PATH'] = path.resolve(env['WATCOM'], 'binl') + ':' + env['PATH'];
+env['INCLUDE'] = path.resolve(env['WATCOM'], 'h');
 
 /* don't include these functions in the output files as they are never invoked (dead code elimination) */
 const ignoreFunctions = [
@@ -102,6 +113,8 @@ const rodataLabels = [];
 const byteMaps = {};
 let pageSize;
 
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -zt1 -fpc -0 -ot -zc -ob';
+
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
   start();
@@ -127,12 +140,9 @@ function start () {
     'touch build/data.asm'
   );
 
-  /* generate the large static arrays in the format z88dk needs */
-  execSync('node ../../generateMappings.js true');
-
   // update the jump table locations, starting at call_rom3 -4 and working downward in memory
   functionsList.forEach((item, index) => {
-    hashMap[item[0].replace(/^_/, '')] = index;
+    hashMap[item[0].replace(/_$/, '')] = index;
     item[2] = currentAddr;
     currentAddr += 4;
   });
@@ -140,12 +150,13 @@ function start () {
   compileLexer();
 }
 
+
 // compile and split up lexer
 function compileLexer () {
   console.log('compileLexer');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob lexer.c;wdis -s -a -l=build/lexer.asm lexer.obj'
+    'wcc ' + cflags + ' lexer.c;wdis -s -a -l=build/lexer.asm lexer.obj'
   );
 
   splitUpFunctions('lexer', compileParser);
@@ -155,27 +166,17 @@ function compileParser () {
   console.log('compileParser');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob sql.c;wdis -s -a -l=build/sql.asm sql.obj'
+    'wcc ' + cflags + ' sql.c;wdis -s -a -l=build/sql.asm sql.obj'
   );
 
-  splitUpFunctions('sql', compileLibC2, true);
-}
-
-function compileLibC2 () {
-  console.log('compileLibC2');
-
-  execSync(
-    'wcl -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -s -fm=qrycsv16 -fe=qrycsv16 pager.asm libc.c'
-  );
-
-  splitUpFunctions('libc2', compileQueryCSV, true);
+  splitUpFunctions('sql', compileQueryCSV, true);
 }
 
 function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob querycsv.c;wdis -s -a -l=build/querycsv.asm querycsv.obj'
+    'wcc ' + cflags + ' querycsv.c;wdis -s -a -l=build/querycsv.asm querycsv.obj'
   );
 
   splitUpFunctions('querycsv', compileHash2, true);
@@ -185,17 +186,17 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob hash2dat.c;wdis -s -a -l=build/hash2dat.asm hash2dat.obj'
+    'wcc ' + cflags + ' hash2dat.c;wdis -s -a -l=build/hash2dat.asm hash2dat.obj'
   );
 
-  splitUpFunctions('hash2', compileHash3, true);
+  splitUpFunctions('hash2dat', compileHash3, true);
 }
 
 function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob hash3.c;wdis -s -a -l=build/hash3.asm hash3.obj'
+    'wcc ' + cflags + ' hash3.c;wdis -s -a -l=build/hash3.asm hash3.obj'
   );
 
   splitUpFunctions('hash3', compileHash4a, true);
@@ -205,7 +206,7 @@ function compileHash4a () {
   console.log('compileHash4a');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob hash4a.c;wdis -s -a -l=build/hash4a.asm hash4a.obj'
+    'wcc ' + cflags + ' hash4a.c;wdis -s -a -l=build/hash4a.asm hash4a.obj'
   );
 
   splitUpFunctions('hash4a', compileHash4b, true);
@@ -215,7 +216,7 @@ function compileHash4b () {
   console.log('compileHash4b');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob hash4b.c;wdis -s -a -l=build/hash4b.asm hash4b.obj'
+    'wcc ' + cflags + ' hash4b.c;wdis -s -a -l=build/hash4b.asm hash4b.obj'
   );
 
   splitUpFunctions('hash4b', compileHash4c, true);
@@ -225,7 +226,7 @@ function compileHash4c () {
   console.log('compileHash4c');
 
   execSync(
-    'wcc -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -ot -ob hash4c.c;wdis -s -a -l=build/hash4a.asm hash4c.obj'
+    'wcc ' + cflags + ' hash4c.c;wdis -s -a -l=build/hash4c.asm hash4c.obj'
   );
 
   splitUpFunctions('hash4c', addROData, true);
@@ -237,11 +238,15 @@ function compileHash4c () {
 function addROData () {
   console.log('addROData');
 
+  process.exit(0);
+
   /* build the global data but exclude the hash4 strings */
 
   execSync('wasm build/rodata.asm');
 
   rodataSize = fs.statSync('build/rodata.bin').size;
+
+
   pageSize = /*16644*/ /*16644*/ 16383 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
   console.log(pageSize);
 
@@ -589,6 +594,15 @@ function compileLibC (pages) {
 }
 
 function compileLibC3(fixDefines) {
+execSync('wcl -mt -0 -os -s -fm dosload.c');
+execSync(`hexdump -v -e '8/1 "0x%02X, "' -e '"\n"' ./dosload.com`+" | sed -e 's/^/db /g;s/, 0x  //g;s/, /,/g;s/,$//g' >dosload.inc");
+execSync('wasm -0 pager.asm');
+execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
+
+  execSync(
+    'wcl -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -s -fm=qrycsv16 -fe=qrycsv16 pager.asm libc.c'
+  );
+
   ['fcb', 'msx2'].forEach((name, index) => {
     spawnSync(
       'make',
@@ -701,13 +715,6 @@ function splitUpFunctions (filename, callback, append) {
     flags: append ? 'a' : 'w'
   });
 
-  if (!append) {
-    writePause(
-      data,
-      '\tSECTION\tBSS\n'
-    );
-  }
-
   const rodataOutputStreams = [];
 
   const code = fs.createWriteStream('build/' + filename + '_code.asm');
@@ -715,132 +722,159 @@ function splitUpFunctions (filename, callback, append) {
   const functionOutputStreams = [];
   let activeStream = code;
   let rodataType = 0;
+  let state = 0;
+  let labelBuffer = '';
+  let offset = 0;
 
   lineReader.on('line', line => {
     let name;
 
-    if (/SECTION/.test(line)) {
-      name = line.replace(/^[ \t]*SECTION[ \t]*/, '');
-      if (name === 'code_compiler') {
-        rodataType = 0;
-
-        if (functionOutputStreams.length) {
-          activeStream = functionOutputStreams[functionOutputStreams.length - 1];
-        } else {
-          activeStream = code;
+    switch (state) {
+      case 0:
+        if (/^_TEXT\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'CODE'/.test(line)) {
+          state = 1;
         }
-      } else if (name === 'rodata_compiler') {
-        rodataType = 1;
-        activeStream = data;
+      break;
 
-        // don't output this line
-      } else {
-        rodataType = 2;
+      case 1:
+        if(labelBuffer !== '') {
+          if(/^\s+DW/.test(line)) {
+            name = labelBuffer.match(/^(L\$[0-9]+):/)[1];
 
-        activeStream = data;
-      }
-    } else if (/^;[ \t]+Function[ \t]+/.test(line)) {
-      name = (line.replace(/^;[ \t]+Function[ \t]+/, '')).match(/[^ \t]+/)[0];
-      if (hasProp(ignoreFunctions, name)) {
-        functionOutputStreams.push(fs.createWriteStream('/dev/null', { flags: 'a' }));
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name + '.asm'));
 
-        activeStream = functionOutputStreams[functionOutputStreams.length - 1];
-      } else {
-        functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
-
-        activeStream = functionOutputStreams[functionOutputStreams.length - 1];
-
-        writePause(
-          activeStream,
-          '\tSECTION\t code_compiler\n' +
-            line + '\n'
-        );
-
-        /* add an entry for each into the mapping table */
-        if (
-          name !== '_compareCodepoints' &&
-          name !== '_sortCodepoints' &&
-          name !== '_sortBytes' &&
-          name !== 'main'
-        ) { /* Filter out bsearch callbacks that
-          need to be in the same page as the function that called bsearch. They don't need
-          to be in the jump table. We want the main function to be this first item in the jump table to
-          simplify debugging */
-          hashMap[name] = functionsList.length;
-          functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-          currentAddr += 4;
-        }
-      }
-    } else if (rodataType && /^\./.test(line)) {
-      if (activeStream) {
-        name = line.replace(/^\./, '');
-
-        const name2 = name.replace(/[0-9]+$/, '');
-
-        switch (name2) {
-          case '_hash3EntryMap':
-          case '_hash2_':
-          case '_atariBytes':
-          case '_zxBytes':
-          case '_commonBytes':
-          case '_cp1252Bytes':
-          case '_petsciiBytes':
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
-            rodataLabels.push([name, false, new RegExp('(\\b' + name.replace(matchOperatorsRe, '\\$&') + '\\b)', 'm')]);
+            rodataLabels.push([
+              name,
+              false,
+              new RegExp('(\\b' + name.replace(matchOperatorsRe, '\\$&') + '\\b)', 'm')
+            ]);
 
-            if (!hasProp(byteMaps, name2)) {
-              rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name2 + '.asm'));
-
-              byteMaps[name2] = rodataOutputStreams.length - 1;
-              activeStream = rodataOutputStreams[byteMaps[name2]];
-
-              writePause(activeStream, 'IFNDEF ' + name + '\n');
-            }
-
-            activeStream = rodataOutputStreams[byteMaps[name2]];
-
-            rodataType = 4;
-            break;
-        }
-
-        if (rodataType === 1 || rodataType === 3) {
-          rodataType = 3;
-
-          rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name + (name === 'i_1' ? '' : '') + '.asm'));
-
-          /* add to the list of rodata regexes used to add the appropriate rodata to each function */
-          rodataLabels.push([
-            name,
-            false,
-            new RegExp('(\\b' + (name === 'i_70' ? 'i_70+' : name).replace(matchOperatorsRe, '\\$&') + '\\b)', 'm')
-          ]);
-
-          activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
-          writePause(activeStream, 'IFNDEF ' + name + '\n');
-
-          if(!/^i_1[a-zA-Z]+$/.test(name)) {
-            writePause(activeStream, ';INCLUDE "../rodata2.asm"\n');
+            activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
           }
-        }
 
-        writePause(activeStream, line + (name === 'i_1' ? '' : '') + '\n');
-      }
-    } else if (/^\tGLOBAL/.test(line)) {
-      writePause(
-        globals,
-        line + '\n'
-      );
-    } else if (/\bi_1[^0-9]/.test(line)) {
-      writePause(
-        activeStream,
-        line.replace(/\bi_1\b/, 'i_1' + filename) + '\n'
-      );
-    } else {
-      writePause(
-        activeStream,
-        line + '\n'
-      );
+          writePause(activeStream, labelBuffer + '\n' + line + '\n');
+          labelBuffer = '';
+
+          return;
+        }
+        else if (/^CONST\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
+          state = 2;
+        }
+        else if(/^L\$[0-9]+:/.test(line)) {
+          labelBuffer = line;
+
+          return;
+        }
+        else if(!/^_TEXT		ENDS/.test(line)) {
+          labelBuffer = '';
+          
+          if (/^(([^_]|_[^:])+)_:$/.test(line)) {
+            name = line.match(/^(([^_]|_[^:])+)_:$/)[1];
+
+            functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
+
+            activeStream = functionOutputStreams[functionOutputStreams.length - 1];
+          }
+
+          writePause(
+            activeStream,
+            line + '\n'
+          );
+        }
+      break;
+
+      case 2:
+        if (/^_DATA\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
+          state = 3;
+          activeStream = data;
+        }
+        else if([
+'CONST2		ENDS',
+"_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
+'_DATA		ENDS',
+'CONST		ENDS',
+"CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
+'		END'].includes(line)) {
+
+        }
+        else {
+          if(/^[^:]+:$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
+            name = line.match(/^([^:]+):$/)[1];
+            
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name ) + '.asm'));
+
+            /* add to the list of rodata regexes used to add the appropriate rodata to each function */
+            rodataLabels.push([
+              name,
+              false,
+              new RegExp('(\\b' + name.replace(matchOperatorsRe, '\\$&') + '\\b)', 'm')
+            ]);
+
+            activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
+          }
+          
+          writePause(
+            activeStream,
+            line.replace('DGROUP:', '') + '\n'
+          );
+        }
+      break;
+
+      case 3:
+        if(/^_BSS\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'BSS'/.test(line)) {
+          state = 4;
+        }
+        else if([
+'CONST2		ENDS',
+"_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
+'_DATA		ENDS',
+'CONST		ENDS',
+"CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
+'		END'].includes(line)) {
+
+        }
+        else {
+          writePause(
+            activeStream,
+            line + '\n'
+          );
+        }
+      break;
+      
+      case 4:
+        if(/^L\$[0-9]+/.test(line)) {
+          writePause(
+            activeStream,
+            line.match(/^(L\$[0-9]+)/)[1] + ':\n'
+          );
+        }
+        else if([
+'CONST2		ENDS',
+"_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
+'_DATA		ENDS',
+'CONST		ENDS',
+"CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
+'		END'].includes(line)) {
+
+        }
+        else if(/ORG/.test(line)){
+          let num = parseInt(line.match(/ORG ([0-9]+)$/)[1] || '0',10);
+          
+          
+          if(offset+num !== 0) {
+            writePause(
+              activeStream,
+              '    DB	' + (num - offset) + ' DUP(0)\n'
+            );
+          }
+          
+          offset = num;
+        }
+      break;
     }
+
+
   });
 
   lineReader.on('close', () => {
@@ -853,9 +887,10 @@ function splitUpFunctions (filename, callback, append) {
     code.end(allStreamsClosed);
     globals.end(allStreamsClosed);
 
+
     for (let i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */
-      writePause(rodataOutputStreams[i], 'ENDIF\n');
+      //writePause(rodataOutputStreams[i], 'ENDIF\n');
       rodataOutputStreams[i].end(allStreamsClosed);
     }
 

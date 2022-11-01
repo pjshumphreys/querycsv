@@ -1,4 +1,5 @@
 /* fake program to get the necessary libc functions into 1 memory page */
+extern char buffer[16384];
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,13 @@
 
 #include <fcntl.h>
 #include <io.h>
+
+#include <dos.h>
+#include <fcntl.h>
+
+unsigned int success = 0;
+char pageName[] = "qrycsv01.ovl";
+int handle = 0;
 
 #include "en_gb.h"
 
@@ -47,6 +55,17 @@ void atexit_dos(void) {
   #endif
 }
 
+void dosload(void) {
+  if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
+    success = 0;
+    return;
+  }
+
+  _dos_read(handle, buffer, 16384, &success);
+  _dos_close(handle);
+  success = 1;
+}
+
 static short int lastWasErr = FALSE;
 static short int newline = FALSE;
 static short int currentWaitCursor = 0;
@@ -61,7 +80,7 @@ size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
   if(stream != stdout && stream != stderr) {
     return fwrite(ptr, size, count, stream);
   }
-  
+
   startOfLine = FALSE;
 
   if(cursorOutput) {
