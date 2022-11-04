@@ -16,14 +16,14 @@
 #define TRUE 1
 #define FALSE 0
 
-char * applicationName = "QueryCSV";
+const char applicationName[] = "QueryCSV";
  /*  This is the name displayed */
  /*  on the menu */
  /*  and in the Task Window */
  /*  It should be 12 characters */
  /*  or less */
 
-char * spriteName = "!querycsv";
+const char spriteName[] = "!querycsv";
  /*  This is the name of the sprite */
  /*  to use (from !Sprites) */
 
