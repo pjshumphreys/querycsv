@@ -74,9 +74,13 @@ void * b2c = NULL;
 const char TDB_COULDNT_OPEN_INPUT[] = TDB_COULDNT_OPEN_INPUT2;
 const char TDB_MALLOC_FAILED[] = TDB_MALLOC_FAILED2;
 
+#ifdef DOS_DAT
+  extern FILE* datafile;
+#endif
+
 #ifdef __CC65__
-  char * fopen_read = "RB";
-  char * fopen_write = "WB";
+  const char fopen_read[] = "RB";
+  const char fopen_write[] = "WB";
 
   char spinnerEnabled;
   char cursorOutput;

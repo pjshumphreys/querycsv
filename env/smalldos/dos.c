@@ -3,12 +3,14 @@
 #include <stdarg.h>
 #include <string.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
+
 #ifdef __TURBOC__
   #include <dir.h>
   #define _chdrive setdisk
 #else
   #include <direct.h>
 #endif
+
 #include <time.h>
 #include "en_gb.h"
 
@@ -20,18 +22,16 @@
 extern char * devNull;
 extern int origDrive;
 extern char * origWd;
+
 #ifdef DOS_DAT
   extern FILE * datafile;
 #endif
-int strAppend(char c, char **value, size_t *strSize);
 
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 #define ENC_UNKNOWN 0
 #define ENC_CP437 1
 #define ENC_CP850 2
 #define ENC_CP1252 3
 #define ENC_ASCII 7
-#define ENC_UTF16LE 9
 
 static int lastWasErr = FALSE;
 static int newline = FALSE;

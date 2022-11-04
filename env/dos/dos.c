@@ -20,9 +20,10 @@
 extern char * devNull;
 extern int origDrive;
 extern char * origWd;
-int strAppend(char c, char **value, size_t *strSize);
+#ifdef DOS_DAT
+  extern FILE * datafile;
+#endif
 
-char *d_charsetEncode(char* s, int encoding, size_t *bytesStored, struct qryData *query);
 #define ENC_UNKNOWN 0
 #define ENC_CP437 1
 #define ENC_CP850 2

@@ -1708,7 +1708,7 @@ void exit_mac(int dummy) {
 }
 
 int main(void) {
-  char progName[] = "querycsv";
+  const char progName[] = "querycsv";
   char* argv[3];
   int val;
 

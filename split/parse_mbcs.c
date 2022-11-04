@@ -28,11 +28,11 @@ void parse_mbcs(char * name) {
   int found;
   int c;
 
-  QCSV_LONG temp;
+  QCSV_LONG temp = 0;
   int state = -2;
   int currentResult = 0;
 
-  unsigned char * current;
+  unsigned char * current = NULL;
   /* QCSV_LONG temp2; */
 
   MAC_YIELD

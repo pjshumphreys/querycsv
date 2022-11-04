@@ -7,23 +7,17 @@ extern char buffer[16384];
 #include <string.h>
 #include <ctype.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
+
 #ifdef __TURBOC__
   #include <dir.h>
   #define _chdrive setdisk
 #else
   #include <direct.h>
 #endif
-#include <time.h>
 
+#include <time.h>
 #include <fcntl.h>
 #include <io.h>
-
-#include <dos.h>
-#include <fcntl.h>
-
-unsigned int success = 0;
-char pageName[] = "qrycsv01.ovl";
-int handle = 0;
 
 #include "en_gb.h"
 
@@ -32,15 +26,22 @@ int handle = 0;
 
 #define freeAndZero(p) { free(p); p = 0; }
 
+unsigned int success = 0;
+char pageName[] = "qrycsv01.ovl";
+int handle = 0;
 int origDrive;
 char *origWd;
-char* devNull;
+char *devNull;
+static short int lastWasErr = FALSE;
+static short int newline = FALSE;
+static short int currentWaitCursor = 0;
+static short int startOfLine = TRUE;
+static short int cursorOutput = FALSE;
+extern short int pageNumber;
 
 #ifdef DOS_DAT
-  FILE* datafile;
+  extern FILE* datafile;
 #endif
-
-typedef void (*Func)();
 
 void atexit_dos(void) {
   _chdrive(origDrive);
@@ -66,11 +67,19 @@ void dosload(void) {
   success = 1;
 }
 
-static short int lastWasErr = FALSE;
-static short int newline = FALSE;
-static short int currentWaitCursor = 0;
-static short int startOfLine = TRUE;
-static short int cursorOutput = FALSE;
+void macYield(void) {
+  const char * spinner = "...ooOOoo";
+  if(startOfLine) {
+    if(cursorOutput) {
+      fputc('\b', stderr);
+    }
+
+    fputc(spinner[currentWaitCursor], stderr);
+    currentWaitCursor = (currentWaitCursor + 1) % 9;
+
+    cursorOutput = TRUE;
+  }
+}
 
 /* eat the last newline emitted as dos will add one back */
 size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
@@ -158,22 +167,6 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
 }
 
 int main2(int argc, char** argv);
-
-void macYield(void) {
-  const char * spinner = "...ooOOoo";
-  if(startOfLine) {
-    if(cursorOutput) {
-      fputc('\b', stderr);
-    }
-
-    fputc(spinner[currentWaitCursor], stderr);
-    currentWaitCursor = (currentWaitCursor + 1) % 9;
-
-    cursorOutput = TRUE;
-  }
-}
-
-extern short int pageNumber;
 
 int main(int argc, char** argv) {
   return main2(argc, argv);

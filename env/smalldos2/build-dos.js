@@ -113,7 +113,7 @@ const rodataLabels = [];
 const byteMaps = {};
 let pageSize;
 
-const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -zt1 -fpc -0 -ot -zc -ob';
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ob -ou -ot -or -ox';
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
@@ -156,7 +156,7 @@ function compileLexer () {
   console.log('compileLexer');
 
   execSync(
-    'wcc ' + cflags + ' lexer.c;wdis -s -a -l=build/lexer.asm lexer.obj'
+    'wcc ' + cflags + ' -zc lexer.c;wdis -s -a -l=build/lexer.asm lexer.o'
   );
 
   splitUpFunctions('lexer', compileParser);
@@ -166,17 +166,27 @@ function compileParser () {
   console.log('compileParser');
 
   execSync(
-    'wcc ' + cflags + ' sql.c;wdis -s -a -l=build/sql.asm sql.obj'
+    'wcc ' + cflags + ' -zc sql.c;wdis -s -a -l=build/sql.asm sql.o'
   );
 
-  splitUpFunctions('sql', compileQueryCSV, true);
+  splitUpFunctions('sql', compileDos, true);
+}
+
+function compileDos () {
+  console.log('compileDos');
+
+  execSync(
+    'wcc ' + cflags + ' -zc dos.c;wdis -s -a -l=build/dos.asm dos.o'
+  );
+
+  splitUpFunctions('dos', compileQueryCSV, true);
 }
 
 function compileQueryCSV () {
   console.log('compileQueryCSV');
 
   execSync(
-    'wcc ' + cflags + ' querycsv.c;wdis -s -a -l=build/querycsv.asm querycsv.obj'
+    'wcc ' + cflags + ' -zc querycsv.c;wdis -s -a -l=build/querycsv.asm querycsv.o'
   );
 
   splitUpFunctions('querycsv', compileHash2, true);
@@ -186,7 +196,7 @@ function compileHash2 () {
   console.log('compileHash2');
 
   execSync(
-    'wcc ' + cflags + ' hash2dat.c;wdis -s -a -l=build/hash2dat.asm hash2dat.obj'
+    'wcc ' + cflags + ' -zc hash2dat.c;wdis -s -a -l=build/hash2dat.asm hash2dat.o'
   );
 
   splitUpFunctions('hash2dat', compileHash3, true);
@@ -196,7 +206,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'wcc ' + cflags + ' hash3.c;wdis -s -a -l=build/hash3.asm hash3.obj'
+    'wcc ' + cflags + ' -zc hash3.c;wdis -s -a -l=build/hash3.asm hash3.o'
   );
 
   splitUpFunctions('hash3', compileHash4a, true);
@@ -206,7 +216,26 @@ function compileHash4a () {
   console.log('compileHash4a');
 
   execSync(
-    'wcc ' + cflags + ' hash4a.c;wdis -s -a -l=build/hash4a.asm hash4a.obj'
+    'sed "' +
+      '1s/^/struct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
+      's/static struct hash4Entry/' +
+        'static const struct hash4Entry/gi;' +
+      's/static unsigned short/' +
+        'static const unsigned short/gi;' +
+      's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
+      's/return \\&wordlist\\[key\\];/' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return (struct hash4EntryA *)\\&hash4export;\\n' +
+        '}/gi;' +
+    '" hash4a.c > build/hash4a.c'
+  );
+
+  execSync(
+    'wcc ' + cflags + ' build/hash4a.c;wdis -s -a -l=build/hash4a.asm hash4a.o'
   );
 
   splitUpFunctions('hash4a', compileHash4b, true);
@@ -216,7 +245,26 @@ function compileHash4b () {
   console.log('compileHash4b');
 
   execSync(
-    'wcc ' + cflags + ' hash4b.c;wdis -s -a -l=build/hash4b.asm hash4b.obj'
+    'sed "' +
+      '1s/^/struct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
+      's/static struct hash4Entry/' +
+        'static const struct hash4Entry/gi;' +
+      's/static unsigned short/' +
+        'static const unsigned short/gi;' +
+      's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
+      's/return \\&wordlist\\[key\\];/' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return (struct hash4EntryB *)\\&hash4export;\\n' +
+        '}/gi;' +
+    '" hash4b.c > build/hash4b.c'
+  );
+
+  execSync(
+    'wcc ' + cflags + ' build/hash4b.c;wdis -s -a -l=build/hash4b.asm hash4b.o'
   );
 
   splitUpFunctions('hash4b', compileHash4c, true);
@@ -226,7 +274,26 @@ function compileHash4c () {
   console.log('compileHash4c');
 
   execSync(
-    'wcc ' + cflags + ' hash4c.c;wdis -s -a -l=build/hash4c.asm hash4c.obj'
+    'sed "' +
+      '1s/^/struct hash4Entry { const char *name; int script; int index; int isNotLower; }; extern struct hash4Entry hash4export;\\n/;' +
+      's/static struct hash4Entry/' +
+        'static const struct hash4Entry/gi;' +
+      's/static unsigned short/' +
+        'static const unsigned short/gi;' +
+      's/if (\\*str == \\*s && !strncmp (str + 1, s + 1, len - 1) && s\\[len\\]/' +
+        'while(len \\&\\& *str \\&\\& (*str == *s)) {\\n++str;\\n++s;\\n--len;\\n}\\nif(len == 0 \\&\\& *s/gi;' +
+      's/return \\&wordlist\\[key\\];/' +
+        '{\\n' +
+          'hash4export.script = wordlist[key].script;\\n' +
+          'hash4export.index = wordlist[key].index;\\n' +
+          'hash4export.isNotLower = wordlist[key].isNotLower;\\n' +
+          'return (struct hash4EntryC *)\\&hash4export;\\n' +
+        '}/gi;' +
+    '" hash4c.c > build/hash4c.c'
+  );
+
+  execSync(
+    'wcc ' + cflags + ' build/hash4c.c;wdis -s -a -l=build/hash4c.asm hash4c.o'
   );
 
   splitUpFunctions('hash4c', addROData, true);
@@ -725,9 +792,15 @@ function splitUpFunctions (filename, callback, append) {
   let state = 0;
   let labelBuffer = '';
   let offset = 0;
+  let recentLabel = '';
+  let usedRecentLabel = '';
+
+  const smarter = new RegExp(`L\\$1_${filename}-[0-9a-f]+H`);
 
   lineReader.on('line', line => {
     let name;
+
+    line = line.replace(/(L\$[0-9]+)/, "$1_" + filename).replace(smarter, usedRecentLabel.replace(':', ''));
 
     switch (state) {
       case 0:
@@ -737,9 +810,14 @@ function splitUpFunctions (filename, callback, append) {
       break;
 
       case 1:
-        if(labelBuffer !== '') {
-          if(/^\s+DW/.test(line)) {
-            name = labelBuffer.match(/^(L\$[0-9]+):/)[1];
+        if(/^\s+DW/.test(line)) {
+          if(labelBuffer === '') {
+            labelBuffer = recentLabel;
+          }
+
+          if(usedRecentLabel !== labelBuffer) {
+            name = labelBuffer.match(/^(L\$[^:]+):/)[1];
+            usedRecentLabel = labelBuffer;
 
             rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name + '.asm'));
 
@@ -751,30 +829,51 @@ function splitUpFunctions (filename, callback, append) {
             ]);
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
+            writePause(activeStream, labelBuffer + '\n' + line + '\n');
+            return;
           }
 
-          writePause(activeStream, labelBuffer + '\n' + line + '\n');
-          labelBuffer = '';
-
+          writePause(activeStream, line + '\n');
           return;
         }
-        else if (/^CONST\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
+
+        if(labelBuffer !== '' && usedRecentLabel !== labelBuffer) {
+          writePause(activeStream, labelBuffer + '\n');
+          labelBuffer = '';
+        }
+
+        if (/^CONST\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
           state = 2;
-        }
-        else if(/^L\$[0-9]+:/.test(line)) {
-          labelBuffer = line;
-
           return;
         }
-        else if(!/^_TEXT		ENDS/.test(line)) {
-          labelBuffer = '';
-          
-          if (/^(([^_]|_[^:])+)_:$/.test(line)) {
+        else if(/^L\$[^:]+:/.test(line)) {
+          labelBuffer = line;
+          recentLabel = line.replace(':', 'A:');
+          return;
+        }
+
+        if(!/^_TEXT		ENDS/.test(line)) {
+          if (/^([^_](([^_]|_[^:]))+)_:$/.test(line)) {
             name = line.match(/^(([^_]|_[^:])+)_:$/)[1];
 
             functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
 
             activeStream = functionOutputStreams[functionOutputStreams.length - 1];
+          }
+
+          else if (/^_(([^_]|_[^:])+):$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
+            name = line.match(/^([^:]+):$/)[1];
+
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name ) +  '.asm'));
+
+            /* add to the list of rodata regexes used to add the appropriate rodata to each function */
+            rodataLabels.push([
+              name,
+              false,
+              new RegExp('(\\b' + name.replace(matchOperatorsRe, '\\$&') + '\\b)', 'm')
+            ]);
+
+            activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
           }
 
           writePause(
@@ -801,7 +900,7 @@ function splitUpFunctions (filename, callback, append) {
         else {
           if(/^[^:]+:$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
             name = line.match(/^([^:]+):$/)[1];
-            
+
             rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name ) + '.asm'));
 
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
@@ -813,10 +912,11 @@ function splitUpFunctions (filename, callback, append) {
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
           }
-          
+
           writePause(
             activeStream,
-            line.replace('DGROUP:', '') + '\n'
+            line
+            + '\n'
           );
         }
       break;
@@ -841,7 +941,7 @@ function splitUpFunctions (filename, callback, append) {
           );
         }
       break;
-      
+
       case 4:
         if(/^L\$[0-9]+/.test(line)) {
           writePause(
@@ -860,21 +960,19 @@ function splitUpFunctions (filename, callback, append) {
         }
         else if(/ORG/.test(line)){
           let num = parseInt(line.match(/ORG ([0-9]+)$/)[1] || '0',10);
-          
-          
+
+
           if(offset+num !== 0) {
             writePause(
               activeStream,
               '    DB	' + (num - offset) + ' DUP(0)\n'
             );
           }
-          
+
           offset = num;
         }
       break;
     }
-
-
   });
 
   lineReader.on('close', () => {
