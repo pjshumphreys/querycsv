@@ -74,13 +74,13 @@ int main(int argc, char **argv) {
     #else
       setupDos();
     #endif
-  #endif
-
-  #if defined(__unix__) || defined(__LINUX__)
-    #ifdef __WATCOMC__
-      /* On the linux version of watcom vsnprintf still works as it does
-      on WIN32/MSDOS (i.e. it's broken). fall back to the fprintf approach */
-      devNull = "/dev/null";
+  #else
+    #if defined(__unix__) || defined(__LINUX__)
+      #ifdef __WATCOMC__
+        /* On the linux version of watcom vsnprintf still works as it does
+        on WIN32/MSDOS (i.e. it's broken). fall back to the fprintf approach */
+        devNull = "/dev/null";
+      #endif
     #endif
   #endif
 

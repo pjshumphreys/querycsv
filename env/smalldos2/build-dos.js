@@ -113,7 +113,7 @@ const rodataLabels = [];
 const byteMaps = {};
 let pageSize;
 
-const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ob -ou -ot -or -ox';
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ob -oh -ou -ot -or -ox';
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
@@ -156,7 +156,25 @@ function compileLexer () {
   console.log('compileLexer');
 
   execSync(
-    'wcc ' + cflags + ' -zc lexer.c;wdis -s -a -l=build/lexer.asm lexer.o'
+    'sed "' +
+        's/struct yy_trans_info/flex_int8_t yy_accept2(unsigned int offset);' +
+        'flex_uint16_t yy_nxt2(unsigned int offset);' +
+        'flex_int16_t yy_chk2(unsigned int offset);' +
+        'YY_CHAR yy_ec2(unsigned int offset);' +
+        'struct yy_trans_info/g;' +
+        's/%s/%S/g;' +
+        's/yyconst char msg\\[\\]/yyconst char *msg/g;' +
+        's/flex_int32_t yy_rule_can_match_eol/flex_int8_t yy_rule_can_match_eol/g;' +
+        's/flex_int16_t yy_accept/flex_int8_t yy_accept/g;' +
+        's/yy_ec\\[YY_SC_TO_UI(\\*yy_cp)\\]/yy_ec2(YY_SC_TO_UI(*yy_cp))/g;' +
+        's/yy_nxt\\[yy_base\\[yy_current_state\\] + yy_c\\]/yy_nxt2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;' +
+        's/yy_chk\\[yy_base\\[yy_current_state\\] + yy_c\\]/yy_chk2\\(yy_base\\[yy_current_state\\] + yy_c\\)/g;' +
+        's/yy_accept\\[yy_current_state\\]/yy_accept2\\(yy_current_state\\)/g;' +
+      '" lexer.c > build/lexer2.h'
+  );
+
+  execSync(
+    'wcc ' + cflags + ' -oe=0 -zc lexer2.c;wdis -s -a -l=build/lexer.asm lexer2.o'
   );
 
   splitUpFunctions('lexer', compileParser);
@@ -166,7 +184,28 @@ function compileParser () {
   console.log('compileParser');
 
   execSync(
-    'wcc ' + cflags + ' -zc sql.c;wdis -s -a -l=build/sql.asm sql.o'
+    'sed -e"' +
+      's/YY_INITIAL_VALUE (static YYSTYPE yyval_default;)//g;' +
+      's/yycheck\\[\\(.[^]]*\\)\\]/yycheck2(\\1)/g;' +
+      's/yydefact\\[\\(.[^]]*\\)\\]/yydefact2(\\1)/g;' +
+      's/yytable\\[\\(.[^]]*\\)\\]/yytable2(\\1)/g;' +
+      's/yyr1\\[\\(.[^]]*\\)\\]/yyr1a(\\1)/g;' +
+      's/#define YY_LAC_ESTABLISH/yytype_int16 yycheck2(int offset);\\n#define YY_LAC_OESTABLISH/g;' +
+      's/%s/%S/g;' +
+      's/%d/%D/g;' +
+      's/%lu/%LU/g;' +
+      's/\'s\'/\'S\'/g;' +
+      's/YYSTYPE yylval YY_INITIAL_VALUE (= yyval_default);/static YYSTYPE yylval;/g;' +
+      's/static const yytype_int16 yypact\\[\\]/yytype_int16 yypact2(int offset);yytype_int8 yydefact2(int offset);yytype_int8 yyr1a(int offset);yytype_int16 yytable2(int offset);static const yytype_int16 yypact[]/g;' +
+      '" sql.c > build/sql2.h');
+
+  execSync(
+    'sed -i -r "' +
+      's/yypact\\[([^]]+)\\]/yypact2(\\1)/gi;' +
+      '" build/sql2.h');
+
+  execSync(
+    'wcc ' + cflags + ' -oe=0 -zc sql2.c;wdis -s -a -l=build/sql.asm sql2.o'
   );
 
   splitUpFunctions('sql', compileDos, true);
@@ -238,6 +277,8 @@ function compileHash4a () {
     'wcc ' + cflags + ' build/hash4a.c;wdis -s -a -l=build/hash4a.asm hash4a.o'
   );
 
+  execSync('sed -i.bak "s/word ptr ss[:]L[$]/word ptr cs:L$/g;s/DGROUP[:]//g" build/hash4a.asm');
+
   splitUpFunctions('hash4a', compileHash4b, true);
 }
 
@@ -266,6 +307,7 @@ function compileHash4b () {
   execSync(
     'wcc ' + cflags + ' build/hash4b.c;wdis -s -a -l=build/hash4b.asm hash4b.o'
   );
+  execSync('sed -i.bak "s/word ptr ss[:]L[$]/word ptr cs:L$/g;s/DGROUP[:]//g" build/hash4b.asm');
 
   splitUpFunctions('hash4b', compileHash4c, true);
 }
@@ -295,6 +337,8 @@ function compileHash4c () {
   execSync(
     'wcc ' + cflags + ' build/hash4c.c;wdis -s -a -l=build/hash4c.asm hash4c.o'
   );
+
+  execSync('sed -i.bak "s/word ptr ss[:]L[$]/word ptr cs:L$/g;s/DGROUP[:]//g" build/hash4c.asm');
 
   splitUpFunctions('hash4c', addROData, true);
 }
@@ -946,7 +990,7 @@ function splitUpFunctions (filename, callback, append) {
         if(/^L\$[0-9]+/.test(line)) {
           writePause(
             activeStream,
-            line.match(/^(L\$[0-9]+)/)[1] + ':\n'
+            line.match(/^(L\$[0-9]+)/)[1] + '_' + filename + ':\n'
           );
         }
         else if([
