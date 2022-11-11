@@ -68,7 +68,6 @@ const functionsList = [
 
 const env = process.env;
 
-
 const os = require("os");
 
 env['WATCOM'] = path.resolve(os.homedir(), '.wine/drive_c/WATCOM');
@@ -146,6 +145,15 @@ function start () {
     item[2] = currentAddr;
     currentAddr += 4;
   });
+
+  fs.writeFileSync('build/rodata.asm', `.387
+include roexports.inc
+CONST		SEGMENT	WORD PUBLIC USE16 'DATA'
+  include roorg.inc
+rostart:
+`, { encoding: 'utf-8' });
+
+  fs.writeFileSync('build/roexports.inc', '', { encoding: 'utf-8' });
 
   compileLexer();
 }
@@ -343,17 +351,34 @@ function compileHash4c () {
   splitUpFunctions('hash4c', addROData, true);
 }
 
+function writeROLinkScript(offset) {
+  fs.writeFileSync('build/roorg.inc', `org 0x${('0000' + ((offset|0)).toString(16)).slice(-4)}`, { encoding: 'utf-8' });
+  fs.writeFileSync('build/rodata.lnk', `option map=rodata.map
+option stack=512
+name ${offset === 0 ? 'rodata' : 'temp'}.bin
+output raw
+  offset=0x10
+file rodata.o
+order
+ clname CONST
+ clname BSS NOEMIT
+`, { encoding: 'utf-8' });
+  execSync('cd build;wasm rodata.asm -fo=rodata.o;wlink @rodata.lnk;rm rodata.o', { stdio: 'pipe' });
+}
+
 /*
   Compile the read only data to a section of memory at the top of the z80 address space.
   This will be appended to each memory page so will effectively be always paged in */
 function addROData () {
   console.log('addROData');
 
-  process.exit(0);
+  fs.appendFileSync('build/rodata.asm', `    CONST		ENDS
+BSS		SEGMENT	WORD PUBLIC USE16 'STACK'
+BSS		ENDS
+		END rostart`);
 
   /* build the global data but exclude the hash4 strings */
-
-  execSync('wasm build/rodata.asm');
+  writeROLinkScript(0);
 
   rodataSize = fs.statSync('build/rodata.bin').size;
 
@@ -362,14 +387,15 @@ function addROData () {
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
-  execSync(`z88dk-z80asm -b -m -r=${32768 - rodataSize} build/rodata.asm`);
+  writeROLinkScript(65536-rodataSize);
+  execSync('rm build/temp.bin');
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
     .readFileSync('build/rodata.map', 'utf8')
-    .replace(/(i_1[a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, two, three, ...arr) => {
+    .replace(/[:]([0-9a-f]+)[*]     (.+)/g, (one, three, two, ...arr) => {
       const text = 'IFNDEF ' + two + '\n' +
-            two + ' = $' + three + '\n' +
+            two + ' = 0x' + three + '\n' +
           'ENDIF\n';
       fs.writeFileSync(
           `build/ro/${two}.asm`,
@@ -379,13 +405,6 @@ function addROData () {
 
       fs.appendFileSync('build/rodata2.asm', text);
     });
-
-  /* de-duplicate the global variables */
-  execSync(
-    'sort build/globals.asm | uniq > build/globals2.asm && ' +
-    'rm build/globals.asm && ' +
-    'mv build/globals2.asm build/globals.asm'
-  );
 
   var list = [];
   var walker = walk.walk('./build/s', {});
@@ -418,7 +437,7 @@ function getFunctionSizes () {
   name = 'compareCommon';
   execSync(
     'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
-    "sed -i 's/_compareCodepoints/_" + name + "/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
+    "sed -i 's/compareCodepoints_/" + name + "_/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -440,7 +459,7 @@ function getFunctionSizes () {
   name = 'sortCodesParse';
   execSync(
     'cat build/s/sortCodepoints.asm >> build/s/parse_mbcs.asm;' +
-    "sed -i 's/_sortCodepoints/_" + name + "/g;' build/s/parse_mbcs.asm"
+    "sed -i 's/sortCodepoints_/" + name + "_/g;' build/s/parse_mbcs.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -452,7 +471,7 @@ function getFunctionSizes () {
   name = 'sortBytesParse';
   execSync(
     'cat build/s/sortBytes.asm >> build/s/parse_mbcs.asm;' +
-    "sed -i 's/_sortBytes/_" + name + "/g;s/querycsv/querycsv2/g;' build/s/parse_mbcs.asm"
+    "sed -i 's/sortBytes_/" + name + "_/g;s/querycsv/querycsv2/g;' build/s/parse_mbcs.asm"
   );
 
   hashMap[name] = functionsList.length;
@@ -471,7 +490,8 @@ function getFunctionSizes () {
 
   execSync('rm build/s/sortBytes.asm');
 
-  /* compile the data immediately above the function jump table */
+
+  /* compile the data immediately above the function jump table
   execSync('z88dk-z80asm -b -r=49152 build/data.asm');
 
   spawnSync(
@@ -490,6 +510,10 @@ function getFunctionSizes () {
     .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
       defines[two] = three;
     });
+
+  */
+
+  process.exit(0);
 
   const list = [];
 
@@ -822,13 +846,16 @@ function splitUpFunctions (filename, callback, append) {
     flags: 'a'
   });
 
-  const globals = fs.createWriteStream('build/globals.asm', {
-    flags: append ? 'a' : 'w'
+  const code = fs.createWriteStream('build/rodata.asm', {
+    flags: 'a'
+  });
+
+  const includes = fs.createWriteStream('build/roexports.inc', {
+    flags: 'a'
   });
 
   const rodataOutputStreams = [];
 
-  const code = fs.createWriteStream('build/' + filename + '_code.asm');
 
   const functionOutputStreams = [];
   let activeStream = code;
@@ -883,20 +910,23 @@ function splitUpFunctions (filename, callback, append) {
 
         if(labelBuffer !== '' && usedRecentLabel !== labelBuffer) {
           writePause(activeStream, labelBuffer + '\n');
+          if(activeStream === code){
+            writePause(includes, 'PUBLIC ' +labelBuffer.replace(':', '') + '\n');
+          }
           labelBuffer = '';
         }
 
         if (/^CONST\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
           state = 2;
-          return;
         }
         else if(/^L\$[^:]+:/.test(line)) {
           labelBuffer = line;
           recentLabel = line.replace(':', 'A:');
-          return;
         }
-
-        if(!/^_TEXT		ENDS/.test(line)) {
+        else if(!([
+'_TEXT		ENDS',
+"		ASSUME CS:_TEXT, DS:DGROUP, SS:DGROUP"
+          ].includes(line))) {
           if (/^([^_](([^_]|_[^:]))+)_:$/.test(line)) {
             name = line.match(/^(([^_]|_[^:])+)_:$/)[1];
 
@@ -1027,8 +1057,7 @@ function splitUpFunctions (filename, callback, append) {
 
   function writeFunctionPostfixes () {
     code.end(allStreamsClosed);
-    globals.end(allStreamsClosed);
-
+    includes.end(allStreamsClosed);
 
     for (let i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */
