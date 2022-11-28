@@ -4,6 +4,7 @@
 		PUBLIC codeBlock
 		PUBLIC main2_
 		PUBLIC _buffer
+		INCLUDE <exports.inc>
 		EXTRN	b_:BYTE
 DGROUP		GROUP	CONST,CONST2,_DATA,_BSS
 _TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
@@ -11,11 +12,15 @@ _TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
 
 funcstart:  ; the array of call xxxx instructions and page numbers
 main2_:
-  ;INCLUDE <functions.inc>
+  include <functions.inc>
 	call Near Ptr farcall
 	db 1
   call Near Ptr b_
   ret
+
+lookupTable:
+  include <lookupTable.inc>
+lookupTableEnd:
 
 ;-----------------------------------------
 
@@ -255,7 +260,7 @@ _DATA		SEGMENT	WORD PUBLIC USE16 'DATA'
 ;-----------------------------------------
 
 pageStack:
-  dw 0 ;WORD  50  DUP (0) ;must be a multiple of 4 bytes
+  dw 52 DUP (0) ;must be a multiple of 4 bytes
 pageStackEnd:
 
 ;-----------------------------------------
@@ -289,13 +294,8 @@ currentVirtualPage: ; which virtual page currently is loaded into the memory at 
 
 ;----------------------------------------------
 
-lookupTable:
-;  INCLUDE <lookupTable.inc>
-  dw 0
-lookupTableEnd:
-
 datastart:
-;  INCLUDE <data.inc>
+  INCLUDE <data.inc>
 	dw 0
 
 _DATA		ENDS

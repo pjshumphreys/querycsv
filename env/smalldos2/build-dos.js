@@ -24,46 +24,47 @@ const matchOperatorsRe = /[|\\{}()[\]^$+*?.]/g;
 const hashMap = {};
 
 let rodataSize = 0;
+let codeOffset = 0;
 
 const functionsList = [
-  ['realmain_', 3, 0x0001, 0x4000, 'farcall'],
-  ['exit_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcmp_', 1, 0x0001, 0x0001, 'farcall'],
-  ['stricmp_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strlen_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strstr_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcat_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strncat_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strnicmp_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcpy_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strncpy_', 1, 0x0001, 0x0001, 'farcall'],
-  ['memcpy_', 1, 0x0001, 0x0001, 'farcall'],
-  ['memmove_', 1, 0x0001, 0x0001, 'farcall'],
-  ['memset_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fopen_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fclose_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fread_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fwrite_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['macYield_', 1, 0x0001, 0x0001, 'farcall'],
-//  ['_logNum', 1, 0x0001, 0x0001, 'farcall'],
-  ['fprintf_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fputs_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['getenv_', 1, 0x0001, 0x0001, 'farcall'],
-  ['putenv_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fputs_', 1, 0x0001, 0x0001, 'farcall'],
-  ['malloc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['free_', 1, 0x0001, 0x0001, 'farcall'],
-  ['realloc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['atexit_', 1, 0x0001, 0x0001, 'farcall'],
-  ['atexit_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fseek_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fgetc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['ungetc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['sprintf_', 1, 0x0001, 0x0001, 'farcall'],
-  ['abs_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strrchr_', 1, 0x0001, 0x0001, 'farcall'],
-  ['atol_', 1, 0x0001, 0x0001, 'farcall'],
-  ['ltoa_', 1, 0x0001, 0x0001, 'farcall']
+  ['realmain', 3, 0x0001, 0x4000, 'farcall'],
+  ['exit', 1, 0x0001, 0x0001, 'farcall'],
+  ['strcmp', 1, 0x0001, 0x0001, 'farcall'],
+  ['stricmp', 1, 0x0001, 0x0001, 'farcall'],
+  ['strlen', 1, 0x0001, 0x0001, 'farcall'],
+  ['strstr', 1, 0x0001, 0x0001, 'farcall'],
+  ['strcat', 1, 0x0001, 0x0001, 'farcall'],
+  ['strncat', 1, 0x0001, 0x0001, 'farcall'],
+  ['strnicmp', 1, 0x0001, 0x0001, 'farcall'],
+  ['strcpy', 1, 0x0001, 0x0001, 'farcall'],
+  ['strncpy', 1, 0x0001, 0x0001, 'farcall'],
+  ['memcpy', 1, 0x0001, 0x0001, 'farcall'],
+  ['memmove', 1, 0x0001, 0x0001, 'farcall'],
+  ['memset', 1, 0x0001, 0x0001, 'farcall'],
+  ['fopen_dos', 1, 0x0001, 0x0001, 'farcall'],
+//  ['fclose', 1, 0x0001, 0x0001, 'farcall'],
+  ['fread', 1, 0x0001, 0x0001, 'farcall'],
+//  ['fwrite_dos', 1, 0x0001, 0x0001, 'farcall'],
+//  ['macYield', 1, 0x0001, 0x0001, 'farcall'],
+////  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
+//  ['fprintf_dos', 1, 0x0001, 0x0001, 'farcall'],
+//  ['fputs_dos', 1, 0x0001, 0x0001, 'farcall'],
+  ['getenv', 1, 0x0001, 0x0001, 'farcall'],
+  ['putenv', 1, 0x0001, 0x0001, 'farcall'],
+  ['fputs', 1, 0x0001, 0x0001, 'farcall'],
+//  ['malloc', 1, 0x0001, 0x0001, 'farcall'],
+//  ['free', 1, 0x0001, 0x0001, 'farcall'],
+  ['realloc', 1, 0x0001, 0x0001, 'farcall'],
+  ['atexit', 1, 0x0001, 0x0001, 'farcall'],
+//  ['atexit_dos', 1, 0x0001, 0x0001, 'farcall'],
+  ['fseek', 1, 0x0001, 0x0001, 'farcall'],
+  ['fgetc', 1, 0x0001, 0x0001, 'farcall'],
+  ['ungetc', 1, 0x0001, 0x0001, 'farcall'],
+  ['sprintf', 1, 0x0001, 0x0001, 'farcall'],
+  ['abs', 1, 0x0001, 0x0001, 'farcall'],
+  ['strrchr', 1, 0x0001, 0x0001, 'farcall'],
+  ['atol', 1, 0x0001, 0x0001, 'farcall'],
+//  ['ltoa', 1, 0x0001, 0x0001, 'farcall']
 ];
 
 const env = process.env;
@@ -135,8 +136,8 @@ function start () {
     'mkdir -p build/fcb;' +
     'mkdir -p output;' +
     'rm -f build/rodata2.asm;' +
-    'rm -f build/data.asm;' +
-    'touch build/data.asm'
+    'rm -f build/data.inc;' +
+    'touch build/data.inc'
   );
 
   // update the jump table locations, starting at call_rom3 -4 and working downward in memory
@@ -348,7 +349,97 @@ function compileHash4c () {
 
   execSync('sed -i.bak "s/word ptr ss[:]L[$]/word ptr cs:L$/g;s/DGROUP[:]//g" build/hash4c.asm');
 
-  splitUpFunctions('hash4c', addROData, true);
+  splitUpFunctions('hash4c', buildData, true);
+}
+
+function buildData() {
+  let name;
+  console.log('buildData');
+
+  /* patch compareCodepoints into the functions that need it (so the table is
+  always in the same page) */
+  name = 'compareCommon';
+  execSync(
+    'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
+    "sed -i 's/compareCodepoints_/" + name + "_/g;' build/s/getBytes.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr += 4;
+
+  execSync('rm build/s/compareCodepoints.asm');
+
+  name = 'sortCodepoints';
+  execSync(
+    'cat build/s/sortCodepoints.asm >> build/s/getBytes.asm;'
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr += 4;
+
+  name = 'sortCodesParse';
+  execSync(
+    'cat build/s/sortCodepoints.asm >> build/s/parse_mbcs.asm;' +
+    "sed -i 's/sortCodepoints_/" + name + "_/g;' build/s/parse_mbcs.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr += 4;
+
+  execSync('rm build/s/sortCodepoints.asm');
+
+  name = 'sortBytesParse';
+  execSync(
+    'cat build/s/sortBytes.asm >> build/s/parse_mbcs.asm;' +
+    "sed -i 's/sortBytes_/" + name + "_/g;' build/s/parse_mbcs.asm"
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr += 4;
+
+  name = 'sortBytes';
+  execSync(
+    'cat build/s/sortBytes.asm >> build/s/getCodepointsMbcs.asm;'
+  );
+
+  hashMap[name] = functionsList.length;
+  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  currentAddr += 4;
+
+  execSync('rm build/s/sortBytes.asm');
+
+  fs.writeFileSync("build/exports.inc", functionsList.reduce((acc, item) => acc+`  PUBLIC ${item[0]}_
+`, ''), 'utf8');
+
+  fs.writeFileSync("build/functions.inc", functionsList.reduce((acc, item) => acc+`${item[0]}_:
+    jmp ${item[4]}
+    db 0x${('00' + ((item[1]|0)).toString(16)).slice(-2)}
+`, ''), 'utf8');
+
+  fs.writeFileSync("build/lookupTable.inc", functionsList.reduce((acc, item) => acc+`dw 0x${('0000' + ((item[3]|0)).toString(16)).slice(-4)}
+`, ''), 'utf8');
+
+  /* compile the data immediately above the function jump table*/
+  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
+
+  const lineReader = readline.createInterface({
+    input: fs.createReadStream('build/qrycsv16.map')
+  });
+
+
+  lineReader.on('line', line => {
+    if((/^_NULL/).test(line) && codeOffset === 0) {
+      codeOffset = parseInt((line.match(/_NULL                  BEGDATA        DGROUP         ([^:]+)[:]0000       0000(.+)/))[1], 16)*16;
+    }
+  });
+
+  lineReader.on('close', () => {
+    addROData();
+  });
 }
 
 function writeROLinkScript(offset) {
@@ -382,12 +473,11 @@ BSS		ENDS
 
   rodataSize = fs.statSync('build/rodata.bin').size;
 
-
-  pageSize = /*16644*/ /*16644*/ 16383 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
+  pageSize = /*16644*/ /*16644*/ 16384 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
-  writeROLinkScript(65536-rodataSize);
+  writeROLinkScript(pageSize);
   execSync('rm build/temp.bin');
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
@@ -406,114 +496,11 @@ BSS		ENDS
       fs.appendFileSync('build/rodata2.asm', text);
     });
 
-  var list = [];
-  var walker = walk.walk('./build/s', {});
-
-  walker.on('file', (root, fileStats, next) => {
-    list.push(
-      [fileStats.name, fs.readFileSync('build/s/' + fileStats.name, { encoding: 'utf8' })]
-    );
-
-    next();
-  });
-
-  walker.on('errors', (root, nodeStatsArray, next) => {
-    next();
-  });
-
-  walker.on('end', () => {
-    list.forEach(updateName);
-
-    getFunctionSizes();
-  });
+  getFunctionSizes();
 }
 
 function getFunctionSizes () {
-  let name;
   console.log('getFunctionSizes');
-
-  /* patch compareCodepoints into the functions that need it (so the table is
-  always in the same page) */
-  name = 'compareCommon';
-  execSync(
-    'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
-    "sed -i 's/compareCodepoints_/" + name + "_/g;s/querycsv/querycsv1/g;' build/s/getBytes.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  execSync('rm build/s/compareCodepoints.asm');
-
-  name = 'sortCodepoints';
-  execSync(
-    'cat build/s/sortCodepoints.asm >> build/s/getBytes.asm;' +
-    "sed -i 's/querycsv/querycsv1/g;' build/s/getBytes.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  name = 'sortCodesParse';
-  execSync(
-    'cat build/s/sortCodepoints.asm >> build/s/parse_mbcs.asm;' +
-    "sed -i 's/sortCodepoints_/" + name + "_/g;' build/s/parse_mbcs.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  execSync('rm build/s/sortCodepoints.asm');
-
-  name = 'sortBytesParse';
-  execSync(
-    'cat build/s/sortBytes.asm >> build/s/parse_mbcs.asm;' +
-    "sed -i 's/sortBytes_/" + name + "_/g;s/querycsv/querycsv2/g;' build/s/parse_mbcs.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  name = 'sortBytes';
-  execSync(
-    'cat build/s/sortBytes.asm >> build/s/getCodepointsMbcs.asm;' +
-    "sed -i 's/querycsv/querycsv3/g;' build/s/getCodepointsMbcs.asm"
-  );
-
-  hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
-
-  execSync('rm build/s/sortBytes.asm');
-
-
-  /* compile the data immediately above the function jump table
-  execSync('z88dk-z80asm -b -r=49152 build/data.asm');
-
-  spawnSync(
-    'sh',
-    [
-      '-c',
-      "z88dk-z80asm -m -b -r=`ls -nl build/data.bin | awk '{print " + currentAddr + "}'` build/data.asm"
-    ],
-    {
-      stdio: 'inherit'
-    }
-  );
-
-  fs
-    .readFileSync('build/data.map', 'utf8')
-    .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
-      defines[two] = three;
-    });
-
-  */
-
-  process.exit(0);
 
   const list = [];
 
@@ -534,7 +521,7 @@ function getFunctionSizes () {
   walker.on('end', () => {
     packPages(
       list
-        .map(elem => addDefines(elem, [elem], 'g'))
+        .map(elem => addDefines(elem, [elem], 's'))
         .reduce((obj, elem) => {
           elem.children = elem.children
             .map(elem => elem.replace(/^_/, ''))
@@ -842,7 +829,7 @@ function splitUpFunctions (filename, callback, append) {
     input: fs.createReadStream('build/' + filename + '.asm')
   });
 
-  const data = fs.createWriteStream('build/data.asm', {
+  const data = fs.createWriteStream('build/data.inc', {
     flags: 'a'
   });
 
@@ -890,7 +877,7 @@ function splitUpFunctions (filename, callback, append) {
             name = labelBuffer.match(/^(L\$[^:]+):/)[1];
             usedRecentLabel = labelBuffer;
 
-            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name + '.asm'));
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + name.replace('$', '_') + '.asm'));
 
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
             rodataLabels.push([
@@ -900,7 +887,7 @@ function splitUpFunctions (filename, callback, append) {
             ]);
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
-            writePause(activeStream, labelBuffer + '\n' + line + '\n');
+            writePause(activeStream, 'IFNDEF ' + name + '\n' + labelBuffer + '\n' + line + '\n');
             return;
           }
 
@@ -932,6 +919,18 @@ function splitUpFunctions (filename, callback, append) {
 
             functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
 
+            switch(name) {
+              case 'realmain':
+              case 'sortCodepoints':
+              case 'sortBytes':
+                break;
+
+              default:
+                hashMap[name] = functionsList.length;
+                functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+                currentAddr += 4;
+            }
+
             activeStream = functionOutputStreams[functionOutputStreams.length - 1];
           }
 
@@ -948,6 +947,8 @@ function splitUpFunctions (filename, callback, append) {
             ]);
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
+
+            writePause(activeStream, 'IFNDEF ' + name + '\n');
           }
 
           writePause(
@@ -975,7 +976,7 @@ function splitUpFunctions (filename, callback, append) {
           if(/^[^:]+:$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
             name = line.match(/^([^:]+):$/)[1];
 
-            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name ) + '.asm'));
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name.replace('$', '_') ) + '.asm'));
 
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
             rodataLabels.push([
@@ -985,6 +986,11 @@ function splitUpFunctions (filename, callback, append) {
             ]);
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
+
+            writePause(
+              activeStream,
+              'IFNDEF ' + name + '\n'
+            );
           }
 
           writePause(
@@ -1061,7 +1067,7 @@ function splitUpFunctions (filename, callback, append) {
 
     for (let i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */
-      //writePause(rodataOutputStreams[i], 'ENDIF\n');
+      writePause(rodataOutputStreams[i], 'ENDIF\n');
       rodataOutputStreams[i].end(allStreamsClosed);
     }
 
@@ -1132,88 +1138,58 @@ function addDefines (filename, filenames, folderName, pageMode) {
 
   console.log('addDefines', filenames);
 
-  execSync(
-    'printf "\\\n" > ../' + folderName + '/' + filename + '.inc;' +
-      'printf "\\\n" > ../' + folderName + '/' + filename + '2.inc;' +
-      'printf "\\\n" > ../' + folderName + '/' + filename + '.asm;' +
-      (pageMode ? 'printf "EXTERN extra\nEXTERN fa\nEXTERN fasign\n  SECTION code_compiler\n  org 0x4000\n" >> ../' + folderName + '/' + filename + '.asm;' : '') +
-      'printf "  INCLUDE \\"z80_crt0.hdr\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
-      filenames.reduce((obj, elem) => {
-        obj += 'cat ' + elem + '.asm >> ../' + folderName + '/' + filename + '.asm;';
-        return obj;
-      }, '') +
-      'printf " INCLUDE \\"../globals.asm\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
-      'printf " INCLUDE \\"' + filename + '2.inc\\"\n" >> ../' + folderName + '/' + filename + '.asm;' +
-      'printf " INCLUDE \\"' + filename + '.inc\\"\n" >> ../' + folderName + '/' + filename + '.asm',
-    {
-      cwd: path.join(__dirname, 'build', 's')
-    }
-  );
+  fs.writeFileSync('build/function.asm', `.8087
+INCLUDE <defines.inc>
+DGROUP		GROUP	CONST,CONST2,_DATA,_BSS
+_TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
+		ASSUME CS:_TEXT, DS:DGROUP, ES:_TEXT, SS:DGROUP
+INCLUDE <funcdata.inc>
+INCLUDE <rodata2.asm>
+INCLUDE <${folderName}/${filename}.asm>
+_TEXT ENDS
+      _NULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
+_NULL ENDS
+_AFTERNULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
+_AFTERNULL ENDS
+CONST		SEGMENT	WORD PUBLIC USE16 'DATA'
+CONST		ENDS
+CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'
+CONST2		ENDS
+_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'
+_DATA		ENDS
+_BSS		SEGMENT	WORD PUBLIC USE16 'BSS'
+_BSS		ENDS
+END`, 'utf8');
 
-  if (pageMode) {
-    execSync(
-      'sed -i "s/;INCLUDE/INCLUDE/g;s/call\\t\\(minusfa\\|ifix\\\\)/call \\1/g;s/jp\\texit/jp\\taexit/g;s/call\\t\\([^dl]\\)/call\\ta\\1/g;s/\\,_\\(get\\|outputResult\\|groupResultsInner\\)/\\,a_\\1/g" ../' + folderName + '/' + filename + '.asm',
-      {
-        cwd: path.join(__dirname, 'build', 's')
-      }
-    );
-  }
+  fs.writeFileSync('build/defines.inc', '', 'utf8');
+  fs.writeFileSync('build/funcdata.inc', '', 'utf8');
 
   while (notQuit) {
     notQuit = false;
 
     try {
       execSync(
-        'zcc +cpm ' + (folderName === 'h' ? '-m ' : '') + '--no-crt' +
-          ' -O0 --c-code-in-asm -pragma-define:CRT_ORG_DATA=0 -lm -lndos -D__DISABLE_BUILTIN -U__STDC_VERSION__' +
-          ' -o ../obj' + (pageMode ? '2' : '') + '/' + filename + '.bin ../' + folderName + '/' + filename + '.asm',
+        'wasm -0 ' + (folderName === 'h' ? '-m ' : '') + ' ' + (pageMode ? '' : '') + '-fo=obj/' + filename + '.obj function.asm',
         {
-          cwd: path.join(__dirname, 'build', 's'),
+          cwd: path.join(__dirname, 'build'),
           stdio: 'pipe'
         }
       );
     } catch (e) {
       notQuit = true;
 
-      /* create an array of all the missing symbol names */
-      arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /undefined symbol: ([^' \r\n]+)/g).toArray())));
+      // create an array of all the missing symbol names
+      arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /E551: Symbol ([^' \r\n]+)/g).toArray())));
 
-      execSync(
-        'rm ../' + folderName + '/' + filename + '2.inc;' +
-          'rm ../' + folderName + '/' + filename + '.inc;' +
-          'printf "\\\n" > ../' + folderName + '/' + filename + '.inc;' +
-          'printf "\\\n" > ../' + folderName + '/' + filename + '2.inc;',
-        {
-          cwd: path.join(__dirname, 'build', 's')
-        }
-      );
+      let arr1 = [];
+      let arr2 = [];
 
-      arr.forEach(elem => {
-        if (!pageMode || hasProp({ a: 1, _: 1, i: 1 }, elem.charAt(0))) {
-          const elem2 = elem.replace(/^(_|(a(_)?))/, '');
+      arr.forEach(item => {
+        (fs.existsSync(`build/ro/${item.replace('$', '_')}.asm`) ? arr2 : arr1).push(item);
+      })
 
-          execSync(
-            'printf "  GLOBAL ' + elem + '\n" >> ../' + folderName + '/' + filename + '2.inc;' +
-              (
-                hasProp(hashMap, elem2)
-                  ? 'printf "' + elem + ' equ 0x' + ((functionsList[hashMap[elem2]][2])
-                    .toString(16).substr(-4).toUpperCase())
-                  : (hasProp(defines, elem) ? 'printf "' + elem + ' equ 0x' + defines[elem] : (pageMode ? abort(elem) : 'printf ".' + elem))) +
-
-                '\n" >> ../' + folderName + '/' + filename + '.inc',
-            {
-              cwd: path.join(__dirname, 'build', 's')
-            }
-          );
-        } else {
-          execSync(
-            'printf "  EXTERN ' + elem + '\n" >> ../' + folderName + '/' + filename + '2.inc',
-            {
-              cwd: path.join(__dirname, 'build', 's')
-            }
-          );
-        }
-      });
+      fs.writeFileSync('build/defines.inc', arr1.reduce((acc, item) => acc + `  EXTRN ${item}:BYTE` + '\n', ''), 'utf8');
+      fs.writeFileSync('build/funcdata.inc', arr2.reduce((acc, item) => acc + `  INCLUDE <ro/${item.replace('$', '_')}.asm>` + '\n', ''), 'utf8');
     }
   }
 
