@@ -132,6 +132,7 @@ function start () {
     'mkdir -p build/h;' +
     'mkdir -p build/ro;' +
     'mkdir -p build/obj;' +
+    'mkdir -p build/bin;' +
     'mkdir -p build/obj2;' +
     'mkdir -p build/fcb;' +
     'mkdir -p output;' +
@@ -524,11 +525,11 @@ function getFunctionSizes () {
         .map(elem => addDefines(elem, [elem], 's'))
         .reduce((obj, elem) => {
           elem.children = elem.children
-            .map(elem => elem.replace(/^_/, ''))
-            .filter(name => fs.existsSync(path.join(__dirname, 'build', 'obj', name + '.bin')));
+            .map(elem => elem.replace(/_$/, ''))
+            .filter(name => fs.existsSync(path.join(__dirname, 'build', 'bin', name + '.bin')));
 
           try {
-            elem.size = fs.statSync(path.join(__dirname, 'build', 'obj', elem.name + '.bin')).size;
+            elem.size = fs.statSync(path.join(__dirname, 'build', 'bin', elem.name + '.bin')).size;
           } catch (e) {}
 
           obj[elem.name] = elem;
@@ -544,16 +545,16 @@ function packPages (tree) {
   /* use a bin packing algorithm to group the functions close
   to their call-stack parents and produce a binary of each 16k page */
 
-  const pages = [[tree.main]];
+  const pages = [[tree.realmain]];
   const remainingSizes = [pageSize];
   let currentPageData = {};
   let currentPageNumber = 0;
-  const placedFunctions = [tree.main];
+  const placedFunctions = [tree.realmain];
   let currentFunctions = [];
 
   // place the main function to begin with
-  tree.main.pageNumber = 0;
-  tree.main.children.forEach(elem => {
+  tree.realmain.pageNumber = 0;
+  tree.realmain.children.forEach(elem => {
     currentPageData[elem] = true;
   });
 
@@ -636,7 +637,8 @@ function packPages (tree) {
     currentPageNumber++;
   } while (1);
 
-  compileLibC(pages);
+  //compileLibC(pages);
+  console.log(pages);
 }
 
 function compilePages (pages) {
@@ -1134,35 +1136,39 @@ function updateName (elem) {
 
 function addDefines (filename, filenames, folderName, pageMode) {
   let arr = [];
+  let arr1 = [];
+  let arr2 = [];
+  let arr3 = [];
   let notQuit = true;
 
   console.log('addDefines', filenames);
 
   fs.writeFileSync('build/function.asm', `.8087
-INCLUDE <defines.inc>
-DGROUP		GROUP	CONST,CONST2,_DATA,_BSS
-_TEXT		SEGMENT	BYTE PUBLIC USE16 'CODE'
-		ASSUME CS:_TEXT, DS:DGROUP, ES:_TEXT, SS:DGROUP
-INCLUDE <funcdata.inc>
+DGROUP		SEGMENT	BYTE PUBLIC USE16 'CODE'
+		ASSUME CS:DGROUP, DS:DGROUP, ES:DGROUP, SS:DGROUP
 INCLUDE <rodata2.asm>
+INCLUDE <funcdata.inc>
+INCLUDE <defines.inc>
 INCLUDE <${folderName}/${filename}.asm>
-_TEXT ENDS
-      _NULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
-_NULL ENDS
-_AFTERNULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
-_AFTERNULL ENDS
-CONST		SEGMENT	WORD PUBLIC USE16 'DATA'
-CONST		ENDS
-CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'
-CONST2		ENDS
-_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'
-_DATA		ENDS
-_BSS		SEGMENT	WORD PUBLIC USE16 'BSS'
-_BSS		ENDS
-END`, 'utf8');
+DGROUP ENDS
+stack segment 'STACK'
+        db 10H dup(0)
+stack ends
+END ${filename}_`, 'utf8');
 
   fs.writeFileSync('build/defines.inc', '', 'utf8');
   fs.writeFileSync('build/funcdata.inc', '', 'utf8');
+
+  fs.writeFileSync('build/rodata.lnk', //`option map=${filename}.map
+`option stack=512
+name bin/${filename}.bin
+output raw
+  offset=0x20
+file obj/${filename}.obj
+order
+ clname DGROUP
+ clname stack NOEMIT
+`, { encoding: 'utf-8' });
 
   while (notQuit) {
     notQuit = false;
@@ -1175,27 +1181,39 @@ END`, 'utf8');
           stdio: 'pipe'
         }
       );
+
+      execSync('wlink @rodata.lnk',
+        {
+          cwd: path.join(__dirname, 'build')//,
+          //stdio: 'pipe'
+        });
     } catch (e) {
       notQuit = true;
 
+      //console.log(e.stderr.toString() + e.stdout.toString());
+
       // create an array of all the missing symbol names
       arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /E551: Symbol ([^' \r\n]+)/g).toArray())));
-
-      let arr1 = [];
-      let arr2 = [];
 
       arr.forEach(item => {
         (fs.existsSync(`build/ro/${item.replace('$', '_')}.asm`) ? arr2 : arr1).push(item);
       })
 
-      fs.writeFileSync('build/defines.inc', arr1.reduce((acc, item) => acc + `  EXTRN ${item}:BYTE` + '\n', ''), 'utf8');
+      arr1 = arr1.sort().filter((element, index, array) => array.indexOf(element) === index)
+      arr2 = arr2.sort().filter((element, index, array) => array.indexOf(element) === index)
+
+      fs.writeFileSync('build/defines.inc', arr1.reduce((acc, item) => acc + '  ' + item + ':\n', ''), 'utf8');
       fs.writeFileSync('build/funcdata.inc', arr2.reduce((acc, item) => acc + `  INCLUDE <ro/${item.replace('$', '_')}.asm>` + '\n', ''), 'utf8');
+
+      for (let i = 0, len = arr.length; i < len; ++i) {
+        arr3.push(arr[i]);
+      }
     }
   }
 
   return {
     name: filename,
-    children: arr
+    children: arr3.sort().filter((element, index, array) => array.indexOf(element) === index)
   };
 }
 
