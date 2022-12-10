@@ -211,6 +211,10 @@ it becomes needed and because it's useful for debugging */
       #include <direct.h>   /* for chdir and getcwd */
     #endif
 
+    extern FILE* mystdin;
+    extern FILE* mystdout;
+    extern FILE* mystderr;
+
     extern int consoleEncoding;
     #undef ENC_PRINT
     #define ENC_PRINT consoleEncoding

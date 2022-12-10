@@ -24,20 +24,30 @@ extern char buffer[16384];
 #define FALSE 0
 #define TRUE  1
 
+#define ENC_UNKNOWN 0
+#define ENC_CP437 1
+#define ENC_CP850 2
+#define ENC_CP1252 3
+#define ENC_ASCII 7
+
 #define freeAndZero(p) { free(p); p = 0; }
 
-unsigned int success = 0;
-char pageName[] = "qrycsv01.ovl";
-int handle = 0;
-int origDrive;
-char *origWd;
-char *devNull;
-static short int lastWasErr = FALSE;
-static short int newline = FALSE;
-static short int currentWaitCursor = 0;
-static short int startOfLine = TRUE;
-static short int cursorOutput = FALSE;
+extern unsigned int success;
+extern char pageName[];
+extern int handle;
+extern int origDrive;
+extern char *origWd;
+extern char *devNull;
+extern short int lastWasErr;
+extern short int newline;
+extern short int currentWaitCursor;
+extern short int startOfLine;
+extern short int cursorOutput;
 extern short int pageNumber;
+extern int consoleEncoding;
+extern FILE* mystdin;
+extern FILE* mystdout;
+extern FILE* mystderr;
 
 #ifdef DOS_DAT
   extern FILE* datafile;
@@ -71,10 +81,10 @@ void macYield(void) {
   const char * spinner = "...ooOOoo";
   if(startOfLine) {
     if(cursorOutput) {
-      fputc('\b', stderr);
+      fputc('\b', mystderr);
     }
 
-    fputc(spinner[currentWaitCursor], stderr);
+    fputc(spinner[currentWaitCursor], mystderr);
     currentWaitCursor = (currentWaitCursor + 1) % 9;
 
     cursorOutput = TRUE;
@@ -86,19 +96,19 @@ size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
   size_t len = size * count;
   size_t written = len;
 
-  if(stream != stdout && stream != stderr) {
+  if(stream != mystdout && stream != mystderr) {
     return fwrite(ptr, size, count, stream);
   }
 
   startOfLine = FALSE;
 
   if(cursorOutput) {
-    fputc('\b', stderr);
+    fputc('\b', mystderr);
     cursorOutput = FALSE;
   }
 
   if(newline) {
-    fputc('\n', lastWasErr ? stderr : stdout);
+    fputc('\n', lastWasErr ? mystderr : mystdout);
 
     newline = FALSE;
     written++;
@@ -107,7 +117,7 @@ size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
   /* eat last trailing newline (if we print something else we'll display it then) */
   if(((char*)ptr)[len-1] == '\n') {
     newline = TRUE;
-    lastWasErr = stream == stderr;
+    lastWasErr = stream == mystderr;
     len--;
     written--;
   }
@@ -128,7 +138,7 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
   char* newStr = NULL;
   FILE * pFile;
 
-  if(stream == stdout || stream == stderr) {
+  if(stream == mystdout || stream == mystderr) {
     if(format == NULL || (pFile = fopen(devNull, "wb")) == NULL) {
       return FALSE;
     }
@@ -172,6 +182,65 @@ int main(int argc, char** argv) {
   return main2(argc, argv);
 }
 
+void setupDos(void) {
+  union REGS regs;
+
+  regs.x.ax = 0x6601;
+  regs.x.bx = 0;
+
+  int86(0x21, &regs, &regs);
+
+  if(regs.x.cflag != 0) {
+    regs.x.bx = 0;
+  }
+
+  switch(regs.x.bx) {
+    case 437: {
+      consoleEncoding = ENC_CP437;
+    } break;
+
+    case 850: {
+      consoleEncoding = ENC_CP850;
+    } break;
+
+    case 1252: {
+      consoleEncoding = ENC_CP1252;
+    } break;
+
+    default: {
+      consoleEncoding = ENC_ASCII;
+    } break;
+  }
+
+  /* MSDOS needs the TZ environment variable set then
+  setlocale to be called to properly calculate gmtime */
+
+  /* supply some default timezone data if none is present */
+  if(getenv("TZ") == NULL) {
+    putenv(TDB_DEFAULT_TZ);
+  }
+
+  /* update the timezone info from the tz environmant variable */
+  tzset();
+
+  /* get the original drive and working directory to be able */
+  /* to revert them if they need to be changed during runtime */
+  origDrive = _getdrive();
+  origWd = getcwd(NULL, PATH_MAX + 1);
+
+  #ifdef DOS_DAT
+    /* open the hash2 data file on startup */
+    openDat();
+  #endif
+
+  /* set the working directory back to its original value at exit */
+  atexit(atexit_dos);
+
+  mystdin = stdin;
+  mystdout = stdout;
+  mystderr = stderr;
+}
+
 void b(void) {
   static char * string;
   static double d;
@@ -200,24 +269,29 @@ void b(void) {
   strncat(string, string, 3);
   memcpy(string+1, string, 2);
   memmove(string+1, string, 2);
+  getcwd(string, PATH_MAX);
   fwrite(string, 1, 1, test);
 
   fseek(test, 9, SEEK_SET);
   clearerr(test);
   num = fclose(test);
-  fread(string, 2, 2, stdin);
-  num = fgetc(stdin);
-  ungetc(num, stdin);
-  num = feof(stdin);
-  fflush(stdout);
+  fread(string, 2, 2, mystdin);
+  num = fgetc(mystdin);
+  ungetc(num, mystdin);
+  num = _getdrive();
+  num = feof(mystdin);
+  fflush(mystdout);
   isspace(num);
   isdigit(num);
   atexit(atexit_dos);
   putenv(getenv("TZ"));
   int86(0x21, &regs, &regs);
   tzset();
-  origDrive = _getdrive();
   origWd = getcwd(NULL, PATH_MAX + 1);
   localtime(&now);
   gmtime(&now);
+  atexit(dosload);
+  bsearch(NULL,NULL, 3,3, NULL);
+  chdir(NULL);
+  _chdrive(0);
 }

@@ -13,7 +13,7 @@ const fs = require('graceful-fs');
 const path = require('path');
 const readline = require('readline');
 const walk = require('walk');
-const shellEscape = require('shell-escape');
+// const shellEscape = require('shell-escape');
 const matchAll = require('match-all');
 
 const hasProp = (obj, prop) =>
@@ -26,8 +26,10 @@ const hashMap = {};
 let rodataSize = 0;
 let codeOffset = 0;
 
+// name, pageNo, trampolineAddr, pageAddr, callMethod
+
 const functionsList = [
-  ['realmain', 3, 0x0001, 0x4000, 'farcall'],
+  ['realmain', 3, 0x0001, 0x0001, 'farcall'],
   ['exit', 1, 0x0001, 0x0001, 'farcall'],
   ['strcmp', 1, 0x0001, 0x0001, 'farcall'],
   ['stricmp', 1, 0x0001, 0x0001, 'farcall'],
@@ -41,22 +43,25 @@ const functionsList = [
   ['memcpy', 1, 0x0001, 0x0001, 'farcall'],
   ['memmove', 1, 0x0001, 0x0001, 'farcall'],
   ['memset', 1, 0x0001, 0x0001, 'farcall'],
-  ['fopen_dos', 1, 0x0001, 0x0001, 'farcall'],
-//  ['fclose', 1, 0x0001, 0x0001, 'farcall'],
+  ['vfprintf', 1, 0x0001, 0x0001, 'farcall'],
+  ['vsprintf', 1, 0x0001, 0x0001, 'farcall'],
+  ['fopen', 1, 0x0001, 0x0001, 'farcall'],
+  ['fflush', 1, 0x0001, 0x0001, 'farcall'],
+  ['fclose', 1, 0x0001, 0x0001, 'farcall'],
   ['fread', 1, 0x0001, 0x0001, 'farcall'],
-//  ['fwrite_dos', 1, 0x0001, 0x0001, 'farcall'],
-//  ['macYield', 1, 0x0001, 0x0001, 'farcall'],
-////  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
-//  ['fprintf_dos', 1, 0x0001, 0x0001, 'farcall'],
-//  ['fputs_dos', 1, 0x0001, 0x0001, 'farcall'],
+  ['fwrite_dos', 1, 0x0001, 0x0001, 'farcall'],
+  ['macYield', 1, 0x0001, 0x0001, 'farcall'],
+  //  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
+  ['fprintf_dos', 1, 0x0001, 0x0001, 'farcall'],
+  ['fputs_dos', 1, 0x0001, 0x0001, 'farcall'],
   ['getenv', 1, 0x0001, 0x0001, 'farcall'],
   ['putenv', 1, 0x0001, 0x0001, 'farcall'],
   ['fputs', 1, 0x0001, 0x0001, 'farcall'],
-//  ['malloc', 1, 0x0001, 0x0001, 'farcall'],
-//  ['free', 1, 0x0001, 0x0001, 'farcall'],
+  ['malloc', 1, 0x0001, 0x0001, 'farcall'],
+  ['free', 1, 0x0001, 0x0001, 'farcall'],
   ['realloc', 1, 0x0001, 0x0001, 'farcall'],
   ['atexit', 1, 0x0001, 0x0001, 'farcall'],
-//  ['atexit_dos', 1, 0x0001, 0x0001, 'farcall'],
+  ['atexit_dos', 1, 0x0001, 0x0001, 'farcall'],
   ['fseek', 1, 0x0001, 0x0001, 'farcall'],
   ['fgetc', 1, 0x0001, 0x0001, 'farcall'],
   ['ungetc', 1, 0x0001, 0x0001, 'farcall'],
@@ -64,19 +69,28 @@ const functionsList = [
   ['abs', 1, 0x0001, 0x0001, 'farcall'],
   ['strrchr', 1, 0x0001, 0x0001, 'farcall'],
   ['atol', 1, 0x0001, 0x0001, 'farcall'],
+
+  ['int86', 1, 0x0001, 0x0001, 'farcall'],
+  ['tzset', 1, 0x0001, 0x0001, 'farcall'],
+  ['getcwd', 1, 0x0001, 0x0001, 'farcall'],
+  ['setupDos', 1, 0x0001, 0x0001, 'farcall'],
+  ['_getdrive', 1, 0x0001, 0x0001, 'farcall'],
+  ['chdir', 1, 0x0001, 0x0001, 'farcall'],
+  ['_chdrive', 1, 0x0001, 0x0001, 'farcall'],
+  ['bsearch', 1, 0x0001, 0x0001, 'farcall']
 //  ['ltoa', 1, 0x0001, 0x0001, 'farcall']
 ];
 
 const env = process.env;
 
-const os = require("os");
+const os = require('os');
 
-env['WATCOM'] = path.resolve(os.homedir(), '.wine/drive_c/WATCOM');
-env['PATH'] = path.resolve(env['WATCOM'], 'binl') + ':' + env['PATH'];
-env['INCLUDE'] = path.resolve(env['WATCOM'], 'h');
+env.WATCOM = path.resolve(os.homedir(), '.wine/drive_c/WATCOM');
+env.PATH = path.resolve(env.WATCOM, 'binl') + ':' + env.PATH;
+env.INCLUDE = path.resolve(env.WATCOM, 'h');
 
 /* don't include these functions in the output files as they are never invoked (dead code elimination) */
-const ignoreFunctions = [
+/* const ignoreFunctions = [
   'yyunput',
   'input',
   'yypush_buffer_state',
@@ -99,8 +113,9 @@ const ignoreFunctions = [
   acc[item] = !0;
   return acc;
 }, {});
+*/
 
-const startOffset = 0x1c5;//0x0200;
+const startOffset = 0x1c5;// 0x0200;
 
 let currentAddr = startOffset;
 
@@ -110,7 +125,7 @@ const defines = {};
 const libCDefines = [];
 
 const rodataLabels = [];
-const byteMaps = {};
+
 let pageSize;
 
 const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ob -oh -ou -ot -or -ox';
@@ -127,12 +142,12 @@ function start () {
   execSync(
     'mkdir -p build;' +
     'mkdir -p build/bin;' +
+    'mkdir -p build/bin2;' +
     'mkdir -p build/s;' +
     'mkdir -p build/g;' +
     'mkdir -p build/h;' +
     'mkdir -p build/ro;' +
     'mkdir -p build/obj;' +
-    'mkdir -p build/bin;' +
     'mkdir -p build/obj2;' +
     'mkdir -p build/fcb;' +
     'mkdir -p output;' +
@@ -159,7 +174,6 @@ rostart:
 
   compileLexer();
 }
-
 
 // compile and split up lexer
 function compileLexer () {
@@ -353,7 +367,7 @@ function compileHash4c () {
   splitUpFunctions('hash4c', buildData, true);
 }
 
-function buildData() {
+function buildData () {
   let name;
   console.log('buildData');
 
@@ -413,28 +427,50 @@ function buildData() {
 
   execSync('rm build/s/sortBytes.asm');
 
-  fs.writeFileSync("build/exports.inc", functionsList.reduce((acc, item) => acc+`  PUBLIC ${item[0]}_
-`, ''), 'utf8');
+  fs.writeFileSync('build/exports.inc', functionsList.reduce((acc, item) => acc + `  PUBLIC ${item[0]}_
+`, '') + (() => {
+    let key;
+    let acc = '';
 
-  fs.writeFileSync("build/functions.inc", functionsList.reduce((acc, item) => acc+`${item[0]}_:
+    for (key in defines) {
+      if (defines.hasOwnProperty(key)) {
+        acc += `  PUBLIC ${key}` + '\n';
+      }
+    }
+
+    return acc;
+  })(), 'utf8');
+
+  fs.writeFileSync('build/functions.inc', functionsList.reduce((acc, item) => acc + `${item[0]}_:
     jmp ${item[4]}
-    db 0x${('00' + ((item[1]|0)).toString(16)).slice(-2)}
+    db 0x${('00' + ((item[1] | 0)).toString(16)).slice(-2)}
 `, ''), 'utf8');
 
-  fs.writeFileSync("build/lookupTable.inc", functionsList.reduce((acc, item) => acc+`dw 0x${('0000' + ((item[3]|0)).toString(16)).slice(-4)}
+  fs.writeFileSync('build/lookupTable.inc', functionsList.reduce((acc, item) => acc + `dw 0x${('0000' + ((item[3] | 0)).toString(16)).slice(-4)}
 `, ''), 'utf8');
 
-  /* compile the data immediately above the function jump table*/
+  /* compile the data immediately above the function jump table */
   execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
 
   const lineReader = readline.createInterface({
     input: fs.createReadStream('build/qrycsv16.map')
   });
 
-
   lineReader.on('line', line => {
-    if((/^_NULL/).test(line) && codeOffset === 0) {
-      codeOffset = parseInt((line.match(/_NULL                  BEGDATA        DGROUP         ([^:]+)[:]0000       0000(.+)/))[1], 16)*16;
+    if ((/^_NULL/).test(line) && codeOffset === 0) {
+      codeOffset = parseInt((line.match(/_NULL {18}BEGDATA {8}DGROUP {9}([^:]+)[:]0000 {7}0000(.+)/))[1], 16) * 16;
+    } else {
+      const match = line.match(/[:]([0-9a-f]+)[ *] {5}(.*)/);
+
+      if (match !== null) {
+        const name = match[2].replace(/_$/, '');
+
+        if (hashMap.hasOwnProperty(name)) {
+          functionsList[hashMap[name]][2] = parseInt(match[1], 16);
+        } else if (defines.hasOwnProperty(match[2])) {
+          defines[match[2]] = parseInt(match[1], 16);
+        }
+      }
     }
   });
 
@@ -443,8 +479,8 @@ function buildData() {
   });
 }
 
-function writeROLinkScript(offset) {
-  fs.writeFileSync('build/roorg.inc', `org 0x${('0000' + ((offset|0)).toString(16)).slice(-4)}`, { encoding: 'utf-8' });
+function writeROLinkScript (offset) {
+  fs.writeFileSync('build/roorg.inc', `org 0x${('0000' + ((offset | 0)).toString(16)).slice(-4)}`, { encoding: 'utf-8' });
   fs.writeFileSync('build/rodata.lnk', `option map=rodata.map
 option stack=512
 name ${offset === 0 ? 'rodata' : 'temp'}.bin
@@ -474,7 +510,7 @@ BSS		ENDS
 
   rodataSize = fs.statSync('build/rodata.bin').size;
 
-  pageSize = /*16644*/ /*16644*/ 16384 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
+  pageSize = /* 16644 */ /* 16644 */ 16384 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
   console.log(pageSize);
 
   /* build the rodata located at the very top of ram */
@@ -484,7 +520,7 @@ BSS		ENDS
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
     .readFileSync('build/rodata.map', 'utf8')
-    .replace(/[:]([0-9a-f]+)[*]     (.+)/g, (one, three, two, ...arr) => {
+    .replace(/[:]([0-9a-f]+)[*] {5}(.+)/g, (one, three, two, ...arr) => {
       const text = 'IFNDEF ' + two + '\n' +
             two + ' = 0x' + three + '\n' +
           'ENDIF\n';
@@ -626,9 +662,9 @@ function packPages (tree) {
     if (currentFunctions.length === 0) {
       break;
     }
-    //else {
+    // else {
     //  console.log(currentFunctions);
-    //}
+    // }
 
     // otherwise open a new page
     pages.push([]);
@@ -637,8 +673,8 @@ function packPages (tree) {
     currentPageNumber++;
   } while (1);
 
-  //compileLibC(pages);
-  console.log(pages);
+  compilePages(pages);
+  // console.log(pages);
 }
 
 function compilePages (pages) {
@@ -647,6 +683,9 @@ function compilePages (pages) {
   pages.forEach((elem, index) => {
     addDefines('page' + (index + 3), elem.map(elem2 => elem2.name), 'h', true);
 
+    // process.exit(0);
+
+    /*
     fs
       .readFileSync('build/obj2/page' + (index + 3) + '.map', 'utf8')
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
@@ -672,9 +711,12 @@ function compilePages (pages) {
 
     execSync('dd if=build/rodata.bin of=build/obj2/qrycsv' +
     (('00' + (index + 3)).substr(-2)) + '.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+    */
   });
 
-  execSync('rm build/obj2/*.bin');
+  // execSync('rm build/obj2/*.bin');
+
+  process.exit(0);
 }
 
 function compileLibC (pages) {
@@ -698,7 +740,7 @@ function compileLibC (pages) {
     );
 
     fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
-       (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
+      (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
@@ -717,11 +759,11 @@ function compileLibC (pages) {
   compileLibC3(false);
 }
 
-function compileLibC3(fixDefines) {
-execSync('wcl -mt -0 -os -s -fm dosload.c');
-execSync(`hexdump -v -e '8/1 "0x%02X, "' -e '"\n"' ./dosload.com`+" | sed -e 's/^/db /g;s/, 0x  //g;s/, /,/g;s/,$//g' >dosload.inc");
-execSync('wasm -0 pager.asm');
-execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
+function compileLibC3 (fixDefines) {
+  execSync('wcl -mt -0 -os -s -fm dosload.c');
+  execSync('hexdump -v -e \'8/1 "0x%02X, "\' -e \'"\n"\' ./dosload.com' + " | sed -e 's/^/db /g;s/, 0x  //g;s/, /,/g;s/,$//g' >dosload.inc");
+  execSync('wasm -0 pager.asm');
+  execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
 
   execSync(
     'wcl -dMICROSOFT=1 -dDOS_DAT=1 -ms -fpc -0 -s -fm=qrycsv16 -fe=qrycsv16 pager.asm libc.c'
@@ -736,7 +778,7 @@ execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
         cwd: path.resolve(__dirname, 'build', name)
       });
 
-    if(fixDefines) {
+    if (fixDefines) {
       /*
         Force the symbol named funcstart to be located at startOffset by
         adding some padding. The code below is a bit of a strange way to do this,
@@ -748,7 +790,7 @@ execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
         .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
           const four = two.replace(/^_/, '');
 
-          if(four === 'funcstart') {
+          if (four === 'funcstart') {
             execSync(`sed -i '1s/^/defs ${startOffset - parseInt(three, 16)}, 0\\n/' build/${name}/defines.inc`);
           }
         });
@@ -769,20 +811,18 @@ execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
       .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
         const four = two.replace(/^_/, '');
 
-        if(four === 'main') {
+        if (four === 'main') {
           /* do nothing */
-        }
-        else if(hasProp(hashMap, four)) {
-          //console.log(four);
+        } else if (hasProp(hashMap, four)) {
+          // console.log(four);
           functionsList[hashMap[four]][3] = parseInt(three, 16);
-        }
-        else if(libCDefines.includes(two) && !hasProp(defines, two)) {
+        } else if (libCDefines.includes(two) && !hasProp(defines, two)) {
           defines[two] = three;
         }
       });
 
     fs.writeFileSync('build/' + name + '/lookupTable.inc', functionsList.map(item =>
-       (item[1] === 1 ? '  GLOBAL ':'  ;') + item[0] + '\n' +
+      (item[1] === 1 ? '  GLOBAL ' : '  ;') + item[0] + '\n' +
       '  defw 0x' + ('0000' + item[3].toString(16)).substr(-4).toUpperCase()
     ).join('\n'));
 
@@ -801,17 +841,17 @@ execSync('wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c');
         cwd: path.resolve(__dirname, 'build', name)
       });
 
-    if(!fixDefines) {
+    if (!fixDefines) {
       execSync('dd if=/dev/zero bs=1 count=16128 of=build/obj2/qrycsv0' + (index + 1) + '.ovl');
 
       execSync('dd if=build/' + name + '/qrycsv0' + (index + 1) + '.ovl of=build/obj2/qrycsv0' +
-        + (index + 1) + '.ovl conv=notrunc');
+        +(index + 1) + '.ovl conv=notrunc');
     }
 
-    //functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
-    //console.log(JSON.stringify(hashMap, null, 2));
-    //console.log(JSON.stringify(functionsList, null, 2));
-    //process.exit(0);
+    // functionsList.sort((a, b) => (a[1] === b[1] ? 0 : (a[1] > b[1] ? -1 : 1)));
+    // console.log(JSON.stringify(hashMap, null, 2));
+    // console.log(JSON.stringify(functionsList, null, 2));
+    // process.exit(0);
   });
 }
 
@@ -845,10 +885,8 @@ function splitUpFunctions (filename, callback, append) {
 
   const rodataOutputStreams = [];
 
-
   const functionOutputStreams = [];
   let activeStream = code;
-  let rodataType = 0;
   let state = 0;
   let labelBuffer = '';
   let offset = 0;
@@ -860,22 +898,22 @@ function splitUpFunctions (filename, callback, append) {
   lineReader.on('line', line => {
     let name;
 
-    line = line.replace(/(L\$[0-9]+)/, "$1_" + filename).replace(smarter, usedRecentLabel.replace(':', ''));
+    line = line.replace(/(L\$[0-9]+)/, '$1_' + filename).replace(smarter, usedRecentLabel.replace(':', ''));
 
     switch (state) {
-      case 0:
+      case 0: {
         if (/^_TEXT\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'CODE'/.test(line)) {
           state = 1;
         }
-      break;
+      } break;
 
-      case 1:
-        if(/^\s+DW/.test(line)) {
-          if(labelBuffer === '') {
+      case 1: {
+        if (/^\s+DW/.test(line)) {
+          if (labelBuffer === '') {
             labelBuffer = recentLabel;
           }
 
-          if(usedRecentLabel !== labelBuffer) {
+          if (usedRecentLabel !== labelBuffer) {
             name = labelBuffer.match(/^(L\$[^:]+):/)[1];
             usedRecentLabel = labelBuffer;
 
@@ -897,31 +935,29 @@ function splitUpFunctions (filename, callback, append) {
           return;
         }
 
-        if(labelBuffer !== '' && usedRecentLabel !== labelBuffer) {
+        if (labelBuffer !== '' && usedRecentLabel !== labelBuffer) {
           writePause(activeStream, labelBuffer + '\n');
-          if(activeStream === code){
-            writePause(includes, 'PUBLIC ' +labelBuffer.replace(':', '') + '\n');
+          if (activeStream === code) {
+            writePause(includes, 'PUBLIC ' + labelBuffer.replace(':', '') + '\n');
           }
           labelBuffer = '';
         }
 
         if (/^CONST\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
           state = 2;
-        }
-        else if(/^L\$[^:]+:/.test(line)) {
+        } else if (/^L\$[^:]+:/.test(line)) {
           labelBuffer = line;
           recentLabel = line.replace(':', 'A:');
-        }
-        else if(!([
-'_TEXT		ENDS',
-"		ASSUME CS:_TEXT, DS:DGROUP, SS:DGROUP"
-          ].includes(line))) {
+        } else if (!([
+          '_TEXT		ENDS',
+          '		ASSUME CS:_TEXT, DS:DGROUP, SS:DGROUP'
+        ].includes(line))) {
           if (/^([^_](([^_]|_[^:]))+)_:$/.test(line)) {
             name = line.match(/^(([^_]|_[^:])+)_:$/)[1];
 
             functionOutputStreams.push(fs.createWriteStream('build/s/' + name + '.asm'));
 
-            switch(name) {
+            switch (name) {
               case 'realmain':
               case 'sortCodepoints':
               case 'sortBytes':
@@ -934,12 +970,10 @@ function splitUpFunctions (filename, callback, append) {
             }
 
             activeStream = functionOutputStreams[functionOutputStreams.length - 1];
-          }
-
-          else if (/^_(([^_]|_[^:])+):$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
+          } else if (/^_(([^_]|_[^:])+):$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
             name = line.match(/^([^:]+):$/)[1];
 
-            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name ) +  '.asm'));
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name) + '.asm'));
 
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
             rodataLabels.push([
@@ -955,30 +989,28 @@ function splitUpFunctions (filename, callback, append) {
 
           writePause(
             activeStream,
-            line + '\n'
+            line.replace('DGROUP', 'SS') + '\n'
           );
         }
-      break;
+      } break;
 
-      case 2:
+      case 2: {
         if (/^_DATA\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'DATA'/.test(line)) {
           state = 3;
           activeStream = data;
-        }
-        else if([
-'CONST2		ENDS',
-"_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
-'_DATA		ENDS',
-'CONST		ENDS',
-"CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
-'		END'].includes(line)) {
+        } else if ([
+          'CONST2		ENDS',
+          "_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
+          '_DATA		ENDS',
+          'CONST		ENDS',
+          "CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
+          '		END'].includes(line)) {
 
-        }
-        else {
-          if(/^[^:]+:$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
+        } else {
+          if (/^[^:]+:$/.test(line) && !(/^_hash2/.test(line) && line !== '_hash2_1:')) {
             name = line.match(/^([^:]+):$/)[1];
 
-            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name.replace('$', '_') ) + '.asm'));
+            rodataOutputStreams.push(fs.createWriteStream('build/ro/' + (name === '_hash2_1' ? '_hash2_' : name.replace('$', '_')) + '.asm'));
 
             /* add to the list of rodata regexes used to add the appropriate rodata to each function */
             rodataLabels.push([
@@ -997,54 +1029,58 @@ function splitUpFunctions (filename, callback, append) {
 
           writePause(
             activeStream,
-            line
-            + '\n'
+            line +
+            '\n'
           );
         }
-      break;
+      } break;
 
-      case 3:
-        if(/^_BSS\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'BSS'/.test(line)) {
+      case 3: {
+        if (/^_BSS\s+SEGMENT\s+[A-Z]+\s+PUBLIC\s+USE16\s+'BSS'/.test(line)) {
           state = 4;
-        }
-        else if([
-'CONST2		ENDS',
-"_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
-'_DATA		ENDS',
-'CONST		ENDS',
-"CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
-'		END'].includes(line)) {
+        } else if ([
+          'CONST2		ENDS',
+          "_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
+          '_DATA		ENDS',
+          'CONST		ENDS',
+          "CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
+          '		END'].includes(line)) {
 
-        }
-        else {
+        } else {
+          if (/^([^:]+):$/.test(line)) {
+            const name = line.match(/^([^:]+):$/)[1];
+
+            defines[name] = 1;
+          }
+
           writePause(
             activeStream,
             line + '\n'
           );
         }
-      break;
+      } break;
 
-      case 4:
-        if(/^L\$[0-9]+/.test(line)) {
+      case 4: {
+        if (/^L\$[0-9]+/.test(line)) {
+          const name = line.match(/^(L\$[0-9]+)/)[1] + '_' + filename;
+          defines[name] = 1;
+
           writePause(
             activeStream,
-            line.match(/^(L\$[0-9]+)/)[1] + '_' + filename + ':\n'
+            name + ':\n'
           );
-        }
-        else if([
-'CONST2		ENDS',
-"_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
-'_DATA		ENDS',
-'CONST		ENDS',
-"CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
-'		END'].includes(line)) {
+        } else if ([
+          'CONST2		ENDS',
+          "_DATA		SEGMENT	WORD PUBLIC USE16 'DATA'",
+          '_DATA		ENDS',
+          'CONST		ENDS',
+          "CONST2		SEGMENT	WORD PUBLIC USE16 'DATA'",
+          '		END'].includes(line)) {
 
-        }
-        else if(/ORG/.test(line)){
-          let num = parseInt(line.match(/ORG ([0-9]+)$/)[1] || '0',10);
+        } else if (/ORG/.test(line)) {
+          const num = parseInt(line.match(/ORG ([0-9]+)$/)[1] || '0', 10);
 
-
-          if(offset+num !== 0) {
+          if (offset + num !== 0) {
             writePause(
               activeStream,
               '    DB	' + (num - offset) + ' DUP(0)\n'
@@ -1053,7 +1089,7 @@ function splitUpFunctions (filename, callback, append) {
 
           offset = num;
         }
-      break;
+      } break;
     }
   });
 
@@ -1100,7 +1136,7 @@ function splitUpFunctions (filename, callback, append) {
 
 /* updateName adds to rodata values needed by each function to the end of
 its assembly source file */
-function updateName (elem) {
+/* function updateName (elem) {
   const text = elem[1];
 
   let hasMatches = false;
@@ -1132,14 +1168,15 @@ function updateName (elem) {
   rodataLabels.forEach(element => {
     element[1] = false;
   });
-}
+} */
 
 function addDefines (filename, filenames, folderName, pageMode) {
   let arr = [];
   let arr1 = [];
   let arr2 = [];
-  let arr3 = [];
+  const arr3 = [];
   let notQuit = true;
+  let count = 0;
 
   console.log('addDefines', filenames);
 
@@ -1148,20 +1185,38 @@ DGROUP		SEGMENT	BYTE PUBLIC USE16 'CODE'
 		ASSUME CS:DGROUP, DS:DGROUP, ES:DGROUP, SS:DGROUP
 INCLUDE <rodata2.asm>
 INCLUDE <funcdata.inc>
-INCLUDE <defines.inc>
-INCLUDE <${folderName}/${filename}.asm>
+INCLUDE <defines.inc>` +
+(folderName === 'h'
+  ? `
+${filename}_:`
+  : '') +
+filenames.reduce((result, elem) => result + '\n' + `INCLUDE <s/${elem}.asm>`, '') +
+`
 DGROUP ENDS
 stack segment 'STACK'
         db 10H dup(0)
 stack ends
 END ${filename}_`, 'utf8');
 
-  fs.writeFileSync('build/defines.inc', '', 'utf8');
+  fs.writeFileSync('build/defines.inc', (() => {
+    let key;
+    let acc = '';
+
+    if (folderName === 'h') {
+      for (key in defines) {
+        if (defines.hasOwnProperty(key)) {
+          acc += `  ${key} = ${defines[key]}` + '\n';
+        }
+      }
+    }
+
+    return acc;
+  })(), 'utf8');
   fs.writeFileSync('build/funcdata.inc', '', 'utf8');
 
-  fs.writeFileSync('build/rodata.lnk', //`option map=${filename}.map
+  fs.writeFileSync('build/rodata.lnk', (folderName === 'h' ? 'option map=' + filename + '.map\n' : '') +
 `option stack=512
-name bin/${filename}.bin
+name ${folderName === 'h' ? 'bin2' : 'bin'}/${filename}.bin
 output raw
   offset=0x20
 file obj/${filename}.obj
@@ -1175,7 +1230,7 @@ order
 
     try {
       execSync(
-        'wasm -0 ' + (folderName === 'h' ? '-m ' : '') + ' ' + (pageMode ? '' : '') + '-fo=obj/' + filename + '.obj function.asm',
+        'wasm -e10000 -0 ' + ' ' + (pageMode ? '' : '') + '-fo=obj/' + filename + '.obj function.asm',
         {
           cwd: path.join(__dirname, 'build'),
           stdio: 'pipe'
@@ -1185,24 +1240,77 @@ order
       execSync('wlink @rodata.lnk',
         {
           cwd: path.join(__dirname, 'build')//,
-          //stdio: 'pipe'
+          // stdio: 'pipe'
         });
     } catch (e) {
       notQuit = true;
 
-      //console.log(e.stderr.toString() + e.stdout.toString());
+      console.log(e.stderr.toString() + e.stdout.toString());
+
+      if (folderName === 'h') {
+        if (++count > 1) {
+          process.exit(0);
+        }
+      }
 
       // create an array of all the missing symbol names
       arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /E551: Symbol ([^' \r\n]+)/g).toArray())));
 
       arr.forEach(item => {
+        // console.log(item);
         (fs.existsSync(`build/ro/${item.replace('$', '_')}.asm`) ? arr2 : arr1).push(item);
-      })
+      });
 
-      arr1 = arr1.sort().filter((element, index, array) => array.indexOf(element) === index)
-      arr2 = arr2.sort().filter((element, index, array) => array.indexOf(element) === index)
+      arr1 = arr1.sort().filter((element, index, array) => array.indexOf(element) === index);
+      arr2 = arr2.sort().filter((element, index, array) => array.indexOf(element) === index);
 
-      fs.writeFileSync('build/defines.inc', arr1.reduce((acc, item) => acc + '  ' + item + ':\n', ''), 'utf8');
+      fs.writeFileSync('build/defines.inc', arr1.sort((a, b) => {
+        const c = a.replace(/_$/, '');
+        const d = b.replace(/_$/, '');
+
+        if (!(hashMap.hasOwnProperty(c))) {
+          return 1;
+        }
+
+        if (!(hashMap.hasOwnProperty(d))) {
+          return -1;
+        }
+
+        return functionsList[hashMap[c]][2] - functionsList[hashMap[d]][2];
+      }).reduce((acc, item) => {
+        if (folderName !== 'h') {
+          return acc + '  ' + item + ':\n';
+        }
+
+        const name = item.replace(/_$/, '');
+
+        if (hashMap.hasOwnProperty(name)) {
+          const a = acc + `
+IFNDEF ${item}
+org ${functionsList[hashMap[name]][2]}
+${item}:
+  db 0
+ENDIF
+          `;
+
+          return a;
+        }
+
+        return acc;
+      }, '') + (() => {
+        let key;
+        let acc = '';
+
+        if (folderName === 'h') {
+          for (key in defines) {
+            if (defines.hasOwnProperty(key)) {
+              acc += `  ${key} = ${defines[key]}` + '\n';
+            }
+          }
+        }
+
+        return acc;
+      })(), 'utf8');
       fs.writeFileSync('build/funcdata.inc', arr2.reduce((acc, item) => acc + `  INCLUDE <ro/${item.replace('$', '_')}.asm>` + '\n', ''), 'utf8');
 
       for (let i = 0, len = arr.length; i < len; ++i) {
@@ -1217,7 +1325,9 @@ order
   };
 }
 
+/*
 function abort (elem) {
   console.log('symbol not found: ' + elem);
   process.exit(-1);
 }
+*/
