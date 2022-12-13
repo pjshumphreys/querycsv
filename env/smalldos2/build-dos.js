@@ -29,55 +29,59 @@ let codeOffset = 0;
 // name, pageNo, trampolineAddr, pageAddr, callMethod
 
 const functionsList = [
-  ['realmain', 3, 0x0001, 0x0001, 'farcall'],
-  ['exit', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcmp', 1, 0x0001, 0x0001, 'farcall'],
-  ['stricmp', 1, 0x0001, 0x0001, 'farcall'],
-  ['strlen', 1, 0x0001, 0x0001, 'farcall'],
-  ['strstr', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcat', 1, 0x0001, 0x0001, 'farcall'],
-  ['strncat', 1, 0x0001, 0x0001, 'farcall'],
-  ['strnicmp', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcpy', 1, 0x0001, 0x0001, 'farcall'],
-  ['strncpy', 1, 0x0001, 0x0001, 'farcall'],
-  ['memcpy', 1, 0x0001, 0x0001, 'farcall'],
-  ['memmove', 1, 0x0001, 0x0001, 'farcall'],
-  ['memset', 1, 0x0001, 0x0001, 'farcall'],
-  ['vfprintf', 1, 0x0001, 0x0001, 'farcall'],
-  ['vsprintf', 1, 0x0001, 0x0001, 'farcall'],
-  ['fopen', 1, 0x0001, 0x0001, 'farcall'],
-  ['fflush', 1, 0x0001, 0x0001, 'farcall'],
-  ['fclose', 1, 0x0001, 0x0001, 'farcall'],
-  ['fread', 1, 0x0001, 0x0001, 'farcall'],
-  ['fwrite_dos', 1, 0x0001, 0x0001, 'farcall'],
-  ['macYield', 1, 0x0001, 0x0001, 'farcall'],
+  ['realmain_', 3, 0x0001, 0x0001, 'farcall'],
+  ['exit_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strcmp_', 1, 0x0001, 0x0001, 'farcall'],
+  ['stricmp_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strlen_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strstr_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strcat_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strncat_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strnicmp_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strcpy_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strncpy_', 1, 0x0001, 0x0001, 'farcall'],
+  ['memcpy_', 1, 0x0001, 0x0001, 'farcall'],
+  ['memmove_', 1, 0x0001, 0x0001, 'farcall'],
+  ['memset_', 1, 0x0001, 0x0001, 'farcall'],
+  ['vfprintf_', 1, 0x0001, 0x0001, 'farcall'],
+  ['vsprintf_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fopen_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fflush_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fclose_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fread_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fwrite_dos_', 1, 0x0001, 0x0001, 'farcall'],
+  ['macYield_', 1, 0x0001, 0x0001, 'farcall'],
   //  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
-  ['fprintf_dos', 1, 0x0001, 0x0001, 'farcall'],
-  ['fputs_dos', 1, 0x0001, 0x0001, 'farcall'],
-  ['getenv', 1, 0x0001, 0x0001, 'farcall'],
-  ['putenv', 1, 0x0001, 0x0001, 'farcall'],
-  ['fputs', 1, 0x0001, 0x0001, 'farcall'],
-  ['malloc', 1, 0x0001, 0x0001, 'farcall'],
-  ['free', 1, 0x0001, 0x0001, 'farcall'],
-  ['realloc', 1, 0x0001, 0x0001, 'farcall'],
-  ['atexit', 1, 0x0001, 0x0001, 'farcall'],
-  ['atexit_dos', 1, 0x0001, 0x0001, 'farcall'],
-  ['fseek', 1, 0x0001, 0x0001, 'farcall'],
-  ['fgetc', 1, 0x0001, 0x0001, 'farcall'],
-  ['ungetc', 1, 0x0001, 0x0001, 'farcall'],
-  ['sprintf', 1, 0x0001, 0x0001, 'farcall'],
-  ['abs', 1, 0x0001, 0x0001, 'farcall'],
-  ['strrchr', 1, 0x0001, 0x0001, 'farcall'],
-  ['atol', 1, 0x0001, 0x0001, 'farcall'],
+  ['fprintf_dos_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fputs_dos_', 1, 0x0001, 0x0001, 'farcall'],
+  ['getenv_', 1, 0x0001, 0x0001, 'farcall'],
+  ['putenv_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fputs_', 1, 0x0001, 0x0001, 'farcall'],
+  ['malloc_', 1, 0x0001, 0x0001, 'farcall'],
+  ['free_', 1, 0x0001, 0x0001, 'farcall'],
+  ['realloc_', 1, 0x0001, 0x0001, 'farcall'],
+  ['atexit_', 1, 0x0001, 0x0001, 'farcall'],
+  ['atexit_dos_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fseek_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fgetc_', 1, 0x0001, 0x0001, 'farcall'],
+  ['ungetc_', 1, 0x0001, 0x0001, 'farcall'],
+  ['sprintf_', 1, 0x0001, 0x0001, 'farcall'],
+  ['abs_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strrchr_', 1, 0x0001, 0x0001, 'farcall'],
+  ['atol_', 1, 0x0001, 0x0001, 'farcall'],
 
-  ['int86', 1, 0x0001, 0x0001, 'farcall'],
-  ['tzset', 1, 0x0001, 0x0001, 'farcall'],
-  ['getcwd', 1, 0x0001, 0x0001, 'farcall'],
-  ['setupDos', 1, 0x0001, 0x0001, 'farcall'],
-  ['_getdrive', 1, 0x0001, 0x0001, 'farcall'],
-  ['chdir', 1, 0x0001, 0x0001, 'farcall'],
-  ['_chdrive', 1, 0x0001, 0x0001, 'farcall'],
-  ['bsearch', 1, 0x0001, 0x0001, 'farcall']
+  ['int86_', 1, 0x0001, 0x0001, 'farcall'],
+  ['tzset_', 1, 0x0001, 0x0001, 'farcall'],
+  ['getcwd_', 1, 0x0001, 0x0001, 'farcall'],
+  ['setupDos_', 1, 0x0001, 0x0001, 'farcall'],
+  ['_getdrive_', 1, 0x0001, 0x0001, 'farcall'],
+  ['chdir_', 1, 0x0001, 0x0001, 'farcall'],
+  ['_chdrive_', 1, 0x0001, 0x0001, 'farcall'],
+  ['bsearch_', 1, 0x0001, 0x0001, 'farcall'],
+  ['qsort_', 1, 0x0001, 0x0001, 'farcall'],
+  ['time_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__I4D', 1, 0x0001, 0x0001, 'farcall'],
+  ['__get_errno_ptr_', 1, 0x0001, 0x0001, 'farcall']
 //  ['ltoa', 1, 0x0001, 0x0001, 'farcall']
 ];
 
@@ -158,7 +162,7 @@ function start () {
 
   // update the jump table locations, starting at call_rom3 -4 and working downward in memory
   functionsList.forEach((item, index) => {
-    hashMap[item[0].replace(/_$/, '')] = index;
+    hashMap[item[0]] = index;
     item[2] = currentAddr;
     currentAddr += 4;
   });
@@ -373,7 +377,7 @@ function buildData () {
 
   /* patch compareCodepoints into the functions that need it (so the table is
   always in the same page) */
-  name = 'compareCommon';
+  name = 'compareCommon_';
   execSync(
     'cat build/s/compareCodepoints.asm >> build/s/getBytes.asm;' +
     "sed -i 's/compareCodepoints_/" + name + "_/g;' build/s/getBytes.asm"
@@ -385,7 +389,7 @@ function buildData () {
 
   execSync('rm build/s/compareCodepoints.asm');
 
-  name = 'sortCodepoints';
+  name = 'sortCodepoints_';
   execSync(
     'cat build/s/sortCodepoints.asm >> build/s/getBytes.asm;'
   );
@@ -394,7 +398,7 @@ function buildData () {
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
-  name = 'sortCodesParse';
+  name = 'sortCodesParse_';
   execSync(
     'cat build/s/sortCodepoints.asm >> build/s/parse_mbcs.asm;' +
     "sed -i 's/sortCodepoints_/" + name + "_/g;' build/s/parse_mbcs.asm"
@@ -406,7 +410,7 @@ function buildData () {
 
   execSync('rm build/s/sortCodepoints.asm');
 
-  name = 'sortBytesParse';
+  name = 'sortBytesParse_';
   execSync(
     'cat build/s/sortBytes.asm >> build/s/parse_mbcs.asm;' +
     "sed -i 's/sortBytes_/" + name + "_/g;' build/s/parse_mbcs.asm"
@@ -416,7 +420,7 @@ function buildData () {
   functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
-  name = 'sortBytes';
+  name = 'sortBytes_';
   execSync(
     'cat build/s/sortBytes.asm >> build/s/getCodepointsMbcs.asm;'
   );
@@ -427,7 +431,7 @@ function buildData () {
 
   execSync('rm build/s/sortBytes.asm');
 
-  fs.writeFileSync('build/exports.inc', functionsList.reduce((acc, item) => acc + `  PUBLIC ${item[0]}_
+  fs.writeFileSync('build/exports.inc', functionsList.reduce((acc, item) => acc + `  PUBLIC ${item[0]}
 `, '') + (() => {
     let key;
     let acc = '';
@@ -441,7 +445,7 @@ function buildData () {
     return acc;
   })(), 'utf8');
 
-  fs.writeFileSync('build/functions.inc', functionsList.reduce((acc, item) => acc + `${item[0]}_:
+  fs.writeFileSync('build/functions.inc', functionsList.reduce((acc, item) => acc + `${item[0]}:
     jmp ${item[4]}
     db 0x${('00' + ((item[1] | 0)).toString(16)).slice(-2)}
 `, ''), 'utf8');
@@ -964,8 +968,8 @@ function splitUpFunctions (filename, callback, append) {
                 break;
 
               default:
-                hashMap[name] = functionsList.length;
-                functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+                hashMap[name+'_'] = functionsList.length;
+                functionsList.push([name+'_', 0, currentAddr, 0x0001, 'farcall']);
                 currentAddr += 4;
             }
 
@@ -1188,15 +1192,15 @@ INCLUDE <funcdata.inc>
 INCLUDE <defines.inc>` +
 (folderName === 'h'
   ? `
-${filename}_:`
+${filename}:`
   : '') +
-filenames.reduce((result, elem) => result + '\n' + `INCLUDE <s/${elem}.asm>`, '') +
+filenames.reduce((result, elem) => result + '\n' + `INCLUDE <s/${elem.replace(/_$/, '')}.asm>`, '') +
 `
 DGROUP ENDS
 stack segment 'STACK'
         db 10H dup(0)
 stack ends
-END ${filename}_`, 'utf8');
+END ${filename}`, 'utf8');
 
   fs.writeFileSync('build/defines.inc', (() => {
     let key;
@@ -1265,8 +1269,9 @@ order
       arr2 = arr2.sort().filter((element, index, array) => array.indexOf(element) === index);
 
       fs.writeFileSync('build/defines.inc', arr1.sort((a, b) => {
-        const c = a.replace(/_$/, '');
-        const d = b.replace(/_$/, '');
+        //console.log(a,b);
+        const c = a;
+        const d = b;
 
         if (!(hashMap.hasOwnProperty(c))) {
           return 1;
@@ -1278,11 +1283,12 @@ order
 
         return functionsList[hashMap[c]][2] - functionsList[hashMap[d]][2];
       }).reduce((acc, item) => {
+        console.log(item, hashMap.hasOwnProperty(item));
         if (folderName !== 'h') {
           return acc + '  ' + item + ':\n';
         }
 
-        const name = item.replace(/_$/, '');
+        const name = item;
 
         if (hashMap.hasOwnProperty(name)) {
           const a = acc + `
