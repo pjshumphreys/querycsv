@@ -30,6 +30,7 @@ let codeOffset = 0;
 
 const functionsList = [
   ['realmain_', 3, 0x0001, 0x0001, 'farcall'],
+  ['setupDos_', 1, 0x0001, 0x0001, 'farcall'],
   ['exit_', 1, 0x0001, 0x0001, 'farcall'],
   ['strcmp_', 1, 0x0001, 0x0001, 'farcall'],
   ['stricmp_', 1, 0x0001, 0x0001, 'farcall'],
@@ -69,19 +70,32 @@ const functionsList = [
   ['abs_', 1, 0x0001, 0x0001, 'farcall'],
   ['strrchr_', 1, 0x0001, 0x0001, 'farcall'],
   ['atol_', 1, 0x0001, 0x0001, 'farcall'],
+  ['strtod_', 1, 0x0001, 0x0001, 'farcall'],
+  ['bsearch_', 1, 0x0001, 0x0001, 'farcall'],
+  ['qsort_', 1, 0x0001, 0x0001, 'farcall'],
 
   ['int86_', 1, 0x0001, 0x0001, 'farcall'],
   ['tzset_', 1, 0x0001, 0x0001, 'farcall'],
+  ['time_', 1, 0x0001, 0x0001, 'farcall'],
+  ['gmtime_', 1, 0x0001, 0x0001, 'farcall'],
+  ['localtime_', 1, 0x0001, 0x0001, 'farcall'],
   ['getcwd_', 1, 0x0001, 0x0001, 'farcall'],
-  ['setupDos_', 1, 0x0001, 0x0001, 'farcall'],
   ['_getdrive_', 1, 0x0001, 0x0001, 'farcall'],
   ['chdir_', 1, 0x0001, 0x0001, 'farcall'],
   ['_chdrive_', 1, 0x0001, 0x0001, 'farcall'],
-  ['bsearch_', 1, 0x0001, 0x0001, 'farcall'],
-  ['qsort_', 1, 0x0001, 0x0001, 'farcall'],
-  ['time_', 1, 0x0001, 0x0001, 'farcall'],
   ['__I4D', 1, 0x0001, 0x0001, 'farcall'],
-  ['__get_errno_ptr_', 1, 0x0001, 0x0001, 'farcall']
+  ['__EDA', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDA', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDC', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDD', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDM', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDN', 1, 0x0001, 0x0001, 'farcall'],
+  ['__EDC', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDS', 1, 0x0001, 0x0001, 'farcall'],
+  ['__I4FD', 1, 0x0001, 0x0001, 'farcall'],
+  ['__get_errno_ptr_', 1, 0x0001, 0x0001, 'farcall'],
+  ['L$1708_querycsv', 1, 0x0001, 0x0001, 'farcall'],
+  ['L$629_querycsv', 1, 0x0001, 0x0001, 'farcall']
 //  ['ltoa', 1, 0x0001, 0x0001, 'farcall']
 ];
 
@@ -1249,7 +1263,7 @@ order
     } catch (e) {
       notQuit = true;
 
-      console.log(e.stderr.toString() + e.stdout.toString());
+      //console.log(e.stderr.toString() + e.stdout.toString());
 
       if (folderName === 'h') {
         if (++count > 1) {
@@ -1283,7 +1297,6 @@ order
 
         return functionsList[hashMap[c]][2] - functionsList[hashMap[d]][2];
       }).reduce((acc, item) => {
-        console.log(item, hashMap.hasOwnProperty(item));
         if (folderName !== 'h') {
           return acc + '  ' + item + ':\n';
         }
