@@ -1,0 +1,7 @@
+querycsv.c
+----------
+
+some functions must come before all others
+
+d_tztime formats need to be defined as contants and not used inline
+getRowNumber ctof calls need to be replaced by a constant float

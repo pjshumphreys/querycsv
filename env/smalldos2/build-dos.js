@@ -83,19 +83,19 @@ const functionsList = [
   ['_getdrive_', 1, 0x0001, 0x0001, 'farcall'],
   ['chdir_', 1, 0x0001, 0x0001, 'farcall'],
   ['_chdrive_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__I4D', 1, 0x0001, 0x0001, 'farcall'],
-  ['__EDA', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDA', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDC', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDD', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDM', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDN', 1, 0x0001, 0x0001, 'farcall'],
-  ['__EDC', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDS', 1, 0x0001, 0x0001, 'farcall'],
-  ['__I4FD', 1, 0x0001, 0x0001, 'farcall'],
+  ['__I4D_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__EDA_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDA_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDC_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDD_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDM_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDN_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__EDC_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__FDS_', 1, 0x0001, 0x0001, 'farcall'],
+  ['__I4FD_', 1, 0x0001, 0x0001, 'farcall'],
   ['__get_errno_ptr_', 1, 0x0001, 0x0001, 'farcall'],
-  ['L$1708_querycsv', 1, 0x0001, 0x0001, 'farcall'],
-  ['L$629_querycsv', 1, 0x0001, 0x0001, 'farcall']
+//  ['L$1708_querycsv', 1, 0x0001, 0x0001, 'farcall'],
+//  ['L$629_querycsv', 1, 0x0001, 0x0001, 'farcall']
 //  ['ltoa', 1, 0x0001, 0x0001, 'farcall']
 ];
 
@@ -146,7 +146,9 @@ const rodataLabels = [];
 
 let pageSize;
 
-const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ob -oh -ou -ot -or -ox';
+//
+
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ob -oh -ou -ot -or -od  -ox';
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
@@ -481,11 +483,15 @@ function buildData () {
       const match = line.match(/[:]([0-9a-f]+)[ *] {5}(.*)/);
 
       if (match !== null) {
-        const name = match[2].replace(/_$/, '');
+        const name = match[2];
 
         if (hashMap.hasOwnProperty(name)) {
           functionsList[hashMap[name]][2] = parseInt(match[1], 16);
-        } else if (defines.hasOwnProperty(match[2])) {
+        }
+        else if (hashMap.hasOwnProperty(name+'_')) {
+          functionsList[hashMap[name+'_']][2] = parseInt(match[1], 16);
+        }
+         else if (defines.hasOwnProperty(match[2])) {
           defines[match[2]] = parseInt(match[1], 16);
         }
       }
@@ -945,7 +951,8 @@ function splitUpFunctions (filename, callback, append) {
             ]);
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
-            writePause(activeStream, 'IFNDEF ' + name + '\n' + labelBuffer + '\n' + line + '\n');
+            writePause(activeStream, //'IFNDEF ' + name + '\n' + 
+            labelBuffer + '\n' + line + '\n');
             return;
           }
 
@@ -1002,7 +1009,7 @@ function splitUpFunctions (filename, callback, append) {
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
 
-            writePause(activeStream, 'IFNDEF ' + name + '\n');
+            //writePause(activeStream, 'IFNDEF ' + name + '\n');
           }
 
           writePause(
@@ -1039,10 +1046,10 @@ function splitUpFunctions (filename, callback, append) {
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
 
-            writePause(
-              activeStream,
-              'IFNDEF ' + name + '\n'
-            );
+            //writePause(
+            //  activeStream,
+            //  'IFNDEF ' + name + '\n'
+            //);
           }
 
           writePause(
@@ -1123,7 +1130,7 @@ function splitUpFunctions (filename, callback, append) {
 
     for (let i = 0; i < rodataOutputStreams.length; i++) {
       /* close current stream */
-      writePause(rodataOutputStreams[i], 'ENDIF\n');
+      //writePause(rodataOutputStreams[i], 'ENDIF\n');
       rodataOutputStreams[i].end(allStreamsClosed);
     }
 
@@ -1197,18 +1204,21 @@ function addDefines (filename, filenames, folderName, pageMode) {
   let count = 0;
 
   console.log('addDefines', filenames);
+  fs.writeFileSync('build/exports2.inc', filenames.reduce((result, elem) => result  + `  PUBLIC ${elem}_` + '\n', ''), 'utf8');
 
   fs.writeFileSync('build/function.asm', `.8087
+INCLUDE <exports2.inc>
 DGROUP		SEGMENT	BYTE PUBLIC USE16 'CODE'
 		ASSUME CS:DGROUP, DS:DGROUP, ES:DGROUP, SS:DGROUP
 INCLUDE <rodata2.asm>
-INCLUDE <funcdata.inc>
-INCLUDE <defines.inc>` +
+INCLUDE <defines.inc>
+` +
 (folderName === 'h'
-  ? `
-${filename}:`
+  ? `${filename}:
+`
   : '') +
-filenames.reduce((result, elem) => result + '\n' + `INCLUDE <s/${elem.replace(/_$/, '')}.asm>`, '') +
+`INCLUDE <funcdata.inc>
+`+filenames.reduce((result, elem) => result + '\n' + `INCLUDE <s/${elem.replace(/_$/, '')}.asm>`, '') +
 `
 DGROUP ENDS
 stack segment 'STACK'
@@ -1263,7 +1273,7 @@ order
     } catch (e) {
       notQuit = true;
 
-      //console.log(e.stderr.toString() + e.stdout.toString());
+      console.log(e.stderr.toString() + e.stdout.toString());
 
       if (folderName === 'h') {
         if (++count > 1) {
@@ -1282,7 +1292,7 @@ order
       arr1 = arr1.sort().filter((element, index, array) => array.indexOf(element) === index);
       arr2 = arr2.sort().filter((element, index, array) => array.indexOf(element) === index);
 
-      fs.writeFileSync('build/defines.inc', arr1.sort((a, b) => {
+      const arr4 = arr1.sort((a, b) => {
         //console.log(a,b);
         const c = a;
         const d = b;
@@ -1296,7 +1306,9 @@ order
         }
 
         return functionsList[hashMap[c]][2] - functionsList[hashMap[d]][2];
-      }).reduce((acc, item) => {
+      });
+
+      fs.writeFileSync('build/defines.inc', arr4.reduce((acc, item) => {
         if (folderName !== 'h') {
           return acc + '  ' + item + ':\n';
         }
@@ -1307,6 +1319,18 @@ order
           const a = acc + `
 IFNDEF ${item}
 org ${functionsList[hashMap[name]][2]}
+${item}:
+  db 0
+ENDIF
+          `;
+
+          return a;
+        }
+
+        if (hashMap.hasOwnProperty(name+'_')) {
+          const a = acc + `
+IFNDEF ${item}
+org ${functionsList[hashMap[name+'_']][2]}
 ${item}:
   db 0
 ENDIF
@@ -1330,6 +1354,7 @@ ENDIF
 
         return acc;
       })(), 'utf8');
+      
       fs.writeFileSync('build/funcdata.inc', arr2.reduce((acc, item) => acc + `  INCLUDE <ro/${item.replace('$', '_')}.asm>` + '\n', ''), 'utf8');
 
       for (let i = 0, len = arr.length; i < len; ++i) {
