@@ -23,9 +23,9 @@ gen.h: makeheaders $(SOURCES)
 hash3.h: ./generateMappings.js
 	node ./generateMappings.js
 
-querycsv.c: hash3.h $(SOURCES)
+querycsv.c: hash3.h hash2.c generate_c.js $(SOURCES)
 	printf "#include \"querycsv.h\"\n" > querycsv.c
-	cat $(SOURCES) >> querycsv.c
+	cat $(shell node ./generate_c.js) >> querycsv.c
 
 hash4a.c: hash4a.gperf
 	gperf hash4a.gperf > hash4a.c

@@ -7,6 +7,7 @@ void setRowNumber(
 ) {
   char * temp1 = NULL;
   char * temp2 = NULL;
+  double dbl = ctof(1);
   struct resultColumnValue * currentMatch = item->columns;
   struct resultColumnValue * nextMatch = NULL;
 
@@ -51,7 +52,7 @@ void setRowNumber(
         (void (*)(void))&getUnicodeChar,
         (void (*)(void))&getUnicodeChar
       )) {
-      ftostr(&(nextMatch[columnIndex].value), ctof(1));
+      ftostr(&(nextMatch[columnIndex].value), dbl);
 
       free(temp1);
       free(temp2);
@@ -65,5 +66,5 @@ void setRowNumber(
     entry = entry->nextInList;
   }
 
-  ftostr(&(nextMatch[columnIndex].value), fadd(defaultValue, ctof(1)));
+  ftostr(&(nextMatch[columnIndex].value), fadd(defaultValue, dbl));
 }

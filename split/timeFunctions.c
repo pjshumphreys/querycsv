@@ -7,6 +7,8 @@ int d_tztime(
     struct tm *utc,
     char **output
 ) {
+  const char format1[] = "+%02i%02i";
+  const char format2[] = "%03i%02i";
   struct tm *lcl = NULL;
   struct tm *gm = NULL;
 
@@ -16,7 +18,7 @@ int d_tztime(
   int hour_difference;
   int minute_difference;
 
-  char *format = "+%02i%02i";
+  char *format = format1;
 
   MAC_YIELD
 
@@ -70,7 +72,7 @@ int d_tztime(
     hour_difference = (difference - minute_difference)/60;
 
     if(hour_difference < 0) {
-      format = "%03i%02i";
+      format = format2;
     }
 
     sprintf(*output, format, hour_difference, minute_difference);

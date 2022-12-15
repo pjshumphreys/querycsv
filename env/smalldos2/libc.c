@@ -248,13 +248,12 @@ void b(void) {
   static FILE* test;
   static int num;
   static unsigned long num2;
-  static long num3, num4, num5;
+  static long num3;
   union REGS regs;
   time_t now;
 
   num3 = atol(string);
-  num4 = strcmp(string, string);
-  num5 = num3/num4;
+  num3 = strcmp(string, string);
   sprintf(string, "%g %ld", d, num3);
 
   abs(num);
