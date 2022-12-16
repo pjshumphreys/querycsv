@@ -102,7 +102,6 @@ querycsv: sql.o lexer.o hash2.o hash3.o hash4a.o hash4b.o hash4c.o querycsv.o en
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' ! -name 'hash2*.*' -exec cp {} env/smalldos/ \;
 	sed -i.bak "s/static struct/static const struct/g;s/static unsigned short/static const unsigned short/g" env/smalldos/hash4*.c
 	cd env/smalldos; rm -rf *.bak; unix2dos *
-	#cd env/smalldos && cp dos.c dos.bak && bash -c 'ls *.c | cat -n | while read n f; do m=$$(perl -le "print for (\"aa\"..\"zz\")[@ARGV]" "$$n"); mv "$$f" "$$m".c; done'
 	find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h \) ! -name 'makeheaders.c' -exec cp {} env/dos/ \;
 	sed -i.bak "s/static struct/static const struct/g;s/static unsigned short/static const unsigned short/g" env/dos/hash4*.c
 	cd env/dos; unix2dos *
@@ -135,7 +134,7 @@ clean:
 	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.err -o -iname \*.o \) -exec rm -rf {} \;
 	#cd env/smalldos && mv dos.bak dos.c && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './libc.c' ! -path './lexer2.c' ! -path './sql2.c' ! -path './pager.asm' ! -path './build-dos.js' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/smalldos && find . -maxdepth 1 ! -path './memorymap.txt' ! -path './dos.c' ! -path './libc.c' ! -path './lexer2.c' ! -path './sql2.c' ! -path './pager.asm' ! -path './build-dos.js' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	#cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/dos && find . -maxdepth 1 ! -path './dos.c' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './direct.cfg' ! -path './querycsv.ico' ! -path './querycsv.rc' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
