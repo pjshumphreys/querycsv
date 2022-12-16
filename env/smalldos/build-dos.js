@@ -29,71 +29,70 @@ let codeOffset = 0;
 // name, pageNo, trampolineAddr, pageAddr, callMethod
 
 const functionsList = [
-  ['realmain_', 3, 0x0001, 0x0001, 'farcall'],
-  ['setupDos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['exit_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcmp_', 1, 0x0001, 0x0001, 'farcall'],
-  ['stricmp_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strlen_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strstr_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcat_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strncat_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strnicmp_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strcpy_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strncpy_', 1, 0x0001, 0x0001, 'farcall'],
-  ['memcpy_', 1, 0x0001, 0x0001, 'farcall'],
-  ['memmove_', 1, 0x0001, 0x0001, 'farcall'],
-  ['memset_', 1, 0x0001, 0x0001, 'farcall'],
-  ['vfprintf_', 1, 0x0001, 0x0001, 'farcall'],
-  ['vsprintf_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fopen_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fflush_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fclose_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fread_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fwrite_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['macYield_', 1, 0x0001, 0x0001, 'farcall'],
+  ['realmain_', 1, 0x0001, 0x0001, 'farcall'],
+  ['setupDos_', 0, 0x0001, 0x0001, 'farcall'],
+  ['exit_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strcmp_', 0, 0x0001, 0x0001, 'farcall'],
+  ['stricmp_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strlen_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strstr_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strcat_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strncat_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strnicmp_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strcpy_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strncpy_', 0, 0x0001, 0x0001, 'farcall'],
+  ['memcpy_', 0, 0x0001, 0x0001, 'farcall'],
+  ['memmove_', 0, 0x0001, 0x0001, 'farcall'],
+  ['memset_', 0, 0x0001, 0x0001, 'farcall'],
+  ['vfprintf_', 0, 0x0001, 0x0001, 'farcall'],
+  ['vsprintf_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fopen_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fflush_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fclose_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fread_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fwrite_dos_', 0, 0x0001, 0x0001, 'farcall'],
+  ['macYield_', 0, 0x0001, 0x0001, 'farcall'],
   //  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
-  ['fprintf_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fputs_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['getenv_', 1, 0x0001, 0x0001, 'farcall'],
-  ['putenv_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fputs_', 1, 0x0001, 0x0001, 'farcall'],
-  ['malloc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['free_', 1, 0x0001, 0x0001, 'farcall'],
-  ['realloc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['atexit_', 1, 0x0001, 0x0001, 'farcall'],
-  ['atexit_dos_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fseek_', 1, 0x0001, 0x0001, 'farcall'],
-  ['fgetc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['ungetc_', 1, 0x0001, 0x0001, 'farcall'],
-  ['sprintf_', 1, 0x0001, 0x0001, 'farcall'],
-  ['abs_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strrchr_', 1, 0x0001, 0x0001, 'farcall'],
-  ['atol_', 1, 0x0001, 0x0001, 'farcall'],
-  ['strtod_', 1, 0x0001, 0x0001, 'farcall'],
-  ['bsearch_', 1, 0x0001, 0x0001, 'farcall'],
-  ['qsort_', 1, 0x0001, 0x0001, 'farcall'],
+  ['fprintf_dos_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fputs_dos_', 0, 0x0001, 0x0001, 'farcall'],
+  ['getenv_', 0, 0x0001, 0x0001, 'farcall'],
+  ['putenv_', 0, 0x0001, 0x0001, 'farcall'],
+  ['malloc_', 0, 0x0001, 0x0001, 'farcall'],
+  ['free_', 0, 0x0001, 0x0001, 'farcall'],
+  ['realloc_', 0, 0x0001, 0x0001, 'farcall'],
+  ['atexit_', 0, 0x0001, 0x0001, 'farcall'],
+  ['atexit_dos_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fseek_', 0, 0x0001, 0x0001, 'farcall'],
+  ['fgetc_', 0, 0x0001, 0x0001, 'farcall'],
+  ['ungetc_', 0, 0x0001, 0x0001, 'farcall'],
+  ['sprintf_', 0, 0x0001, 0x0001, 'farcall'],
+  ['abs_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strrchr_', 0, 0x0001, 0x0001, 'farcall'],
+  ['atol_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strtod_', 0, 0x0001, 0x0001, 'farcall'],
+  ['bsearch_', 0, 0x0001, 0x0001, 'farcall'],
+  ['qsort_', 0, 0x0001, 0x0001, 'farcall'],
 
-  ['int86_', 1, 0x0001, 0x0001, 'farcall'],
-  ['tzset_', 1, 0x0001, 0x0001, 'farcall'],
-  ['time_', 1, 0x0001, 0x0001, 'farcall'],
-  ['gmtime_', 1, 0x0001, 0x0001, 'farcall'],
-  ['localtime_', 1, 0x0001, 0x0001, 'farcall'],
-  ['getcwd_', 1, 0x0001, 0x0001, 'farcall'],
-  ['_getdrive_', 1, 0x0001, 0x0001, 'farcall'],
-  ['chdir_', 1, 0x0001, 0x0001, 'farcall'],
-  ['_chdrive_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__I4D_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__EDA_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDA_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDC_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDD_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDM_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDN_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__EDC_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__FDS_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__I4FD_', 1, 0x0001, 0x0001, 'farcall'],
-  ['__get_errno_ptr_', 1, 0x0001, 0x0001, 'farcall']
+  ['int86_', 0, 0x0001, 0x0001, 'farcall'],
+  ['tzset_', 0, 0x0001, 0x0001, 'farcall'],
+  ['time_', 0, 0x0001, 0x0001, 'farcall'],
+  ['gmtime_', 0, 0x0001, 0x0001, 'farcall'],
+  ['localtime_', 0, 0x0001, 0x0001, 'farcall'],
+  ['getcwd_', 0, 0x0001, 0x0001, 'farcall'],
+  ['_getdrive_', 0, 0x0001, 0x0001, 'farcall'],
+  ['chdir_', 0, 0x0001, 0x0001, 'farcall'],
+  ['_chdrive_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__I4D_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__EDA_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__FDA_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__FDC_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__FDD_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__FDM_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__FDN_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__EDC_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__FDS_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__I4FD_', 0, 0x0001, 0x0001, 'farcall'],
+  ['__get_errno_ptr_', 0, 0x0001, 0x0001, 'farcall']
 ];
 
 const env = process.env;
@@ -419,7 +418,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
   execSync('rm build/s/compareCodepoints.asm');
@@ -430,7 +429,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
   name = 'sortCodesParse_';
@@ -440,7 +439,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
   execSync('rm build/s/sortCodepoints.asm');
@@ -452,7 +451,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
   name = 'sortBytes_';
@@ -461,7 +460,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 0, currentAddr, 0x0001, 'farcall']);
+  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
   currentAddr += 4;
 
   execSync('rm build/s/sortBytes.asm');
@@ -553,11 +552,15 @@ BSS		ENDS
 
   rodataSize = fs.statSync('build/rodata.bin').size;
 
-  pageSize = /* 16644 */ /* 16644 */ 16384 - rodataSize; // should be 16384 - rodataSize but if we overfit the pages they squash down to within the limit due to the sharing of runtime code between functions which reduces the resultant output binary size
-  console.log(pageSize);
+  pageSize = 16384 - rodataSize;
+
 
   /* build the rodata located at the very top of ram */
-  writeROLinkScript(pageSize);
+  writeROLinkScript(codeOffset + pageSize);
+
+  pageSize -= 190;  // underfit the pages by 190 bytes as they seem to grow a little bit
+  console.log(pageSize);
+
   execSync('rm build/temp.bin');
 
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
@@ -726,40 +729,38 @@ function compilePages (pages) {
   pages.forEach((elem, index) => {
     addDefines('qcsv' + ('00'+ (index + 1)).slice(-2) + 'pc', elem.map(elem2 => elem2.name), 'h', true);
 
-    // process.exit(0);
-
-    /*
     fs
-      .readFileSync('build/obj2/page' + (index + 3) + '.map', 'utf8')
-      .replace(/(^|\n)([_a-zA-Z0-9]+)[^$]+\$([0-9a-fA-F]+)/g, (one, blah, two, three, ...arr) => {
+      .readFileSync('build/qcsv' + ('00'+ (index + 1)).slice(-2) + 'pc.map', 'utf8')
+      .replace(/[:]([0-9a-f]+)[*] {5}(.+)/g, (one, three, two, ...arr) => {
         // console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
-        two = two.replace(/^_/, '');
         const item = parseInt(three, 16);
+
+        // name, pageNo, trampolineAddr, pageAddr, callMethod
 
         if (hasProp(hashMap, two) && item !== functionsList[hashMap[two]][2]) {
           functionsList[hashMap[two]][3] = item;
-          functionsList[hashMap[two]][1] = index + 3;
+          functionsList[hashMap[two]][1] = index + 1;
         }
       });
 
+    /*
     if (fs.statSync('build/obj2/page' + (index + 3) + '_code_compiler.bin').size > (16384 - rodataSize)) {
       console.log('page ' + (index + 3) + ' is too big');
       process.exit(-1);
     }
-
-    execSync('dd if=/dev/zero bs=1 count=16384 of=build/obj2/qrycsv' + (('00' + (index + 3)).substr(-2)) + '.ovl');
-
-    execSync('dd if=build/obj2/page' + (index + 3) + '_code_compiler.bin of=build/obj2/qrycsv' +
-    (('00' + (index + 3)).substr(-2)) + '.ovl conv=notrunc');
-
-    execSync('dd if=build/rodata.bin of=build/obj2/qrycsv' +
-    (('00' + (index + 3)).substr(-2)) + '.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
     */
+
+    execSync('dd if=/dev/zero bs=1 count=16384 of=build/bin2/qcsv' + ('00'+ (index + 1)).slice(-2) + 'pc.ovl');
+
+    execSync('dd if=build/obj2/qcsv' + ('00'+ (index + 1)).slice(-2) + 'pc.bin bs=' + codeOffset + ' skip=1 of=build/bin2/qcsv' +
+    ('00'+ (index + 1)).slice(-2) + 'pc.ovl conv=notrunc');
+
+    execSync('dd if=build/rodata.bin of=build/bin2/qcsv' +
+    ('00'+ (index + 1)).slice(-2) + 'pc.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+
   });
 
-  // execSync('rm build/obj2/*.bin');
-
-  process.exit(0);
+  //execSync('rm build/obj2/*.bin');
 }
 
 function compileLibC (pages) {
@@ -970,7 +971,7 @@ function splitUpFunctions (filename, callback, append) {
             ]);
 
             activeStream = rodataOutputStreams[rodataOutputStreams.length - 1];
-            writePause(activeStream, //'IFNDEF ' + name + '\n' + 
+            writePause(activeStream, //'IFNDEF ' + name + '\n' +
             labelBuffer + '\n' + line + '\n');
             return;
           }
@@ -1009,7 +1010,7 @@ function splitUpFunctions (filename, callback, append) {
 
               default:
                 hashMap[name+'_'] = functionsList.length;
-                functionsList.push([name+'_', 0, currentAddr, 0x0001, 'farcall']);
+                functionsList.push([name+'_', 1, currentAddr, 0x0001, 'farcall']);
                 currentAddr += 4;
             }
 
@@ -1264,7 +1265,7 @@ END ${filename}`, 'utf8');
 
   fs.writeFileSync('build/rodata.lnk', (folderName === 'h' ? 'option map=' + filename + '.map\n' : '') +
 `option stack=512
-name ${folderName === 'h' ? 'bin2' : 'bin'}/${filename}.${folderName === 'h' ? 'ovl' : 'bin'}
+name ${folderName === 'h' ? 'obj2' : 'bin'}/${filename}.bin
 output raw
   offset=0x20
 file obj/${filename}.obj
@@ -1293,13 +1294,15 @@ order
     } catch (e) {
       notQuit = true;
 
-      console.log(e.stderr.toString() + e.stdout.toString());
+      //console.log(e.stderr.toString() + e.stdout.toString());
 
+      /*
       if (folderName === 'h') {
         if (++count > 1) {
           process.exit(0);
         }
       }
+      */
 
       // create an array of all the missing symbol names
       arr = Array.from(new Set(arr.concat(matchAll(e.stderr.toString() + e.stdout.toString(), /E551: Symbol ([^' \r\n]+)/g).toArray())));
@@ -1374,7 +1377,7 @@ ENDIF
 
         return acc;
       })(), 'utf8');
-      
+
       fs.writeFileSync('build/funcdata.inc', arr2.reduce((acc, item) => acc + `  INCLUDE <ro/${item.replace('$', '_')}.asm>` + '\n', ''), 'utf8');
 
       for (let i = 0, len = arr.length; i < len; ++i) {

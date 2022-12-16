@@ -258,7 +258,7 @@ farRet:
 _TEXT		ENDS
 _NULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
 _buffer:
-  db 16401 DUP(0) ; 16384 + 16 + 1 so we can definately start the overlays code from cs:c000 somehow, the same bytes can be fudged to appear at ds:0000 (within a few bytes) somehow also
+  db 16384 DUP(0)
 _NULL ENDS
 _AFTERNULL		SEGMENT	WORD PUBLIC USE16 'BEGDATA'
 _AFTERNULL ENDS
