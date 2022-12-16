@@ -7,4 +7,4 @@ qrycsv16.exe: pager.asm $(SOURCES) $(HEADERS)
 
 .PHONY: clean
 clean:
-	rm -rf build output qrycsv.exe querycsv2.c *.o *.err *.bak
+	rm -rf build output querycsv2.c *.o *.err *.bak
