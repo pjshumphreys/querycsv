@@ -1,14 +1,15 @@
+
 /* get localtime, gmtime and utc offset string from a time_t. allocate/free memory as needed */
 /* any of the last three parameters can be skipped by passing null */
 #if !(defined(__CC65__) || defined(__Z88DK))
+const char format1[] = "+%02i%02i";
+const char format2[] = "%03i%02i";
 int d_tztime(
     time_t *now,
     struct tm *local,
     struct tm *utc,
     char **output
 ) {
-  const char format1[] = "+%02i%02i";
-  const char format2[] = "%03i%02i";
   struct tm *lcl = NULL;
   struct tm *gm = NULL;
 
@@ -18,7 +19,7 @@ int d_tztime(
   int hour_difference;
   int minute_difference;
 
-  char *format = format1;
+  char const *format = format1;
 
   MAC_YIELD
 

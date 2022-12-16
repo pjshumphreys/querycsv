@@ -78,8 +78,8 @@ dat/qrycsv00.ovl: dat/create dat/hash2dat.c
 	mv env/cpm/qrycsv00.ovl env/cpm/qrycsv00.bin
 	mv env/zx/qrycsv00.ovl env/zx/qrycsv00.bin
 	sed -i "s/qrycsv00/qcsv00zx/" env/zx/hash2dat.c
-	mv env/smalldos/qrycsv00.ovl env/smalldos/qrycsv16.dat
-	sed -i "s/qrycsv00.ovl/qrycsv16.dat/" env/smalldos/hash2dat.c
+	mv env/smalldos/qrycsv00.ovl env/smalldos/qrycsv00.bin
+	sed -i "s/qrycsv00/qcsv00pc/" env/smalldos/hash2dat.c
 
 env/bbcarm/c: hash2
 	find . -maxdepth 1 -type f -iname \*.c ! -name 'makeheaders.c' ! -name 'hash2*' -exec cp {} env/bbcarm/c/ \;
@@ -135,7 +135,8 @@ clean:
 	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
 	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.err -o -iname \*.o \) -exec rm -rf {} \;
 	#cd env/smalldos && mv dos.bak dos.c && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;	
+	cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './libc.c' ! -path './lexer2.c' ! -path './sql2.c' ! -path './pager.asm' ! -path './build-dos.js' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	#cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/dos && find . -maxdepth 1 ! -path './dos.c' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './direct.cfg' ! -path './querycsv.ico' ! -path './querycsv.rc' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/m68kmac && find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.s' ! -path './TEGlue.a' ! -path './.finf/QueryCSV.make' ! -path './QueryCSV.make' ! -path './CMakeLists.txt' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *
