@@ -281,8 +281,8 @@ void b(void) {
   num = _getdrive();
   num = feof(mystdin);
   fflush(mystdout);
-  isspace(num);
-  isdigit(num);
+  num = isspace(num);
+  num = isdigit(num);
   atexit(atexit_dos);
   putenv(getenv("TZ"));
   int86(0x21, &regs, &regs);
