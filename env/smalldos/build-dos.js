@@ -555,7 +555,7 @@ BSS		ENDS
   pageSize = 16384 - rodataSize;
 
   /* build the rodata located at the very top of ram */
-  writeROLinkScript(codeOffset + pageSize);
+  writeROLinkScript(pageSize);
 
   pageSize -= 190; // underfit the pages by 190 bytes as they seem to grow a little bit
   console.log(pageSize);
@@ -749,8 +749,10 @@ function compilePages (pages) {
 
         if (hasProp(hashMap, name)) {
           functionsList[hashMap[name]][3] = addr;
+          functionsList[hashMap[name]][1] = index + 1;
         } else if (hasProp(hashMap, name + '_')) {
           functionsList[hashMap[name + '_']][3] = addr;
+          functionsList[hashMap[name + '_']][1] = index + 1;
         } else if (hasProp(defines, match[2])) {
           defines[match[2]] = addr;
         }
