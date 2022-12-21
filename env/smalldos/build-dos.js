@@ -745,7 +745,7 @@ function compilePages (pages) {
 
       if (match !== null) {
         const name = match[2];
-        console.log(name);
+        //console.log(name);
         // name, pageNo, trampolineAddr, pageAddr, callMethod
 
         if (hasProp(hashMap, name)) {
