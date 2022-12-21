@@ -741,8 +741,6 @@ function compilePages (pages) {
     });
 
     lineReader.on('line', line => {
-      console.log(line);
-
       const match = line.match(/[:]([0-9a-f]+)[ *+] {5}(.*)/);
 
       if (match !== null) {
