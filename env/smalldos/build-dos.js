@@ -29,50 +29,48 @@ let codeOffset = 0;
 
 const functionsList = [
   ['realmain_', 1, 0x0001, 0x0001, 'farcall'],
-  ['setupDos__', 0, 0x0001, 0x0001, 'farcall'],
   ['exit__', 0, 0x0001, 0x0001, 'farcall'],
   ['strcmp__', 0, 0x0001, 0x0001, 'farcall'],
   ['stricmp__', 0, 0x0001, 0x0001, 'farcall'],
   ['strlen__', 0, 0x0001, 0x0001, 'farcall'],
   ['strstr__', 0, 0x0001, 0x0001, 'farcall'],
+  ['strrchr__', 0, 0x0001, 0x0001, 'farcall'],
   ['strcat__', 0, 0x0001, 0x0001, 'farcall'],
   ['strncat__', 0, 0x0001, 0x0001, 'farcall'],
   ['strnicmp__', 0, 0x0001, 0x0001, 'farcall'],
   ['strcpy__', 0, 0x0001, 0x0001, 'farcall'],
   ['strncpy__', 0, 0x0001, 0x0001, 'farcall'],
-  ['memcpy__', 0, 0x0001, 0x0001, 'farcall'],
-  ['memmove__', 0, 0x0001, 0x0001, 'farcall'],
-  ['memset__', 0, 0x0001, 0x0001, 'farcall'],
-  ['vfprintf__', 0, 0x0001, 0x0001, 'farcall'],
-  ['vsprintf__', 0, 0x0001, 0x0001, 'farcall'],
-  ['fopen__', 0, 0x0001, 0x0001, 'farcall'],
-  ['fflush__', 0, 0x0001, 0x0001, 'farcall'],
-  ['fclose__', 0, 0x0001, 0x0001, 'farcall'],
-  ['fread__', 0, 0x0001, 0x0001, 'farcall'],
-  ['fwrite_dos__', 0, 0x0001, 0x0001, 'farcall'],
-  ['macYield__', 0, 0x0001, 0x0001, 'farcall'],
-  //  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
-  ['fprintf_dos__', 0, 0x0001, 0x0001, 'farcall'],
-  ['fputs_dos__', 0, 0x0001, 0x0001, 'farcall'],
-  ['getenv__', 0, 0x0001, 0x0001, 'farcall'],
-  ['putenv__', 0, 0x0001, 0x0001, 'farcall'],
   ['malloc__', 0, 0x0001, 0x0001, 'farcall'],
   ['free__', 0, 0x0001, 0x0001, 'farcall'],
   ['realloc__', 0, 0x0001, 0x0001, 'farcall'],
-  ['atexit__', 0, 0x0001, 0x0001, 'farcall'],
-  ['atexit_dos__', 0, 0x0001, 0x0001, 'farcall'],
+  ['memcpy__', 0, 0x0001, 0x0001, 'farcall'],
+  ['memmove__', 0, 0x0001, 0x0001, 'farcall'],
+  ['memset__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fopen__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fflush__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fclose__', 0, 0x0001, 0x0001, 'farcall'],
   ['fseek__', 0, 0x0001, 0x0001, 'farcall'],
   ['fgetc__', 0, 0x0001, 0x0001, 'farcall'],
   ['ungetc__', 0, 0x0001, 0x0001, 'farcall'],
   ['sprintf__', 0, 0x0001, 0x0001, 'farcall'],
+  ['vfprintf__', 0, 0x0001, 0x0001, 'farcall'],
+  ['vsprintf__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fread__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fwrite_dos__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fprintf_dos__', 0, 0x0001, 0x0001, 'farcall'],
+  ['fputs_dos__', 0, 0x0001, 0x0001, 'farcall'],
+  ['setupDos__', 0, 0x0001, 0x0001, 'farcall'],
+  ['macYield__', 0, 0x0001, 0x0001, 'farcall'],
+  //  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
   ['abs__', 0, 0x0001, 0x0001, 'farcall'],
-  ['strrchr__', 0, 0x0001, 0x0001, 'farcall'],
   ['atol__', 0, 0x0001, 0x0001, 'farcall'],
   ['strtod__', 0, 0x0001, 0x0001, 'farcall'],
   ['bsearch__', 0, 0x0001, 0x0001, 'farcall'],
   ['qsort__', 0, 0x0001, 0x0001, 'farcall'],
 
   ['int86__', 0, 0x0001, 0x0001, 'farcall'],
+  ['getenv__', 0, 0x0001, 0x0001, 'farcall'],
+  ['putenv__', 0, 0x0001, 0x0001, 'farcall'],
   ['tzset__', 0, 0x0001, 0x0001, 'farcall'],
   ['time__', 0, 0x0001, 0x0001, 'farcall'],
   ['gmtime__', 0, 0x0001, 0x0001, 'farcall'],
@@ -520,7 +518,7 @@ function compileLibC () {
   }, ''), 'utf8');
 
   /* compile the data immediately above the function jump table */
-  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od -ox -d3 -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
+  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od -ox -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
 }
 
 function writeROLinkScript (offset) {
@@ -745,15 +743,16 @@ function compilePages (pages) {
 
       if (match !== null) {
         const name = match[2];
+        const addr = parseInt(match[1], 16);
         //console.log(name);
         // name, pageNo, trampolineAddr, pageAddr, callMethod
 
         if (hasProp(hashMap, name)) {
-          functionsList[hashMap[name]][3] = parseInt(match[1], 16);
+          functionsList[hashMap[name]][3] = addr;
         } else if (hasProp(hashMap, name + '_')) {
-          functionsList[hashMap[name + '_']][3] = parseInt(match[1], 16);
+          functionsList[hashMap[name + '_']][3] = addr;
         } else if (hasProp(defines, match[2])) {
-          defines[match[2]] = parseInt(match[1], 16);
+          defines[match[2]] = addr;
         }
       }
     });
