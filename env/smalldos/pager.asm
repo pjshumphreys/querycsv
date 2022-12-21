@@ -4,7 +4,10 @@
 		PUBLIC codeBlock
 		PUBLIC main2_
 		PUBLIC _buffer
+		PUBLIC _pageNumber
+		PUBLIC _success
 		INCLUDE <exports.inc>
+		EXTRN	dosload_:BYTE
 		EXTRN	b_:BYTE
 		EXTRN	__I4D:BYTE
 		EXTRN	__EDA:BYTE
@@ -51,8 +54,12 @@ farcall:
 
   ;push the far return loader onto the stack so we'll return to it rather than the original caller
   pop dx
-  push Word Ptr farRet
+  mov ax, farRet
+  push ax
 
+  mov Word Ptr [ssBackup], ss
+  mov ax, ds
+  mov ss, ax
   mov Word Ptr [spBackup], sp
   mov sp, Word Ptr [internalSp]
 
@@ -69,11 +76,12 @@ skip:
 
   push  cx
   pop bx
-  mov dl, Byte Ptr [bx]
+  mov dl, Byte Ptr [cs:bx]
   ;ld c, (hl)
   ;ld b, 0
   ;call serialLnBC
 
+  ;push af
   lahf
   xchg  al, ah
   push  ax
@@ -103,11 +111,11 @@ skip:
   rcr si, 1
   sahf
   rcl si, 1
-  mov cl, Byte Ptr [bx]
+  mov cl, Byte Ptr [cs:bx]
   lahf
   inc bx
   sahf
-  mov ch, Byte Ptr [bx]
+  mov ch, Byte Ptr [cs:bx]
   ;call serialLnBC
   mov al, dl
   pop dx
@@ -124,7 +132,7 @@ skip:
   mov Byte Ptr [currentVirtualPage], al
   mov al, dh
 
-  ; a = current, e = dl = desired
+  ; a = al = current, e = dl = desired
   call changePage
   pop ax
   xchg  al, ah
@@ -132,6 +140,7 @@ skip:
 
   pop cx
 
+  mov ss, Word Ptr [ssBackup]
   mov Word Ptr [internalSp], sp
   mov sp, Word Ptr [spBackup]
 
@@ -158,6 +167,7 @@ abort:
   mov ah, 0x09
   int 0x21
 
+abort2:
   mov ah, 0x4c     ; "terminate program" sub-function
   int 0x21         ; call dos services
 
@@ -177,17 +187,10 @@ L@1:
   mov bh, 0
   mov bl, dl
   mov Word Ptr [_pageNumber], bx
-
-  push ds
-  mov ax,cs
-  mov ds,ax
-  call faq_masm
-  pop ds
-  ret
-
-faq_masm:
-  mov ax, 0x100 ; dosload_ address
-  push ax
+  call near Ptr dosload_
+  mov ax, Word Ptr [_success]
+  cmp al, 0
+  jz abort2
   ret
 
 ;---------------------------------------------------
@@ -205,6 +208,9 @@ farRet:
   pop bx
   mov Word Ptr [deBackup], bx
 
+  mov Word Ptr [ssBackup], ss
+  mov ax, ds
+  mov ss, ax
   mov Word Ptr [spBackup], sp
   mov sp, Word Ptr [internalSp]
 
@@ -237,6 +243,7 @@ farRet:
 
   pop dx	; get the original return address from our secondary stack and put it back onto the main stack
 
+  mov ss, Word Ptr [ssBackup]
   mov Word Ptr [internalSp], sp
   mov sp, Word Ptr [spBackup]
 
@@ -281,6 +288,9 @@ overflowMsg:
 _pageNumber:
 	dw 0
 
+_success:
+  dw 0
+
 hlBackup:
   dw 0
 
@@ -292,6 +302,9 @@ bcBackup:
 
 axBackup:
 	dw 0
+
+ssBackup:
+  dw 0
 
 spBackup:
   dw 0

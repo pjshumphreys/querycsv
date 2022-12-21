@@ -66,7 +66,7 @@ const functionsList = [
   ['ungetc__', 0, 0x0001, 0x0001, 'farcall'],
   ['sprintf__', 0, 0x0001, 0x0001, 'farcall'],
   ['abs__', 0, 0x0001, 0x0001, 'farcall'],
-  ['strrchr_', 0, 0x0001, 0x0001, 'farcall'],
+  ['strrchr__', 0, 0x0001, 0x0001, 'farcall'],
   ['atol__', 0, 0x0001, 0x0001, 'farcall'],
   ['strtod__', 0, 0x0001, 0x0001, 'farcall'],
   ['bsearch__', 0, 0x0001, 0x0001, 'farcall'],
@@ -141,7 +141,7 @@ let pageSize;
 
 //
 
-const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od  -ox';
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od -ox';
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
@@ -459,7 +459,7 @@ function buildData () {
     if ((/^_NULL/).test(line) && codeOffset === 0) {
       codeOffset = parseInt((line.match(/_NULL {18}BEGDATA {8}DGROUP {9}([^:]+)[:]0000 {7}0000(.+)/))[1], 16) * 16;
     } else {
-      const match = line.match(/[:]([0-9a-f]+)[ *] {5}(.*)/);
+      const match = line.match(/[:]([0-9a-f]+)[ *+] {5}(.*)/);
 
       if (match !== null) {
         const name = match[2];
@@ -504,7 +504,7 @@ function compileLibC () {
       return acc;
     }
     return acc + `${item[0]}:
-    jmp ${item[4]}
+    call ${item[4]}
     db 0x${('00' + ((item[1] | 0)).toString(16)).slice(-2)}
 `;
   }, ''), 'utf8');
@@ -520,7 +520,7 @@ function compileLibC () {
   }, ''), 'utf8');
 
   /* compile the data immediately above the function jump table */
-  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
+  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od -ox -d3 -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
 }
 
 function writeROLinkScript (offset) {
@@ -567,7 +567,7 @@ BSS		ENDS
   /* add the address of each rodata item as an assembly include file for anything that may need to reference it later */
   fs
     .readFileSync('build/rodata.map', 'utf8')
-    .replace(/[:]([0-9a-f]+)[*] {5}(.+)/g, (one, three, two, ...arr) => {
+    .replace(/[:]([0-9a-f]+)[ +*] {5}(.+)/g, (one, three, two, ...arr) => {
       const text = 'IFNDEF ' + two + '\n' +
             two + ' = 0x' + three + '\n' +
           'ENDIF\n';
@@ -726,22 +726,8 @@ function packPages (tree) {
 function compilePages (pages) {
   console.log('compilePages');
 
-  pages.forEach((elem, index) => {
+  Promise.all(pages.map((elem, index) => (new Promise(resolve => {
     addDefines('qcsv' + ('00' + (index + 1)).slice(-2) + 'pc', elem.map(elem2 => elem2.name), 'h', true);
-
-    fs
-      .readFileSync('build/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.map', 'utf8')
-      .replace(/[:]([0-9a-f]+)[*] {5}(.+)/g, (one, three, two, ...arr) => {
-        // console.log(two,hashMap.hasOwnProperty(two), hashMap.hasOwnProperty(two.replace(/^_/, '')));
-        const item = parseInt(three, 16);
-
-        // name, pageNo, trampolineAddr, pageAddr, callMethod
-
-        if (hasProp(hashMap, two) && item !== functionsList[hashMap[two]][2]) {
-          functionsList[hashMap[two]][3] = item;
-          functionsList[hashMap[two]][1] = index + 1;
-        }
-      });
 
     /*
     if (fs.statSync('build/obj2/page' + (index + 3) + '_code_compiler.bin').size > (16384 - rodataSize)) {
@@ -750,16 +736,44 @@ function compilePages (pages) {
     }
     */
 
-    execSync('dd if=/dev/zero bs=1 count=16384 of=output/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.ovl');
+    const lineReader = readline.createInterface({
+      input: fs.createReadStream('build/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.map')
+    });
 
-    execSync('dd if=build/obj2/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.bin bs=' + codeOffset + ' skip=1 of=output/qcsv' +
-    ('00' + (index + 1)).slice(-2) + 'pc.ovl conv=notrunc');
+    lineReader.on('line', line => {
+      console.log(line);
 
-    execSync('dd if=build/rodata.bin of=output/qcsv' +
-    ('00' + (index + 1)).slice(-2) + 'pc.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+      const match = line.match(/[:]([0-9a-f]+)[ *+] {5}(.*)/);
+
+      if (match !== null) {
+        const name = match[2];
+        console.log(name);
+        // name, pageNo, trampolineAddr, pageAddr, callMethod
+
+        if (hasProp(hashMap, name)) {
+          functionsList[hashMap[name]][3] = parseInt(match[1], 16);
+        } else if (hasProp(hashMap, name + '_')) {
+          functionsList[hashMap[name + '_']][3] = parseInt(match[1], 16);
+        } else if (hasProp(defines, match[2])) {
+          defines[match[2]] = parseInt(match[1], 16);
+        }
+      }
+    });
+
+    lineReader.on('close', () => {
+      execSync('dd if=/dev/zero bs=1 count=16384 of=output/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.ovl');
+
+      execSync('dd if=build/obj2/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.bin bs=' + codeOffset + ' skip=1 of=output/qcsv' +
+      ('00' + (index + 1)).slice(-2) + 'pc.ovl conv=notrunc');
+
+      execSync('dd if=build/rodata.bin of=output/qcsv' +
+      ('00' + (index + 1)).slice(-2) + 'pc.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+
+      resolve();
+    });
+  })))).then(() => {
+    compileLibC();
   });
-
-  compileLibC();
 }
 
 /* *** HELPER FUNCTIONS AFTER THIS POINT *** */

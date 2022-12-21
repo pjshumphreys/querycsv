@@ -32,19 +32,25 @@ extern char buffer[16384];
 
 #define freeAndZero(p) { free(p); p = 0; }
 
-extern unsigned int success;
-extern char pageName[];
-extern int handle;
+extern short int pageNumber;
+extern short int success;
+
+char pageName[13] = { 0 };
+int handle;
+unsigned int success2;
+
 extern int origDrive;
 extern char *origWd;
 extern char *devNull;
-extern short int lastWasErr;
-extern short int newline;
-extern short int currentWaitCursor;
-extern short int startOfLine;
-extern short int cursorOutput;
-extern short int pageNumber;
+
+short int lastWasErr = FALSE;
+short int newline = FALSE;
+short int currentWaitCursor = 0;
+short int startOfLine = TRUE;
+short int cursorOutput = FALSE;
+
 extern int consoleEncoding;
+
 extern FILE* mystdin;
 extern FILE* mystdout;
 extern FILE* mystderr;
@@ -67,13 +73,25 @@ void atexit_dos(void) {
 }
 
 void dosload(void) {
+  sprintf(pageName, "qcsv%02dpc.ovl", pageNumber);
+
   if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
+    printf("Couldn't find %s", pageName);
+    fflush(stdout);
     success = 0;
     return;
   }
 
-  _dos_read(handle, buffer, 16384, &success);
+  success = _dos_read(handle, buffer, 16384, &success2);
   _dos_close(handle);
+
+  if(success != 0 || success2 != 16384) {
+    printf("Couldn't read from %s", pageName);
+    fflush(stdout);
+    success = 0;
+    return;
+  }
+
   success = 1;
 }
 
@@ -257,11 +275,12 @@ void b(void) {
   sprintf(string, "%g %ld", d, num3);
 
   abs(num);
+  strcpy(string, string);
   strncpy(string, string, 3);
   num = stricmp(string, string);
   num = strnicmp(string, string, 3);
   string = strstr(string, string);
-  strrchr(string, ',');
+  string = strrchr(string, ',');
   vsnprintf(NULL, 0, "%s%ld%d", NULL);
 
   memset(string, 0, 4);
@@ -278,7 +297,6 @@ void b(void) {
   fread(string, 2, 2, mystdin);
   num = fgetc(mystdin);
   ungetc(num, mystdin);
-  num = _getdrive();
   num = feof(mystdin);
   fflush(mystdout);
   num = isspace(num);
@@ -287,11 +305,14 @@ void b(void) {
   putenv(getenv("TZ"));
   int86(0x21, &regs, &regs);
   tzset();
-  origWd = getcwd(NULL, PATH_MAX + 1);
+  time(&now);
   localtime(&now);
   gmtime(&now);
   atexit(dosload);
   bsearch(NULL,NULL, 3,3, NULL);
+  qsort(NULL, 3, 3, NULL);
   chdir(NULL);
+  origWd = getcwd(NULL, PATH_MAX + 1);
   _chdrive(0);
+  num = _getdrive();
 }
