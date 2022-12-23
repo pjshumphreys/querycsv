@@ -73,36 +73,46 @@ void atexit_dos(void) {
 }
 
 void dosload(void) {
-  sprintf(pageName, "qcsv%02dpc.ovl", pageNumber);
+  if(pageNumber) {
+    sprintf(pageName, "qcsv%02dpc.ovl", pageNumber);
 
-  if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
-    printf("Couldn't find %s", pageName);
-    fflush(stdout);
-    success = 0;
-    return;
-  }
+    if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
+      fprintf(stderr, "Couldn't find %s", pageName);
+      fflush(stderr);
+      success = 0;
+      return;
+    }
 
-  success = _dos_read(handle, buffer, 16384, &success2);
-  _dos_close(handle);
+    success = _dos_read(handle, buffer, 16384, &success2);
+    _dos_close(handle);
 
-  if(success != 0 || success2 != 16384) {
-    printf("Couldn't read from %s", pageName);
-    fflush(stdout);
-    success = 0;
-    return;
+    if(success != 0 || success2 != 16384) {
+      fprintf(stderr, "Couldn't read from %s", pageName);
+      fflush(stderr);
+      success = 0;
+      return;
+    }
   }
 
   success = 1;
 }
 
-void macYield(void) {
+void macYield(int num) {
   const char * spinner = "...ooOOoo";
+  FILE * pFile = fopen("log.txt", "a");
+
+  if(pFile != NULL) {
+    fprintf(pFile, "%05d\n", num);
+    fclose (pFile);
+  }
+
   if(startOfLine) {
     if(cursorOutput) {
-      fputc('\b', mystderr);
+      fputc('\b', stderr);
     }
 
-    fputc(spinner[currentWaitCursor], mystderr);
+    fputc(spinner[currentWaitCursor], stderr);
+    fflush(stderr);
     currentWaitCursor = (currentWaitCursor + 1) % 9;
 
     cursorOutput = TRUE;
@@ -114,19 +124,19 @@ size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
   size_t len = size * count;
   size_t written = len;
 
-  if(stream != mystdout && stream != mystderr) {
+  if(stream != stdout && stream != stderr) {
     return fwrite(ptr, size, count, stream);
   }
 
   startOfLine = FALSE;
 
   if(cursorOutput) {
-    fputc('\b', mystderr);
+    fputc('\b', stderr);
     cursorOutput = FALSE;
   }
 
   if(newline) {
-    fputc('\n', lastWasErr ? mystderr : mystdout);
+    fputc('\n', lastWasErr ? stderr : stdout);
 
     newline = FALSE;
     written++;
@@ -135,7 +145,7 @@ size_t fwrite_dos(const void * ptr, size_t size, size_t count, FILE * stream) {
   /* eat last trailing newline (if we print something else we'll display it then) */
   if(((char*)ptr)[len-1] == '\n') {
     newline = TRUE;
-    lastWasErr = stream == mystderr;
+    lastWasErr = stream == stderr;
     len--;
     written--;
   }
@@ -246,11 +256,6 @@ void setupDos(void) {
   origDrive = _getdrive();
   origWd = getcwd(NULL, PATH_MAX + 1);
 
-  #ifdef DOS_DAT
-    /* open the hash2 data file on startup */
-    openDat();
-  #endif
-
   /* set the working directory back to its original value at exit */
   atexit(atexit_dos);
 
@@ -294,17 +299,14 @@ void b(void) {
   fseek(test, 9, SEEK_SET);
   clearerr(test);
   num = fclose(test);
-  fread(string, 2, 2, mystdin);
-  num = fgetc(mystdin);
-  ungetc(num, mystdin);
-  num = feof(mystdin);
-  fflush(mystdout);
+  fread(string, 2, 2, stdin);
+  num = fgetc(stdin);
+  ungetc(num, stdin);
+  num = feof(stdin);
+  fflush(stdout);
   num = isspace(num);
   num = isdigit(num);
   atexit(atexit_dos);
-  putenv(getenv("TZ"));
-  int86(0x21, &regs, &regs);
-  tzset();
   time(&now);
   localtime(&now);
   gmtime(&now);
@@ -312,7 +314,5 @@ void b(void) {
   bsearch(NULL,NULL, 3,3, NULL);
   qsort(NULL, 3, 3, NULL);
   chdir(NULL);
-  origWd = getcwd(NULL, PATH_MAX + 1);
   _chdrive(0);
-  num = _getdrive();
 }

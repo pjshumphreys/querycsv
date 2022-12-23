@@ -61,22 +61,16 @@ const functionsList = [
   ['fputs_dos__', 0, 0x0001, 0x0001, 'farcall'],
   ['setupDos__', 0, 0x0001, 0x0001, 'farcall'],
   ['macYield__', 0, 0x0001, 0x0001, 'farcall'],
-  //  ['logNum', 1, 0x0001, 0x0001, 'farcall'],
   ['abs__', 0, 0x0001, 0x0001, 'farcall'],
   ['atol__', 0, 0x0001, 0x0001, 'farcall'],
   ['strtod__', 0, 0x0001, 0x0001, 'farcall'],
   ['bsearch__', 0, 0x0001, 0x0001, 'farcall'],
   ['qsort__', 0, 0x0001, 0x0001, 'farcall'],
 
-  ['int86__', 0, 0x0001, 0x0001, 'farcall'],
   ['getenv__', 0, 0x0001, 0x0001, 'farcall'],
-  ['putenv__', 0, 0x0001, 0x0001, 'farcall'],
-  ['tzset__', 0, 0x0001, 0x0001, 'farcall'],
   ['time__', 0, 0x0001, 0x0001, 'farcall'],
   ['gmtime__', 0, 0x0001, 0x0001, 'farcall'],
   ['localtime__', 0, 0x0001, 0x0001, 'farcall'],
-  ['getcwd__', 0, 0x0001, 0x0001, 'farcall'],
-  ['_getdrive__', 0, 0x0001, 0x0001, 'farcall'],
   ['chdir__', 0, 0x0001, 0x0001, 'farcall'],
   ['_chdrive__', 0, 0x0001, 0x0001, 'farcall'],
   ['__I4D_', 0, 0x0001, 0x0001, 'farcall'],
@@ -128,7 +122,7 @@ const ignoreFunctions = [
 
 const startOffset = 0x1c5;// 0x0200;
 
-let currentAddr = startOffset;
+let currentAddr = 0;
 
 /* contains a map of the addresses of all global variables */
 const defines = {};
@@ -166,11 +160,9 @@ function start () {
     'touch build/data.inc'
   );
 
-  // update the jump table locations, starting at call_rom3 -4 and working downward in memory
+  // update the jump table locations, working upward in memory
   functionsList.forEach((item, index) => {
     hashMap[item[0]] = index;
-    item[2] = currentAddr;
-    currentAddr += 4;
   });
 
   fs.writeFileSync('build/rodata.asm', `.387
@@ -251,7 +243,7 @@ function compileDos () {
   console.log('compileDos');
 
   execSync(
-    'wcc ' + cflags + ' -zc dos.c;wdis -s -a -l=build/dos.asm dos.o'
+    'wcc ' + cflags + ' -oe=0 -zc dos.c;wdis -s -a -l=build/dos.asm dos.o'
   );
 
   splitUpFunctions('dos', compileQueryCSV, true);
@@ -269,7 +261,7 @@ function compileQueryCSV () {
       '" querycsv.c > querycsv2.c');
 
   execSync(
-    'wcc ' + cflags + ' -zc querycsv2.c;wdis -s -a -l=build/querycsv.asm querycsv2.o'
+    'wcc ' + cflags + ' -oe=0 -zc querycsv2.c;wdis -s -a -l=build/querycsv.asm querycsv2.o'
   );
 
   splitUpFunctions('querycsv', compileHash2, true);
@@ -287,7 +279,7 @@ function compileHash2 () {
       '" hash2dat.c > hash2dat2.c');
 
   execSync(
-    'wcc ' + cflags + ' -zc hash2dat2.c;wdis -s -a -l=build/hash2dat.asm hash2dat2.o'
+    'wcc ' + cflags + ' -oe=0 -zc hash2dat2.c;wdis -s -a -l=build/hash2dat.asm hash2dat2.o'
   );
 
   splitUpFunctions('hash2dat', compileHash3, true);
@@ -297,7 +289,7 @@ function compileHash3 () {
   console.log('compileHash3');
 
   execSync(
-    'wcc ' + cflags + ' -zc hash3.c;wdis -s -a -l=build/hash3.asm hash3.o'
+    'wcc ' + cflags + ' -oe=0 -zc hash3.c;wdis -s -a -l=build/hash3.asm hash3.o'
   );
 
   splitUpFunctions('hash3', compileHash4a, true);
@@ -411,8 +403,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
+  functionsList.push([name, 1, 0x0001, 0x0001, 'farcall']);
 
   name = 'sortCodesParse_';
   execSync(
@@ -421,8 +412,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
+  functionsList.push([name, 1, 0x0001, 0x0001, 'farcall']);
 
   execSync('rm build/s/sortCodepoints.asm');
 
@@ -433,8 +423,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
+  functionsList.push([name, 1, 0x0001, 0x0001, 'farcall']);
 
   name = 'sortBytes_';
   execSync(
@@ -442,8 +431,7 @@ function buildData () {
   );
 
   hashMap[name] = functionsList.length;
-  functionsList.push([name, 1, currentAddr, 0x0001, 'farcall']);
-  currentAddr += 4;
+  functionsList.push([name, 1, 0x0001, 0x0001, 'farcall']);
 
   execSync('rm build/s/sortBytes.asm');
 
@@ -455,7 +443,18 @@ function buildData () {
 
   lineReader.on('line', line => {
     if ((/^_NULL/).test(line) && codeOffset === 0) {
-      codeOffset = parseInt((line.match(/_NULL {18}BEGDATA {8}DGROUP {9}([^:]+)[:]0000 {7}0000(.+)/))[1], 16) * 16;
+      const match = line.match(/_NULL {18}BEGDATA {8}DGROUP {9}([^:]+)[:]0000 {7}0000(.+)/);
+
+      if(match !== null) {
+        codeOffset = parseInt(match[1], 16) * 16;
+      }
+    }
+    else if ((/[:]([0-9a-f]+)[ *+] {5}(funcstart)/).test(line)) {
+      const match = line.match(/[:]([0-9a-f]+)[ *+] {5}(.*)/);
+
+      if (match !== null) {
+        currentAddr = parseInt(match[1], 16);
+      }
     } else {
       const match = line.match(/[:]([0-9a-f]+)[ *+] {5}(.*)/);
 
@@ -464,9 +463,7 @@ function buildData () {
         //        console.log(name);
         // name, pageNo, trampolineAddr, pageAddr, callMethod
 
-        if (hasProp(hashMap, name)) {
-          functionsList[hashMap[name]][3] = parseInt(match[1], 16);
-        } else if (hasProp(hashMap, name + '_')) {
+        if (hasProp(hashMap, name + '_')) {
           functionsList[hashMap[name + '_']][3] = parseInt(match[1], 16);
         } else if (hasProp(defines, match[2])) {
           defines[match[2]] = parseInt(match[1], 16);
@@ -476,6 +473,12 @@ function buildData () {
   });
 
   lineReader.on('close', () => {
+    // update the jump table locations, working upward in memory
+    functionsList.forEach((item, index) => {
+      item[2] = currentAddr;
+      currentAddr += 4;
+    });
+
     addROData();
   });
 }
@@ -518,7 +521,7 @@ function compileLibC () {
   }, ''), 'utf8');
 
   /* compile the data immediately above the function jump table */
-  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od -ox -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
+  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl ' + cflags + ' -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
 }
 
 function writeROLinkScript (offset) {
@@ -567,7 +570,7 @@ BSS		ENDS
     .readFileSync('build/rodata.map', 'utf8')
     .replace(/[:]([0-9a-f]+)[ +*] {5}(.+)/g, (one, three, two, ...arr) => {
       const text = 'IFNDEF ' + two + '\n' +
-            two + ' = 0x' + three + '\n' +
+            two + ' = 0x' + (('0000'+(parseInt(three, 16) + codeOffset).toString(16)).slice(-4)) + '\n' +
           'ENDIF\n';
       fs.writeFileSync(
           `build/ro/${two}.asm`,
@@ -885,9 +888,10 @@ function splitUpFunctions (filename, callback, append) {
                 break;
 
               default:
-                hashMap[name + '_'] = functionsList.length;
-                functionsList.push([name + '_', 1, currentAddr, 0x0001, 'farcall']);
-                currentAddr += 4;
+                if(!hasProp(ignoreFunctions, name + '_')) {
+                  hashMap[name + '_'] = functionsList.length;
+                  functionsList.push([name + '_', 1, 0x0001, 0x0001, 'farcall']);
+                }
             }
 
             activeStream = functionOutputStreams[functionOutputStreams.length - 1];
@@ -1145,7 +1149,7 @@ END ${filename}`, 'utf8');
     if (folderName === 'h') {
       for (key in defines) {
         if (hasProp(defines, key)) {
-          acc += `  ${key} = ${defines[key]}` + '\n';
+          acc += `  ${key} = ${(defines[key]).toString(16)}` + '\n';
         }
       }
     }
@@ -1182,6 +1186,15 @@ order
           cwd: path.join(__dirname, 'build')//,
           // stdio: 'pipe'
         });
+
+      if (folderName === 'h') {
+        execSync(`cp defines.inc out_${filename}.inc`,
+          {
+            cwd: path.join(__dirname, 'build')//,
+            // stdio: 'pipe'
+          });
+      }
+
     } catch (e) {
       notQuit = true;
 
@@ -1232,7 +1245,7 @@ order
         if (hasProp(hashMap, name)) {
           const a = acc + `
 IFNDEF ${item}
-org ${functionsList[hashMap[name]][2]}
+org 0x${('0000'+(functionsList[hashMap[name]][2]).toString(16)).slice(-4)}
 ${item}:
   db 0
 ENDIF
@@ -1244,7 +1257,7 @@ ENDIF
         if (hasProp(hashMap, name + '_')) {
           const a = acc + `
 IFNDEF ${item}
-org ${functionsList[hashMap[name + '_']][2]}
+org 0x${('0000'+(functionsList[hashMap[name + '_']][2]).toString(16)).slice(-4)}
 ${item}:
   db 0
 ENDIF
@@ -1261,7 +1274,7 @@ ENDIF
         if (folderName === 'h') {
           for (key in defines) {
             if (hasProp(defines, key)) {
-              acc += `  ${key} = 0x${(defines[key] + codeOffset).toString(16)}` + '\n';
+              acc += `  ${key} = 0x${(defines[key]).toString(16)}` + '\n';
             }
           }
         }

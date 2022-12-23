@@ -6,6 +6,7 @@
 		PUBLIC _buffer
 		PUBLIC _pageNumber
 		PUBLIC _success
+		PUBLIC funcstart
 		INCLUDE <exports.inc>
 		EXTRN	dosload_:BYTE
 		EXTRN	b_:BYTE
@@ -58,17 +59,26 @@ farcall:
 
   pop cx  ; (bc) contains virtual page number to use
 
-  ;push the far return loader onto the stack so we'll return to it rather than the original caller
-  pop dx
+  ;replace the return address far return loader onto the stack so we'll return to it rather than the original caller
+  pop dx  ; dx - original return address
+
   mov ax, farRet
   push ax
 
+  ;push af
+  lahf
+  xchg  al, ah
+  push  ax
+  xchg  al, ah
+
+  ; swap to our hidden stack
   mov Word Ptr [ssBackup], ss
   mov ax, ds
   mov ss, ax
   mov Word Ptr [spBackup], sp
   mov sp, Word Ptr [internalSp]
 
+  ; check for stack overflow
   cmp sp, pageStack
   jnz skip
   jmp abort
@@ -80,18 +90,14 @@ skip:
   mov bx, Word Ptr [currentVirtualPage]
   push  bx
 
-  push  cx
-  pop bx
+  push cx
+  pop bx  ; copy address of page number to use from cx to bx
+
+  ; get number of virtual page to use into dx
   mov dl, Byte Ptr [cs:bx]
   ;ld c, (hl)
   ;ld b, 0
   ;call serialLnBC
-
-  ;push af
-  lahf
-  xchg  al, ah
-  push  ax
-  xchg  al, ah
 
   ;calculate which value in the jump table to use
   or  al, al  ; clear carry bit
@@ -123,34 +129,27 @@ skip:
   sahf
   mov ch, Byte Ptr [cs:bx]
   ;call serialLnBC
-  mov al, dl
-  pop dx
-
-  push  cx  ; store the address of the function to call on the stack for later
+  push cx
 
   ;change to the appropriate page
-  push  dx
-
-  mov dl, al
   mov al, Byte Ptr [currentVirtualPage]
-  mov dh, al
-  mov al, dl
-  mov Byte Ptr [currentVirtualPage], al
-  mov al, dh
+  mov Byte Ptr [currentVirtualPage], dl
 
   ; a = al = current, e = dl = desired
   call changePage
-  pop ax
-  xchg  al, ah
-  sahf
-
   pop cx
 
+  ;swap back to the regular stack
   mov ss, Word Ptr [ssBackup]
   mov Word Ptr [internalSp], sp
   mov sp, Word Ptr [spBackup]
 
-  push cx
+  ;pop af
+  pop ax
+  xchg  al, ah
+  sahf
+
+  push cx ; new function address to jump to
 
   ;restore all registers and jump to the function we want via ret
   mov bx, Word Ptr [deBackup]
@@ -181,11 +180,6 @@ abort2:
 
 changePage: ; is the virtual page currently in a ram page?
   cmp al, dl
-  jnz L@0
-  ret
-
-L@0:
-  cmp dl, 0
   jnz L@1
   ret
 
@@ -214,6 +208,13 @@ farRet:
   pop bx
   mov Word Ptr [deBackup], bx
 
+  ;push af
+  lahf
+  xchg  al, ah
+  push  ax
+  xchg  al, ah
+
+  ; swap to our hidden stack
   mov Word Ptr [ssBackup], ss
   mov ax, ds
   mov ss, ax
@@ -222,38 +223,25 @@ farRet:
 
   pop dx  ; get the virtual page number to return to from the stack
 
-  lahf
-  xchg al, ah
-  push ax
-  xchg al, ah
-
   mov al, Byte Ptr [currentVirtualPage]
+  mov Byte Ptr [currentVirtualPage], dl
 
-  lahf
-  xchg al, ah
-  push ax
-  xchg al, ah
-
-  mov al, dl
-  mov Byte Ptr [currentVirtualPage], al
-
-  pop ax
-  xchg al, ah
-  sahf
-
+  ; a = al = current, e = dl = desired
   call changePage
 
-  pop ax
-  xchg al, ah
-  sahf
+  pop dx	; get the original return address from our secondary stack
 
-  pop dx	; get the original return address from our secondary stack and put it back onto the main stack
-
+  ;swap back to the regular stack
   mov ss, Word Ptr [ssBackup]
   mov Word Ptr [internalSp], sp
   mov sp, Word Ptr [spBackup]
 
-  push dx
+  ;pop af
+  pop ax
+  xchg  al, ah
+  sahf
+
+  push dx ;put the original return address back onto the stack
 
   mov bx, Word Ptr [deBackup]
   push  bx

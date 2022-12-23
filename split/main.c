@@ -73,6 +73,11 @@ int main(int argc, char **argv) {
       setupWin32(&argc2, &argv2);
     #else
       setupDos();
+
+      #ifdef DOS_DAT
+        /* open the hash2 data file on startup */
+        openDat();
+      #endif
     #endif
   #else
     #if defined(__unix__) || defined(__LINUX__)
