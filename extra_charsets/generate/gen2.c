@@ -409,7 +409,7 @@ int main(int argc, char ** argv) {
 
 			case 3: {
 				if(codepoints[0] == 0x22) {
-					fprintf(intermediate, "%05x,", codepoint);
+					fprintf(intermediate, "%06x,", codepoint);
 
 					getCodepointsUTF8(input, &codepoints, &arrLength, &byteLength);
 
