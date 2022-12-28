@@ -46,18 +46,11 @@ querycsv.386: $(SOURCES)
 	upx querycsv --force-execve
 	mv querycsv querycsv.386
 
-bin2efcrt: bin2efcrt.c
-	export WATCOM=$(WATCOM); export PATH=$(WATCOM)/binl:$(PATH); export INCLUDE=$(WATCOM)/lh; wcl386 -os bin2efcrt.c
-	xxd -l128 -s 84 bin2efcrt | xxd -r -s -32 - bin2efcrt
-	echo "000002c: 02" | xxd -r - bin2efcrt
-	strip bin2efcrt
-	upx bin2efcrt --force-execve
-
 count:
 	wc *.c *.cc *.C *.cpp *.h *.hpp
 
 clean:
-	rm -f $(OBJECTS) querycsv querycsv.i386
+	rm -f $(OBJECTS) querycsv querycsv.386 querycsv.x64 querycsv.arm
 
 .PHONY: all
 .PHONY: count

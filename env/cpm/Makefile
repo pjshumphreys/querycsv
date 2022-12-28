@@ -14,15 +14,15 @@ launcher2.com: launcher2.c
 
 qrycsv1a.ovl: pager8080.asm libc.c
 	zcc +cpm -clib=8080 --math-mbf32_8080 -m -D__8080__ -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -o qrycsv1a.ovl pager8080.asm libc.c
-#	zcc +cpm -clib=8080 --math-mbf32_8080 -S -D__8080__ -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 --c-code-in-asm -o qrycsv1a.asm pager8080.asm libc.c
+# zcc +cpm -clib=8080 --math-mbf32_8080 -S -D__8080__ -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 --c-code-in-asm -o qrycsv1a.asm pager8080.asm libc.c
 
 qrycsv01.ovl: pager.asm libc.c
 	zcc +cpm -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -o qrycsv01.ovl pager.asm libc.c
-#	zcc +cpm -lm -S -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 --c-code-in-asm -o qrycsv01.asm pager.asm libc.c
+# zcc +cpm -lm -S -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 --c-code-in-asm -o qrycsv01.asm pager.asm libc.c
 
 qrycsv02.ovl: pager.asm libc.c
 	zcc +msx -subtype=msxdos2 -lm -m -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -D__Z88DK -o qrycsv02.ovl pager.asm libc.c
-#	zcc +msx -subtype=msxdos2 -lm -S -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -D__Z88DK --c-code-in-asm -o qrycsv02.asm pager.asm libc.c
+# zcc +msx -subtype=msxdos2 -lm -S -D__DISABLE_BUILTIN -U__STDC_VERSION__ -pragma-define:CRT_ENABLE_COMMANDLINE=0 -pragma-define:CLIB_EXIT_STACK_SIZE=3 -pragma-define:CLIB_OPEN_MAX=8 -D__Z88DK --c-code-in-asm -o qrycsv02.asm pager.asm libc.c
 
 output: querycsv.com pager.asm libc.c lexer2.c sql2.c querycsv.c build-cpm.js
 	node ./build-cpm.js

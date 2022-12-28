@@ -131,11 +131,9 @@ count:
 clean:
 	rm -rf makeheaders querycsv package.json node_modules package-lock.json gen.h ansimap.h atarimap.h cmnmap.h hash3.h petmap.h zxmap.h querycsv.c hash4a.c hash4b.c hash4c.c hash2.c hash2in*.h hash2out.h hash2.c sql.c lexer.c sql.h lexer.h dat/create dat/hash2dat.h dat/qrycsv00.ovl
 	find . -maxdepth 1 -type f \( -iname \*.o \) -exec rm -rf {} \;
-	cd env/html5 && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
-	cd env/posix && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.err -o -iname \*.o \) -exec rm -rf {} \;
-	#cd env/smalldos && mv dos.bak dos.c && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
+	cd env/html5 && make clean && find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.o \) ! -path './emcc.c' ! -path './helper.c' -exec rm -rf {} \;
+	cd env/posix && make clean && rm -rf querycsv; find . -maxdepth 1 -type f \( -iname \*.c -o -iname \*.h -o -iname \*.err -o -iname \*.o \) -exec rm -rf {} \;
 	cd env/smalldos && find . -maxdepth 1 ! -path './memorymap.txt' ! -path './dos.c' ! -path './libc.c' ! -path './lexer2.c' ! -path './sql2.c' ! -path './pager.asm' ! -path './build-dos.js' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
-	#cd env/smalldos && find . -maxdepth 1 ! -path './dos.c' ! -path './turboc.mak' ! -path './turboc.lnk' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/dos && find . -maxdepth 1 ! -path './dos.c' ! -path './direct.cfg' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/win32 && find . -maxdepth 1 ! -path './win32.c' ! -path './direct.cfg' ! -path './querycsv.ico' ! -path './querycsv.rc' ! -path './Makefile' ! -path '..' ! -path '.' -exec rm -rf {} \;
 	cd env/m68kmac && find . -type f ! -path './.finf/TEGlue.a' ! -path './TEGlue.s' ! -path './TEGlue.a' ! -path './.finf/QueryCSV.make' ! -path './QueryCSV.make' ! -path './CMakeLists.txt' ! -path './mac.h' ! -path './mac.c' ! -path './mac.r' ! -path './size.r' ! -path './blank.zip' -exec rm {} \; && find . -maxdepth 1 -type d ! -path '..' ! -path '.' ! -path './.finf' -exec rm -rf {} \; && mac2unix *
