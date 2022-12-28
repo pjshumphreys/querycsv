@@ -79,7 +79,7 @@ int parse_encoding2(char *encoding) {
   }
 
   else if(mystrnicmp("unicode", encoding, 8) == 0) {
-    return ENC_UTF8;
+    return ENC_UTF16LE;
   }
 
   else if(mystrnicmp("mbcs", encoding, 8) == 0) {
