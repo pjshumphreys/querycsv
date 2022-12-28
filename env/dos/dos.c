@@ -2,18 +2,31 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 #include <dos.h>  /* we'll be using the int86 function in dos.h to get the system codepage */
+
 #ifdef __TURBOC__
   #include <dir.h>
   #define _chdrive setdisk
 #else
   #include <direct.h>
 #endif
+
 #include <time.h>
+#include <fcntl.h>
+#include <io.h>
+
 #include "en_gb.h"
 
 #define FALSE 0
 #define TRUE  1
+
+#define ENC_UNKNOWN 0
+#define ENC_CP437 1
+#define ENC_CP850 2
+#define ENC_CP1252 3
+#define ENC_ASCII 7
+#define ENC_UTF16LE 9
 
 #define freeAndZero(p) { free(p); p = 0; }
 
@@ -24,12 +37,6 @@ extern char * origWd;
   extern FILE * datafile;
 #endif
 
-#define ENC_UNKNOWN 0
-#define ENC_CP437 1
-#define ENC_CP850 2
-#define ENC_CP1252 3
-#define ENC_ASCII 7
-#define ENC_UTF16LE 9
 
 static int lastWasErr = FALSE;
 static int newline = FALSE;

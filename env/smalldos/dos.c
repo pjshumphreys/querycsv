@@ -6,4 +6,3 @@ int consoleEncoding = ENC_UNKNOWN;
 FILE* mystdin = NULL;
 FILE* mystdout = NULL;
 FILE* mystderr = NULL;
-
