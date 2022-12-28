@@ -32,7 +32,7 @@ extern char buffer[16384];
 
 #define freeAndZero(p) { free(p); p = 0; }
 
-extern short int pageNumber;
+extern short int currentVirtualPage;
 extern short int success;
 
 char pageName[13] = { 0 };
@@ -59,6 +59,12 @@ extern FILE* mystderr;
   extern FILE* datafile;
 #endif
 
+int main2(int argc, char** argv);
+
+int main(int argc, char** argv) {
+  return main2(argc, argv);
+}
+
 void atexit_dos(void) {
   _chdrive(origDrive);
 
@@ -73,38 +79,30 @@ void atexit_dos(void) {
 }
 
 void dosload(void) {
-  if(pageNumber) {
-    sprintf(pageName, "qcsv%02dpc.ovl", pageNumber);
+  sprintf(pageName, "qcsv%02dpc.ovl", currentVirtualPage);
 
-    if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
-      fprintf(stderr, "Couldn't find %s", pageName);
-      fflush(stderr);
-      success = 0;
-      return;
-    }
+  if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
+    fprintf(stderr, "Couldn't find %s", pageName);
+    fflush(stderr);
+    success = 0;
+    return;
+  }
 
-    success = _dos_read(handle, buffer, 16384, &success2);
-    _dos_close(handle);
+  success = _dos_read(handle, buffer, 16384, &success2);
+  _dos_close(handle);
 
-    if(success != 0 || success2 != 16384) {
-      fprintf(stderr, "Couldn't read from %s", pageName);
-      fflush(stderr);
-      success = 0;
-      return;
-    }
+  if(success != 0 || success2 != 16384) {
+    fprintf(stderr, "Couldn't read from %s", pageName);
+    fflush(stderr);
+    success = 0;
+    return;
   }
 
   success = 1;
 }
 
-void macYield(int num) {
+void macYield(void) {
   const char * spinner = "...ooOOoo";
-  FILE * pFile = fopen("log.txt", "a");
-
-  if(pFile != NULL) {
-    fprintf(pFile, "%05d\n", num);
-    fclose (pFile);
-  }
 
   if(startOfLine) {
     if(cursorOutput) {
@@ -202,12 +200,6 @@ int fprintf_dos(FILE *stream, const char *format, ...) {
   va_end(args);
 
   return retval;
-}
-
-int main2(int argc, char** argv);
-
-int main(int argc, char** argv) {
-  return main2(argc, argv);
 }
 
 void setupDos(void) {

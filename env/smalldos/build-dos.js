@@ -131,9 +131,7 @@ const rodataLabels = [];
 
 let pageSize;
 
-//
-
-const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -zdf -ob -oh -ou -ot -or -od -ox';
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ot -or -oh -ob -ox';
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
@@ -442,11 +440,11 @@ function buildData () {
   });
 
   lineReader.on('line', line => {
-    if ((/^_NULL/).test(line) && codeOffset === 0) {
-      const match = line.match(/_NULL {18}BEGDATA {8}DGROUP {9}([^:]+)[:]0000 {7}0000(.+)/);
+    if ((/ _buffer$/).test(line) && codeOffset === 0) {
+      const match = line.match(/^([^:]+):([^ ]+)      _buffer$/);
 
       if(match !== null) {
-        codeOffset = parseInt(match[1], 16) * 16;
+        codeOffset = parseInt(match[1], 16) * 16 + parseInt(match[2], 16);
       }
     }
     else if ((/[:]([0-9a-f]+)[ *+] {5}(funcstart)/).test(line)) {
@@ -512,11 +510,11 @@ function compileLibC () {
 
   // name, pageNo, trampolineAddr, pageAddr, callMethod
 
-  fs.writeFileSync('build/lookupTable.inc', functionsList.reduce((acc, item) => {
+  fs.writeFileSync('build/lookupTable.inc', functionsList.reduce((acc, item, index) => {
     if (hasProp(ignoreFunctions, item[0])) {
       return acc;
     }
-    return acc + `dw 0x${('0000' + ((item[3] | 0)).toString(16)).slice(-4).toUpperCase()}  ; ${item[0]}
+    return acc + `dw 0x${('0000' + ((item[3] | 0)).toString(16)).slice(-4).toUpperCase()}  ; ${(index)*4+30} (${('0000' + ((index)*4+30).toString(16)).slice(-4)}) - ${item[0]}
 `;
   }, ''), 'utf8');
 
