@@ -36,7 +36,7 @@ extern char buffer[16384];
 extern short int currentVirtualPage;
 extern short int success;
 
-char pageName[13] = { 0 };
+char pageName[11] = { 0 };
 int handle;
 unsigned int success2;
 
@@ -135,7 +135,7 @@ void setupDos(void) {
 }
 
 void dosload(void) {
-  sprintf(pageName, "qcsv%02dpc.ovl", currentVirtualPage);
+  sprintf(pageName, "qcsv%02d.ovl", currentVirtualPage);
 
   if(_dos_open(pageName, O_RDONLY, &handle) != 0) {
     fprintf(mystderr, "Couldn't find %s", pageName);

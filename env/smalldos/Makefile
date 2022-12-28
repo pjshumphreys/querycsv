@@ -3,8 +3,8 @@ headers = $(wildcard *.h)
 
 qrycsv16.exe: pager.asm $(SOURCES) $(HEADERS)
 	node ./build-dos.js
-	mv build/qrycsv.exe output/
-	cp qrycsv00.bin output/qcsv00pc.ovl
+	mv build/qcsv.exe output/
+	cp qcsv00.bin output/qcsv00.ovl
 
 .PHONY: clean
 clean:

@@ -1,6 +1,6 @@
 /*
 wasm -0 pager.asm
-wcl -ms -0 -os -fpc -s -fm=qrycsv16 -fe=qrycsv16 pager.obj libc.c
+wcl -ms -0 -os -fpc -s -fm=qcsv -fe=qcsv pager.obj libc.c
 
 wcl -mt -0 -os -s -fm dosload.c
 hexdump -v -e '8/1 "0x%02X, "' -e '"\n"' ./dosload.com | sed -e 's/^/db /g;s/, 0x  //g;s/, /,/g;s/,$//g' >dosload.inc
@@ -435,7 +435,7 @@ function buildData () {
   compileLibC();
 
   const lineReader = readline.createInterface({
-    input: fs.createReadStream('build/qrycsv16.map')
+    input: fs.createReadStream('build/qcsv.map')
   });
 
   lineReader.on('line', line => {
@@ -518,7 +518,7 @@ function compileLibC () {
   }, ''), 'utf8');
 
   /* compile the data immediately above the function jump table */
-  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl ' + cflags + ' -fm=qrycsv16 -fe=qrycsv pager.obj libc.c');
+  execSync('cp libc.c en_gb.h pager.asm build/;cd build;wasm -0 -fo=pager.obj pager.asm; wcl ' + cflags + ' -fm=qcsv -fe=qcsv pager.obj libc.c');
 }
 
 function writeROLinkScript (offset) {
@@ -725,7 +725,7 @@ function compilePages (pages) {
   console.log('compilePages');
 
   Promise.all(pages.map((elem, index) => (new Promise(resolve => {
-    addDefines('qcsv' + ('00' + (index + 1)).slice(-2) + 'pc', elem.map(elem2 => elem2.name), 'h', true);
+    addDefines('qcsv' + ('00' + (index + 1)).slice(-2), elem.map(elem2 => elem2.name), 'h', true);
 
     /*
     if (fs.statSync('build/obj2/page' + (index + 3) + '_code_compiler.bin').size > (16384 - rodataSize)) {
@@ -735,7 +735,7 @@ function compilePages (pages) {
     */
 
     const lineReader = readline.createInterface({
-      input: fs.createReadStream('build/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.map')
+      input: fs.createReadStream('build/qcsv' + ('00' + (index + 1)).slice(-2) + '.map')
     });
 
     lineReader.on('line', line => {
@@ -760,13 +760,13 @@ function compilePages (pages) {
     });
 
     lineReader.on('close', () => {
-      execSync('dd if=/dev/zero bs=1 count=16384 of=output/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.ovl');
+      execSync('dd if=/dev/zero bs=1 count=16384 of=output/qcsv' + ('00' + (index + 1)).slice(-2) + '.ovl');
 
-      execSync('dd if=build/obj2/qcsv' + ('00' + (index + 1)).slice(-2) + 'pc.bin bs=' + codeOffset + ' skip=1 of=output/qcsv' +
-      ('00' + (index + 1)).slice(-2) + 'pc.ovl conv=notrunc');
+      execSync('dd if=build/obj2/qcsv' + ('00' + (index + 1)).slice(-2) + '.bin bs=' + codeOffset + ' skip=1 of=output/qcsv' +
+      ('00' + (index + 1)).slice(-2) + '.ovl conv=notrunc');
 
       execSync('dd if=build/rodata.bin of=output/qcsv' +
-      ('00' + (index + 1)).slice(-2) + 'pc.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
+      ('00' + (index + 1)).slice(-2) + '.ovl bs=1 seek=' + (16384 - rodataSize) + ' conv=notrunc');
 
       resolve();
     });
