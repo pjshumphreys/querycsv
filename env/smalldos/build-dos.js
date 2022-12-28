@@ -151,7 +151,6 @@ function start () {
     'mkdir -p build/ro;' +
     'mkdir -p build/obj;' +
     'mkdir -p build/obj2;' +
-    'mkdir -p build/fcb;' +
     'mkdir -p output;' +
     'rm -f build/rodata2.asm;' +
     'rm -f build/data.inc;' +

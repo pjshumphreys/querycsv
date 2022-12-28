@@ -94,11 +94,6 @@ void setupDos(void) {
   origDrive = _getdrive();
   origWd = getcwd(NULL, PATH_MAX + 1);
 
-  #ifdef DOS_DAT
-    /* open the hash2 data file on startup */
-    openDat();
-  #endif
-
   /* set the working directory back to its original value at exit */
   atexit(atexit_dos);
 }
