@@ -227,6 +227,11 @@ it becomes needed and because it's useful for debugging */
 
     #ifdef DOS_DAT
       void openDat(void);
+
+      /* give the smalldos build a spinner on the console */
+      void macYield(void);
+      #undef MAC_YIELD
+      #define MAC_YIELD macYield();
     #endif
 
     #define fputs fputs_dos
