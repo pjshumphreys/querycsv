@@ -1,0 +1,9 @@
+select
+  digits,
+  codepoint,
+  priority,
+  row_number() as number
+from 'resultsa.csv' as a
+join 'resultsd.csv' as b on b.sorted = a.digits
+order by priority, mapped collate 'digits'
+into 'resultse.csv'

@@ -1,0 +1,7 @@
+select
+  min(composite) as min_composite,
+  codepoint collate 'digits' as sorted
+from
+  'resultsb.csv'
+group by sorted
+into 'resultsc.csv'

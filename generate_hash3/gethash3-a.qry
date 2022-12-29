@@ -1,0 +1,9 @@
+select
+  codepoint,
+  slice(concat('000000',codepoint),-6) as digits,
+  priority
+from
+  'UnicodeData.csv' options 'e'
+where
+  priority+1 > 1
+into 'resultsa.csv'
