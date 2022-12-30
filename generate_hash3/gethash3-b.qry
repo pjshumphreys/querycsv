@@ -1,6 +1,5 @@
 select
   codepoint,
-  expanded,
   composite,
   priority,
   row_number() as number

@@ -1,7 +1,6 @@
 select
   codepoint,
-  slice(concat('000000', codepoint), -6) as expanded,
-  min(slice(concat('000000', case when swap is not null then swap else codepoint end), -6) ) collate 'digits' as composite,
+  min(slice(concat('000000', case when swap is not null then swap else codepoint end), -6) collate 'digits') as composite,
   priority
 from
   'UnicodeData.csv' options 'e'

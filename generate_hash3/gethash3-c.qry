@@ -3,5 +3,5 @@ select
   priority,
   number
 from 'resultsb.csv'
-order by expanded collate 'digits'
+order by slice(concat('000000', codepoint), -6) collate 'digits'
 into 'hash3.csv'
