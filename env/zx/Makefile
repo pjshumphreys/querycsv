@@ -18,8 +18,8 @@ archive.tap: qcsv06zx.ovl
 	sh -c "(echo archive.tap > archived.txt) && (ls querycsv >> archived.txt) && (ls *.ovl >> archived.txt) && (echo "" >> archived.txt) && (cat archived.txt | ./archiver)"
 	rm archived.txt
 
-qcsv00zx.ovl: qrycsv00.bin
-	cp qrycsv00.bin qcsv00zx.ovl
+qcsv00zx.ovl: qcsv00zx.bin
+	cp qcsv00zx.bin qcsv00zx.ovl
 
 qcsv01zx.ovl: qcsv06zx.ovl
 	cd plus3dos && make

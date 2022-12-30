@@ -1,7 +1,0 @@
-select
-  concat('0x', codepoint) as codepoint,
-  priority,
-  number
-from 'resultse.csv'
-order by digits collate 'digits'
-into 'hash3.csv'

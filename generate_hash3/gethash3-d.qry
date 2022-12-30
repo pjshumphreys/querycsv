@@ -1,7 +1,0 @@
-select
-  min_composite collate 'digits' as mapped,
-  sorted
-from
-  'resultsc.csv' as a
-order by mapped
-into 'resultsd.csv'

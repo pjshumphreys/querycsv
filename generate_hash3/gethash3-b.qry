@@ -1,10 +1,9 @@
 select
-  digits as codepoint,
-  case when swap is not null then slice(concat('000000', swap), -6) else digits end collate 'digits' as composite
-from
-  'resultsa.csv' as a
-left join
-  'swaps.csv' as b
-  on orig = codepoint
-order by digits, composite
+  codepoint,
+  expanded,
+  composite,
+  priority,
+  row_number() as number
+from 'resultsa.csv' as a
+order by priority, composite collate 'digits'
 into 'resultsb.csv'
