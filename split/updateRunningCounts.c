@@ -59,7 +59,7 @@ void updateRunningCounts(
                   if(strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&tempString2),
-                    2,
+                    currentReference->reference.calculatedPtr.expressionPtr->caseSensitive,
                     (void (*)(void))getUnicodeChar,
                     (void (*)(void))getUnicodeChar
                   ) == 0) {
@@ -167,7 +167,7 @@ void updateRunningCounts(
                 if(currentResultColumn->groupText == NULL || strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
-                    2,    /* TRUE, */
+                    currentReference->reference.calculatedPtr.expressionPtr->caseSensitive,
                     (void (*)(void))getUnicodeChar,
                     (void (*)(void))getUnicodeChar
                   ) == -1) {
@@ -185,7 +185,7 @@ void updateRunningCounts(
                 if(currentResultColumn->groupText == NULL || strCompare(
                     (unsigned char **)(&tempString),
                     (unsigned char **)(&(currentResultColumn->groupText)),
-                    2,    /* TRUE, */
+                    currentReference->reference.calculatedPtr.expressionPtr->caseSensitive,
                     (void (*)(void))getUnicodeChar,
                     (void (*)(void))getUnicodeChar
                   ) == 1) {
