@@ -25,7 +25,7 @@ int getCurrentDate(char **retval) {
     freeAndZero(output);
 
     return FALSE;
-  };
+  }
 
   /* place the utc offset in the output string. */
   /* %z unfortunately can't be used as it doesn't work properly */
@@ -48,7 +48,7 @@ int getCurrentDate(char **retval) {
     freeAndZero(output);
 
     return FALSE;
-  };
+  }
 #endif
 
   if(*retval) {

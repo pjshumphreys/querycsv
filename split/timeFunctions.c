@@ -72,7 +72,12 @@ int d_tztime(
     minute_difference = difference % 60;
     hour_difference = (difference - minute_difference)/60;
 
-    if(hour_difference < 0) {
+    if(hour_difference < -12 || hour_difference > 12) {
+      memcpy((void*)lcl, (void*)gm, sizeof(struct tm));
+      minute_difference = 0;
+      hour_difference = 0;
+    }
+    else if(hour_difference < 0) {
       format = format2;
     }
 
