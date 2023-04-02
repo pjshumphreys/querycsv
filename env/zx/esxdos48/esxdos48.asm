@@ -9,6 +9,7 @@ PUBLIC _myexit
 
 VARS equ 0x5c4b
 ERR_NR equ 0x5c3a
+X_PTR equ 0x5c5f
 
 jr copydata
 

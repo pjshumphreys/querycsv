@@ -1,6 +1,7 @@
 include "pager.map"
 
 ERR_NR equ 0x5c3a
+X_PTR equ 0x5c5f
 
 org 0xe4c0
   dec l

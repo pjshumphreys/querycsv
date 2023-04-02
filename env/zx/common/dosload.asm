@@ -57,7 +57,7 @@ bcdloop:
   ld bc, 0x0005  ; use file 0 ; access: shared-read
   ld de, 0x0001  ; create action: error ; open action: read header
   ld hl, pagename  ; filename
-  ld iy, DOS_OPEN  ; +3DOS call ID
+  ld ix, DOS_OPEN  ; +3DOS call ID
   call dodos
   push af
   jr nc, finish  ; exit if error
@@ -69,19 +69,19 @@ bcdloop:
   ld c, (hl)  ; ram page that's specified in the page queue
   ld de, 16384  ; amount of data to load
   ld hl, 0xc000
-  ld iy, DOS_READ  ; +3DOS call ID
+  ld ix, DOS_READ  ; +3DOS call ID
   call dodos
   push af  ; close the file either way, but keep any error code for later
 
   ; Close the file
   ld b, 0  ; file 0
-  ld iy, DOS_CLOSE  ; +3DOS call ID
+  ld ix, DOS_CLOSE  ; +3DOS call ID
   call dodos
   jr c, finish  ; exit if no error
 
   ; Otherwise, abandon file 0
   ld b, 0  ; file 0
-  ld iy, DOS_ABANDON  ; +3DOS call ID
+  ld ix, DOS_ABANDON  ; +3DOS call ID
   call dodos
 
 finish:

@@ -25,7 +25,7 @@ testbanks:
   ei
   pop af
 
-  push iy
+  push ix
   pop hl
   rst RST_HOOK
   defb HOOK_PACKAGE
@@ -37,7 +37,8 @@ testbanks:
   ei
   pop af
 
-  ld iy, ERR_NR
+  ;ld iy, ERR_NR
+  ;ld ix, (X_PTR)
   ret
 
 end:

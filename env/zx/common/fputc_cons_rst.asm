@@ -23,11 +23,11 @@ direct:
   ld hl, SCR_CT  ;disable the scroll? prompt
   ld (hl), a
   pop af
-  push iy    ;save callers iy
-  ld iy, ERR_NR
+  ;push iy    ;save callers iy
+  ;ld iy, ERR_NR
   call call_rom3
   defw 16
-  pop iy
+  ;pop iy
   ret
 not_cont:
   dec (hl)

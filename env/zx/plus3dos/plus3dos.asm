@@ -12,6 +12,7 @@ VARS equ 0x5c4b
 
 DOS_SET_1346 equ 0x013f
 ERR_NR equ 0x5c3a   ; BASIC system variables
+X_PTR equ 0x5c5f
 
 ; copy all the data from this page to elsewhere in the memory map
 ;copydata:
@@ -103,7 +104,7 @@ inf:
   ; shrink the workspaces to only use page 6
   ld de, 0x601c ; just first half of page 6
   ld hl, 0x7c04 ; just second half of page 6
-  ld iy, DOS_SET_1346
+  ld ix, DOS_SET_1346
   call dodos
 
   ld a, 1

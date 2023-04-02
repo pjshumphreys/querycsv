@@ -5,7 +5,7 @@ include "equs.inc"
 
 dodos_plus3:
 ;
-;IY holds the address of the DOS routine to be run. All other registers are
+;IX holds the address of the DOS routine to be run. All other registers are
 ;passed intact to the DOS routine and are returned from it.
 ;
 ;Stack is somewhere in central 32K (conforming to DOS requirements), so save AF
@@ -20,9 +20,9 @@ dodos_plus3:
   call switchPage
   pop af
 
-  ld (jumptoit+1), iy
+  ld (jumptoit+1), ix
 
-  call jumptoit  ; go sub routine address in IY
+  call jumptoit  ; go sub routine address in IX
 
   push af  ; return from JP (IY) will be to here
   ld a, (bankmBackup2)
@@ -30,5 +30,6 @@ dodos_plus3:
   call switchPage
   pop af
 
-  ld iy, ERR_NR
+  ;ld iy, ERR_NR
+  ;ld ix, (X_PTR)
   ret

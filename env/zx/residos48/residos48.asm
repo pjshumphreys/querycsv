@@ -9,6 +9,7 @@ PUBLIC _toggleSpinner
 PUBLIC _myexit
 
 VARS equ 0x5c4b
+ERR_NR equ 0x5c3a   ; BASIC system variables
 
 RESI_GETPAGER equ 0x031c
 RESI_FINDBASIC equ 0x0322
@@ -36,7 +37,7 @@ copydata:
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
-  ld iy, RESI_GETPAGER  ; +3DOS call ID
+  ld ix, RESI_GETPAGER  ; +3DOS call ID
   call doresi3
   jr c, suceeded  ; call failed if Fc=0
 
@@ -53,14 +54,14 @@ failed:
 
 suceeded:
   ; get the low bank number of the basic rom
-  ld iy, RESI_FINDBASIC
+  ld ix, RESI_FINDBASIC
   call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (basicBank), a  ; save for later
   ld (basicBank2), a ; copy used to terminate the unload loop run at exit
   ld (defaultBank), a  ; save for later
 
-  ld iy, RESI_ALLOC  ; get free low bank
+  ld ix, RESI_ALLOC  ; get free low bank
   call doresi3
   jr nc, failed2  ; call failed if Fc=0
   ld (pageLocations), a ; ensure the default bank memory is freed at exit
@@ -255,7 +256,7 @@ freeLoop:
   jr z, freeExit
   push bc
   push hl
-  ld iy, RESI_DEALLOC
+  ld ix, RESI_DEALLOC
   call doresi
   pop hl
   pop bc

@@ -28,7 +28,7 @@ loadFromDisk2:
   call dosload  ; dosload re-enables interupts before it returns back to here...
   di ; ... so disable interrupts again
 
-  ld iy, RESI_ALLOC   ; get free bank
+  ld ix, RESI_ALLOC   ; get free bank
   call doresi3
   jr nc, exitLFD   ; call failed if Fc=0
   pop hl
@@ -72,11 +72,12 @@ exitLFD:
 doresi3:  ; special startup version that doesn't swap out memory until the relevant page numbers have been obtained
   exx
   ld b, PKG_RESIDOS
-  push iy
+  push ix
   pop hl
   rst RST_HOOK
   defb HOOK_PACKAGE
-  ld iy, ERR_NR
+  ;ld iy, ERR_NR
+  ;ld ix, (X_PTR)
   ret
 
 ;---------------------------------------

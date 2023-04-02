@@ -22,12 +22,14 @@ PUBLIC pagename
 port1 equ 0x7ffd  ; address of ROM/RAM switching port in I/O map
 bankm equ 0x5b5c  ; system variable that holds the last value output to 7FFDh
 ERR_NR equ 0x5c3a   ; BASIC system variables
+X_PTR equ 0x5c5f
 SCR_CT equ 0x5c8c
 RST_HOOK equ 8
 
 PUBLIC port1
 PUBLIC bankm
 PUBLIC ERR_NR
+PUBLIC X_PTR
 PUBLIC SCR_CT
 PUBLIC RST_HOOK
 

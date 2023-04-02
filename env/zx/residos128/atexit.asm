@@ -1,6 +1,7 @@
 include "pager.map"
 
 ERR_NR equ 0x5c3a
+X_PTR equ 0x5c5f
 
 RESI_DEALLOC equ 0x0328
 
@@ -53,7 +54,7 @@ freeLoop:
   jr z, freeExit
   push bc
   push hl
-  ld iy, RESI_DEALLOC
+  ld ix, RESI_DEALLOC
   call doresi
   pop hl
   pop bc

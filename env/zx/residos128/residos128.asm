@@ -18,6 +18,7 @@ RESI_ALLOC equ 0x0325
 HOOK_PACKAGE equ 0xfb
 PKG_RESIDOS equ 0
 ERR_NR equ 0x5c3a   ; BASIC system variables
+X_PTR equ 0x5c5f
 RST_HOOK equ 8
 
 ; copy all the data from this page to elsewhere in the memory map
@@ -110,7 +111,7 @@ inf:
   ; setup the residos pager
   ld de, mypager2 ; location for paging routine
   ld (mypager+1), de  ; update the jump table record
-  ld iy, RESI_GETPAGER  ; +3DOS call ID
+  ld ix, RESI_GETPAGER  ; +3DOS call ID
   call doresi3
   jr c, suceeded  ; call failed if Fc=0
 
@@ -127,14 +128,14 @@ failed:
 
 suceeded:
   ; get the low bank number of the basic rom
-  ld iy, RESI_FINDBASIC
+  ld ix, RESI_FINDBASIC
   call doresi3
   jr nc, failed  ; call failed if Fc=0
   ld (basicBank), a  ; save for later
   ld (basicBank2), a ; copy used to terminate the unload loop run at exit
   ld (defaultBank), a  ; save for later
 
-  ld iy, RESI_ALLOC  ; get free low bank
+  ld ix, RESI_ALLOC  ; get free low bank
   call doresi3
   jr nc, failed2  ; call failed if Fc=0
   ld (pageLocations), a ; ensure the default bank memory is freed at exit
@@ -143,7 +144,7 @@ failed2:
   ; shrink the workspaces to only use page 6
   ld de, 0x601c ; just first half of page 6
   ld hl, 0x7c04 ; just second half of page 6
-  ld iy, DOS_SET_1346
+  ld ix, DOS_SET_1346
   call dodos
 
   ; Copy virtual pages into low banks until either we've done them all or we can't allocate any more memory
@@ -159,7 +160,7 @@ loopAlloc:
   jr z, skipTo6
   cp 0  ; Exit the loop if all pages could be stored in low banks
   jr z, startup3
-  ld iy, RESI_ALLOC   ; get free bank
+  ld ix, RESI_ALLOC   ; get free bank
   call doresi
   jr nc, startup2   ; call failed if Fc=0
   pop hl
@@ -331,11 +332,12 @@ intSetup:
 doresi3:  ; special startup version that doesn't swap out memory until the relevant page numbers have been obtained
   exx
   ld b, PKG_RESIDOS
-  push iy
+  push ix
   pop hl
   rst RST_HOOK
   defb HOOK_PACKAGE
-  ld iy, ERR_NR
+  ;ld iy, ERR_NR
+  ;ld ix, (X_PTR)
   ret
 
 first:
