@@ -158,7 +158,7 @@ void dosload(void) {
 }
 
 void macYield(void) {
-  const char * spinner = "...ooOOoo";
+  const char * spinner = ".oOo.oOo";
 
   if(startOfLine) {
     if(cursorOutput) {
@@ -167,7 +167,7 @@ void macYield(void) {
 
     fputc(spinner[currentWaitCursor], mystderr);
     fflush(mystderr);
-    currentWaitCursor = (currentWaitCursor + 1) % 9;
+    currentWaitCursor = (currentWaitCursor + 1) % 8;
 
     cursorOutput = TRUE;
   }

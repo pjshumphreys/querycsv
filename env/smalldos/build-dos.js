@@ -131,7 +131,7 @@ const rodataLabels = [];
 
 let pageSize;
 
-const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -mc -fpc -0 -ot -or -oh -ob -ox';
+const cflags = '-dMICROSOFT=1 -dDOS_DAT=1 -dSMALLDOS=1 -mc -fpc -0 -ot -or -oh -ob -ox';
 
 if (fs.existsSync('querycsv.c')) {
   /* The first action to initiate */
