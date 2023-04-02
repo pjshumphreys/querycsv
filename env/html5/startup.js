@@ -22,7 +22,7 @@ var WORKERFILENAME = 'worker.js';
       };
 
     a([
-        'extern/jquery-1.11.3.js'
+        'extern/jquery-3.5.0.js'
       ], b);
   },
   b = setInterval(function() {
