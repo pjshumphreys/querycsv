@@ -32,7 +32,7 @@ recompile the cc65 standard library, so the format specifiers need to be in uppe
 #define TDB_UNTITLED_COLUMN "_Column " D_STRING
 
 #ifdef SMALLDOS
-  #define PROGNAME "querycsv"
+  #define PROGNAME "qcsv"
 #else
   #define PROGNAME S_STRING
 #endif
