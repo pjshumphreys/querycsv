@@ -155,6 +155,8 @@ but hasn't actually been needed up to now. It's being kept just in case
 it becomes needed and because it's useful for debugging */
 #define MAC_YIELD
 
+#define HAS_RTC
+
 #if defined(__unix__) || defined(__LINUX__)
   #ifdef EMSCRIPTEN
     #include <setjmp.h>     /* jmp_buf, setjmp, longjmp */
@@ -307,6 +309,9 @@ it becomes needed and because it's useful for debugging */
     #define YYTYPE_UINT16 unsigned int
     #define YYTYPE_INT16 int
 
+    /* BBC Micro doesn't have a built in real time clock */
+    #undef HAS_RTC
+
     /* These aren't in norcroft version 2's stdlib.h */
     #define EXIT_FAILURE 1
     #define EXIT_SUCCESS 0
@@ -418,6 +423,9 @@ it becomes needed and because it's useful for debugging */
 
   #define HEAP_FREE 0
   #define HEAP_ALLOCED 1
+
+  /* ZX Spectrum and most CP/M machines don't have a built in real time clock */
+  #undef HAS_RTC
 
   /* malloc/free related structures */
   struct heapItem {
@@ -551,6 +559,9 @@ it becomes needed and because it's useful for debugging */
   #define YY_NO_UNISTD_H 1
   #define HAS_VSNPRINTF /* although cc65 doesn't have floating point,
   at least it has vsnprintf*/
+
+  /* C64 doesn't have a built in real time clock */
+  #undef HAS_RTC
 
   /* Mac style newlines by default */
   #undef PRM_DEFAULT

@@ -1,7 +1,7 @@
 
 /* get localtime, gmtime and utc offset string from a time_t. allocate/free memory as needed */
 /* any of the last three parameters can be skipped by passing null */
-#if !(defined(__CC65__) || defined(__Z88DK))
+#ifdef HAS_RTC
 const char format1[] = "+%02i%02i";
 const char format2[] = "%03i%02i";
 int d_tztime(

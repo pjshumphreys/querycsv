@@ -1,6 +1,6 @@
 int getCurrentDate(char **retval) {
   char *output = NULL;
-#if defined(__CC65__) || defined(__Z88DK)
+#ifndef HAS_RTC
   /*the commodore 64 doesn't have a real time clock, so why bother including time functions? */
   output = mystrdup("1970-01-01T00:00:00+0000");
 #else
